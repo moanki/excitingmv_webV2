@@ -1,7 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Inter, Playfair_Display } from "next/font/google";
 
 import "@/app/globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans"
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-serif"
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://excitingmv-web-v2.vercel.app"),
@@ -16,17 +27,19 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>
+      <body className={`${inter.variable} ${playfair.variable}`}>
         <header className="topbar">
           <div className="shell topbar-inner">
-            <Link href="/" className="brand">
-              Exciting Maldives
+            <Link href="/" className="brand-wrap">
+              <span className="brand-kicker">Luxury Travel Network</span>
+              <span className="brand">Exciting Maldives</span>
             </Link>
             <nav className="nav" aria-label="Primary">
               <Link href="/about">About</Link>
               <Link href="/contact">Contact</Link>
               <Link href="/resorts">Resorts</Link>
               <Link href="/partner/login">Partner Login</Link>
+              <Link href="/admin/login">Admin Center</Link>
               <Link href="/partner/register" className="button">
                 Become a Partner
               </Link>
@@ -35,8 +48,17 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </header>
         {children}
         <footer className="footer">
-          <div className="shell">
-            <p>Luxury resort partnerships, protected trade resources, and curated Maldives expertise.</p>
+          <div className="shell footer-grid">
+            <div>
+              <p className="eyebrow">Exciting Maldives</p>
+              <p>Luxury resort partnerships, protected trade resources, and curated Maldives expertise.</p>
+            </div>
+            <div className="footer-links">
+              <Link href="/about">About</Link>
+              <Link href="/contact">Contact</Link>
+              <Link href="/partner/login">Partner Login</Link>
+              <Link href="/admin/login">Admin Center</Link>
+            </div>
           </div>
         </footer>
       </body>

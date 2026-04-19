@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { logoutFromAdmin } from "@/app/admin/login/actions";
+
 const navItems = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/partners", label: "Partners" },
@@ -22,6 +24,9 @@ export default function AdminLayout({ children }: Readonly<{ children: React.Rea
               {item.label}
             </Link>
           ))}
+          <form action={logoutFromAdmin}>
+            <button type="submit">Logout</button>
+          </form>
         </nav>
       </aside>
       <div className="dashboard">{children}</div>
