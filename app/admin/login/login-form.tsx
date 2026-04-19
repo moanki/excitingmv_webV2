@@ -12,7 +12,7 @@ export function AdminLoginForm({ next }: { next: string }) {
       <input type="hidden" name="next" value={next} />
       <label className="field">
         Email
-        <input name="email" type="email" placeholder="superadmin@excitingmaldives.com" required />
+        <input name="email" type="email" placeholder="superadmin@excitingmv.com" required />
       </label>
       <label className="field">
         Password
