@@ -73,6 +73,7 @@ export default function HomePage() {
               <p className="muted">{highlight.description}</p>
             </article>
           ))}
+        </div>
       </section>
 
       <section className="shell section">
@@ -92,9 +93,7 @@ export default function HomePage() {
               <p className="eyebrow">{resort.location}</p>
               <h3>{resort.name}</h3>
               <p className="muted">{resort.summary}</p>
-              <p className="card-meta">
-                {resort.category} • {resort.transferType}
-              </p>
+              <p className="card-meta">{resort.category} - {resort.transferType}</p>
               <div className="card-actions">
                 <Link href={`/resorts/${resort.slug}`} className="button-muted">
                   View Resort
