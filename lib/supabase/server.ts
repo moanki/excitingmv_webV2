@@ -5,21 +5,24 @@ import { env } from "@/lib/env";
 
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
-  type CookieSetOptions = Omit<Parameters<typeof cookieStore.set>[0], "name" | "value">;
 
   return createServerClient(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     {
       cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+        getAll() {
+          return cookieStore.getAll();
         },
-        set(name: string, value: string, options: CookieSetOptions) {
-          cookieStore.set({ name, value, ...options });
-        },
-        remove(name: string, options: CookieSetOptions) {
-          cookieStore.set({ name, value: "", ...options });
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Server Components cannot always persist cookies directly.
+            // Middleware should own refresh persistence when auth is enabled.
+          }
         }
       }
     }
