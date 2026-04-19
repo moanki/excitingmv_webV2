@@ -5,6 +5,7 @@ import { env } from "@/lib/env";
 
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
+  type CookieSetOptions = Omit<Parameters<typeof cookieStore.set>[0], "name" | "value">;
 
   return createServerClient(
     env.NEXT_PUBLIC_SUPABASE_URL,
@@ -14,10 +15,10 @@ export async function createSupabaseServerClient() {
         get(name: string) {
           return cookieStore.get(name)?.value;
         },
-        set(name: string, value: string, options) {
+        set(name: string, value: string, options: CookieSetOptions) {
           cookieStore.set({ name, value, ...options });
         },
-        remove(name: string, options) {
+        remove(name: string, options: CookieSetOptions) {
           cookieStore.set({ name, value: "", ...options });
         }
       }

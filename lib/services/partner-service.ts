@@ -1,7 +1,7 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { ServiceResult } from "@/lib/types";
-import type { partnerRegistrationSchema } from "@/lib/validations";
 import { sendNotificationEmail } from "@/lib/services/email-service";
+import { partnerRegistrationSchema } from "@/lib/validations";
 import type { z } from "zod";
 
 type PartnerRegistrationInput = z.infer<typeof partnerRegistrationSchema>;

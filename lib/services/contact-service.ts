@@ -1,6 +1,6 @@
 import type { ServiceResult } from "@/lib/types";
-import type { contactSchema } from "@/lib/validations";
 import { sendNotificationEmail } from "@/lib/services/email-service";
+import { contactSchema } from "@/lib/validations";
 import type { z } from "zod";
 
 type ContactInput = z.infer<typeof contactSchema>;

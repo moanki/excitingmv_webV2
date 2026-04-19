@@ -1,6 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { ServiceResult } from "@/lib/types";
-import type { aiImportRequestSchema } from "@/lib/validations";
+import { aiImportRequestSchema } from "@/lib/validations";
 import type { z } from "zod";
 
 type AiImportRequestInput = z.infer<typeof aiImportRequestSchema>;
