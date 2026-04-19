@@ -1,18 +1,33 @@
-export default function AdminSettingsPage() {
+import {
+  FeaturesSettingsForm,
+  FooterSettingsForm,
+  HeroSettingsForm
+} from "@/app/admin/settings/forms";
+import {
+  getFooterContent,
+  getHomepageFeatures,
+  getHomepageHeroContent
+} from "@/lib/site-content";
+
+export default async function AdminSettingsPage() {
+  const [{ content: hero }, { content: features }, { content: footer }] = await Promise.all([
+    getHomepageHeroContent("draft"),
+    getHomepageFeatures("draft"),
+    getFooterContent("draft")
+  ]);
+
   return (
-    <section>
-      <p className="eyebrow">Site Settings</p>
-      <h1 className="section-title">Manage notification routes and business configuration.</h1>
-      <div className="form-grid">
-        <label className="field">
-          Notification Email
-          <input placeholder="partners@excitingmaldives.com" />
-        </label>
-        <label className="field">
-          Samoa URL
-          <input placeholder="https://samoa.example.com" />
-        </label>
-      </div>
-    </section>
+    <div className="stack">
+      <section>
+        <p className="eyebrow">Site Settings</p>
+        <h1 className="section-title">Manage front-end content from the admin portal.</h1>
+        <p className="muted">
+          Edit draft content below, then publish each section when it is ready for the live site.
+        </p>
+      </section>
+      <HeroSettingsForm hero={hero} />
+      <FeaturesSettingsForm features={features} />
+      <FooterSettingsForm footer={footer} />
+    </div>
   );
 }

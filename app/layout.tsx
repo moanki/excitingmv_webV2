@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Inter, Playfair_Display } from "next/font/google";
 
 import "@/app/globals.css";
+import { getFooterContent } from "@/lib/site-content";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -24,7 +25,9 @@ export const metadata: Metadata = {
     "Luxury B2B partner platform for resort discovery, protected resources, and curated Maldives sales support."
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const { content: footer } = await getFooterContent("published");
+
   return (
     <html lang="en">
       <body className={`${inter.variable} ${playfair.variable}`}>
@@ -50,14 +53,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <footer className="footer">
           <div className="shell footer-grid">
             <div>
-              <p className="eyebrow">Exciting Maldives</p>
-              <p>Luxury resort partnerships, protected trade resources, and curated Maldives expertise.</p>
+              <p className="eyebrow">{footer.companyLabel}</p>
+              <p>{footer.description}</p>
             </div>
             <div className="footer-links">
               <Link href="/about">About</Link>
               <Link href="/contact">Contact</Link>
               <Link href="/partner/login">Partner Login</Link>
               <Link href="/admin/login">Admin Center</Link>
+              <a href={`mailto:${footer.contactEmail}`}>{footer.contactEmail}</a>
             </div>
           </div>
         </footer>

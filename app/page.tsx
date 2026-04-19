@@ -1,26 +1,28 @@
 import Link from "next/link";
 
-import { homepageHighlights, sampleResorts } from "@/lib/sample-data";
+import { sampleResorts } from "@/lib/sample-data";
+import { getHomepageFeatures, getHomepageHeroContent } from "@/lib/site-content";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [{ content: hero }, { content: homepageHighlights }] = await Promise.all([
+    getHomepageHeroContent("published"),
+    getHomepageFeatures("published")
+  ]);
+
   return (
     <main>
       <section className="hero-band">
         <div className="shell hero">
           <div className="hero-copy">
-            <div className="eyebrow">Corporate B2B Maldives Platform</div>
-            <h1 className="headline">The luxury-facing partner portal for curated Maldives sales.</h1>
-            <p className="lede">
-              Built for destination partners, contracting teams, and internal operators who need
-              premium resort presentation, protected trade resources, live support, and clean admin
-              workflows from one polished platform.
-            </p>
+            <div className="eyebrow">{hero.eyebrow}</div>
+            <h1 className="headline">{hero.title}</h1>
+            <p className="lede">{hero.description}</p>
             <div className="hero-actions">
-              <Link href="/partner/register" className="button">
-                Partner With Us
+              <Link href={hero.primaryCtaHref} className="button">
+                {hero.primaryCtaLabel}
               </Link>
-              <Link href="/admin/login" className="button-muted">
-                Admin Center
+              <Link href={hero.secondaryCtaHref} className="button-muted">
+                {hero.secondaryCtaLabel}
               </Link>
             </div>
             <div className="hero-metrics">
