@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Inter, Playfair_Display } from "next/font/google";
 
 import "@/app/globals.css";
+import { LiveChatWidget } from "@/components/live-chat-widget";
 import { getFooterContent, getNavbarContent, getWhatsAppSettings } from "@/lib/site-content";
 
 const inter = Inter({
@@ -147,6 +148,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             <span>{whatsApp.label}</span>
           </a>
         ) : null}
+        <LiveChatWidget />
       </body>
     </html>
   );

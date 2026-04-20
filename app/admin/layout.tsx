@@ -10,7 +10,9 @@ const navItems = [
   { href: "/admin/newsletters", label: "Newsletter Leads" },
   { href: "/admin/chat", label: "Chat Inbox" },
   { href: "/admin/imports", label: "AI Import Center" },
-  { href: "/admin/settings", label: "Site Settings" }
+  { href: "/admin/settings", label: "Site Settings" },
+  { href: "/admin/user-access", label: "User Access" },
+  { href: "/admin/roles", label: "Roles" }
 ];
 
 export default function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {

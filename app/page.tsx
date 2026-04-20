@@ -1,12 +1,18 @@
 import Link from "next/link";
 
+import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
 import { listPublishedResorts } from "@/lib/services/resort-service";
-import { getHomepageFeatures, getHomepageHeroContent } from "@/lib/site-content";
+import {
+  getHomepageFeatures,
+  getHomepageHeroContent,
+  getMarketSettings
+} from "@/lib/site-content";
 
 export default async function HomePage() {
-  const [{ content: hero }, { content: homepageHighlights }, resorts] = await Promise.all([
+  const [{ content: hero }, { content: homepageHighlights }, { content: markets }, resorts] = await Promise.all([
     getHomepageHeroContent("published"),
     getHomepageFeatures("published"),
+    getMarketSettings("published"),
     listPublishedResorts()
   ]);
 
@@ -134,6 +140,23 @@ export default async function HomePage() {
             </Link>
           </div>
         </article>
+      </section>
+
+      <section className="shell section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Stay Connected</p>
+            <h2 className="section-title">Be in touch.</h2>
+            <p className="muted">
+              We would be delighted to stay connected and learn more about your business.
+            </p>
+          </div>
+        </div>
+        <div className="panel">
+          <NewsletterSignupForm
+            markets={markets.options.filter((market) => market.enabled).map((market) => market.label)}
+          />
+        </div>
       </section>
     </main>
   );

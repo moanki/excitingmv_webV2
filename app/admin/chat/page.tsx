@@ -1,18 +1,45 @@
-import { sampleMessages } from "@/lib/sample-data";
+import { replyToChatAction } from "@/app/admin/chat/actions";
+import { listChatConversations } from "@/lib/services/chat-service";
 
-export default function AdminChatPage() {
+export default async function AdminChatPage() {
+  const conversations = await listChatConversations();
+
   return (
-    <section>
-      <p className="eyebrow">Chat Inbox</p>
-      <h1 className="section-title">Resolve partner questions in real time.</h1>
+    <section className="stack">
+      <div>
+        <p className="eyebrow">Chat Inbox</p>
+        <h1 className="section-title">Review live chat history and respond from the admin portal.</h1>
+      </div>
       <div className="stack">
-        {sampleMessages.map((message) => (
-          <article className="panel" key={message.id}>
+        {conversations.map((conversation) => (
+          <article className="panel" key={conversation.id}>
             <div className="section-heading">
-              <strong>{message.sender}</strong>
-              <span className="badge">{message.status}</span>
+              <div>
+                <strong>{conversation.guestName}</strong>
+                <p className="muted">
+                  {conversation.email} • {conversation.subject}
+                </p>
+              </div>
+              <span className="badge">{conversation.status}</span>
             </div>
-            <p className="muted">{message.body}</p>
+            <div className="stack">
+              {conversation.messages.map((message) => (
+                <div className="panel panel-soft" key={message.id}>
+                  <p className="eyebrow">{message.senderType}</p>
+                  <p className="muted">{message.body}</p>
+                </div>
+              ))}
+            </div>
+            <form action={replyToChatAction} className="stack" style={{ marginTop: "1rem" }}>
+              <input type="hidden" name="conversationId" value={conversation.id} />
+              <label className="field">
+                Reply
+                <textarea name="body" placeholder="Reply to this conversation" />
+              </label>
+              <button className="button" type="submit">
+                Send Reply
+              </button>
+            </form>
           </article>
         ))}
       </div>

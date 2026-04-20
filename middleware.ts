@@ -12,14 +12,14 @@ export function middleware(request: NextRequest) {
     const adminSession = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
 
     if (pathname === ADMIN_LOGIN_PATH) {
-      if (adminSession === "superadmin") {
+      if (adminSession) {
         return NextResponse.redirect(new URL("/admin", request.url));
       }
 
       return NextResponse.next();
     }
 
-    if (adminSession !== "superadmin") {
+    if (!adminSession) {
       const loginUrl = new URL(ADMIN_LOGIN_PATH, request.url);
       loginUrl.searchParams.set("next", pathname);
       return NextResponse.redirect(loginUrl);

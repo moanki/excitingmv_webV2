@@ -1,6 +1,9 @@
-import { samplePartnerResources } from "@/lib/sample-data";
+import { listPublishedResources } from "@/lib/services/resource-service";
+import { getResortCounts } from "@/lib/services/resort-service";
 
-export default function PartnerDashboardPage() {
+export default async function PartnerDashboardPage() {
+  const [resources, resortCounts] = await Promise.all([listPublishedResources(), getResortCounts()]);
+
   return (
     <section>
       <p className="eyebrow">Approved Partners</p>
@@ -8,11 +11,11 @@ export default function PartnerDashboardPage() {
       <div className="dashboard-grid">
         <article className="stat-card">
           <p className="eyebrow">Published Resorts</p>
-          <strong>42</strong>
+          <strong>{resortCounts.published}</strong>
         </article>
         <article className="stat-card">
           <p className="eyebrow">Protected Resources</p>
-          <strong>{samplePartnerResources.length}</strong>
+          <strong>{resources.length}</strong>
         </article>
         <article className="stat-card">
           <p className="eyebrow">Live Support</p>

@@ -1,6 +1,8 @@
-import { samplePartnerResources } from "@/lib/sample-data";
+import { listPublishedResources } from "@/lib/services/resource-service";
 
-export default function PartnerResourcesPage() {
+export default async function PartnerResourcesPage() {
+  const resources = await listPublishedResources();
+
   return (
     <section>
       <p className="eyebrow">Protected Resources</p>
@@ -12,16 +14,22 @@ export default function PartnerResourcesPage() {
             <th>Type</th>
             <th>Audience</th>
             <th>Status</th>
+            <th>Document</th>
           </tr>
         </thead>
         <tbody>
-          {samplePartnerResources.map((resource) => (
-            <tr key={resource.title}>
+          {resources.map((resource) => (
+            <tr key={resource.id}>
               <td>{resource.title}</td>
-              <td>{resource.kind}</td>
-              <td>{resource.audience}</td>
+              <td>{resource.resourceType}</td>
+              <td>{resource.audienceType}</td>
               <td>
                 <span className="badge">{resource.status}</span>
+              </td>
+              <td>
+                <a href={resource.filePath} target="_blank" rel="noreferrer">
+                  Open
+                </a>
               </td>
             </tr>
           ))}
