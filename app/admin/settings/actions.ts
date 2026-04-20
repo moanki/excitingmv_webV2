@@ -3,9 +3,17 @@
 import { revalidatePath } from "next/cache";
 
 import {
+  defaultHomepageAwardsContent,
+  defaultHomepageCeoContent,
   defaultFooterContent,
+  defaultHomepageGuide,
   defaultHeroContent,
   defaultHomepageFeatures,
+  defaultHomepageNewsletterContent,
+  defaultHomepageServices,
+  defaultHomepageStats,
+  defaultHomepageStoryContent,
+  defaultHomepageWhyUs,
   defaultMarketSettings,
   defaultNavbarContent,
   defaultNotificationSettings,
@@ -15,8 +23,16 @@ import {
   type FooterBadge,
   type FooterContent,
   type FooterLinkGroup,
+  type HomepageAwardsContent,
+  type HomepageCeoContent,
   type HomepageFeatureCard,
+  type HomepageGuideItem,
   type HomepageHeroContent,
+  type HomepageNewsletterContent,
+  type HomepageServiceItem,
+  type HomepageStat,
+  type HomepageStoryContent,
+  type HomepageWhyUsItem,
   type MarketSettings,
   type NavbarContent,
   type NotificationSettings,
@@ -55,6 +71,19 @@ function parseFooterGroups(formData: FormData): FooterLinkGroup[] {
       external: booleanValue(formData, `group_${groupIndex}_item_${itemIndex}_external`)
     }))
   }));
+}
+
+function parseHomepageAwards(formData: FormData): HomepageAwardsContent {
+  return {
+    title: String(formData.get("title") ?? ""),
+    summary: String(formData.get("summary") ?? ""),
+    items: [0, 1, 2, 3].map((index) => ({
+      name: String(formData.get(`award_${index}_name`) ?? ""),
+      imageUrl: String(formData.get(`award_${index}_imageUrl`) ?? ""),
+      href: String(formData.get(`award_${index}_href`) ?? ""),
+      enabled: booleanValue(formData, `award_${index}_enabled`)
+    }))
+  };
 }
 
 export async function saveHeroDraftAction(_: ActionState, formData: FormData) {
@@ -100,6 +129,165 @@ export async function saveFeaturesDraftAction(_: ActionState, formData: FormData
 
 export async function publishFeaturesAction() {
   await publishSiteSetting("homepage.features", defaultHomepageFeatures);
+  revalidateSiteContent();
+}
+
+export async function saveStatsDraftAction(_: ActionState, formData: FormData) {
+  try {
+    const stats: HomepageStat[] = [0, 1, 2, 3].map((index) => ({
+      value: String(formData.get(`stat_${index}_value`) ?? ""),
+      label: String(formData.get(`stat_${index}_label`) ?? "")
+    }));
+    await saveSiteSettingDraft("homepage.stats", defaultHomepageStats, stats);
+    revalidateSiteContent();
+    return { message: "Homepage stats draft saved." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to save stats draft." };
+  }
+}
+
+export async function publishStatsAction() {
+  await publishSiteSetting("homepage.stats", defaultHomepageStats);
+  revalidateSiteContent();
+}
+
+export async function saveCeoDraftAction(_: ActionState, formData: FormData) {
+  try {
+    const ceo: HomepageCeoContent = {
+      sectionLabel: String(formData.get("sectionLabel") ?? ""),
+      quote: String(formData.get("quote") ?? ""),
+      message: String(formData.get("message") ?? ""),
+      name: String(formData.get("name") ?? ""),
+      title: String(formData.get("title") ?? ""),
+      photoUrl: String(formData.get("photoUrl") ?? "")
+    };
+    await saveSiteSettingDraft("homepage.ceo", defaultHomepageCeoContent, ceo);
+    revalidateSiteContent();
+    return { message: "CEO section draft saved." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to save CEO section." };
+  }
+}
+
+export async function publishCeoAction() {
+  await publishSiteSetting("homepage.ceo", defaultHomepageCeoContent);
+  revalidateSiteContent();
+}
+
+export async function saveStoryDraftAction(_: ActionState, formData: FormData) {
+  try {
+    const story: HomepageStoryContent = {
+      sectionLabel: String(formData.get("sectionLabel") ?? ""),
+      title: String(formData.get("title") ?? ""),
+      description: String(formData.get("description") ?? ""),
+      imageUrl: String(formData.get("imageUrl") ?? "")
+    };
+    await saveSiteSettingDraft("homepage.story", defaultHomepageStoryContent, story);
+    revalidateSiteContent();
+    return { message: "Story section draft saved." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to save story section." };
+  }
+}
+
+export async function publishStoryAction() {
+  await publishSiteSetting("homepage.story", defaultHomepageStoryContent);
+  revalidateSiteContent();
+}
+
+export async function saveServicesDraftAction(_: ActionState, formData: FormData) {
+  try {
+    const services: HomepageServiceItem[] = [0, 1, 2, 3, 4, 5].map((index) => ({
+      title: String(formData.get(`service_${index}_title`) ?? ""),
+      enabled: booleanValue(formData, `service_${index}_enabled`)
+    }));
+    await saveSiteSettingDraft("homepage.services", defaultHomepageServices, services);
+    revalidateSiteContent();
+    return { message: "Services draft saved." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to save services." };
+  }
+}
+
+export async function publishServicesAction() {
+  await publishSiteSetting("homepage.services", defaultHomepageServices);
+  revalidateSiteContent();
+}
+
+export async function saveWhyUsDraftAction(_: ActionState, formData: FormData) {
+  try {
+    const items: HomepageWhyUsItem[] = [0, 1, 2].map((index) => ({
+      title: String(formData.get(`item_${index}_title`) ?? ""),
+      description: String(formData.get(`item_${index}_description`) ?? "")
+    }));
+    await saveSiteSettingDraft("homepage.whyus", defaultHomepageWhyUs, items);
+    revalidateSiteContent();
+    return { message: "Why Us draft saved." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to save Why Us." };
+  }
+}
+
+export async function publishWhyUsAction() {
+  await publishSiteSetting("homepage.whyus", defaultHomepageWhyUs);
+  revalidateSiteContent();
+}
+
+export async function saveGuideDraftAction(_: ActionState, formData: FormData) {
+  try {
+    const guide: HomepageGuideItem[] = [0, 1, 2, 3].map((index) => ({
+      category: String(formData.get(`guide_${index}_category`) ?? ""),
+      title: String(formData.get(`guide_${index}_title`) ?? ""),
+      description: String(formData.get(`guide_${index}_description`) ?? ""),
+      imageUrl: String(formData.get(`guide_${index}_imageUrl`) ?? "")
+    }));
+    await saveSiteSettingDraft("homepage.guide", defaultHomepageGuide, guide);
+    revalidateSiteContent();
+    return { message: "Travel guide draft saved." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to save travel guide." };
+  }
+}
+
+export async function publishGuideAction() {
+  await publishSiteSetting("homepage.guide", defaultHomepageGuide);
+  revalidateSiteContent();
+}
+
+export async function saveNewsletterContentDraftAction(_: ActionState, formData: FormData) {
+  try {
+    const newsletter: HomepageNewsletterContent = {
+      sectionLabel: String(formData.get("sectionLabel") ?? ""),
+      title: String(formData.get("title") ?? ""),
+      description: String(formData.get("description") ?? ""),
+      imageUrl: String(formData.get("imageUrl") ?? "")
+    };
+    await saveSiteSettingDraft("homepage.newsletter", defaultHomepageNewsletterContent, newsletter);
+    revalidateSiteContent();
+    return { message: "Newsletter section draft saved." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to save newsletter section." };
+  }
+}
+
+export async function publishNewsletterContentAction() {
+  await publishSiteSetting("homepage.newsletter", defaultHomepageNewsletterContent);
+  revalidateSiteContent();
+}
+
+export async function saveAwardsDraftAction(_: ActionState, formData: FormData) {
+  try {
+    const awards = parseHomepageAwards(formData);
+    await saveSiteSettingDraft("homepage.awards", defaultHomepageAwardsContent, awards);
+    revalidateSiteContent();
+    return { message: "Awards draft saved." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to save awards." };
+  }
+}
+
+export async function publishAwardsAction() {
+  await publishSiteSetting("homepage.awards", defaultHomepageAwardsContent);
   revalidateSiteContent();
 }
 

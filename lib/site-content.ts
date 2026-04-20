@@ -16,6 +16,57 @@ export type HomepageFeatureCard = {
   description: string;
 };
 
+export type HomepageStat = {
+  value: string;
+  label: string;
+};
+
+export type HomepageCeoContent = {
+  sectionLabel: string;
+  quote: string;
+  message: string;
+  name: string;
+  title: string;
+  photoUrl: string;
+};
+
+export type HomepageStoryContent = {
+  sectionLabel: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+};
+
+export type HomepageServiceItem = {
+  title: string;
+  enabled: boolean;
+};
+
+export type HomepageWhyUsItem = {
+  title: string;
+  description: string;
+};
+
+export type HomepageGuideItem = {
+  category: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+};
+
+export type HomepageNewsletterContent = {
+  sectionLabel: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+};
+
+export type HomepageAwardsContent = {
+  title: string;
+  summary: string;
+  items: FooterBadge[];
+};
+
 export type NavigationItem = {
   label: string;
   href: string;
@@ -128,6 +179,118 @@ export const defaultHomepageFeatures: HomepageFeatureCard[] = [
       "AI helps the admin team accelerate data extraction and summary generation without auto-publishing."
   }
 ];
+
+export const defaultHomepageStats: HomepageStat[] = [
+  { value: "198+", label: "Resorts" },
+  { value: "20+", label: "Years Experience" },
+  { value: "24/7", label: "Local Support" },
+  { value: "Global", label: "Travel Partners" }
+];
+
+export const defaultHomepageCeoContent: HomepageCeoContent = {
+  sectionLabel: "CEO's Message",
+  quote:
+    "Our mission is to connect the world's leading travel designers with the extraordinary experiences of the Maldives.",
+  message:
+    "Founded on the principles of discretion and excellence, we have spent two decades building intimate relationships with the Maldives' most secluded resorts and most trusted hospitality partners.",
+  name: "Elias Jancel",
+  title: "Founder & CEO",
+  photoUrl: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=1200&q=80"
+};
+
+export const defaultHomepageStoryContent: HomepageStoryContent = {
+  sectionLabel: "Our Story",
+  title: "A Legacy of Luxury in the Maldives",
+  description:
+    "Our role as a specialized B2B DMC is to act as an extension of your team on the ground, ensuring every client detail is executed with precision, warmth, and deep destination knowledge.",
+  imageUrl: "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1200&q=80"
+};
+
+export const defaultHomepageServices: HomepageServiceItem[] = [
+  { title: "Luxury Resort Contracting", enabled: true },
+  { title: "Bespoke Itinerary Planning", enabled: true },
+  { title: "VIP Arrival & Transfer Coordination", enabled: true },
+  { title: "Dedicated On-Island Partner Support", enabled: true },
+  { title: "Group & Incentive Handling", enabled: true },
+  { title: "Trade Rate & Offer Management", enabled: true }
+];
+
+export const defaultHomepageWhyUs: HomepageWhyUsItem[] = [
+  {
+    title: "Deep Resort Relationships",
+    description:
+      "We work closely with the Maldives' leading luxury resorts, helping travel designers place the right product with confidence."
+  },
+  {
+    title: "Commercially Fluent Support",
+    description:
+      "From contracting questions to live sales support, the platform is built around partner workflow instead of generic destination content."
+  },
+  {
+    title: "On-Ground Precision",
+    description:
+      "Our local operations team handles the detail that protects the experience your clients expect."
+  }
+];
+
+export const defaultHomepageGuide: HomepageGuideItem[] = [
+  {
+    category: "Destination Insight",
+    title: "Choosing the Right Atoll for the Right Client",
+    description: "A partner-facing guide to matching geography, transfer logic, and experience style.",
+    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80"
+  },
+  {
+    category: "Sales Narrative",
+    title: "How to Position Seaplane Resorts Versus Speedboat Access",
+    description: "Help clients understand convenience versus iconic Maldives arrival moments.",
+    imageUrl: "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1400&q=80"
+  },
+  {
+    category: "Planning",
+    title: "Seasonality, Demand Windows, and Luxury Booking Patterns",
+    description: "A practical guide for premium agencies planning around travel windows and lead time.",
+    imageUrl: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1400&q=80"
+  },
+  {
+    category: "Product",
+    title: "Room Types That Actually Matter in the Decision Process",
+    description: "A quick read on how to frame villas, family units, and signature inventory.",
+    imageUrl: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1400&q=80"
+  }
+];
+
+export const defaultHomepageNewsletterContent: HomepageNewsletterContent = {
+  sectionLabel: "Stay Connected",
+  title: "Be in Touch",
+  description: "We would be delighted to stay connected and learn more about your business.",
+  imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1400&q=80"
+};
+
+export const defaultHomepageAwardsContent: HomepageAwardsContent = {
+  title: "Prestigious Awards",
+  summary: "Recognition from global luxury travel partners and trade networks.",
+  items: [
+    {
+      name: "World Luxury Travel Awards",
+      imageUrl: "https://dummyimage.com/240x120/ffffff/0f172a&text=Award+1",
+      href: "",
+      enabled: true
+    },
+    {
+      name: "Indian Ocean Travel Awards",
+      imageUrl: "https://dummyimage.com/240x120/ffffff/0f172a&text=Award+2",
+      href: "",
+      enabled: true
+    },
+    {
+      name: "Preferred DMC Recognition",
+      imageUrl: "https://dummyimage.com/240x120/ffffff/0f172a&text=Award+3",
+      href: "",
+      enabled: true
+    }
+  ]
+};
 
 export const defaultNavbarContent: NavbarContent = {
   brandKicker: "Luxury Travel Network",
@@ -304,6 +467,38 @@ export async function getHomepageHeroContent(mode: "draft" | "published" = "publ
 
 export async function getHomepageFeatures(mode: "draft" | "published" = "published") {
   return getSiteSettingMode("homepage.features", defaultHomepageFeatures, mode);
+}
+
+export async function getHomepageStats(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("homepage.stats", defaultHomepageStats, mode);
+}
+
+export async function getHomepageCeoContent(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("homepage.ceo", defaultHomepageCeoContent, mode);
+}
+
+export async function getHomepageStoryContent(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("homepage.story", defaultHomepageStoryContent, mode);
+}
+
+export async function getHomepageServices(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("homepage.services", defaultHomepageServices, mode);
+}
+
+export async function getHomepageWhyUs(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("homepage.whyus", defaultHomepageWhyUs, mode);
+}
+
+export async function getHomepageGuide(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("homepage.guide", defaultHomepageGuide, mode);
+}
+
+export async function getHomepageNewsletterContent(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("homepage.newsletter", defaultHomepageNewsletterContent, mode);
+}
+
+export async function getHomepageAwardsContent(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("homepage.awards", defaultHomepageAwardsContent, mode);
 }
 
 export async function getNavbarContent(mode: "draft" | "published" = "published") {

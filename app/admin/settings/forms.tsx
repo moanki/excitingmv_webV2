@@ -3,27 +3,52 @@
 import { useActionState } from "react";
 
 import {
+  publishAwardsAction,
+  publishCeoAction,
   publishFeaturesAction,
   publishFooterAction,
+  publishGuideAction,
   publishHeroAction,
+  publishNewsletterContentAction,
   publishMarketAction,
   publishNavbarAction,
   publishNotificationAction,
+  publishServicesAction,
+  publishStatsAction,
+  publishStoryAction,
   publishWhatsAppAction,
+  publishWhyUsAction,
+  saveAwardsDraftAction,
+  saveCeoDraftAction,
   saveFeaturesDraftAction,
   saveFooterDraftAction,
+  saveGuideDraftAction,
   saveHeroDraftAction,
+  saveNewsletterContentDraftAction,
   saveMarketDraftAction,
   saveNavbarDraftAction,
   saveNotificationDraftAction,
+  saveServicesDraftAction,
+  saveStatsDraftAction,
+  saveStoryDraftAction,
   saveWhatsAppDraftAction
+  ,
+  saveWhyUsDraftAction
 } from "@/app/admin/settings/actions";
 import type {
   FooterBadge,
   FooterContent,
   FooterLinkGroup,
+  HomepageAwardsContent,
+  HomepageCeoContent,
   HomepageFeatureCard,
+  HomepageGuideItem,
   HomepageHeroContent,
+  HomepageNewsletterContent,
+  HomepageServiceItem,
+  HomepageStat,
+  HomepageStoryContent,
+  HomepageWhyUsItem,
   MarketSettings,
   NavbarContent,
   NotificationSettings,
@@ -540,6 +565,356 @@ export function MarketSettingsForm({ markets }: { markets: MarketSettings }) {
         </div>
         <button className="button" type="submit" disabled={pending}>
           {pending ? "Saving..." : "Save Market Draft"}
+        </button>
+        <StatusMessage message={state?.message} error={state?.error} />
+      </form>
+    </div>
+  );
+}
+
+export function HomepageStatsForm({ stats }: { stats: HomepageStat[] }) {
+  const [state, action, pending] = useActionState(saveStatsDraftAction, undefined);
+
+  return (
+    <div className="panel">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Homepage Stats</p>
+          <h2>Control the expertise counters shown on the homepage.</h2>
+        </div>
+        <form action={publishStatsAction}>
+          <button className="button-muted" type="submit">
+            Publish Stats
+          </button>
+        </form>
+      </div>
+      <form action={action} className="stack">
+        {stats.map((item, index) => (
+          <div className="panel panel-soft" key={`${item.label}-${index}`}>
+            <div className="form-grid">
+              <label className="field">
+                Value
+                <input name={`stat_${index}_value`} defaultValue={item.value} />
+              </label>
+              <label className="field">
+                Label
+                <input name={`stat_${index}_label`} defaultValue={item.label} />
+              </label>
+            </div>
+          </div>
+        ))}
+        <button className="button" type="submit" disabled={pending}>
+          {pending ? "Saving..." : "Save Stats Draft"}
+        </button>
+        <StatusMessage message={state?.message} error={state?.error} />
+      </form>
+    </div>
+  );
+}
+
+export function HomepageCeoForm({ ceo }: { ceo: HomepageCeoContent }) {
+  const [state, action, pending] = useActionState(saveCeoDraftAction, undefined);
+
+  return (
+    <div className="panel">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">CEO Message</p>
+          <h2>Manage the CEO section content and image from admin.</h2>
+        </div>
+        <form action={publishCeoAction}>
+          <button className="button-muted" type="submit">
+            Publish CEO Section
+          </button>
+        </form>
+      </div>
+      <form action={action} className="stack">
+        <div className="form-grid">
+          <label className="field">
+            Section Label
+            <input name="sectionLabel" defaultValue={ceo.sectionLabel} />
+          </label>
+          <label className="field">
+            CEO Name
+            <input name="name" defaultValue={ceo.name} />
+          </label>
+          <label className="field">
+            CEO Title
+            <input name="title" defaultValue={ceo.title} />
+          </label>
+          <label className="field">
+            Photo URL
+            <input name="photoUrl" defaultValue={ceo.photoUrl} />
+          </label>
+          <label className="field" style={{ gridColumn: "1 / -1" }}>
+            Quote
+            <textarea name="quote" defaultValue={ceo.quote} />
+          </label>
+          <label className="field" style={{ gridColumn: "1 / -1" }}>
+            Message
+            <textarea name="message" defaultValue={ceo.message} />
+          </label>
+        </div>
+        <button className="button" type="submit" disabled={pending}>
+          {pending ? "Saving..." : "Save CEO Draft"}
+        </button>
+        <StatusMessage message={state?.message} error={state?.error} />
+      </form>
+    </div>
+  );
+}
+
+export function HomepageStoryForm({ story }: { story: HomepageStoryContent }) {
+  const [state, action, pending] = useActionState(saveStoryDraftAction, undefined);
+
+  return (
+    <div className="panel">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Our Story</p>
+          <h2>Manage the story title, description, and image.</h2>
+        </div>
+        <form action={publishStoryAction}>
+          <button className="button-muted" type="submit">
+            Publish Story
+          </button>
+        </form>
+      </div>
+      <form action={action} className="stack">
+        <div className="form-grid">
+          <label className="field">
+            Section Label
+            <input name="sectionLabel" defaultValue={story.sectionLabel} />
+          </label>
+          <label className="field">
+            Story Image URL
+            <input name="imageUrl" defaultValue={story.imageUrl} />
+          </label>
+          <label className="field" style={{ gridColumn: "1 / -1" }}>
+            Title
+            <input name="title" defaultValue={story.title} />
+          </label>
+          <label className="field" style={{ gridColumn: "1 / -1" }}>
+            Description
+            <textarea name="description" defaultValue={story.description} />
+          </label>
+        </div>
+        <button className="button" type="submit" disabled={pending}>
+          {pending ? "Saving..." : "Save Story Draft"}
+        </button>
+        <StatusMessage message={state?.message} error={state?.error} />
+      </form>
+    </div>
+  );
+}
+
+export function HomepageServicesForm({ services }: { services: HomepageServiceItem[] }) {
+  const [state, action, pending] = useActionState(saveServicesDraftAction, undefined);
+
+  return (
+    <div className="panel">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Homepage Services</p>
+          <h2>Manage the DMC services cards shown on the homepage.</h2>
+        </div>
+        <form action={publishServicesAction}>
+          <button className="button-muted" type="submit">
+            Publish Services
+          </button>
+        </form>
+      </div>
+      <form action={action} className="stack">
+        {services.map((item, index) => (
+          <div className="panel panel-soft" key={`${item.title}-${index}`}>
+            <div className="form-grid">
+              <label className="field">
+                Service Title
+                <input name={`service_${index}_title`} defaultValue={item.title} />
+              </label>
+            </div>
+            <ToggleField
+              name={`service_${index}_enabled`}
+              label="Show service"
+              defaultChecked={item.enabled}
+            />
+          </div>
+        ))}
+        <button className="button" type="submit" disabled={pending}>
+          {pending ? "Saving..." : "Save Services Draft"}
+        </button>
+        <StatusMessage message={state?.message} error={state?.error} />
+      </form>
+    </div>
+  );
+}
+
+export function HomepageWhyUsForm({ items }: { items: HomepageWhyUsItem[] }) {
+  const [state, action, pending] = useActionState(saveWhyUsDraftAction, undefined);
+
+  return (
+    <div className="panel">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Why Us</p>
+          <h2>Manage the homepage value proposition items.</h2>
+        </div>
+        <form action={publishWhyUsAction}>
+          <button className="button-muted" type="submit">
+            Publish Why Us
+          </button>
+        </form>
+      </div>
+      <form action={action} className="stack">
+        {items.map((item, index) => (
+          <div className="panel panel-soft" key={`${item.title}-${index}`}>
+            <div className="form-grid">
+              <label className="field">
+                Title
+                <input name={`item_${index}_title`} defaultValue={item.title} />
+              </label>
+              <label className="field" style={{ gridColumn: "1 / -1" }}>
+                Description
+                <textarea name={`item_${index}_description`} defaultValue={item.description} />
+              </label>
+            </div>
+          </div>
+        ))}
+        <button className="button" type="submit" disabled={pending}>
+          {pending ? "Saving..." : "Save Why Us Draft"}
+        </button>
+        <StatusMessage message={state?.message} error={state?.error} />
+      </form>
+    </div>
+  );
+}
+
+export function HomepageGuideForm({ items }: { items: HomepageGuideItem[] }) {
+  const [state, action, pending] = useActionState(saveGuideDraftAction, undefined);
+
+  return (
+    <div className="panel">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Travel Guide</p>
+          <h2>Manage the homepage travel guide cards.</h2>
+        </div>
+        <form action={publishGuideAction}>
+          <button className="button-muted" type="submit">
+            Publish Guide
+          </button>
+        </form>
+      </div>
+      <form action={action} className="stack">
+        {items.map((item, index) => (
+          <div className="panel panel-soft" key={`${item.title}-${index}`}>
+            <div className="form-grid">
+              <label className="field">
+                Category
+                <input name={`guide_${index}_category`} defaultValue={item.category} />
+              </label>
+              <label className="field">
+                Image URL
+                <input name={`guide_${index}_imageUrl`} defaultValue={item.imageUrl} />
+              </label>
+              <label className="field" style={{ gridColumn: "1 / -1" }}>
+                Title
+                <input name={`guide_${index}_title`} defaultValue={item.title} />
+              </label>
+              <label className="field" style={{ gridColumn: "1 / -1" }}>
+                Description
+                <textarea name={`guide_${index}_description`} defaultValue={item.description} />
+              </label>
+            </div>
+          </div>
+        ))}
+        <button className="button" type="submit" disabled={pending}>
+          {pending ? "Saving..." : "Save Guide Draft"}
+        </button>
+        <StatusMessage message={state?.message} error={state?.error} />
+      </form>
+    </div>
+  );
+}
+
+export function HomepageNewsletterContentForm({
+  newsletter
+}: {
+  newsletter: HomepageNewsletterContent;
+}) {
+  const [state, action, pending] = useActionState(saveNewsletterContentDraftAction, undefined);
+
+  return (
+    <div className="panel">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Homepage Newsletter</p>
+          <h2>Manage the newsletter heading, intro, and image.</h2>
+        </div>
+        <form action={publishNewsletterContentAction}>
+          <button className="button-muted" type="submit">
+            Publish Newsletter Section
+          </button>
+        </form>
+      </div>
+      <form action={action} className="stack">
+        <div className="form-grid">
+          <label className="field">
+            Section Label
+            <input name="sectionLabel" defaultValue={newsletter.sectionLabel} />
+          </label>
+          <label className="field">
+            Image URL
+            <input name="imageUrl" defaultValue={newsletter.imageUrl} />
+          </label>
+          <label className="field" style={{ gridColumn: "1 / -1" }}>
+            Title
+            <input name="title" defaultValue={newsletter.title} />
+          </label>
+          <label className="field" style={{ gridColumn: "1 / -1" }}>
+            Description
+            <textarea name="description" defaultValue={newsletter.description} />
+          </label>
+        </div>
+        <button className="button" type="submit" disabled={pending}>
+          {pending ? "Saving..." : "Save Newsletter Draft"}
+        </button>
+        <StatusMessage message={state?.message} error={state?.error} />
+      </form>
+    </div>
+  );
+}
+
+export function HomepageAwardsForm({ awards }: { awards: HomepageAwardsContent }) {
+  const [state, action, pending] = useActionState(saveAwardsDraftAction, undefined);
+
+  return (
+    <div className="panel">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Homepage Awards</p>
+          <h2>Manage the awards block shown on the homepage.</h2>
+        </div>
+        <form action={publishAwardsAction}>
+          <button className="button-muted" type="submit">
+            Publish Awards
+          </button>
+        </form>
+      </div>
+      <form action={action} className="stack">
+        <div className="form-grid">
+          <label className="field">
+            Section Title
+            <input name="title" defaultValue={awards.title} />
+          </label>
+          <label className="field" style={{ gridColumn: "1 / -1" }}>
+            Summary
+            <textarea name="summary" defaultValue={awards.summary} />
+          </label>
+        </div>
+        <FooterBadgeFields prefix="award" label="Award Logos" items={awards.items} />
+        <button className="button" type="submit" disabled={pending}>
+          {pending ? "Saving..." : "Save Awards Draft"}
         </button>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>

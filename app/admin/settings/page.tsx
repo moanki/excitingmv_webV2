@@ -1,57 +1,57 @@
-import {
-  FeaturesSettingsForm,
-  FooterSettingsForm,
-  HeroSettingsForm,
-  MarketSettingsForm,
-  NavbarSettingsForm,
-  NotificationSettingsForm,
-  WhatsAppSettingsForm
-} from "@/app/admin/settings/forms";
-import {
-  getFooterContent,
-  getHomepageFeatures,
-  getHomepageHeroContent,
-  getMarketSettings,
-  getNavbarContent,
-  getNotificationSettings,
-  getWhatsAppSettings
-} from "@/lib/site-content";
+import Link from "next/link";
 
-export default async function AdminSettingsPage() {
-  const [
-    { content: hero },
-    { content: features },
-    { content: navbar },
-    { content: footer },
-    { content: whatsApp },
-    { content: notifications },
-    { content: markets }
-  ] = await Promise.all([
-    getHomepageHeroContent("draft"),
-    getHomepageFeatures("draft"),
-    getNavbarContent("draft"),
-    getFooterContent("draft"),
-    getWhatsAppSettings("draft"),
-    getNotificationSettings("draft"),
-    getMarketSettings("draft")
-  ]);
+const settingsSections = [
+  {
+    title: "Homepage Content",
+    description: "Hero, stats, CEO message, story, services, awards, travel guide, and newsletter.",
+    href: "/admin/settings/homepage"
+  },
+  {
+    title: "Navbar & Logos",
+    description: "Primary logo, white logo, black logo, navigation items, and CTA.",
+    href: "/admin/settings/navbar"
+  },
+  {
+    title: "Footer & Contact",
+    description: "Address, contact details, footer groups, memberships, awards, and resource links.",
+    href: "/admin/settings/footer"
+  },
+  {
+    title: "WhatsApp",
+    description: "Floating WhatsApp CTA label, number, link, and message.",
+    href: "/admin/settings/whatsapp"
+  },
+  {
+    title: "Notification Emails",
+    description: "Partner request and newsletter notification recipients.",
+    href: "/admin/settings/notifications"
+  },
+  {
+    title: "Primary Markets",
+    description: "Dropdown options used across homepage forms and lead capture flows.",
+    href: "/admin/settings/markets"
+  }
+];
 
+export default function AdminSettingsIndexPage() {
   return (
     <div className="stack">
       <section>
         <p className="eyebrow">Site Settings</p>
-        <h1 className="section-title">Manage front-end content from the admin portal.</h1>
+        <h1 className="section-title">Manage each front-end area from its own admin screen.</h1>
         <p className="muted">
-          Edit draft content below, then publish each section when it is ready for the live site.
+          Homepage sections, logos, footer details, WhatsApp, markets, and notification routing are now split into separate screens.
         </p>
       </section>
-      <HeroSettingsForm hero={hero} />
-      <FeaturesSettingsForm features={features} />
-      <NavbarSettingsForm navbar={navbar} />
-      <FooterSettingsForm footer={footer} />
-      <WhatsAppSettingsForm whatsApp={whatsApp} />
-      <NotificationSettingsForm notifications={notifications} />
-      <MarketSettingsForm markets={markets} />
+
+      <div className="dashboard-grid">
+        {settingsSections.map((section) => (
+          <Link key={section.href} href={section.href} className="stat-card">
+            <p className="eyebrow">{section.title}</p>
+            <p>{section.description}</p>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
