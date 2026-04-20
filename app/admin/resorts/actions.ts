@@ -1,0 +1,78 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+
+import { deleteResort, saveResort, seedSampleResorts } from "@/lib/services/resort-service";
+import type { PublishStatus } from "@/lib/types";
+
+type ActionState = { message?: string; error?: string } | undefined;
+
+function revalidateResortPaths() {
+  revalidatePath("/");
+  revalidatePath("/resorts");
+  revalidatePath("/partner/resorts");
+  revalidatePath("/admin");
+  revalidatePath("/admin/resorts");
+}
+
+function splitLines(value: string) {
+  return value
+    .split(/\r?\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export async function saveResortAction(_: ActionState, formData: FormData) {
+  try {
+    const name = String(formData.get("name") ?? "").trim();
+    const input = {
+      id: String(formData.get("id") ?? "").trim() || undefined,
+      slug: slugify(String(formData.get("slug") ?? name)),
+      name,
+      location: String(formData.get("location") ?? "").trim(),
+      category: String(formData.get("category") ?? "").trim(),
+      transferType: String(formData.get("transferType") ?? "").trim(),
+      description: String(formData.get("description") ?? "").trim(),
+      highlights: splitLines(String(formData.get("highlights") ?? "")),
+      mealPlans: splitLines(String(formData.get("mealPlans") ?? "")),
+      seoTitle: String(formData.get("seoTitle") ?? name).trim(),
+      seoDescription: String(formData.get("seoDescription") ?? "").trim(),
+      seoSummary: String(formData.get("seoSummary") ?? "").trim(),
+      status: String(formData.get("status") ?? "draft").trim() as PublishStatus
+    };
+
+    if (!input.name || !input.slug) {
+      return { error: "Property name and slug are required." };
+    }
+
+    await saveResort(input);
+    revalidateResortPaths();
+    revalidatePath(`/resorts/${input.slug}`);
+    return { message: `${input.name} saved.` };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to save property." };
+  }
+}
+
+export async function deleteResortAction(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  if (!id) {
+    return;
+  }
+
+  await deleteResort(id);
+  revalidateResortPaths();
+}
+
+export async function seedResortsAction() {
+  await seedSampleResorts();
+  revalidateResortPaths();
+}

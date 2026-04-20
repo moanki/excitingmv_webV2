@@ -1,10 +1,13 @@
-const stats = [
-  { label: "Pending Partner Approvals", value: "12" },
-  { label: "Published Resorts", value: "42" },
-  { label: "Unread Chat Threads", value: "6" }
-];
+import { getResortCounts } from "@/lib/services/resort-service";
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const counts = await getResortCounts();
+  const stats = [
+    { label: "Total Properties", value: String(counts.total) },
+    { label: "Published Resorts", value: String(counts.published) },
+    { label: "Draft Resorts", value: String(counts.draft) }
+  ];
+
   return (
     <section>
       <p className="eyebrow">Operations Dashboard</p>

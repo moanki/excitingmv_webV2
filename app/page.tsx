@@ -1,12 +1,13 @@
 import Link from "next/link";
 
-import { sampleResorts } from "@/lib/sample-data";
+import { listPublishedResorts } from "@/lib/services/resort-service";
 import { getHomepageFeatures, getHomepageHeroContent } from "@/lib/site-content";
 
 export default async function HomePage() {
-  const [{ content: hero }, { content: homepageHighlights }] = await Promise.all([
+  const [{ content: hero }, { content: homepageHighlights }, resorts] = await Promise.all([
     getHomepageHeroContent("published"),
-    getHomepageFeatures("published")
+    getHomepageFeatures("published"),
+    listPublishedResorts()
   ]);
 
   return (
@@ -89,7 +90,7 @@ export default async function HomePage() {
           </Link>
         </div>
         <div className="grid">
-          {sampleResorts.map((resort) => (
+          {resorts.slice(0, 3).map((resort) => (
             <article key={resort.slug} className="card resort-card">
               <div className="card-image" />
               <p className="eyebrow">{resort.location}</p>

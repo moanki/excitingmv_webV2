@@ -1,8 +1,10 @@
 import Link from "next/link";
 
-import { sampleResorts } from "@/lib/sample-data";
+import { listPublishedResorts } from "@/lib/services/resort-service";
 
-export default function ResortsPage() {
+export default async function ResortsPage() {
+  const resorts = await listPublishedResorts();
+
   return (
     <main className="shell section">
       <div className="section-heading">
@@ -12,7 +14,7 @@ export default function ResortsPage() {
         </div>
       </div>
       <div className="grid">
-        {sampleResorts.map((resort) => (
+        {resorts.map((resort) => (
           <article key={resort.slug} className="card">
             <span className="badge">{resort.category}</span>
             <h2>{resort.name}</h2>
