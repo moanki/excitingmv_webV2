@@ -1,19 +1,39 @@
 import {
   FeaturesSettingsForm,
   FooterSettingsForm,
-  HeroSettingsForm
+  HeroSettingsForm,
+  MarketSettingsForm,
+  NavbarSettingsForm,
+  NotificationSettingsForm,
+  WhatsAppSettingsForm
 } from "@/app/admin/settings/forms";
 import {
   getFooterContent,
   getHomepageFeatures,
-  getHomepageHeroContent
+  getHomepageHeroContent,
+  getMarketSettings,
+  getNavbarContent,
+  getNotificationSettings,
+  getWhatsAppSettings
 } from "@/lib/site-content";
 
 export default async function AdminSettingsPage() {
-  const [{ content: hero }, { content: features }, { content: footer }] = await Promise.all([
+  const [
+    { content: hero },
+    { content: features },
+    { content: navbar },
+    { content: footer },
+    { content: whatsApp },
+    { content: notifications },
+    { content: markets }
+  ] = await Promise.all([
     getHomepageHeroContent("draft"),
     getHomepageFeatures("draft"),
-    getFooterContent("draft")
+    getNavbarContent("draft"),
+    getFooterContent("draft"),
+    getWhatsAppSettings("draft"),
+    getNotificationSettings("draft"),
+    getMarketSettings("draft")
   ]);
 
   return (
@@ -27,7 +47,11 @@ export default async function AdminSettingsPage() {
       </section>
       <HeroSettingsForm hero={hero} />
       <FeaturesSettingsForm features={features} />
+      <NavbarSettingsForm navbar={navbar} />
       <FooterSettingsForm footer={footer} />
+      <WhatsAppSettingsForm whatsApp={whatsApp} />
+      <NotificationSettingsForm notifications={notifications} />
+      <MarketSettingsForm markets={markets} />
     </div>
   );
 }

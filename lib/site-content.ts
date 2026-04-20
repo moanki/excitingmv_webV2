@@ -16,12 +16,78 @@ export type HomepageFeatureCard = {
   description: string;
 };
 
+export type NavigationItem = {
+  label: string;
+  href: string;
+  enabled: boolean;
+  external: boolean;
+};
+
+export type NavbarContent = {
+  brandKicker: string;
+  brandLabel: string;
+  primaryLogoText: string;
+  whiteLogoText: string;
+  blackLogoText: string;
+  navItems: NavigationItem[];
+  ctaLabel: string;
+  ctaHref: string;
+  ctaEnabled: boolean;
+};
+
+export type FooterLinkItem = {
+  label: string;
+  href: string;
+  enabled: boolean;
+  external: boolean;
+};
+
+export type FooterLinkGroup = {
+  title: string;
+  enabled: boolean;
+  items: FooterLinkItem[];
+};
+
+export type FooterBadge = {
+  name: string;
+  href: string;
+  enabled: boolean;
+};
+
 export type FooterContent = {
   companyLabel: string;
   description: string;
   contactEmail: string;
   contactPhone: string;
+  address: string;
   samoaUrl: string;
+  linkGroups: FooterLinkGroup[];
+  memberships: FooterBadge[];
+  awards: FooterBadge[];
+};
+
+export type WhatsAppSettings = {
+  enabled: boolean;
+  label: string;
+  number: string;
+  link: string;
+  presetMessage: string;
+};
+
+export type NotificationSettings = {
+  partnerRequestEmail: string;
+  newsletterEmail: string;
+  businessContactEmail: string;
+};
+
+export type MarketOption = {
+  label: string;
+  enabled: boolean;
+};
+
+export type MarketSettings = {
+  sectionTitle: string;
+  options: MarketOption[];
 };
 
 type SiteSettingEnvelope<T> = {
@@ -62,13 +128,93 @@ export const defaultHomepageFeatures: HomepageFeatureCard[] = [
   }
 ];
 
+export const defaultNavbarContent: NavbarContent = {
+  brandKicker: "Luxury Travel Network",
+  brandLabel: "Exciting Maldives",
+  primaryLogoText: "Exciting Maldives",
+  whiteLogoText: "Exciting Maldives",
+  blackLogoText: "Exciting Maldives",
+  navItems: [
+    { label: "About", href: "/about", enabled: true, external: false },
+    { label: "Contact", href: "/contact", enabled: true, external: false },
+    { label: "Resorts", href: "/resorts", enabled: true, external: false },
+    { label: "Partner Login", href: "/partner/login", enabled: true, external: false },
+    { label: "Admin Center", href: "/admin/login", enabled: true, external: false }
+  ],
+  ctaLabel: "Become a Partner",
+  ctaHref: "/partner/register",
+  ctaEnabled: true
+};
+
 export const defaultFooterContent: FooterContent = {
   companyLabel: "Exciting Maldives",
   description:
     "Luxury resort partnerships, protected trade resources, and curated Maldives expertise.",
   contactEmail: "partners@excitingmv.com",
   contactPhone: "+960 000 0000",
-  samoaUrl: "https://samoa.example.com"
+  address: "Male, Maldives",
+  samoaUrl: "https://samoa.example.com",
+  linkGroups: [
+    {
+      title: "Destinations",
+      enabled: true,
+      items: [
+        { label: "Resorts", href: "/resorts", enabled: true, external: false },
+        { label: "City Hotels", href: "/city-hotels", enabled: true, external: false },
+        { label: "Liveaboards", href: "/liveaboards", enabled: true, external: false }
+      ]
+    },
+    {
+      title: "Company",
+      enabled: true,
+      items: [
+        { label: "About Us", href: "/about", enabled: true, external: false },
+        { label: "Contact", href: "/contact", enabled: true, external: false },
+        { label: "Admin Center", href: "/admin/login", enabled: true, external: false }
+      ]
+    },
+    {
+      title: "Resources",
+      enabled: true,
+      items: [
+        { label: "Travel Guide", href: "/travel-guide", enabled: true, external: false },
+        { label: "Partner Login", href: "/partner/login", enabled: true, external: false },
+        { label: "Samoa", href: "https://samoa.example.com", enabled: true, external: true }
+      ]
+    }
+  ],
+  memberships: [
+    { name: "Preferred DMC Network", href: "", enabled: true },
+    { name: "Luxury Trade Collective", href: "", enabled: true }
+  ],
+  awards: [
+    { name: "Indian Ocean Partner Excellence", href: "", enabled: true },
+    { name: "Premier Maldives Sales Partner", href: "", enabled: true }
+  ]
+};
+
+export const defaultWhatsAppSettings: WhatsAppSettings = {
+  enabled: true,
+  label: "Chat on WhatsApp",
+  number: "+9600000000",
+  link: "https://wa.me/9600000000",
+  presetMessage: "Hello Exciting Maldives, we would like partner support."
+};
+
+export const defaultNotificationSettings: NotificationSettings = {
+  partnerRequestEmail: "hello@excitingmv.com",
+  newsletterEmail: "hello@excitingmv.com",
+  businessContactEmail: "partners@excitingmv.com"
+};
+
+export const defaultMarketSettings: MarketSettings = {
+  sectionTitle: "Primary Markets",
+  options: [
+    { label: "Russia & CIS", enabled: true },
+    { label: "Europe", enabled: true },
+    { label: "Middle East (UAE & GCC)", enabled: true },
+    { label: "South Asia", enabled: true }
+  ]
 };
 
 async function getSiteSetting<T>(key: string, fallback: T): Promise<SiteSettingEnvelope<T>> {
@@ -100,28 +246,40 @@ async function getSiteSetting<T>(key: string, fallback: T): Promise<SiteSettingE
   }
 }
 
-export async function getHomepageHeroContent(mode: "draft" | "published" = "published") {
-  const entry = await getSiteSetting("homepage.hero", defaultHeroContent);
+async function getSiteSettingMode<T>(key: string, fallback: T, mode: "draft" | "published") {
+  const entry = await getSiteSetting(key, fallback);
   return {
     content: entry[mode],
     updatedAt: entry.updatedAt
   };
+}
+
+export async function getHomepageHeroContent(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("homepage.hero", defaultHeroContent, mode);
 }
 
 export async function getHomepageFeatures(mode: "draft" | "published" = "published") {
-  const entry = await getSiteSetting("homepage.features", defaultHomepageFeatures);
-  return {
-    content: entry[mode],
-    updatedAt: entry.updatedAt
-  };
+  return getSiteSettingMode("homepage.features", defaultHomepageFeatures, mode);
+}
+
+export async function getNavbarContent(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("site.navbar", defaultNavbarContent, mode);
 }
 
 export async function getFooterContent(mode: "draft" | "published" = "published") {
-  const entry = await getSiteSetting("site.footer", defaultFooterContent);
-  return {
-    content: entry[mode],
-    updatedAt: entry.updatedAt
-  };
+  return getSiteSettingMode("site.footer", defaultFooterContent, mode);
+}
+
+export async function getWhatsAppSettings(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("site.whatsapp", defaultWhatsAppSettings, mode);
+}
+
+export async function getNotificationSettings(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("site.notifications", defaultNotificationSettings, mode);
+}
+
+export async function getMarketSettings(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("site.markets", defaultMarketSettings, mode);
 }
 
 export async function saveSiteSettingDraft<T>(key: string, fallback: T, draftValue: T) {

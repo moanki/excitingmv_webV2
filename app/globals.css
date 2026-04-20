@@ -255,6 +255,16 @@ img {
   padding: 1.4rem;
 }
 
+.panel-soft {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.panel-nested {
+  margin-top: 1rem;
+  background: rgba(248, 245, 240, 0.95);
+  box-shadow: none;
+}
+
 .section {
   padding: 1.5rem 0 3.5rem;
 }
@@ -271,10 +281,19 @@ img {
   margin-bottom: 1rem;
 }
 
+.section-heading.compact {
+  align-items: center;
+}
+
 .section-title {
   margin: 0;
   font-size: clamp(1.75rem, 3vw, 2.8rem);
   font-family: var(--font-serif), serif;
+}
+
+.settings-subtitle {
+  margin: 0.2rem 0 0;
+  font-size: 1rem;
 }
 
 .grid {
@@ -358,10 +377,54 @@ img {
   padding-top: 2rem;
 }
 
+.footer-grid-rich {
+  display: grid;
+  grid-template-columns: 1.2fr 1.4fr 1fr;
+  align-items: start;
+}
+
+.footer-brand,
+.footer-proof {
+  display: grid;
+  gap: 1rem;
+}
+
+.footer-contact {
+  gap: 0.5rem;
+}
+
 .footer-links {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.footer-links-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.footer-link-group {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.footer-badge-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.footer-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--line);
+  color: var(--foreground);
 }
 
 .admin-layout,
@@ -461,6 +524,25 @@ img {
   resize: vertical;
 }
 
+.checkbox-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--muted);
+}
+
+.checkbox-field input {
+  width: 18px;
+  height: 18px;
+}
+
+.toggle-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
 .auth-shell {
   min-height: calc(100vh - 160px);
   display: grid;
@@ -489,6 +571,22 @@ img {
   color: #b91c1c;
 }
 
+.whatsapp-float {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  background: #0f8f6f;
+  color: white;
+  box-shadow: 0 18px 40px rgba(15, 143, 111, 0.32);
+}
+
 @media (max-width: 960px) {
   .hero,
   .split,
@@ -506,5 +604,9 @@ img {
 
   .nav {
     justify-content: flex-end;
+  }
+
+  .footer-links-grid {
+    grid-template-columns: 1fr;
   }
 }
