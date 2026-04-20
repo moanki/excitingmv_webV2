@@ -123,6 +123,12 @@ select {
   gap: 0.25rem;
 }
 
+.site-nav__brand-logo {
+  width: auto;
+  height: 64px;
+  object-fit: contain;
+}
+
 .site-nav__brand-kicker {
   color: rgba(255, 255, 255, 0.64);
   font-size: 10px;
@@ -935,6 +941,13 @@ select {
   line-height: 1;
 }
 
+.site-footer__logo-image {
+  width: auto;
+  max-width: 280px;
+  height: 96px;
+  object-fit: contain;
+}
+
 .site-footer__summary,
 .site-footer__contact p,
 .site-footer__contact a,
@@ -975,11 +988,20 @@ select {
 .site-footer__badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 44px;
   padding: 0 1rem;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.76);
+}
+
+.site-footer__badge-image {
+  max-width: 140px;
+  max-height: 48px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
 
 .site-footer__bottom {

@@ -21,13 +21,22 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
 
   const navItems = navbar.navItems.filter((item) => item.enabled && item.label && item.href);
   const navClassName = `site-nav${scrolled ? " is-scrolled" : ""}`;
+  const activeLogoUrl = scrolled ? navbar.blackLogoUrl || navbar.primaryLogoUrl : navbar.whiteLogoUrl || navbar.primaryLogoUrl;
 
   return (
     <header className={navClassName}>
       <div className="site-nav__inner">
         <Link href="/" className="site-nav__brand" onClick={() => setOpen(false)}>
+          {activeLogoUrl ? (
+            <img
+              src={activeLogoUrl}
+              alt={navbar.brandLabel || "Exciting Maldives"}
+              className="site-nav__brand-logo"
+            />
+          ) : (
+            <span className="site-nav__brand-label">{navbar.brandLabel || "Exciting Maldives"}</span>
+          )}
           <span className="site-nav__brand-kicker">{navbar.brandKicker || "Luxury Travel Network"}</span>
-          <span className="site-nav__brand-label">{navbar.brandLabel || "Exciting Maldives"}</span>
         </Link>
 
         <nav className="site-nav__links" aria-label="Primary">

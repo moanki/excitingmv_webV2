@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import type { FooterContent } from "@/lib/site-content";
+import type { FooterContent, NavbarContent } from "@/lib/site-content";
 
-export function SiteFooter({ footer }: { footer: FooterContent }) {
+export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: NavbarContent }) {
   const enabledLinkGroups = footer.linkGroups.filter((group) => group.enabled && group.title);
   const enabledMemberships = footer.memberships.filter((item) => item.enabled && item.name);
   const enabledAwards = footer.awards.filter((item) => item.enabled && item.name);
@@ -13,7 +13,15 @@ export function SiteFooter({ footer }: { footer: FooterContent }) {
         <div className="site-footer__grid">
           <div className="site-footer__brand">
             <p className="section-kicker">Exciting Maldives</p>
-            <div className="site-footer__logo">Exciting Maldives</div>
+            {navbar.whiteLogoUrl ? (
+              <img
+                src={navbar.whiteLogoUrl}
+                alt={footer.companyLabel}
+                className="site-footer__logo-image"
+              />
+            ) : (
+              <div className="site-footer__logo">{footer.companyLabel}</div>
+            )}
             <p className="site-footer__summary">{footer.description}</p>
             <div className="site-footer__contact">
               <p>{footer.address}</p>
@@ -53,11 +61,19 @@ export function SiteFooter({ footer }: { footer: FooterContent }) {
                   {enabledMemberships.map((item) =>
                     item.href ? (
                       <a href={item.href} key={item.name} className="site-footer__badge" target="_blank" rel="noreferrer">
-                        {item.name}
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.name} className="site-footer__badge-image" />
+                        ) : (
+                          item.name
+                        )}
                       </a>
                     ) : (
                       <span key={item.name} className="site-footer__badge">
-                        {item.name}
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.name} className="site-footer__badge-image" />
+                        ) : (
+                          item.name
+                        )}
                       </span>
                     )
                   )}
@@ -72,11 +88,19 @@ export function SiteFooter({ footer }: { footer: FooterContent }) {
                   {enabledAwards.map((item) =>
                     item.href ? (
                       <a href={item.href} key={item.name} className="site-footer__badge" target="_blank" rel="noreferrer">
-                        {item.name}
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.name} className="site-footer__badge-image" />
+                        ) : (
+                          item.name
+                        )}
                       </a>
                     ) : (
                       <span key={item.name} className="site-footer__badge">
-                        {item.name}
+                        {item.imageUrl ? (
+                          <img src={item.imageUrl} alt={item.name} className="site-footer__badge-image" />
+                        ) : (
+                          item.name
+                        )}
                       </span>
                     )
                   )}

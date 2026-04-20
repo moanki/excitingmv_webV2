@@ -36,15 +36,16 @@ function booleanValue(formData: FormData, name: string) {
 }
 
 function parseFooterBadges(formData: FormData, prefix: "membership" | "award"): FooterBadge[] {
-  return [0, 1, 2].map((index) => ({
+  return [0, 1, 2, 3].map((index) => ({
     name: String(formData.get(`${prefix}_${index}_name`) ?? ""),
+    imageUrl: String(formData.get(`${prefix}_${index}_imageUrl`) ?? ""),
     href: String(formData.get(`${prefix}_${index}_href`) ?? ""),
     enabled: booleanValue(formData, `${prefix}_${index}_enabled`)
   }));
 }
 
 function parseFooterGroups(formData: FormData): FooterLinkGroup[] {
-  return [0, 1, 2].map((groupIndex) => ({
+  return [0, 1, 2, 3].map((groupIndex) => ({
     title: String(formData.get(`group_${groupIndex}_title`) ?? ""),
     enabled: booleanValue(formData, `group_${groupIndex}_enabled`),
     items: [0, 1, 2].map((itemIndex) => ({
@@ -107,9 +108,9 @@ export async function saveNavbarDraftAction(_: ActionState, formData: FormData) 
     const navbar: NavbarContent = {
       brandKicker: String(formData.get("brandKicker") ?? ""),
       brandLabel: String(formData.get("brandLabel") ?? ""),
-      primaryLogoText: String(formData.get("primaryLogoText") ?? ""),
-      whiteLogoText: String(formData.get("whiteLogoText") ?? ""),
-      blackLogoText: String(formData.get("blackLogoText") ?? ""),
+      primaryLogoUrl: String(formData.get("primaryLogoUrl") ?? ""),
+      whiteLogoUrl: String(formData.get("whiteLogoUrl") ?? ""),
+      blackLogoUrl: String(formData.get("blackLogoUrl") ?? ""),
       navItems: [0, 1, 2, 3, 4, 5].map((index) => ({
         label: String(formData.get(`nav_${index}_label`) ?? ""),
         href: String(formData.get(`nav_${index}_href`) ?? ""),

@@ -39,7 +39,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className={`${inter.variable} ${playfair.variable}`}>
         <SiteNavbar navbar={navbar} />
         {children}
-        <SiteFooter footer={footer} />
+        <SiteFooter footer={footer} navbar={navbar} />
         {whatsApp.enabled ? (
           <a
             href={whatsApp.link}

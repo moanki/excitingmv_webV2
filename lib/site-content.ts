@@ -26,9 +26,9 @@ export type NavigationItem = {
 export type NavbarContent = {
   brandKicker: string;
   brandLabel: string;
-  primaryLogoText: string;
-  whiteLogoText: string;
-  blackLogoText: string;
+  primaryLogoUrl: string;
+  whiteLogoUrl: string;
+  blackLogoUrl: string;
   navItems: NavigationItem[];
   ctaLabel: string;
   ctaHref: string;
@@ -50,6 +50,7 @@ export type FooterLinkGroup = {
 
 export type FooterBadge = {
   name: string;
+  imageUrl: string;
   href: string;
   enabled: boolean;
 };
@@ -131,15 +132,16 @@ export const defaultHomepageFeatures: HomepageFeatureCard[] = [
 export const defaultNavbarContent: NavbarContent = {
   brandKicker: "Luxury Travel Network",
   brandLabel: "Exciting Maldives",
-  primaryLogoText: "Exciting Maldives",
-  whiteLogoText: "Exciting Maldives",
-  blackLogoText: "Exciting Maldives",
+  primaryLogoUrl: "https://dummyimage.com/420x120/0f172a/ffffff&text=Exciting+Maldives",
+  whiteLogoUrl: "https://dummyimage.com/420x120/ffffff/0f172a&text=Exciting+Maldives",
+  blackLogoUrl: "https://dummyimage.com/420x120/111111/ffffff&text=Exciting+Maldives",
   navItems: [
-    { label: "About", href: "/about", enabled: true, external: false },
-    { label: "Contact", href: "/contact", enabled: true, external: false },
     { label: "Resorts", href: "/resorts", enabled: true, external: false },
+    { label: "Experiences", href: "/experiences", enabled: true, external: false },
+    { label: "About Us", href: "/about", enabled: true, external: false },
+    { label: "Travel Guide", href: "/travel-guide", enabled: true, external: false },
     { label: "Partner Login", href: "/partner/login", enabled: true, external: false },
-    { label: "Admin Center", href: "/admin/login", enabled: true, external: false }
+    { label: "Contact", href: "/contact", enabled: true, external: false }
   ],
   ctaLabel: "Become a Partner",
   ctaHref: "/partner/register",
@@ -160,8 +162,17 @@ export const defaultFooterContent: FooterContent = {
       enabled: true,
       items: [
         { label: "Resorts", href: "/resorts", enabled: true, external: false },
-        { label: "City Hotels", href: "/city-hotels", enabled: true, external: false },
-        { label: "Liveaboards", href: "/liveaboards", enabled: true, external: false }
+        { label: "Experiences", href: "/experiences", enabled: true, external: false },
+        { label: "", href: "", enabled: false, external: false }
+      ]
+    },
+    {
+      title: "Services",
+      enabled: true,
+      items: [
+        { label: "DMC Services", href: "/services", enabled: true, external: false },
+        { label: "Travel Partnerships", href: "/partner/register", enabled: true, external: false },
+        { label: "", href: "", enabled: false, external: false }
       ]
     },
     {
@@ -169,8 +180,9 @@ export const defaultFooterContent: FooterContent = {
       enabled: true,
       items: [
         { label: "About Us", href: "/about", enabled: true, external: false },
+        { label: "Awards", href: "/awards", enabled: true, external: false },
         { label: "Contact", href: "/contact", enabled: true, external: false },
-        { label: "Admin Center", href: "/admin/login", enabled: true, external: false }
+        { label: "", href: "", enabled: false, external: false }
       ]
     },
     {
@@ -178,18 +190,50 @@ export const defaultFooterContent: FooterContent = {
       enabled: true,
       items: [
         { label: "Travel Guide", href: "/travel-guide", enabled: true, external: false },
-        { label: "Partner Login", href: "/partner/login", enabled: true, external: false },
-        { label: "Samoa", href: "https://samoa.example.com", enabled: true, external: true }
+        { label: "Newsletter", href: "/#newsletter", enabled: true, external: false },
+        { label: "", href: "", enabled: false, external: false }
       ]
     }
   ],
   memberships: [
-    { name: "Preferred DMC Network", href: "", enabled: true },
-    { name: "Luxury Trade Collective", href: "", enabled: true }
+    {
+      name: "Preferred DMC Network",
+      imageUrl: "https://dummyimage.com/240x120/ffffff/0f172a&text=Membership+1",
+      href: "",
+      enabled: true
+    },
+    {
+      name: "Luxury Trade Collective",
+      imageUrl: "https://dummyimage.com/240x120/ffffff/0f172a&text=Membership+2",
+      href: "",
+      enabled: true
+    },
+    {
+      name: "",
+      imageUrl: "",
+      href: "",
+      enabled: false
+    }
   ],
   awards: [
-    { name: "Indian Ocean Partner Excellence", href: "", enabled: true },
-    { name: "Premier Maldives Sales Partner", href: "", enabled: true }
+    {
+      name: "Indian Ocean Partner Excellence",
+      imageUrl: "https://dummyimage.com/240x120/ffffff/0f172a&text=Award+1",
+      href: "",
+      enabled: true
+    },
+    {
+      name: "Premier Maldives Sales Partner",
+      imageUrl: "https://dummyimage.com/240x120/ffffff/0f172a&text=Award+2",
+      href: "",
+      enabled: true
+    },
+    {
+      name: "",
+      imageUrl: "",
+      href: "",
+      enabled: false
+    }
   ]
 };
 

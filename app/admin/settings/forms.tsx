@@ -82,6 +82,10 @@ function FooterBadgeFields({
               <input name={`${prefix}_${index}_name`} defaultValue={item.name} />
             </label>
             <label className="field">
+              Logo URL
+              <input name={`${prefix}_${index}_imageUrl`} defaultValue={item.imageUrl} />
+            </label>
+            <label className="field">
               Optional Link
               <input name={`${prefix}_${index}_href`} defaultValue={item.href} />
             </label>
@@ -291,16 +295,16 @@ export function NavbarSettingsForm({ navbar }: { navbar: NavbarContent }) {
             <input name="brandLabel" defaultValue={navbar.brandLabel} />
           </label>
           <label className="field">
-            Primary Logo Text
-            <input name="primaryLogoText" defaultValue={navbar.primaryLogoText} />
+            Primary Logo URL
+            <input name="primaryLogoUrl" defaultValue={navbar.primaryLogoUrl} />
           </label>
           <label className="field">
-            White Logo Text
-            <input name="whiteLogoText" defaultValue={navbar.whiteLogoText} />
+            White Logo URL
+            <input name="whiteLogoUrl" defaultValue={navbar.whiteLogoUrl} />
           </label>
           <label className="field">
-            Black Logo Text
-            <input name="blackLogoText" defaultValue={navbar.blackLogoText} />
+            Black Logo URL
+            <input name="blackLogoUrl" defaultValue={navbar.blackLogoUrl} />
           </label>
           <label className="field">
             CTA Label
