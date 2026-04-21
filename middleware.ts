@@ -18,7 +18,11 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL("/admin", request.url));
       }
 
-      return NextResponse.next();
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders
+        }
+      });
     }
 
     if (!adminSession) {
