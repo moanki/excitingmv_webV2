@@ -17,6 +17,8 @@ export type ResortRecord = {
   seoTitle: string;
   seoDescription: string;
   seoSummary: string;
+  heroImageUrl: string;
+  galleryMediaUrls: string[];
   publishedAt: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -61,6 +63,8 @@ function fallbackResortDetail(summary: ResortSummary): ResortRecord {
     seoTitle: summary.name,
     seoDescription: summary.summary,
     seoSummary: summary.summary,
+    heroImageUrl: "",
+    galleryMediaUrls: [],
     publishedAt: summary.status === "published" ? new Date().toISOString() : null
   };
 }
@@ -84,6 +88,8 @@ function mapResortRow(row: ResortRow): ResortRecord {
     seoTitle: row.seo_title ?? row.name,
     seoDescription: row.seo_description ?? seoSummary,
     seoSummary,
+    heroImageUrl: "",
+    galleryMediaUrls: [],
     publishedAt: row.published_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -99,6 +105,7 @@ function baseSummary(detail: ResortRecord): ResortSummary {
     category: detail.category,
     transferType: detail.transferType,
     summary: detail.summary,
+    heroImageUrl: detail.heroImageUrl,
     status: detail.status
   };
 }
@@ -119,7 +126,35 @@ export async function listAdminResorts(): Promise<ResortRecord[]> {
       return sampleResorts.map(fallbackResortDetail);
     }
 
-    return (data as ResortRow[]).map(mapResortRow);
+    const resorts = (data as ResortRow[]).map(mapResortRow);
+    const resortIds = resorts.map((resort) => resort.id);
+    const { data: mediaRows } = resortIds.length
+      ? await supabase
+          .from("resort_media")
+          .select("resort_id,file_path,is_hero,sort_order")
+          .in("resort_id", resortIds)
+          .order("sort_order", { ascending: true })
+      : { data: [] };
+
+    const mediaMap = new Map<string, { heroImageUrl: string; galleryMediaUrls: string[] }>();
+    (mediaRows ?? []).forEach((row) => {
+      const resortId = String((row as { resort_id: string }).resort_id);
+      const filePath = String((row as { file_path: string }).file_path ?? "");
+      if (!filePath) return;
+
+      const current = mediaMap.get(resortId) ?? { heroImageUrl: "", galleryMediaUrls: [] };
+      current.galleryMediaUrls.push(filePath);
+      if ((row as { is_hero: boolean }).is_hero || !current.heroImageUrl) {
+        current.heroImageUrl = filePath;
+      }
+      mediaMap.set(resortId, current);
+    });
+
+    return resorts.map((resort) => ({
+      ...resort,
+      heroImageUrl: mediaMap.get(resort.id)?.heroImageUrl ?? "",
+      galleryMediaUrls: mediaMap.get(resort.id)?.galleryMediaUrls ?? []
+    }));
   } catch {
     return sampleResorts.map(fallbackResortDetail);
   }
@@ -165,11 +200,13 @@ export async function saveResort(input: {
   seoTitle: string;
   seoDescription: string;
   seoSummary: string;
+  heroImageUrl: string;
+  galleryMediaUrls: string[];
   status: PublishStatus;
 }) {
   const supabase = createSupabaseAdminClient();
   const now = new Date().toISOString();
-  const { error } = await supabase.from("resorts").upsert({
+  const { data, error } = await supabase.from("resorts").upsert({
     id: input.id,
     slug: input.slug,
     name: input.name,
@@ -185,10 +222,32 @@ export async function saveResort(input: {
     status: input.status,
     published_at: input.status === "published" ? now : null,
     updated_at: now
-  });
+  }).select("id").single();
 
-  if (error) {
+  if (error || !data) {
     throw new Error(error.message);
+  }
+
+  const uniqueMedia = Array.from(
+    new Set([input.heroImageUrl, ...input.galleryMediaUrls].map((item) => item.trim()).filter(Boolean))
+  );
+
+  await supabase.from("resort_media").delete().eq("resort_id", data.id);
+
+  if (uniqueMedia.length) {
+    const { error: mediaError } = await supabase.from("resort_media").insert(
+      uniqueMedia.map((filePath, index) => ({
+        resort_id: data.id,
+        file_path: filePath,
+        alt_text: input.name,
+        is_hero: filePath === input.heroImageUrl || (!input.heroImageUrl && index === 0),
+        sort_order: index
+      }))
+    );
+
+    if (mediaError) {
+      throw new Error(mediaError.message);
+    }
   }
 }
 

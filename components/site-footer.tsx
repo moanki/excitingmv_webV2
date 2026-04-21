@@ -6,6 +6,7 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
   const enabledLinkGroups = footer.linkGroups.filter((group) => group.enabled && group.title);
   const enabledMemberships = footer.memberships.filter((item) => item.enabled && item.name);
   const enabledAwards = footer.awards.filter((item) => item.enabled && item.name);
+  const footerLogoUrl = footer.companyLogoUrl || navbar.whiteLogoUrl;
 
   return (
     <footer className="site-footer">
@@ -13,9 +14,9 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
         <div className="site-footer__grid">
           <div className="site-footer__brand">
             <p className="section-kicker">Exciting Maldives</p>
-            {navbar.whiteLogoUrl ? (
+            {footerLogoUrl ? (
               <img
-                src={navbar.whiteLogoUrl}
+                src={footerLogoUrl}
                 alt={footer.companyLabel}
                 className="site-footer__logo-image"
               />

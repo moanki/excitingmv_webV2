@@ -11,6 +11,7 @@ export type ResortSummary = {
   category: string;
   transferType: string;
   summary: string;
+  heroImageUrl?: string;
   status: PublishStatus;
 };
 

@@ -80,7 +80,23 @@ export default async function HomePage() {
   return (
     <main className="home-page">
       <section className="home-hero">
-        <div className="home-hero__media" />
+        <div className="home-hero__media">
+          {hero.mediaUrl ? (
+            hero.mediaType === "video" ? (
+              <video
+                className="home-hero__media-asset"
+                src={hero.mediaUrl}
+                poster={hero.mediaPosterUrl || undefined}
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
+            ) : (
+              <img className="home-hero__media-asset" src={hero.mediaUrl} alt={hero.title} />
+            )
+          ) : null}
+        </div>
         <div className="home-hero__overlay" />
         <div className="home-hero__inner">
           <div className="home-hero__copy">
@@ -117,7 +133,9 @@ export default async function HomePage() {
               <Link href={`/resorts/${resort.slug}`} key={resort.slug} className="featured-card">
                 <div
                   className="featured-card__image"
-                  style={{ backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.72)), url(${pickResortImage(index)})` }}
+                  style={{
+                    backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.72)), url(${resort.heroImageUrl || pickResortImage(index)})`
+                  }}
                 />
                 <div className="featured-card__content">
                   <h3>{resort.name}</h3>

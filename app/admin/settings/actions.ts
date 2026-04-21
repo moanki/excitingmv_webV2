@@ -38,6 +38,7 @@ import {
   type NotificationSettings,
   type WhatsAppSettings
 } from "@/lib/site-content";
+import { uploadSiteAsset } from "@/lib/storage/site-assets";
 
 type ActionState = { message?: string; error?: string } | undefined;
 
@@ -51,51 +52,89 @@ function booleanValue(formData: FormData, name: string) {
   return formData.get(name) === "on";
 }
 
-function parseFooterBadges(formData: FormData, prefix: "membership" | "award"): FooterBadge[] {
-  return [0, 1, 2, 3].map((index) => ({
-    name: String(formData.get(`${prefix}_${index}_name`) ?? ""),
-    imageUrl: String(formData.get(`${prefix}_${index}_imageUrl`) ?? ""),
-    href: String(formData.get(`${prefix}_${index}_href`) ?? ""),
-    enabled: booleanValue(formData, `${prefix}_${index}_enabled`)
-  }));
+function stringValue(formData: FormData, name: string) {
+  return String(formData.get(name) ?? "");
+}
+
+function uploadedFile(formData: FormData, name: string) {
+  const file = formData.get(name);
+  if (file instanceof File && file.size > 0) {
+    return file;
+  }
+
+  return null;
+}
+
+async function parseFooterBadges(formData: FormData, prefix: "membership" | "award"): Promise<FooterBadge[]> {
+  return Promise.all(
+    [0, 1, 2, 3].map(async (index) => {
+      const imageFile = uploadedFile(formData, `${prefix}_${index}_imageFile`);
+
+      return {
+        name: stringValue(formData, `${prefix}_${index}_name`),
+        imageUrl: imageFile
+          ? await uploadSiteAsset(imageFile, `site/${prefix}`)
+          : stringValue(formData, `${prefix}_${index}_imageUrl`),
+        href: stringValue(formData, `${prefix}_${index}_href`),
+        enabled: booleanValue(formData, `${prefix}_${index}_enabled`)
+      };
+    })
+  );
 }
 
 function parseFooterGroups(formData: FormData): FooterLinkGroup[] {
   return [0, 1, 2, 3].map((groupIndex) => ({
-    title: String(formData.get(`group_${groupIndex}_title`) ?? ""),
+    title: stringValue(formData, `group_${groupIndex}_title`),
     enabled: booleanValue(formData, `group_${groupIndex}_enabled`),
     items: [0, 1, 2].map((itemIndex) => ({
-      label: String(formData.get(`group_${groupIndex}_item_${itemIndex}_label`) ?? ""),
-      href: String(formData.get(`group_${groupIndex}_item_${itemIndex}_href`) ?? ""),
+      label: stringValue(formData, `group_${groupIndex}_item_${itemIndex}_label`),
+      href: stringValue(formData, `group_${groupIndex}_item_${itemIndex}_href`),
       enabled: booleanValue(formData, `group_${groupIndex}_item_${itemIndex}_enabled`),
       external: booleanValue(formData, `group_${groupIndex}_item_${itemIndex}_external`)
     }))
   }));
 }
 
-function parseHomepageAwards(formData: FormData): HomepageAwardsContent {
+async function parseHomepageAwards(formData: FormData): Promise<HomepageAwardsContent> {
   return {
-    title: String(formData.get("title") ?? ""),
-    summary: String(formData.get("summary") ?? ""),
-    items: [0, 1, 2, 3].map((index) => ({
-      name: String(formData.get(`award_${index}_name`) ?? ""),
-      imageUrl: String(formData.get(`award_${index}_imageUrl`) ?? ""),
-      href: String(formData.get(`award_${index}_href`) ?? ""),
-      enabled: booleanValue(formData, `award_${index}_enabled`)
-    }))
+    title: stringValue(formData, "title"),
+    summary: stringValue(formData, "summary"),
+    items: await Promise.all(
+      [0, 1, 2, 3].map(async (index) => {
+        const imageFile = uploadedFile(formData, `award_${index}_imageFile`);
+
+        return {
+          name: stringValue(formData, `award_${index}_name`),
+          imageUrl: imageFile
+            ? await uploadSiteAsset(imageFile, "homepage/awards")
+            : stringValue(formData, `award_${index}_imageUrl`),
+          href: stringValue(formData, `award_${index}_href`),
+          enabled: booleanValue(formData, `award_${index}_enabled`)
+        };
+      })
+    )
   };
 }
 
 export async function saveHeroDraftAction(_: ActionState, formData: FormData) {
   try {
+    const heroMediaFile = uploadedFile(formData, "heroMediaFile");
+    const heroPosterFile = uploadedFile(formData, "heroPosterFile");
     const hero: HomepageHeroContent = {
-      eyebrow: String(formData.get("eyebrow") ?? ""),
-      title: String(formData.get("title") ?? ""),
-      description: String(formData.get("description") ?? ""),
-      primaryCtaLabel: String(formData.get("primaryCtaLabel") ?? ""),
-      primaryCtaHref: String(formData.get("primaryCtaHref") ?? ""),
-      secondaryCtaLabel: String(formData.get("secondaryCtaLabel") ?? ""),
-      secondaryCtaHref: String(formData.get("secondaryCtaHref") ?? "")
+      eyebrow: stringValue(formData, "eyebrow"),
+      title: stringValue(formData, "title"),
+      description: stringValue(formData, "description"),
+      primaryCtaLabel: stringValue(formData, "primaryCtaLabel"),
+      primaryCtaHref: stringValue(formData, "primaryCtaHref"),
+      secondaryCtaLabel: stringValue(formData, "secondaryCtaLabel"),
+      secondaryCtaHref: stringValue(formData, "secondaryCtaHref"),
+      mediaUrl: heroMediaFile
+        ? await uploadSiteAsset(heroMediaFile, "homepage/hero")
+        : stringValue(formData, "mediaUrl"),
+      mediaType: stringValue(formData, "mediaType") === "video" ? "video" : "image",
+      mediaPosterUrl: heroPosterFile
+        ? await uploadSiteAsset(heroPosterFile, "homepage/hero")
+        : stringValue(formData, "mediaPosterUrl")
     };
 
     await saveSiteSettingDraft("homepage.hero", defaultHeroContent, hero);
@@ -113,11 +152,20 @@ export async function publishHeroAction() {
 
 export async function saveFeaturesDraftAction(_: ActionState, formData: FormData) {
   try {
-    const features: HomepageFeatureCard[] = [0, 1, 2].map((index) => ({
-      eyebrow: String(formData.get(`feature_${index}_eyebrow`) ?? ""),
-      title: String(formData.get(`feature_${index}_title`) ?? ""),
-      description: String(formData.get(`feature_${index}_description`) ?? "")
-    }));
+    const features: HomepageFeatureCard[] = await Promise.all(
+      [0, 1, 2].map(async (index) => {
+        const imageFile = uploadedFile(formData, `feature_${index}_imageFile`);
+
+        return {
+          eyebrow: stringValue(formData, `feature_${index}_eyebrow`),
+          title: stringValue(formData, `feature_${index}_title`),
+          description: stringValue(formData, `feature_${index}_description`),
+          imageUrl: imageFile
+            ? await uploadSiteAsset(imageFile, "homepage/features")
+            : stringValue(formData, `feature_${index}_imageUrl`)
+        };
+      })
+    );
 
     await saveSiteSettingDraft("homepage.features", defaultHomepageFeatures, features);
     revalidateSiteContent();
@@ -135,8 +183,8 @@ export async function publishFeaturesAction() {
 export async function saveStatsDraftAction(_: ActionState, formData: FormData) {
   try {
     const stats: HomepageStat[] = [0, 1, 2, 3].map((index) => ({
-      value: String(formData.get(`stat_${index}_value`) ?? ""),
-      label: String(formData.get(`stat_${index}_label`) ?? "")
+      value: stringValue(formData, `stat_${index}_value`),
+      label: stringValue(formData, `stat_${index}_label`)
     }));
     await saveSiteSettingDraft("homepage.stats", defaultHomepageStats, stats);
     revalidateSiteContent();
@@ -153,13 +201,16 @@ export async function publishStatsAction() {
 
 export async function saveCeoDraftAction(_: ActionState, formData: FormData) {
   try {
+    const photoFile = uploadedFile(formData, "photoFile");
     const ceo: HomepageCeoContent = {
-      sectionLabel: String(formData.get("sectionLabel") ?? ""),
-      quote: String(formData.get("quote") ?? ""),
-      message: String(formData.get("message") ?? ""),
-      name: String(formData.get("name") ?? ""),
-      title: String(formData.get("title") ?? ""),
-      photoUrl: String(formData.get("photoUrl") ?? "")
+      sectionLabel: stringValue(formData, "sectionLabel"),
+      quote: stringValue(formData, "quote"),
+      message: stringValue(formData, "message"),
+      name: stringValue(formData, "name"),
+      title: stringValue(formData, "title"),
+      photoUrl: photoFile
+        ? await uploadSiteAsset(photoFile, "homepage/ceo")
+        : stringValue(formData, "photoUrl")
     };
     await saveSiteSettingDraft("homepage.ceo", defaultHomepageCeoContent, ceo);
     revalidateSiteContent();
@@ -176,11 +227,14 @@ export async function publishCeoAction() {
 
 export async function saveStoryDraftAction(_: ActionState, formData: FormData) {
   try {
+    const imageFile = uploadedFile(formData, "storyImageFile");
     const story: HomepageStoryContent = {
-      sectionLabel: String(formData.get("sectionLabel") ?? ""),
-      title: String(formData.get("title") ?? ""),
-      description: String(formData.get("description") ?? ""),
-      imageUrl: String(formData.get("imageUrl") ?? "")
+      sectionLabel: stringValue(formData, "sectionLabel"),
+      title: stringValue(formData, "title"),
+      description: stringValue(formData, "description"),
+      imageUrl: imageFile
+        ? await uploadSiteAsset(imageFile, "homepage/story")
+        : stringValue(formData, "imageUrl")
     };
     await saveSiteSettingDraft("homepage.story", defaultHomepageStoryContent, story);
     revalidateSiteContent();
@@ -198,7 +252,7 @@ export async function publishStoryAction() {
 export async function saveServicesDraftAction(_: ActionState, formData: FormData) {
   try {
     const services: HomepageServiceItem[] = [0, 1, 2, 3, 4, 5].map((index) => ({
-      title: String(formData.get(`service_${index}_title`) ?? ""),
+      title: stringValue(formData, `service_${index}_title`),
       enabled: booleanValue(formData, `service_${index}_enabled`)
     }));
     await saveSiteSettingDraft("homepage.services", defaultHomepageServices, services);
@@ -217,8 +271,8 @@ export async function publishServicesAction() {
 export async function saveWhyUsDraftAction(_: ActionState, formData: FormData) {
   try {
     const items: HomepageWhyUsItem[] = [0, 1, 2].map((index) => ({
-      title: String(formData.get(`item_${index}_title`) ?? ""),
-      description: String(formData.get(`item_${index}_description`) ?? "")
+      title: stringValue(formData, `item_${index}_title`),
+      description: stringValue(formData, `item_${index}_description`)
     }));
     await saveSiteSettingDraft("homepage.whyus", defaultHomepageWhyUs, items);
     revalidateSiteContent();
@@ -235,12 +289,20 @@ export async function publishWhyUsAction() {
 
 export async function saveGuideDraftAction(_: ActionState, formData: FormData) {
   try {
-    const guide: HomepageGuideItem[] = [0, 1, 2, 3].map((index) => ({
-      category: String(formData.get(`guide_${index}_category`) ?? ""),
-      title: String(formData.get(`guide_${index}_title`) ?? ""),
-      description: String(formData.get(`guide_${index}_description`) ?? ""),
-      imageUrl: String(formData.get(`guide_${index}_imageUrl`) ?? "")
-    }));
+    const guide: HomepageGuideItem[] = await Promise.all(
+      [0, 1, 2, 3].map(async (index) => {
+        const imageFile = uploadedFile(formData, `guide_${index}_imageFile`);
+
+        return {
+          category: stringValue(formData, `guide_${index}_category`),
+          title: stringValue(formData, `guide_${index}_title`),
+          description: stringValue(formData, `guide_${index}_description`),
+          imageUrl: imageFile
+            ? await uploadSiteAsset(imageFile, "homepage/guide")
+            : stringValue(formData, `guide_${index}_imageUrl`)
+        };
+      })
+    );
     await saveSiteSettingDraft("homepage.guide", defaultHomepageGuide, guide);
     revalidateSiteContent();
     return { message: "Travel guide draft saved." };
@@ -256,11 +318,14 @@ export async function publishGuideAction() {
 
 export async function saveNewsletterContentDraftAction(_: ActionState, formData: FormData) {
   try {
+    const imageFile = uploadedFile(formData, "newsletterImageFile");
     const newsletter: HomepageNewsletterContent = {
-      sectionLabel: String(formData.get("sectionLabel") ?? ""),
-      title: String(formData.get("title") ?? ""),
-      description: String(formData.get("description") ?? ""),
-      imageUrl: String(formData.get("imageUrl") ?? "")
+      sectionLabel: stringValue(formData, "sectionLabel"),
+      title: stringValue(formData, "title"),
+      description: stringValue(formData, "description"),
+      imageUrl: imageFile
+        ? await uploadSiteAsset(imageFile, "homepage/newsletter")
+        : stringValue(formData, "imageUrl")
     };
     await saveSiteSettingDraft("homepage.newsletter", defaultHomepageNewsletterContent, newsletter);
     revalidateSiteContent();
@@ -277,7 +342,7 @@ export async function publishNewsletterContentAction() {
 
 export async function saveAwardsDraftAction(_: ActionState, formData: FormData) {
   try {
-    const awards = parseHomepageAwards(formData);
+    const awards = await parseHomepageAwards(formData);
     await saveSiteSettingDraft("homepage.awards", defaultHomepageAwardsContent, awards);
     revalidateSiteContent();
     return { message: "Awards draft saved." };
@@ -293,20 +358,30 @@ export async function publishAwardsAction() {
 
 export async function saveNavbarDraftAction(_: ActionState, formData: FormData) {
   try {
+    const primaryLogoFile = uploadedFile(formData, "primaryLogoFile");
+    const whiteLogoFile = uploadedFile(formData, "whiteLogoFile");
+    const blackLogoFile = uploadedFile(formData, "blackLogoFile");
+
     const navbar: NavbarContent = {
-      brandKicker: String(formData.get("brandKicker") ?? ""),
-      brandLabel: String(formData.get("brandLabel") ?? ""),
-      primaryLogoUrl: String(formData.get("primaryLogoUrl") ?? ""),
-      whiteLogoUrl: String(formData.get("whiteLogoUrl") ?? ""),
-      blackLogoUrl: String(formData.get("blackLogoUrl") ?? ""),
+      brandKicker: stringValue(formData, "brandKicker"),
+      brandLabel: stringValue(formData, "brandLabel"),
+      primaryLogoUrl: primaryLogoFile
+        ? await uploadSiteAsset(primaryLogoFile, "site/logos")
+        : stringValue(formData, "primaryLogoUrl"),
+      whiteLogoUrl: whiteLogoFile
+        ? await uploadSiteAsset(whiteLogoFile, "site/logos")
+        : stringValue(formData, "whiteLogoUrl"),
+      blackLogoUrl: blackLogoFile
+        ? await uploadSiteAsset(blackLogoFile, "site/logos")
+        : stringValue(formData, "blackLogoUrl"),
       navItems: [0, 1, 2, 3, 4, 5].map((index) => ({
-        label: String(formData.get(`nav_${index}_label`) ?? ""),
-        href: String(formData.get(`nav_${index}_href`) ?? ""),
+        label: stringValue(formData, `nav_${index}_label`),
+        href: stringValue(formData, `nav_${index}_href`),
         enabled: booleanValue(formData, `nav_${index}_enabled`),
         external: booleanValue(formData, `nav_${index}_external`)
       })),
-      ctaLabel: String(formData.get("ctaLabel") ?? ""),
-      ctaHref: String(formData.get("ctaHref") ?? ""),
+      ctaLabel: stringValue(formData, "ctaLabel"),
+      ctaHref: stringValue(formData, "ctaHref"),
       ctaEnabled: booleanValue(formData, "ctaEnabled")
     };
 
@@ -325,16 +400,20 @@ export async function publishNavbarAction() {
 
 export async function saveFooterDraftAction(_: ActionState, formData: FormData) {
   try {
+    const companyLogoFile = uploadedFile(formData, "companyLogoFile");
     const footer: FooterContent = {
-      companyLabel: String(formData.get("companyLabel") ?? ""),
-      description: String(formData.get("description") ?? ""),
-      contactEmail: String(formData.get("contactEmail") ?? ""),
-      contactPhone: String(formData.get("contactPhone") ?? ""),
-      address: String(formData.get("address") ?? ""),
-      samoaUrl: String(formData.get("samoaUrl") ?? ""),
+      companyLabel: stringValue(formData, "companyLabel"),
+      description: stringValue(formData, "description"),
+      contactEmail: stringValue(formData, "contactEmail"),
+      contactPhone: stringValue(formData, "contactPhone"),
+      address: stringValue(formData, "address"),
+      samoaUrl: stringValue(formData, "samoaUrl"),
+      companyLogoUrl: companyLogoFile
+        ? await uploadSiteAsset(companyLogoFile, "site/footer")
+        : stringValue(formData, "companyLogoUrl"),
       linkGroups: parseFooterGroups(formData),
-      memberships: parseFooterBadges(formData, "membership"),
-      awards: parseFooterBadges(formData, "award")
+      memberships: await parseFooterBadges(formData, "membership"),
+      awards: await parseFooterBadges(formData, "award")
     };
 
     await saveSiteSettingDraft("site.footer", defaultFooterContent, footer);
@@ -354,10 +433,10 @@ export async function saveWhatsAppDraftAction(_: ActionState, formData: FormData
   try {
     const whatsApp: WhatsAppSettings = {
       enabled: booleanValue(formData, "enabled"),
-      label: String(formData.get("label") ?? ""),
-      number: String(formData.get("number") ?? ""),
-      link: String(formData.get("link") ?? ""),
-      presetMessage: String(formData.get("presetMessage") ?? "")
+      label: stringValue(formData, "label"),
+      number: stringValue(formData, "number"),
+      link: stringValue(formData, "link"),
+      presetMessage: stringValue(formData, "presetMessage")
     };
 
     await saveSiteSettingDraft("site.whatsapp", defaultWhatsAppSettings, whatsApp);
@@ -376,9 +455,9 @@ export async function publishWhatsAppAction() {
 export async function saveNotificationDraftAction(_: ActionState, formData: FormData) {
   try {
     const notifications: NotificationSettings = {
-      partnerRequestEmail: String(formData.get("partnerRequestEmail") ?? ""),
-      newsletterEmail: String(formData.get("newsletterEmail") ?? ""),
-      businessContactEmail: String(formData.get("businessContactEmail") ?? "")
+      partnerRequestEmail: stringValue(formData, "partnerRequestEmail"),
+      newsletterEmail: stringValue(formData, "newsletterEmail"),
+      businessContactEmail: stringValue(formData, "businessContactEmail")
     };
 
     await saveSiteSettingDraft("site.notifications", defaultNotificationSettings, notifications);
@@ -399,9 +478,9 @@ export async function publishNotificationAction() {
 export async function saveMarketDraftAction(_: ActionState, formData: FormData) {
   try {
     const markets: MarketSettings = {
-      sectionTitle: String(formData.get("sectionTitle") ?? ""),
+      sectionTitle: stringValue(formData, "sectionTitle"),
       options: [0, 1, 2, 3, 4, 5].map((index) => ({
-        label: String(formData.get(`market_${index}_label`) ?? ""),
+        label: stringValue(formData, `market_${index}_label`),
         enabled: booleanValue(formData, `market_${index}_enabled`)
       }))
     };

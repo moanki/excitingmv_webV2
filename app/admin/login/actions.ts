@@ -16,7 +16,9 @@ export async function loginToAdmin(_: { error?: string } | undefined, formData: 
   const next = String(formData.get("next") ?? "/admin");
 
   const isBootstrap =
-    email === bootstrapAdmin.email.toLowerCase() && password === bootstrapAdmin.password;
+    Boolean(bootstrapAdmin.email && bootstrapAdmin.password) &&
+    email === bootstrapAdmin.email.toLowerCase() &&
+    password === bootstrapAdmin.password;
   const isManagedAdmin = isBootstrap ? true : await authenticateAdminUser(email, password);
 
   if (!isManagedAdmin) {

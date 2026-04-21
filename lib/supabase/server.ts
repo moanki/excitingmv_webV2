@@ -5,11 +5,10 @@ import { env } from "@/lib/env";
 
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
-  type CookieSetArgs = Parameters<typeof cookieStore.set>;
   type CookieToSet = {
-    name: CookieSetArgs[0];
-    value: CookieSetArgs[1];
-    options?: CookieSetArgs[2];
+    name: string;
+    value: string;
+    options?: Parameters<typeof cookieStore.set>[2];
   };
 
   return createServerClient(

@@ -1,8 +1,13 @@
 import { CreateResortForm, ExistingResortForms, SeedResortsButton } from "@/app/admin/resorts/forms";
 import { getResortCounts, listAdminResorts } from "@/lib/services/resort-service";
+import { listSiteAssets } from "@/lib/storage/site-assets";
 
 export default async function AdminResortsPage() {
-  const [resorts, counts] = await Promise.all([listAdminResorts(), getResortCounts()]);
+  const [resorts, counts, mediaLibrary] = await Promise.all([
+    listAdminResorts(),
+    getResortCounts(),
+    listSiteAssets()
+  ]);
 
   return (
     <section className="stack">
@@ -33,8 +38,8 @@ export default async function AdminResortsPage() {
         </article>
       </div>
 
-      <CreateResortForm />
-      <ExistingResortForms resorts={resorts} />
+      <CreateResortForm mediaLibrary={mediaLibrary} />
+      <ExistingResortForms resorts={resorts} mediaLibrary={mediaLibrary} />
     </section>
   );
 }
