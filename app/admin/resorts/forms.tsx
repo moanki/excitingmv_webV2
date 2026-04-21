@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 
+import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 import { deleteResortAction, saveResortAction, seedResortsAction } from "@/app/admin/resorts/actions";
 import type { ResortRecord } from "@/lib/services/resort-service";
 
@@ -20,11 +21,13 @@ function StatusMessage({ message, error }: { message?: string; error?: string })
 function ResortEditor({
   resort,
   title,
-  description
+  description,
+  mediaLibrary
 }: {
   resort: Partial<ResortRecord> & { id?: string; name?: string };
   title: string;
   description: string;
+  mediaLibrary: MediaLibraryItem[];
 }) {
   const [state, action, pending] = useActionState(saveResortAction, undefined);
 
@@ -109,6 +112,32 @@ function ResortEditor({
             <textarea name="seoSummary" defaultValue={resort.seoSummary ?? resort.summary ?? ""} />
           </label>
         </div>
+        <MediaField
+          label="Hero photo"
+          inputName="heroImageUrl"
+          fileName="heroImageFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          value={resort.heroImageUrl ?? ""}
+          library={mediaLibrary}
+          helper="Main image used for resort cards and gallery cover."
+        />
+        <label className="field">
+          <span>Gallery image URLs</span>
+          <textarea
+            name="galleryMediaUrls"
+            defaultValue={(resort.galleryMediaUrls ?? []).join("\n")}
+            placeholder="One image URL per line, or upload new files below."
+          />
+        </label>
+        <label className="field">
+          <span>Upload gallery images</span>
+          <input
+            name="galleryMediaFiles"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            multiple
+          />
+        </label>
         <button className="button" type="submit" disabled={pending}>
           {pending ? "Saving..." : "Save Property"}
         </button>
@@ -118,17 +147,24 @@ function ResortEditor({
   );
 }
 
-export function CreateResortForm() {
+export function CreateResortForm({ mediaLibrary }: { mediaLibrary: MediaLibraryItem[] }) {
   return (
     <ResortEditor
       resort={{ status: "draft" }}
       title="Create Property"
       description="Add a new resort record directly from the admin portal and publish it when ready."
+      mediaLibrary={mediaLibrary}
     />
   );
 }
 
-export function ExistingResortForms({ resorts }: { resorts: ResortRecord[] }) {
+export function ExistingResortForms({
+  resorts,
+  mediaLibrary
+}: {
+  resorts: ResortRecord[];
+  mediaLibrary: MediaLibraryItem[];
+}) {
   return (
     <div className="stack">
       {resorts.map((resort) => (
@@ -137,6 +173,7 @@ export function ExistingResortForms({ resorts }: { resorts: ResortRecord[] }) {
           resort={resort}
           title="Edit Property"
           description="Update the live property record, metadata, commercial fields, and publish state."
+          mediaLibrary={mediaLibrary}
         />
       ))}
     </div>
