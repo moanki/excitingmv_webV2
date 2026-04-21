@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Inter, Playfair_Display } from "next/font/google";
 
 import "@/app/globals.css";
@@ -28,6 +29,18 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const headerStore = await headers();
+  const pathname = headerStore.get("x-pathname") ?? "";
+  const isAdminRoute = pathname.startsWith("/admin");
+
+  if (isAdminRoute) {
+    return (
+      <html lang="en">
+        <body className={`${inter.variable} ${playfair.variable} admin-body`}>{children}</body>
+      </html>
+    );
+  }
+
   const [{ content: navbar }, { content: footer }, { content: whatsApp }] = await Promise.all([
     getNavbarContent("published"),
     getFooterContent("published"),
