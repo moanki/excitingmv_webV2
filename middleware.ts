@@ -7,6 +7,8 @@ const PARTNER_PREFIX = "/partner";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname);
 
   if (pathname.startsWith(ADMIN_PREFIX)) {
     const adminSession = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
@@ -27,12 +29,20 @@ export function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith(ADMIN_PREFIX) || pathname.startsWith(PARTNER_PREFIX)) {
-    const response = NextResponse.next();
+    const response = NextResponse.next({
+      request: {
+        headers: requestHeaders
+      }
+    });
     response.headers.set("x-auth-required", "true");
     return response;
   }
 
-  return NextResponse.next();
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders
+    }
+  });
 }
 
 export const config = {
