@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { deleteResort, saveResort, seedSampleResorts } from "@/lib/services/resort-service";
+import { uploadSiteAsset } from "@/lib/storage/site-assets";
 import type { PublishStatus } from "@/lib/types";
 
 type ActionState = { message?: string; error?: string } | undefined;
@@ -33,6 +34,24 @@ function slugify(value: string) {
 export async function saveResortAction(_: ActionState, formData: FormData) {
   try {
     const name = String(formData.get("name") ?? "").trim();
+    const heroImageFile = formData.get("heroImageFile");
+    const galleryFiles = formData.getAll("galleryMediaFiles");
+    const uploadedHeroImage =
+      heroImageFile instanceof File && heroImageFile.size > 0
+        ? await uploadSiteAsset(heroImageFile, "resorts")
+        : String(formData.get("heroImageUrl") ?? "").trim();
+    const uploadedGalleryImages = (
+      await Promise.all(
+        galleryFiles.map(async (item) => {
+          if (!(item instanceof File) || item.size === 0) return "";
+          return uploadSiteAsset(item, "resorts");
+        })
+      )
+    ).filter(Boolean);
+    const galleryMediaUrls = String(formData.get("galleryMediaUrls") ?? "")
+      .split(/\r?\n|,/)
+      .map((item) => item.trim())
+      .filter(Boolean);
     const input = {
       id: String(formData.get("id") ?? "").trim() || undefined,
       slug: slugify(String(formData.get("slug") ?? name)),
@@ -46,6 +65,8 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
       seoTitle: String(formData.get("seoTitle") ?? name).trim(),
       seoDescription: String(formData.get("seoDescription") ?? "").trim(),
       seoSummary: String(formData.get("seoSummary") ?? "").trim(),
+      heroImageUrl: uploadedHeroImage,
+      galleryMediaUrls: [...galleryMediaUrls, ...uploadedGalleryImages],
       status: String(formData.get("status") ?? "draft").trim() as PublishStatus
     };
 
