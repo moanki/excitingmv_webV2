@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 
+import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 import {
   publishAwardsAction,
   publishCeoAction,
@@ -31,8 +32,7 @@ import {
   saveServicesDraftAction,
   saveStatsDraftAction,
   saveStoryDraftAction,
-  saveWhatsAppDraftAction
-  ,
+  saveWhatsAppDraftAction,
   saveWhyUsDraftAction
 } from "@/app/admin/settings/actions";
 import type {
@@ -87,11 +87,13 @@ function ToggleField({
 function FooterBadgeFields({
   prefix,
   label,
-  items
+  items,
+  mediaLibrary
 }: {
   prefix: "membership" | "award";
   label: string;
   items: FooterBadge[];
+  mediaLibrary: MediaLibraryItem[];
 }) {
   return (
     <div className="stack">
@@ -107,14 +109,18 @@ function FooterBadgeFields({
               <input name={`${prefix}_${index}_name`} defaultValue={item.name} />
             </label>
             <label className="field">
-              Logo URL
-              <input name={`${prefix}_${index}_imageUrl`} defaultValue={item.imageUrl} />
-            </label>
-            <label className="field">
               Optional Link
               <input name={`${prefix}_${index}_href`} defaultValue={item.href} />
             </label>
           </div>
+          <MediaField
+            label={`${label} image`}
+            inputName={`${prefix}_${index}_imageUrl`}
+            fileName={`${prefix}_${index}_imageFile`}
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            value={item.imageUrl}
+            library={mediaLibrary}
+          />
           <ToggleField
             name={`${prefix}_${index}_enabled`}
             label="Show this badge"
@@ -187,7 +193,13 @@ function FooterGroupFields({ groups }: { groups: FooterLinkGroup[] }) {
   );
 }
 
-export function HeroSettingsForm({ hero }: { hero: HomepageHeroContent }) {
+export function HeroSettingsForm({
+  hero,
+  mediaLibrary
+}: {
+  hero: HomepageHeroContent;
+  mediaLibrary: MediaLibraryItem[];
+}) {
   const [state, action, pending] = useActionState(saveHeroDraftAction, undefined);
 
   return (
@@ -225,6 +237,13 @@ export function HeroSettingsForm({ hero }: { hero: HomepageHeroContent }) {
             Secondary CTA Link
             <input name="secondaryCtaHref" defaultValue={hero.secondaryCtaHref} />
           </label>
+          <label className="field">
+            Hero Media Type
+            <select name="mediaType" defaultValue={hero.mediaType}>
+              <option value="image">Image</option>
+              <option value="video">Video</option>
+            </select>
+          </label>
           <label className="field" style={{ gridColumn: "1 / -1" }}>
             Hero Title
             <textarea name="title" defaultValue={hero.title} />
@@ -234,6 +253,24 @@ export function HeroSettingsForm({ hero }: { hero: HomepageHeroContent }) {
             <textarea name="description" defaultValue={hero.description} />
           </label>
         </div>
+        <MediaField
+          label="Hero image or video"
+          inputName="mediaUrl"
+          fileName="heroMediaFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml,video/mp4,video/webm,video/quicktime"
+          value={hero.mediaUrl}
+          library={mediaLibrary}
+          helper="Upload, drag in, or reuse an asset from the media library."
+        />
+        <MediaField
+          label="Video poster"
+          inputName="mediaPosterUrl"
+          fileName="heroPosterFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          value={hero.mediaPosterUrl}
+          library={mediaLibrary}
+          helper="Optional cover image used before the hero video plays."
+        />
         <button className="button" type="submit" disabled={pending}>
           {pending ? "Saving..." : "Save Hero Draft"}
         </button>
@@ -243,7 +280,13 @@ export function HeroSettingsForm({ hero }: { hero: HomepageHeroContent }) {
   );
 }
 
-export function FeaturesSettingsForm({ features }: { features: HomepageFeatureCard[] }) {
+export function FeaturesSettingsForm({
+  features,
+  mediaLibrary
+}: {
+  features: HomepageFeatureCard[];
+  mediaLibrary: MediaLibraryItem[];
+}) {
   const [state, action, pending] = useActionState(saveFeaturesDraftAction, undefined);
 
   return (
@@ -281,6 +324,14 @@ export function FeaturesSettingsForm({ features }: { features: HomepageFeatureCa
                   />
                 </label>
               </div>
+              <MediaField
+                label={`Feature card ${index + 1} image`}
+                inputName={`feature_${index}_imageUrl`}
+                fileName={`feature_${index}_imageFile`}
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                value={feature.imageUrl}
+                library={mediaLibrary}
+              />
             </div>
           ))}
         </div>
@@ -293,7 +344,13 @@ export function FeaturesSettingsForm({ features }: { features: HomepageFeatureCa
   );
 }
 
-export function NavbarSettingsForm({ navbar }: { navbar: NavbarContent }) {
+export function NavbarSettingsForm({
+  navbar,
+  mediaLibrary
+}: {
+  navbar: NavbarContent;
+  mediaLibrary: MediaLibraryItem[];
+}) {
   const [state, action, pending] = useActionState(saveNavbarDraftAction, undefined);
 
   return (
@@ -320,18 +377,6 @@ export function NavbarSettingsForm({ navbar }: { navbar: NavbarContent }) {
             <input name="brandLabel" defaultValue={navbar.brandLabel} />
           </label>
           <label className="field">
-            Primary Logo URL
-            <input name="primaryLogoUrl" defaultValue={navbar.primaryLogoUrl} />
-          </label>
-          <label className="field">
-            White Logo URL
-            <input name="whiteLogoUrl" defaultValue={navbar.whiteLogoUrl} />
-          </label>
-          <label className="field">
-            Black Logo URL
-            <input name="blackLogoUrl" defaultValue={navbar.blackLogoUrl} />
-          </label>
-          <label className="field">
             CTA Label
             <input name="ctaLabel" defaultValue={navbar.ctaLabel} />
           </label>
@@ -340,6 +385,30 @@ export function NavbarSettingsForm({ navbar }: { navbar: NavbarContent }) {
             <input name="ctaHref" defaultValue={navbar.ctaHref} />
           </label>
         </div>
+        <MediaField
+          label="Primary logo"
+          inputName="primaryLogoUrl"
+          fileName="primaryLogoFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          value={navbar.primaryLogoUrl}
+          library={mediaLibrary}
+        />
+        <MediaField
+          label="White logo"
+          inputName="whiteLogoUrl"
+          fileName="whiteLogoFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          value={navbar.whiteLogoUrl}
+          library={mediaLibrary}
+        />
+        <MediaField
+          label="Black logo"
+          inputName="blackLogoUrl"
+          fileName="blackLogoFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          value={navbar.blackLogoUrl}
+          library={mediaLibrary}
+        />
         <ToggleField name="ctaEnabled" label="Show navbar CTA button" defaultChecked={navbar.ctaEnabled} />
         <div className="stack">
           {navbar.navItems.map((item, index) => (
@@ -379,7 +448,13 @@ export function NavbarSettingsForm({ navbar }: { navbar: NavbarContent }) {
   );
 }
 
-export function FooterSettingsForm({ footer }: { footer: FooterContent }) {
+export function FooterSettingsForm({
+  footer,
+  mediaLibrary
+}: {
+  footer: FooterContent;
+  mediaLibrary: MediaLibraryItem[];
+}) {
   const [state, action, pending] = useActionState(saveFooterDraftAction, undefined);
 
   return (
@@ -422,9 +497,27 @@ export function FooterSettingsForm({ footer }: { footer: FooterContent }) {
             <textarea name="description" defaultValue={footer.description} />
           </label>
         </div>
+        <MediaField
+          label="Footer company logo"
+          inputName="companyLogoUrl"
+          fileName="companyLogoFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          value={footer.companyLogoUrl}
+          library={mediaLibrary}
+        />
         <FooterGroupFields groups={footer.linkGroups} />
-        <FooterBadgeFields prefix="membership" label="Memberships" items={footer.memberships} />
-        <FooterBadgeFields prefix="award" label="Awards" items={footer.awards} />
+        <FooterBadgeFields
+          prefix="membership"
+          label="Memberships"
+          items={footer.memberships}
+          mediaLibrary={mediaLibrary}
+        />
+        <FooterBadgeFields
+          prefix="award"
+          label="Awards"
+          items={footer.awards}
+          mediaLibrary={mediaLibrary}
+        />
         <button className="button" type="submit" disabled={pending}>
           {pending ? "Saving..." : "Save Footer Draft"}
         </button>
@@ -612,7 +705,13 @@ export function HomepageStatsForm({ stats }: { stats: HomepageStat[] }) {
   );
 }
 
-export function HomepageCeoForm({ ceo }: { ceo: HomepageCeoContent }) {
+export function HomepageCeoForm({
+  ceo,
+  mediaLibrary
+}: {
+  ceo: HomepageCeoContent;
+  mediaLibrary: MediaLibraryItem[];
+}) {
   const [state, action, pending] = useActionState(saveCeoDraftAction, undefined);
 
   return (
@@ -642,10 +741,6 @@ export function HomepageCeoForm({ ceo }: { ceo: HomepageCeoContent }) {
             CEO Title
             <input name="title" defaultValue={ceo.title} />
           </label>
-          <label className="field">
-            Photo URL
-            <input name="photoUrl" defaultValue={ceo.photoUrl} />
-          </label>
           <label className="field" style={{ gridColumn: "1 / -1" }}>
             Quote
             <textarea name="quote" defaultValue={ceo.quote} />
@@ -655,6 +750,14 @@ export function HomepageCeoForm({ ceo }: { ceo: HomepageCeoContent }) {
             <textarea name="message" defaultValue={ceo.message} />
           </label>
         </div>
+        <MediaField
+          label="CEO photo"
+          inputName="photoUrl"
+          fileName="photoFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          value={ceo.photoUrl}
+          library={mediaLibrary}
+        />
         <button className="button" type="submit" disabled={pending}>
           {pending ? "Saving..." : "Save CEO Draft"}
         </button>
@@ -664,7 +767,13 @@ export function HomepageCeoForm({ ceo }: { ceo: HomepageCeoContent }) {
   );
 }
 
-export function HomepageStoryForm({ story }: { story: HomepageStoryContent }) {
+export function HomepageStoryForm({
+  story,
+  mediaLibrary
+}: {
+  story: HomepageStoryContent;
+  mediaLibrary: MediaLibraryItem[];
+}) {
   const [state, action, pending] = useActionState(saveStoryDraftAction, undefined);
 
   return (
@@ -686,10 +795,6 @@ export function HomepageStoryForm({ story }: { story: HomepageStoryContent }) {
             Section Label
             <input name="sectionLabel" defaultValue={story.sectionLabel} />
           </label>
-          <label className="field">
-            Story Image URL
-            <input name="imageUrl" defaultValue={story.imageUrl} />
-          </label>
           <label className="field" style={{ gridColumn: "1 / -1" }}>
             Title
             <input name="title" defaultValue={story.title} />
@@ -699,6 +804,14 @@ export function HomepageStoryForm({ story }: { story: HomepageStoryContent }) {
             <textarea name="description" defaultValue={story.description} />
           </label>
         </div>
+        <MediaField
+          label="Story image"
+          inputName="imageUrl"
+          fileName="storyImageFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          value={story.imageUrl}
+          library={mediaLibrary}
+        />
         <button className="button" type="submit" disabled={pending}>
           {pending ? "Saving..." : "Save Story Draft"}
         </button>
@@ -789,7 +902,13 @@ export function HomepageWhyUsForm({ items }: { items: HomepageWhyUsItem[] }) {
   );
 }
 
-export function HomepageGuideForm({ items }: { items: HomepageGuideItem[] }) {
+export function HomepageGuideForm({
+  items,
+  mediaLibrary
+}: {
+  items: HomepageGuideItem[];
+  mediaLibrary: MediaLibraryItem[];
+}) {
   const [state, action, pending] = useActionState(saveGuideDraftAction, undefined);
 
   return (
@@ -813,10 +932,6 @@ export function HomepageGuideForm({ items }: { items: HomepageGuideItem[] }) {
                 Category
                 <input name={`guide_${index}_category`} defaultValue={item.category} />
               </label>
-              <label className="field">
-                Image URL
-                <input name={`guide_${index}_imageUrl`} defaultValue={item.imageUrl} />
-              </label>
               <label className="field" style={{ gridColumn: "1 / -1" }}>
                 Title
                 <input name={`guide_${index}_title`} defaultValue={item.title} />
@@ -826,6 +941,14 @@ export function HomepageGuideForm({ items }: { items: HomepageGuideItem[] }) {
                 <textarea name={`guide_${index}_description`} defaultValue={item.description} />
               </label>
             </div>
+            <MediaField
+              label={`Guide card ${index + 1} image`}
+              inputName={`guide_${index}_imageUrl`}
+              fileName={`guide_${index}_imageFile`}
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              value={item.imageUrl}
+              library={mediaLibrary}
+            />
           </div>
         ))}
         <button className="button" type="submit" disabled={pending}>
@@ -838,9 +961,11 @@ export function HomepageGuideForm({ items }: { items: HomepageGuideItem[] }) {
 }
 
 export function HomepageNewsletterContentForm({
-  newsletter
+  newsletter,
+  mediaLibrary
 }: {
   newsletter: HomepageNewsletterContent;
+  mediaLibrary: MediaLibraryItem[];
 }) {
   const [state, action, pending] = useActionState(saveNewsletterContentDraftAction, undefined);
 
@@ -863,10 +988,6 @@ export function HomepageNewsletterContentForm({
             Section Label
             <input name="sectionLabel" defaultValue={newsletter.sectionLabel} />
           </label>
-          <label className="field">
-            Image URL
-            <input name="imageUrl" defaultValue={newsletter.imageUrl} />
-          </label>
           <label className="field" style={{ gridColumn: "1 / -1" }}>
             Title
             <input name="title" defaultValue={newsletter.title} />
@@ -876,6 +997,14 @@ export function HomepageNewsletterContentForm({
             <textarea name="description" defaultValue={newsletter.description} />
           </label>
         </div>
+        <MediaField
+          label="Newsletter image"
+          inputName="imageUrl"
+          fileName="newsletterImageFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          value={newsletter.imageUrl}
+          library={mediaLibrary}
+        />
         <button className="button" type="submit" disabled={pending}>
           {pending ? "Saving..." : "Save Newsletter Draft"}
         </button>
@@ -885,7 +1014,13 @@ export function HomepageNewsletterContentForm({
   );
 }
 
-export function HomepageAwardsForm({ awards }: { awards: HomepageAwardsContent }) {
+export function HomepageAwardsForm({
+  awards,
+  mediaLibrary
+}: {
+  awards: HomepageAwardsContent;
+  mediaLibrary: MediaLibraryItem[];
+}) {
   const [state, action, pending] = useActionState(saveAwardsDraftAction, undefined);
 
   return (
@@ -912,7 +1047,7 @@ export function HomepageAwardsForm({ awards }: { awards: HomepageAwardsContent }
             <textarea name="summary" defaultValue={awards.summary} />
           </label>
         </div>
-        <FooterBadgeFields prefix="award" label="Award Logos" items={awards.items} />
+        <FooterBadgeFields prefix="award" label="Award Logos" items={awards.items} mediaLibrary={mediaLibrary} />
         <button className="button" type="submit" disabled={pending}>
           {pending ? "Saving..." : "Save Awards Draft"}
         </button>
