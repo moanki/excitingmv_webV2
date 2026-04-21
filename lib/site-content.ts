@@ -8,12 +8,16 @@ export type HomepageHeroContent = {
   primaryCtaHref: string;
   secondaryCtaLabel: string;
   secondaryCtaHref: string;
+  mediaUrl: string;
+  mediaType: "image" | "video";
+  mediaPosterUrl: string;
 };
 
 export type HomepageFeatureCard = {
   eyebrow: string;
   title: string;
   description: string;
+  imageUrl: string;
 };
 
 export type HomepageStat = {
@@ -113,6 +117,7 @@ export type FooterContent = {
   contactPhone: string;
   address: string;
   samoaUrl: string;
+  companyLogoUrl: string;
   linkGroups: FooterLinkGroup[];
   memberships: FooterBadge[];
   awards: FooterBadge[];
@@ -156,7 +161,10 @@ export const defaultHeroContent: HomepageHeroContent = {
   primaryCtaLabel: "Partner With Us",
   primaryCtaHref: "/partner/register",
   secondaryCtaLabel: "Admin Center",
-  secondaryCtaHref: "/admin/login"
+  secondaryCtaHref: "/admin/login",
+  mediaUrl: "",
+  mediaType: "image",
+  mediaPosterUrl: ""
 };
 
 export const defaultHomepageFeatures: HomepageFeatureCard[] = [
@@ -164,19 +172,22 @@ export const defaultHomepageFeatures: HomepageFeatureCard[] = [
     eyebrow: "Protected Access",
     title: "Partner approvals backed by roles and RLS.",
     description:
-      "Approved partners access protected resort files, rates, and trade resources from one secure portal."
+      "Approved partners access protected resort files, rates, and trade resources from one secure portal.",
+    imageUrl: ""
   },
   {
     eyebrow: "Live Support",
     title: "Realtime chat for sales and contracting questions.",
     description:
-      "Supabase Realtime powers direct communication between partners and the internal sales team."
+      "Supabase Realtime powers direct communication between partners and the internal sales team.",
+    imageUrl: ""
   },
   {
     eyebrow: "Admin AI",
     title: "OpenAI restricted to import review and SEO drafting.",
     description:
-      "AI helps the admin team accelerate data extraction and summary generation without auto-publishing."
+      "AI helps the admin team accelerate data extraction and summary generation without auto-publishing.",
+    imageUrl: ""
   }
 ];
 
@@ -319,6 +330,7 @@ export const defaultFooterContent: FooterContent = {
   contactPhone: "+960 000 0000",
   address: "Male, Maldives",
   samoaUrl: "https://samoa.example.com",
+  companyLogoUrl: "",
   linkGroups: [
     {
       title: "Destinations",
