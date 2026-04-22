@@ -227,6 +227,16 @@ function guessFilenameFromUrl(url: string, index: number) {
   }
 }
 
+function isUsableDriveFileUrl(url: string) {
+  const lowered = url.toLowerCase();
+  return !(
+    lowered.includes("{docid}") ||
+    lowered.includes("%7bdocid%7d") ||
+    lowered.includes("{resourcekeyparam}") ||
+    lowered.includes("%7bresourcekeyparam%7d")
+  );
+}
+
 function extractOutputText(payload: any) {
   if (typeof payload?.output_text === "string" && payload.output_text) {
     return payload.output_text;
@@ -281,7 +291,9 @@ async function resolveGoogleDriveSources(url: string) {
       html.matchAll(
         /https:\/\/(?:drive|docs)\.google\.com\/(?:file\/d|document\/d|spreadsheets\/d|presentation\/d)\/[^"'&<\s]+/g
       )
-    ).map((match) => normalizeGoogleDriveFileUrl(match[0]))
+    )
+      .map((match) => normalizeGoogleDriveFileUrl(match[0]))
+      .filter(isUsableDriveFileUrl)
   );
 
   const embeddedFileMatches = htmlPayloads.flatMap((html) =>
@@ -295,7 +307,12 @@ async function resolveGoogleDriveSources(url: string) {
   );
 
   const uniqueMatches = Array.from(
-    new Set([...driveDocMatches, ...embeddedFileMatches, ...pdfMatches].map((item) => item.trim()).filter(Boolean))
+    new Set(
+      [...embeddedFileMatches, ...driveDocMatches, ...pdfMatches]
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .filter(isUsableDriveFileUrl)
+    )
   );
 
   if (!uniqueMatches.length) {
