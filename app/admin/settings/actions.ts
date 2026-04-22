@@ -65,6 +65,37 @@ function uploadedFile(formData: FormData, name: string) {
   return null;
 }
 
+function shouldPublish(formData: FormData) {
+  return stringValue(formData, "intent") === "publish";
+}
+
+async function finalizeSettingSave<T>({
+  formData,
+  key,
+  fallback,
+  value,
+  draftMessage,
+  publishedMessage
+}: {
+  formData: FormData;
+  key: string;
+  fallback: T;
+  value: T;
+  draftMessage: string;
+  publishedMessage: string;
+}) {
+  await saveSiteSettingDraft(key, fallback, value);
+
+  if (shouldPublish(formData)) {
+    await publishSiteSetting(key, fallback);
+    revalidateSiteContent();
+    return { message: publishedMessage };
+  }
+
+  revalidateSiteContent();
+  return { message: draftMessage };
+}
+
 async function parseFooterBadges(formData: FormData, prefix: "membership" | "award"): Promise<FooterBadge[]> {
   return Promise.all(
     [0, 1, 2, 3].map(async (index) => {
@@ -116,7 +147,7 @@ async function parseHomepageAwards(formData: FormData): Promise<HomepageAwardsCo
   };
 }
 
-export async function saveHeroDraftAction(_: ActionState, formData: FormData) {
+export async function saveHeroDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const heroMediaFile = uploadedFile(formData, "heroMediaFile");
     const heroPosterFile = uploadedFile(formData, "heroPosterFile");
@@ -137,9 +168,14 @@ export async function saveHeroDraftAction(_: ActionState, formData: FormData) {
         : stringValue(formData, "mediaPosterUrl")
     };
 
-    await saveSiteSettingDraft("homepage.hero", defaultHeroContent, hero);
-    revalidateSiteContent();
-    return { message: "Hero draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "homepage.hero",
+      fallback: defaultHeroContent,
+      value: hero,
+      draftMessage: "Hero draft saved.",
+      publishedMessage: "Hero published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save hero draft." };
   }
@@ -150,7 +186,7 @@ export async function publishHeroAction() {
   revalidateSiteContent();
 }
 
-export async function saveFeaturesDraftAction(_: ActionState, formData: FormData) {
+export async function saveFeaturesDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const features: HomepageFeatureCard[] = await Promise.all(
       [0, 1, 2].map(async (index) => {
@@ -167,9 +203,14 @@ export async function saveFeaturesDraftAction(_: ActionState, formData: FormData
       })
     );
 
-    await saveSiteSettingDraft("homepage.features", defaultHomepageFeatures, features);
-    revalidateSiteContent();
-    return { message: "Feature card draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "homepage.features",
+      fallback: defaultHomepageFeatures,
+      value: features,
+      draftMessage: "Feature card draft saved.",
+      publishedMessage: "Features published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save feature draft." };
   }
@@ -180,15 +221,20 @@ export async function publishFeaturesAction() {
   revalidateSiteContent();
 }
 
-export async function saveStatsDraftAction(_: ActionState, formData: FormData) {
+export async function saveStatsDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const stats: HomepageStat[] = [0, 1, 2, 3].map((index) => ({
       value: stringValue(formData, `stat_${index}_value`),
       label: stringValue(formData, `stat_${index}_label`)
     }));
-    await saveSiteSettingDraft("homepage.stats", defaultHomepageStats, stats);
-    revalidateSiteContent();
-    return { message: "Homepage stats draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "homepage.stats",
+      fallback: defaultHomepageStats,
+      value: stats,
+      draftMessage: "Homepage stats draft saved.",
+      publishedMessage: "Homepage stats published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save stats draft." };
   }
@@ -199,7 +245,7 @@ export async function publishStatsAction() {
   revalidateSiteContent();
 }
 
-export async function saveCeoDraftAction(_: ActionState, formData: FormData) {
+export async function saveCeoDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const photoFile = uploadedFile(formData, "photoFile");
     const ceo: HomepageCeoContent = {
@@ -212,9 +258,14 @@ export async function saveCeoDraftAction(_: ActionState, formData: FormData) {
         ? await uploadSiteAsset(photoFile, "homepage/ceo")
         : stringValue(formData, "photoUrl")
     };
-    await saveSiteSettingDraft("homepage.ceo", defaultHomepageCeoContent, ceo);
-    revalidateSiteContent();
-    return { message: "CEO section draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "homepage.ceo",
+      fallback: defaultHomepageCeoContent,
+      value: ceo,
+      draftMessage: "CEO section draft saved.",
+      publishedMessage: "CEO section published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save CEO section." };
   }
@@ -225,7 +276,7 @@ export async function publishCeoAction() {
   revalidateSiteContent();
 }
 
-export async function saveStoryDraftAction(_: ActionState, formData: FormData) {
+export async function saveStoryDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const imageFile = uploadedFile(formData, "storyImageFile");
     const story: HomepageStoryContent = {
@@ -236,9 +287,14 @@ export async function saveStoryDraftAction(_: ActionState, formData: FormData) {
         ? await uploadSiteAsset(imageFile, "homepage/story")
         : stringValue(formData, "imageUrl")
     };
-    await saveSiteSettingDraft("homepage.story", defaultHomepageStoryContent, story);
-    revalidateSiteContent();
-    return { message: "Story section draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "homepage.story",
+      fallback: defaultHomepageStoryContent,
+      value: story,
+      draftMessage: "Story section draft saved.",
+      publishedMessage: "Story section published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save story section." };
   }
@@ -249,15 +305,20 @@ export async function publishStoryAction() {
   revalidateSiteContent();
 }
 
-export async function saveServicesDraftAction(_: ActionState, formData: FormData) {
+export async function saveServicesDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const services: HomepageServiceItem[] = [0, 1, 2, 3, 4, 5].map((index) => ({
       title: stringValue(formData, `service_${index}_title`),
       enabled: booleanValue(formData, `service_${index}_enabled`)
     }));
-    await saveSiteSettingDraft("homepage.services", defaultHomepageServices, services);
-    revalidateSiteContent();
-    return { message: "Services draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "homepage.services",
+      fallback: defaultHomepageServices,
+      value: services,
+      draftMessage: "Services draft saved.",
+      publishedMessage: "Services published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save services." };
   }
@@ -268,15 +329,20 @@ export async function publishServicesAction() {
   revalidateSiteContent();
 }
 
-export async function saveWhyUsDraftAction(_: ActionState, formData: FormData) {
+export async function saveWhyUsDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const items: HomepageWhyUsItem[] = [0, 1, 2].map((index) => ({
       title: stringValue(formData, `item_${index}_title`),
       description: stringValue(formData, `item_${index}_description`)
     }));
-    await saveSiteSettingDraft("homepage.whyus", defaultHomepageWhyUs, items);
-    revalidateSiteContent();
-    return { message: "Why Us draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "homepage.whyus",
+      fallback: defaultHomepageWhyUs,
+      value: items,
+      draftMessage: "Why Us draft saved.",
+      publishedMessage: "Why Us published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save Why Us." };
   }
@@ -287,7 +353,7 @@ export async function publishWhyUsAction() {
   revalidateSiteContent();
 }
 
-export async function saveGuideDraftAction(_: ActionState, formData: FormData) {
+export async function saveGuideDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const guide: HomepageGuideItem[] = await Promise.all(
       [0, 1, 2, 3].map(async (index) => {
@@ -303,9 +369,14 @@ export async function saveGuideDraftAction(_: ActionState, formData: FormData) {
         };
       })
     );
-    await saveSiteSettingDraft("homepage.guide", defaultHomepageGuide, guide);
-    revalidateSiteContent();
-    return { message: "Travel guide draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "homepage.guide",
+      fallback: defaultHomepageGuide,
+      value: guide,
+      draftMessage: "Travel guide draft saved.",
+      publishedMessage: "Travel guide published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save travel guide." };
   }
@@ -316,7 +387,7 @@ export async function publishGuideAction() {
   revalidateSiteContent();
 }
 
-export async function saveNewsletterContentDraftAction(_: ActionState, formData: FormData) {
+export async function saveNewsletterContentDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const imageFile = uploadedFile(formData, "newsletterImageFile");
     const newsletter: HomepageNewsletterContent = {
@@ -327,9 +398,14 @@ export async function saveNewsletterContentDraftAction(_: ActionState, formData:
         ? await uploadSiteAsset(imageFile, "homepage/newsletter")
         : stringValue(formData, "imageUrl")
     };
-    await saveSiteSettingDraft("homepage.newsletter", defaultHomepageNewsletterContent, newsletter);
-    revalidateSiteContent();
-    return { message: "Newsletter section draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "homepage.newsletter",
+      fallback: defaultHomepageNewsletterContent,
+      value: newsletter,
+      draftMessage: "Newsletter section draft saved.",
+      publishedMessage: "Newsletter section published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save newsletter section." };
   }
@@ -340,12 +416,17 @@ export async function publishNewsletterContentAction() {
   revalidateSiteContent();
 }
 
-export async function saveAwardsDraftAction(_: ActionState, formData: FormData) {
+export async function saveAwardsDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const awards = await parseHomepageAwards(formData);
-    await saveSiteSettingDraft("homepage.awards", defaultHomepageAwardsContent, awards);
-    revalidateSiteContent();
-    return { message: "Awards draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "homepage.awards",
+      fallback: defaultHomepageAwardsContent,
+      value: awards,
+      draftMessage: "Awards draft saved.",
+      publishedMessage: "Awards published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save awards." };
   }
@@ -356,7 +437,7 @@ export async function publishAwardsAction() {
   revalidateSiteContent();
 }
 
-export async function saveNavbarDraftAction(_: ActionState, formData: FormData) {
+export async function saveNavbarDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const primaryLogoFile = uploadedFile(formData, "primaryLogoFile");
     const whiteLogoFile = uploadedFile(formData, "whiteLogoFile");
@@ -385,9 +466,14 @@ export async function saveNavbarDraftAction(_: ActionState, formData: FormData) 
       ctaEnabled: booleanValue(formData, "ctaEnabled")
     };
 
-    await saveSiteSettingDraft("site.navbar", defaultNavbarContent, navbar);
-    revalidateSiteContent();
-    return { message: "Navbar draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "site.navbar",
+      fallback: defaultNavbarContent,
+      value: navbar,
+      draftMessage: "Navbar draft saved.",
+      publishedMessage: "Navbar published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save navbar draft." };
   }
@@ -398,7 +484,7 @@ export async function publishNavbarAction() {
   revalidateSiteContent();
 }
 
-export async function saveFooterDraftAction(_: ActionState, formData: FormData) {
+export async function saveFooterDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const companyLogoFile = uploadedFile(formData, "companyLogoFile");
     const footer: FooterContent = {
@@ -416,9 +502,14 @@ export async function saveFooterDraftAction(_: ActionState, formData: FormData) 
       awards: await parseFooterBadges(formData, "award")
     };
 
-    await saveSiteSettingDraft("site.footer", defaultFooterContent, footer);
-    revalidateSiteContent();
-    return { message: "Footer draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "site.footer",
+      fallback: defaultFooterContent,
+      value: footer,
+      draftMessage: "Footer draft saved.",
+      publishedMessage: "Footer published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save footer draft." };
   }
@@ -429,7 +520,7 @@ export async function publishFooterAction() {
   revalidateSiteContent();
 }
 
-export async function saveWhatsAppDraftAction(_: ActionState, formData: FormData) {
+export async function saveWhatsAppDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const whatsApp: WhatsAppSettings = {
       enabled: booleanValue(formData, "enabled"),
@@ -439,9 +530,14 @@ export async function saveWhatsAppDraftAction(_: ActionState, formData: FormData
       presetMessage: stringValue(formData, "presetMessage")
     };
 
-    await saveSiteSettingDraft("site.whatsapp", defaultWhatsAppSettings, whatsApp);
-    revalidateSiteContent();
-    return { message: "WhatsApp draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "site.whatsapp",
+      fallback: defaultWhatsAppSettings,
+      value: whatsApp,
+      draftMessage: "WhatsApp draft saved.",
+      publishedMessage: "WhatsApp published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save WhatsApp draft." };
   }
@@ -452,7 +548,7 @@ export async function publishWhatsAppAction() {
   revalidateSiteContent();
 }
 
-export async function saveNotificationDraftAction(_: ActionState, formData: FormData) {
+export async function saveNotificationDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const notifications: NotificationSettings = {
       partnerRequestEmail: stringValue(formData, "partnerRequestEmail"),
@@ -460,9 +556,14 @@ export async function saveNotificationDraftAction(_: ActionState, formData: Form
       businessContactEmail: stringValue(formData, "businessContactEmail")
     };
 
-    await saveSiteSettingDraft("site.notifications", defaultNotificationSettings, notifications);
-    revalidateSiteContent();
-    return { message: "Notification draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "site.notifications",
+      fallback: defaultNotificationSettings,
+      value: notifications,
+      draftMessage: "Notification draft saved.",
+      publishedMessage: "Notifications published."
+    });
   } catch (error) {
     return {
       error: error instanceof Error ? error.message : "Failed to save notification settings."
@@ -475,7 +576,7 @@ export async function publishNotificationAction() {
   revalidateSiteContent();
 }
 
-export async function saveMarketDraftAction(_: ActionState, formData: FormData) {
+export async function saveMarketDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const markets: MarketSettings = {
       sectionTitle: stringValue(formData, "sectionTitle"),
@@ -485,9 +586,14 @@ export async function saveMarketDraftAction(_: ActionState, formData: FormData) 
       }))
     };
 
-    await saveSiteSettingDraft("site.markets", defaultMarketSettings, markets);
-    revalidateSiteContent();
-    return { message: "Primary markets draft saved." };
+    return finalizeSettingSave({
+      formData,
+      key: "site.markets",
+      fallback: defaultMarketSettings,
+      value: markets,
+      draftMessage: "Primary markets draft saved.",
+      publishedMessage: "Primary markets published."
+    });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save primary markets." };
   }

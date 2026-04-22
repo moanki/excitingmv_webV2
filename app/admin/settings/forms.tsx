@@ -271,9 +271,14 @@ export function HeroSettingsForm({
           library={mediaLibrary}
           helper="Optional cover image used before the hero video plays."
         />
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Hero Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Hero Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish Hero"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -335,9 +340,14 @@ export function FeaturesSettingsForm({
             </div>
           ))}
         </div>
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Feature Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Feature Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish Features"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -439,9 +449,14 @@ export function NavbarSettingsForm({
             </div>
           ))}
         </div>
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Navbar Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Navbar Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish Navbar"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -518,9 +533,14 @@ export function FooterSettingsForm({
           items={footer.awards}
           mediaLibrary={mediaLibrary}
         />
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Footer Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Footer Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish Footer"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -563,9 +583,14 @@ export function WhatsAppSettingsForm({ whatsApp }: { whatsApp: WhatsAppSettings 
             <textarea name="presetMessage" defaultValue={whatsApp.presetMessage} />
           </label>
         </div>
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save WhatsApp Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save WhatsApp Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish WhatsApp"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -607,9 +632,14 @@ export function NotificationSettingsForm({
             <input name="businessContactEmail" defaultValue={notifications.businessContactEmail} />
           </label>
         </div>
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Notification Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Notification Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish Notifications"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -656,9 +686,14 @@ export function MarketSettingsForm({ markets }: { markets: MarketSettings }) {
             </div>
           ))}
         </div>
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Market Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Market Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish Markets"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -696,9 +731,14 @@ export function HomepageStatsForm({ stats }: { stats: HomepageStat[] }) {
             </div>
           </div>
         ))}
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Stats Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Stats Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish Stats"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -758,9 +798,14 @@ export function HomepageCeoForm({
           value={ceo.photoUrl}
           library={mediaLibrary}
         />
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save CEO Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save CEO Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish CEO Section"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -812,9 +857,14 @@ export function HomepageStoryForm({
           value={story.imageUrl}
           library={mediaLibrary}
         />
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Story Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Story Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish Story"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -853,9 +903,14 @@ export function HomepageServicesForm({ services }: { services: HomepageServiceIt
             />
           </div>
         ))}
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Services Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Services Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish Services"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -893,9 +948,14 @@ export function HomepageWhyUsForm({ items }: { items: HomepageWhyUsItem[] }) {
             </div>
           </div>
         ))}
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Why Us Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Why Us Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish Why Us"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -951,9 +1011,14 @@ export function HomepageGuideForm({
             />
           </div>
         ))}
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Guide Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Guide Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish Guide"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -1005,9 +1070,14 @@ export function HomepageNewsletterContentForm({
           value={newsletter.imageUrl}
           library={mediaLibrary}
         />
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Newsletter Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Newsletter Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish Newsletter"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
@@ -1048,9 +1118,14 @@ export function HomepageAwardsForm({
           </label>
         </div>
         <FooterBadgeFields prefix="award" label="Award Logos" items={awards.items} mediaLibrary={mediaLibrary} />
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Awards Draft"}
-        </button>
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Awards Draft"}
+          </button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish Awards"}
+          </button>
+        </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
     </div>
