@@ -2,7 +2,20 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const SITE_ASSET_BUCKET = "site-assets";
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
-const SITE_ASSET_PREFIXES = ["homepage/hero", "homepage/features", "site/logos", "site/footer", "resorts"];
+const SITE_ASSET_PREFIXES = [
+  "homepage/hero",
+  "homepage/features",
+  "homepage/ceo",
+  "homepage/story",
+  "homepage/guide",
+  "homepage/newsletter",
+  "homepage/awards",
+  "site/logos",
+  "site/footer",
+  "site/membership",
+  "site/award",
+  "resorts"
+];
 
 function slugSegment(value: string) {
   return value
@@ -10,6 +23,15 @@ function slugSegment(value: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 40);
+}
+
+function normalizeFolderPath(folder: string) {
+  const segments = folder
+    .split("/")
+    .map((segment) => slugSegment(segment))
+    .filter(Boolean);
+
+  return segments.join("/") || "general";
 }
 
 function fileExtension(file: File) {
@@ -65,7 +87,7 @@ export async function uploadSiteAsset(file: File, folder: string) {
   }
 
   const supabase = await ensureBucket();
-  const safeFolder = slugSegment(folder) || "general";
+  const safeFolder = normalizeFolderPath(folder);
   const extension = fileExtension(file);
   const path = `${safeFolder}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
 

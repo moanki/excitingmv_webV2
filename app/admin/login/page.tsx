@@ -58,8 +58,8 @@ export default async function AdminLoginPage({
 
           <div className="admin-auth-meta">
             <p>Need a new admin account or role update? Contact the platform owner.</p>
-            <div className="card-actions">
-              <Link href="/" className="button-muted">
+            <div className="admin-form-actions">
+              <Link href="/" className="admin-btn admin-btn--ghost">
                 Back To Website
               </Link>
             </div>
