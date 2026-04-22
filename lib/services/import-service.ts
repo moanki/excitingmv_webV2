@@ -171,22 +171,46 @@ function normalizeGoogleDriveFileUrl(url: string) {
   const parsed = new URL(url);
   const fileMatch = parsed.pathname.match(/\/file\/d\/([^/]+)/);
   if (fileMatch?.[1]) {
-    return `https://drive.google.com/uc?export=download&id=${fileMatch[1]}`;
+    const resourceKey = parsed.searchParams.get("resourcekey");
+    const normalized = new URL("https://drive.google.com/uc");
+    normalized.searchParams.set("export", "download");
+    normalized.searchParams.set("id", fileMatch[1]);
+    if (resourceKey) {
+      normalized.searchParams.set("resourcekey", resourceKey);
+    }
+    return normalized.toString();
   }
 
   const docMatch = parsed.pathname.match(/\/document\/d\/([^/]+)/);
   if (docMatch?.[1]) {
-    return `https://docs.google.com/document/d/${docMatch[1]}/export?format=pdf`;
+    const normalized = new URL(`https://docs.google.com/document/d/${docMatch[1]}/export`);
+    normalized.searchParams.set("format", "pdf");
+    const resourceKey = parsed.searchParams.get("resourcekey");
+    if (resourceKey) {
+      normalized.searchParams.set("resourcekey", resourceKey);
+    }
+    return normalized.toString();
   }
 
   const sheetMatch = parsed.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
   if (sheetMatch?.[1]) {
-    return `https://docs.google.com/spreadsheets/d/${sheetMatch[1]}/export?format=pdf`;
+    const normalized = new URL(`https://docs.google.com/spreadsheets/d/${sheetMatch[1]}/export`);
+    normalized.searchParams.set("format", "pdf");
+    const resourceKey = parsed.searchParams.get("resourcekey");
+    if (resourceKey) {
+      normalized.searchParams.set("resourcekey", resourceKey);
+    }
+    return normalized.toString();
   }
 
   const slideMatch = parsed.pathname.match(/\/presentation\/d\/([^/]+)/);
   if (slideMatch?.[1]) {
-    return `https://docs.google.com/presentation/d/${slideMatch[1]}/export/pdf`;
+    const normalized = new URL(`https://docs.google.com/presentation/d/${slideMatch[1]}/export/pdf`);
+    const resourceKey = parsed.searchParams.get("resourcekey");
+    if (resourceKey) {
+      normalized.searchParams.set("resourcekey", resourceKey);
+    }
+    return normalized.toString();
   }
 
   return url;
@@ -233,22 +257,45 @@ async function resolveGoogleDriveSources(url: string) {
     return [normalizeGoogleDriveFileUrl(url)];
   }
 
-  const response = await fetch(url, { cache: "no-store" });
-  if (!response.ok) {
-    throw new Error("Unable to read the Google Drive folder. Make sure the folder is publicly accessible.");
+  const folderId = folderMatch[1];
+  const resourceKey = parsed.searchParams.get("resourcekey");
+  const embeddedUrl = new URL("https://drive.google.com/embeddedfolderview");
+  embeddedUrl.searchParams.set("id", folderId);
+  if (resourceKey) {
+    embeddedUrl.searchParams.set("resourcekey", resourceKey);
   }
 
-  const html = await response.text();
-  const matches = Array.from(
-    html.matchAll(/https:\/\/(?:drive|docs)\.google\.com\/(?:file\/d|document\/d|spreadsheets\/d|presentation\/d)\/[^"'&<\s]+/g)
-  ).map((match) => normalizeGoogleDriveFileUrl(match[0]));
+  const candidates = [url, `${embeddedUrl.toString()}#list`];
+  const htmlPayloads = await Promise.all(
+    candidates.map(async (candidate) => {
+      const response = await fetch(candidate, { cache: "no-store" });
+      if (!response.ok) {
+        return "";
+      }
+      return response.text();
+    })
+  );
 
-  const pdfMatches = Array.from(
-    html.matchAll(/https?:\/\/[^"'<> \t\r\n]+\.pdf(?:\?[^"'<> \t\r\n]*)?/gi)
-  ).map((match) => match[0]);
+  const driveDocMatches = htmlPayloads.flatMap((html) =>
+    Array.from(
+      html.matchAll(
+        /https:\/\/(?:drive|docs)\.google\.com\/(?:file\/d|document\/d|spreadsheets\/d|presentation\/d)\/[^"'&<\s]+/g
+      )
+    ).map((match) => normalizeGoogleDriveFileUrl(match[0]))
+  );
+
+  const embeddedFileMatches = htmlPayloads.flatMap((html) =>
+    Array.from(html.matchAll(/href="(https:\/\/drive\.google\.com\/file\/d\/[^"]+)"/g)).map((match) =>
+      normalizeGoogleDriveFileUrl(match[1].replace(/&amp;/g, "&"))
+    )
+  );
+
+  const pdfMatches = htmlPayloads.flatMap((html) =>
+    Array.from(html.matchAll(/https?:\/\/[^"'<> \t\r\n]+\.pdf(?:\?[^"'<> \t\r\n]*)?/gi)).map((match) => match[0])
+  );
 
   const uniqueMatches = Array.from(
-    new Set([...matches, ...pdfMatches].map((item) => item.trim()).filter(Boolean))
+    new Set([...driveDocMatches, ...embeddedFileMatches, ...pdfMatches].map((item) => item.trim()).filter(Boolean))
   );
 
   if (!uniqueMatches.length) {
