@@ -2,17 +2,17 @@
 
 import { useActionState } from "react";
 
-import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 import { deleteResortAction, saveResortAction, seedResortsAction } from "@/app/admin/resorts/actions";
+import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 import type { ResortRecord } from "@/lib/services/resort-service";
 
 function StatusMessage({ message, error }: { message?: string; error?: string }) {
   if (error) {
-    return <p className="auth-error">{error}</p>;
+    return <p className="admin-alert admin-alert--error">{error}</p>;
   }
 
   if (message) {
-    return <p className="auth-note">{message}</p>;
+    return <p className="admin-alert admin-alert--success">{message}</p>;
   }
 
   return null;
@@ -33,116 +33,176 @@ function ResortEditor({
 
   return (
     <div className="panel">
-      <div className="section-heading">
-        <div>
+      <div className="admin-page-header">
+        <div className="admin-page-header__content">
           <p className="eyebrow">{title}</p>
           <h2>{resort.name || "Draft property"}</h2>
-          <p className="muted">{description}</p>
+          <p className="admin-page-lede">{description}</p>
         </div>
-        {resort.id ? (
-          <form action={deleteResortAction}>
-            <input type="hidden" name="id" value={resort.id} />
-            <button className="button-muted" type="submit">
-              Delete
-            </button>
-          </form>
-        ) : null}
       </div>
-      <form action={action} className="stack">
+
+      <form action={action} className="stack admin-form-card">
         {resort.id ? <input type="hidden" name="id" value={resort.id} /> : null}
-        <div className="form-grid">
-          <label className="field">
-            Property Name
-            <input name="name" defaultValue={resort.name ?? ""} />
-          </label>
-          <label className="field">
-            Slug
-            <input name="slug" defaultValue={resort.slug ?? ""} />
-          </label>
-          <label className="field">
-            Atoll / Location
-            <input name="location" defaultValue={resort.location ?? ""} />
-          </label>
-          <label className="field">
-            Category
-            <input name="category" defaultValue={resort.category ?? ""} />
-          </label>
-          <label className="field">
-            Transfer Type
-            <input name="transferType" defaultValue={resort.transferType ?? ""} />
-          </label>
-          <label className="field">
-            Status
-            <select name="status" defaultValue={resort.status ?? "draft"}>
-              <option value="draft">Draft</option>
-              <option value="published">Published</option>
-              <option value="archived">Archived</option>
-            </select>
-          </label>
-          <label className="field" style={{ gridColumn: "1 / -1" }}>
-            Description
-            <textarea name="description" defaultValue={resort.description ?? resort.summary ?? ""} />
-          </label>
-          <label className="field">
-            Highlights
-            <textarea
-              name="highlights"
-              defaultValue={(resort.highlights ?? []).join("\n")}
-              placeholder="One highlight per line"
-            />
-          </label>
-          <label className="field">
-            Meal Plans
-            <textarea
-              name="mealPlans"
-              defaultValue={(resort.mealPlans ?? []).join("\n")}
-              placeholder="One meal plan per line"
-            />
-          </label>
-          <label className="field">
-            SEO Title
-            <input name="seoTitle" defaultValue={resort.seoTitle ?? resort.name ?? ""} />
-          </label>
-          <label className="field">
-            SEO Description
-            <textarea name="seoDescription" defaultValue={resort.seoDescription ?? resort.summary ?? ""} />
-          </label>
-          <label className="field" style={{ gridColumn: "1 / -1" }}>
-            SEO Summary
-            <textarea name="seoSummary" defaultValue={resort.seoSummary ?? resort.summary ?? ""} />
-          </label>
-        </div>
-        <MediaField
-          label="Hero photo"
-          inputName="heroImageUrl"
-          fileName="heroImageFile"
-          accept="image/png,image/jpeg,image/webp,image/svg+xml"
-          value={resort.heroImageUrl ?? ""}
-          library={mediaLibrary}
-          helper="Main image used for resort cards and gallery cover."
-        />
-        <label className="field">
-          <span>Gallery image URLs</span>
-          <textarea
-            name="galleryMediaUrls"
-            defaultValue={(resort.galleryMediaUrls ?? []).join("\n")}
-            placeholder="One image URL per line, or upload new files below."
-          />
-        </label>
-        <label className="field">
-          <span>Upload gallery images</span>
-          <input
-            name="galleryMediaFiles"
-            type="file"
+
+        <section className="admin-form-section">
+          <div className="admin-form-section__header">
+            <h3 className="admin-form-section__title">Basic Information</h3>
+            <p className="admin-form-section__help">Core identity, location, category, and publish status.</p>
+          </div>
+          <div className="form-grid">
+            <label className="field">
+              <span className="field__label">Property Name</span>
+              <input className="admin-input" name="name" defaultValue={resort.name ?? ""} />
+            </label>
+            <label className="field">
+              <span className="field__label">Slug</span>
+              <input className="admin-input" name="slug" defaultValue={resort.slug ?? ""} />
+            </label>
+            <label className="field">
+              <span className="field__label">Atoll / Location</span>
+              <input className="admin-input" name="location" defaultValue={resort.location ?? ""} />
+            </label>
+            <label className="field">
+              <span className="field__label">Category</span>
+              <input className="admin-input" name="category" defaultValue={resort.category ?? ""} />
+            </label>
+            <label className="field">
+              <span className="field__label">Transfer Type</span>
+              <input className="admin-input" name="transferType" defaultValue={resort.transferType ?? ""} />
+            </label>
+            <label className="field">
+              <span className="field__label">Status</span>
+              <select className="admin-select" name="status" defaultValue={resort.status ?? "draft"}>
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+                <option value="archived">Archived</option>
+              </select>
+            </label>
+            <label className="field field--full">
+              <span className="field__label">Description</span>
+              <textarea
+                className="admin-textarea"
+                name="description"
+                defaultValue={resort.description ?? resort.summary ?? ""}
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-form-section">
+          <div className="admin-form-section__header">
+            <h3 className="admin-form-section__title">Commercial Details</h3>
+            <p className="admin-form-section__help">Keep sales highlights and board plans easy to review.</p>
+          </div>
+          <div className="form-grid">
+            <label className="field">
+              <span className="field__label">Highlights</span>
+              <textarea
+                className="admin-textarea"
+                name="highlights"
+                defaultValue={(resort.highlights ?? []).join("\n")}
+                placeholder="One highlight per line"
+              />
+            </label>
+            <label className="field">
+              <span className="field__label">Meal Plans</span>
+              <textarea
+                className="admin-textarea"
+                name="mealPlans"
+                defaultValue={(resort.mealPlans ?? []).join("\n")}
+                placeholder="One meal plan per line"
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-form-section">
+          <div className="admin-form-section__header">
+            <h3 className="admin-form-section__title">SEO</h3>
+            <p className="admin-form-section__help">Prepare clean metadata for the public resort page.</p>
+          </div>
+          <div className="form-grid">
+            <label className="field">
+              <span className="field__label">SEO Title</span>
+              <input className="admin-input" name="seoTitle" defaultValue={resort.seoTitle ?? resort.name ?? ""} />
+            </label>
+            <label className="field">
+              <span className="field__label">SEO Description</span>
+              <textarea
+                className="admin-textarea"
+                name="seoDescription"
+                defaultValue={resort.seoDescription ?? resort.summary ?? ""}
+              />
+            </label>
+            <label className="field field--full">
+              <span className="field__label">SEO Summary</span>
+              <textarea
+                className="admin-textarea"
+                name="seoSummary"
+                defaultValue={resort.seoSummary ?? resort.summary ?? ""}
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="admin-form-section">
+          <div className="admin-form-section__header">
+            <h3 className="admin-form-section__title">Media</h3>
+            <p className="admin-form-section__help">Hero visuals and gallery assets for resort cards and detail pages.</p>
+          </div>
+
+          <MediaField
+            label="Hero photo"
+            inputName="heroImageUrl"
+            fileName="heroImageFile"
             accept="image/png,image/jpeg,image/webp,image/svg+xml"
-            multiple
+            value={resort.heroImageUrl ?? ""}
+            library={mediaLibrary}
+            helper="Main image used for resort cards and gallery cover."
           />
-        </label>
-        <button className="button" type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save Property"}
-        </button>
+
+          <div className="form-grid">
+            <label className="field field--full">
+              <span className="field__label">Gallery image URLs</span>
+              <textarea
+                className="admin-textarea"
+                name="galleryMediaUrls"
+                defaultValue={(resort.galleryMediaUrls ?? []).join("\n")}
+                placeholder="One image URL per line, or upload new files below."
+              />
+            </label>
+            <label className="field field--full">
+              <span className="field__label">Upload gallery images</span>
+              <input
+                className="admin-file-input"
+                name="galleryMediaFiles"
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                multiple
+              />
+            </label>
+          </div>
+        </section>
+
+        <div className="admin-form-actions">
+          {resort.id ? (
+            <button className="admin-btn admin-btn--danger" type="submit" form={`delete-resort-${resort.id}`}>
+              Delete Property
+            </button>
+          ) : null}
+          <button className="admin-btn admin-btn--primary" type="submit" disabled={pending}>
+            {pending ? "Saving..." : "Save Property"}
+          </button>
+        </div>
+
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
+
+      {resort.id ? (
+        <form id={`delete-resort-${resort.id}`} action={deleteResortAction}>
+          <input type="hidden" name="id" value={resort.id} />
+        </form>
+      ) : null}
     </div>
   );
 }
@@ -183,7 +243,7 @@ export function ExistingResortForms({
 export function SeedResortsButton() {
   return (
     <form action={seedResortsAction}>
-      <button className="button-muted" type="submit">
+      <button className="admin-btn admin-btn--secondary" type="submit">
         Seed Starter Properties
       </button>
     </form>

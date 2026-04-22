@@ -11,11 +11,9 @@ import {
   LayoutTemplate,
   LifeBuoy,
   Mail,
-  Search,
   Settings2,
   Shield,
   Sparkles,
-  Users,
   UserCog,
   LogOut
 } from "lucide-react";
@@ -187,11 +185,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <label className="admin-sidebar-search" aria-label="Search navigation">
-          <Search className="admin-search-icon" />
-          <input type="search" placeholder="Search modules" />
-        </label>
-
         <nav className="admin-nav" aria-label="Admin">
           {navGroups.map((group) => (
             <div className="admin-nav-group" key={group.title}>
@@ -209,7 +202,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                       <span className="admin-nav-icon">
                         <Icon className="admin-icon" />
                       </span>
-                      <span>
+                      <span className="admin-nav-copy">
                         <strong>{item.label}</strong>
                         <small>{item.description}</small>
                       </span>
@@ -222,7 +215,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         <form action={logoutFromAdmin} className="admin-logout">
-          <button type="submit" className="button-muted admin-logout-button">
+          <button type="submit" className="admin-btn admin-btn--secondary admin-logout-button">
             <LogOut className="admin-icon" />
             Logout
           </button>
@@ -231,16 +224,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       <div className="admin-main">
         <header className="admin-topbar">
-          <div>
+          <div className="admin-topbar-copy">
             <p className="admin-breadcrumb">Admin Center / {current.title}</p>
             <h2>{current.title}</h2>
             <p>{current.description}</p>
           </div>
           <div className="admin-topbar-actions">
-            <label className="admin-commandbar" aria-label="Search workspace">
-              <Search className="admin-search-icon" />
-              <input type="search" placeholder="Search records, settings, or modules" />
-            </label>
             <button type="button" className="admin-icon-button" aria-label="Notifications">
               <Bell className="admin-icon" />
             </button>

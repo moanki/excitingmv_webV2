@@ -11,17 +11,17 @@ export function AdminLoginForm({ next }: { next: string }) {
     <form action={action} className="stack admin-auth-form">
       <input type="hidden" name="next" value={next} />
       <label className="field">
-        <span>Email</span>
-        <input name="email" type="email" placeholder="name@excitingmv.com" required />
+        <span className="field__label">Email address</span>
+        <input className="admin-input" name="email" type="email" placeholder="name@excitingmv.com" required />
       </label>
       <label className="field">
-        <span>Password</span>
-        <input name="password" type="password" placeholder="Enter your password" required />
+        <span className="field__label">Password</span>
+        <input className="admin-input" name="password" type="password" placeholder="Enter your password" required />
       </label>
-      <button type="submit" className="button admin-primary-button" disabled={pending}>
+      <button type="submit" className="admin-btn admin-btn--primary admin-primary-button" disabled={pending}>
         {pending ? "Signing In..." : "Sign In"}
       </button>
-      {state?.error ? <p className="auth-error">{state.error}</p> : null}
+      {state?.error ? <p className="admin-alert admin-alert--error">{state.error}</p> : null}
     </form>
   );
 }
