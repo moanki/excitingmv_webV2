@@ -333,7 +333,13 @@ async function uploadPdfToOpenAi(sourceUrl: string, index: number): Promise<Uplo
   }
 
   const contentType = response.headers.get("content-type") ?? "";
-  const isPdf = contentType.includes("pdf") || sourceUrl.toLowerCase().includes(".pdf") || sourceUrl.includes("export?format=pdf");
+  const contentDisposition = response.headers.get("content-disposition") ?? "";
+  const hasPdfFilename = /\.pdf\b/i.test(contentDisposition);
+  const isPdf =
+    contentType.includes("pdf") ||
+    hasPdfFilename ||
+    sourceUrl.toLowerCase().includes(".pdf") ||
+    sourceUrl.includes("export?format=pdf");
   if (!isPdf) {
     throw new Error(`Source is not a PDF: ${sourceUrl}`);
   }
