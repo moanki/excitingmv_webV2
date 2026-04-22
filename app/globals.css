@@ -2525,6 +2525,124 @@ select {
   line-height: 1.6;
 }
 
+.admin-import-progress,
+.admin-import-log,
+.admin-import-run {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.admin-import-progress {
+  padding: 1rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--admin-muted-surface), #f6efe7);
+}
+
+.admin-import-progress__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-import-progress__track {
+  overflow: hidden;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(19, 24, 20, 0.08);
+}
+
+.admin-import-progress__bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--admin-accent), #19a293);
+  transition: width 0.35s ease;
+}
+
+.admin-import-progress__bar.is-pending {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(15, 118, 110, 0.95),
+      rgba(30, 148, 137, 0.85),
+      rgba(15, 118, 110, 0.95)
+    );
+  background-size: 220px 100%;
+  animation: admin-progress-slide 1.2s linear infinite;
+}
+
+.admin-import-progress__meta {
+  margin: 0;
+  color: var(--admin-muted);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.admin-import-log-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.admin-import-log {
+  padding: 1rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  background: var(--admin-surface);
+}
+
+.admin-import-log__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.admin-import-log p,
+.admin-import-log small {
+  margin: 0;
+}
+
+.admin-import-log p {
+  color: var(--admin-text);
+  line-height: 1.6;
+}
+
+.admin-import-log small {
+  color: var(--admin-muted);
+  line-height: 1.5;
+}
+
+.admin-import-log--imported {
+  border-color: rgba(15, 118, 110, 0.2);
+  background: rgba(15, 118, 110, 0.04);
+}
+
+.admin-import-log--skipped {
+  border-color: rgba(199, 146, 35, 0.22);
+  background: rgba(199, 146, 35, 0.05);
+}
+
+.admin-import-log--warning {
+  border-color: rgba(199, 146, 35, 0.22);
+  background: rgba(199, 146, 35, 0.08);
+}
+
+.admin-import-log--error {
+  border-color: rgba(185, 77, 67, 0.24);
+  background: rgba(185, 77, 67, 0.07);
+}
+
+@keyframes admin-progress-slide {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 220px 0;
+  }
+}
+
 .admin-chat-card,
 .admin-chat-composer {
   display: grid;

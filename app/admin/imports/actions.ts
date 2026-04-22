@@ -2,22 +2,32 @@
 
 import { revalidatePath } from "next/cache";
 
-import { createImportBatch } from "@/lib/services/import-service";
+import { createImportBatch, type ImportExecutionResult } from "@/lib/services/import-service";
 
-type ActionState = { message?: string; error?: string } | undefined;
+export type ImportActionState =
+  | {
+      ok: true;
+      message: string;
+      result: ImportExecutionResult;
+    }
+  | {
+      ok: false;
+      error: string;
+    }
+  | undefined;
 
-export async function createImportBatchAction(_: ActionState, formData: FormData): Promise<ActionState> {
+export async function createImportBatchAction(_: ImportActionState, formData: FormData): Promise<ImportActionState> {
   const result = await createImportBatch({
     googleDriveUrl: String(formData.get("googleDriveUrl") ?? "")
   });
 
   if (!result.ok) {
-    return { error: result.error };
+    return { ok: false, error: result.error };
   }
 
   revalidatePath("/admin/imports");
   revalidatePath("/admin/resorts");
   revalidatePath("/resorts");
   revalidatePath("/");
-  return { message: result.data.message };
+  return { ok: true, message: result.data.message, result: result.data };
 }
