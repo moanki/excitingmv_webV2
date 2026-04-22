@@ -188,6 +188,11 @@ function createBatchName(url: string) {
   return `Drive import ${source.hostname} ${stamp}`;
 }
 
+function createUploadBatchName(filename: string) {
+  const stamp = new Date().toISOString().slice(0, 10);
+  return `Upload import ${filename} ${stamp}`;
+}
+
 function normalizeGoogleDriveFileUrl(url: string) {
   const parsed = new URL(url);
   const fileMatch = parsed.pathname.match(/\/file\/d\/([^/]+)/);
@@ -379,6 +384,24 @@ async function downloadPdfSource(sourceUrl: string, index: number): Promise<Down
   const filename = guessFilenameFromUrl(sourceUrl, index);
   return {
     sourceUrl,
+    filename,
+    bytes
+  };
+}
+
+async function createDownloadedPdfFromUpload(file: File): Promise<DownloadedPdf> {
+  const filename = file.name?.trim() || "uploaded-resort-fact-sheet.pdf";
+  const isPdf =
+    file.type.includes("pdf") ||
+    filename.toLowerCase().endsWith(".pdf");
+
+  if (!isPdf) {
+    throw new Error("Uploaded file must be a PDF fact sheet.");
+  }
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  return {
+    sourceUrl: `upload://${filename}`,
     filename,
     bytes
   };
@@ -793,6 +816,194 @@ export async function createImportBatch(
     return {
       ok: false,
       error: error instanceof Error ? error.message : "The Google Drive import failed."
+    };
+  }
+}
+
+export async function importUploadedFactSheet(file: File): Promise<ServiceResult<ImportExecutionResult>> {
+  if (!(file instanceof File) || file.size === 0) {
+    return {
+      ok: false,
+      error: "Upload a PDF fact sheet to start the import."
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data: batchData, error: batchError } = await supabase
+    .from("import_batches")
+    .insert({
+      batch_name: createUploadBatchName(file.name || "uploaded-fact-sheet.pdf"),
+      source_type: "uploaded_pdf",
+      file_path: file.name || "uploaded-fact-sheet.pdf",
+      status: "processing"
+    })
+    .select("id")
+    .single();
+
+  if (batchError || !batchData) {
+    return {
+      ok: false,
+      error: "Failed to start the uploaded PDF import.",
+      status: 500,
+      details: batchError
+    };
+  }
+
+  try {
+    const existingResorts = await listAdminResorts();
+    const existingSlugs = new Set(existingResorts.map((resort) => slugify(resort.slug)));
+    const existingNames = new Set(existingResorts.map((resort) => resort.name.trim().toLowerCase()));
+    const downloadedPdf = await createDownloadedPdfFromUpload(file);
+
+    let importedCount = 0;
+    let skippedCount = 0;
+    let warningCount = 0;
+    let errorCount = 0;
+    const providerUsage = new Set<"openai" | "gemini">();
+    const logs: ImportLogEntry[] = [
+      {
+        sourceUrl: downloadedPdf.sourceUrl,
+        filename: downloadedPdf.filename,
+        status: "processing",
+        provider: "none",
+        message: "Uploaded PDF received and extraction started."
+      }
+    ];
+    const stagedPayloads: Array<{ sourceUrl: string; extracted: OpenAiImportPayload }> = [];
+
+    try {
+      const { extracted, provider } = await extractResortFactSheet(downloadedPdf);
+      providerUsage.add(provider);
+      stagedPayloads.push({ sourceUrl: downloadedPdf.sourceUrl, extracted });
+
+      const resort = extracted.resorts.find((item) => item.name.trim());
+      if (!resort) {
+        warningCount += 1;
+        logs.push({
+          sourceUrl: downloadedPdf.sourceUrl,
+          filename: downloadedPdf.filename,
+          status: "warning",
+          provider,
+          message: "No resort could be extracted from the uploaded PDF."
+        });
+      } else {
+        const slug = slugify(resort.slug || resort.name);
+        const normalizedName = resort.name.trim().toLowerCase();
+
+        if (existingSlugs.has(slug) || existingNames.has(normalizedName)) {
+          skippedCount += 1;
+          logs.push({
+            sourceUrl: downloadedPdf.sourceUrl,
+            filename: downloadedPdf.filename,
+            status: "skipped",
+            provider,
+            resortName: resort.name.trim(),
+            message: `Skipped existing resort: ${resort.name.trim()}.`
+          });
+        } else {
+          const publishing = publishingToStatus(resort.publishingMode);
+
+          await saveResort({
+            slug,
+            name: resort.name.trim(),
+            location: resort.location.trim(),
+            category: resort.category.trim(),
+            transferType: resort.transferType.trim(),
+            description: resort.description.trim(),
+            highlights: resort.highlights.filter(Boolean),
+            mealPlans: resort.mealPlans.filter(Boolean),
+            seoTitle: resort.seoTitle.trim() || resort.name.trim(),
+            seoDescription: resort.seoDescription.trim() || resort.description.trim(),
+            seoSummary: resort.seoSummary.trim() || resort.description.trim(),
+            heroImageUrl: resort.heroImageUrl.trim(),
+            galleryMediaUrls: resort.galleryMediaUrls.filter(Boolean),
+            roomTypes: resort.roomTypes
+              .filter((room) => room.name.trim())
+              .map((room) => ({
+                name: room.name.trim(),
+                description: room.description.trim(),
+                seoDescription: room.seoDescription.trim() || room.description.trim(),
+                photoUrl: room.photoUrl.trim()
+              })),
+            status: publishing.status,
+            isFeaturedHomepage: publishing.isFeaturedHomepage
+          });
+
+          importedCount += 1;
+          logs.push({
+            sourceUrl: downloadedPdf.sourceUrl,
+            filename: downloadedPdf.filename,
+            status: "imported",
+            provider,
+            resortName: resort.name.trim(),
+            message: `Imported resort: ${resort.name.trim()}.`
+          });
+        }
+      }
+    } catch (error) {
+      errorCount += 1;
+      logs.push({
+        sourceUrl: downloadedPdf.sourceUrl,
+        filename: downloadedPdf.filename,
+        status: "error",
+        provider: "none",
+        message: error instanceof Error ? error.message : "Import failed for the uploaded file."
+      });
+    }
+
+    await supabase.from("resort_staging").insert({
+      batch_id: (batchData as ImportBatchRow).id,
+      raw_payload: {
+        source: "upload",
+        filename: downloadedPdf.filename
+      },
+      extracted_payload: {
+        items: stagedPayloads
+      },
+      review_status: "ready"
+    });
+
+    await supabase
+      .from("import_batches")
+      .update({
+        status:
+          errorCount > 0
+            ? importedCount > 0
+              ? "completed_with_errors"
+              : "failed"
+            : importedCount > 0
+              ? "completed"
+              : "completed_no_new_resorts"
+      })
+      .eq("id", (batchData as ImportBatchRow).id);
+
+    const providerUsed =
+      providerUsage.size === 0
+        ? "none"
+        : providerUsage.size === 2
+          ? "mixed"
+          : Array.from(providerUsage)[0];
+
+    return {
+      ok: true,
+      data: {
+        batchId: (batchData as ImportBatchRow).id,
+        importedResorts: importedCount,
+        processedSources: 1,
+        totalSources: 1,
+        skippedSources: skippedCount,
+        warningCount,
+        errorCount,
+        providerUsed,
+        message: `Processed uploaded PDF: imported ${importedCount}, skipped ${skippedCount}, warnings ${warningCount}, errors ${errorCount}.`,
+        logs
+      }
+    };
+  } catch (error) {
+    await supabase.from("import_batches").update({ status: "failed" }).eq("id", (batchData as ImportBatchRow).id);
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "The uploaded PDF import failed."
     };
   }
 }

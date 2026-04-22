@@ -1,4 +1,4 @@
-import { ImportDriveForm } from "@/app/admin/imports/import-form";
+import { ImportCenterForms } from "@/app/admin/imports/import-form";
 
 export default async function AdminImportsPage() {
   return (
@@ -6,23 +6,15 @@ export default async function AdminImportsPage() {
       <div className="admin-page-header">
         <div className="admin-page-header__content">
           <p className="eyebrow">AI Import Center</p>
-          <h1 className="section-title">Import new resorts from Google Drive PDFs.</h1>
+          <h1 className="section-title">Import new resorts from Google Drive or a single PDF upload.</h1>
           <p className="admin-page-lede">
-            Paste a Google Drive file or folder URL. Each PDF is treated as one resort fact sheet, and existing
-            resorts are skipped automatically.
+            Use Google Drive for folder imports or Smart Upload for a single fact sheet. Each PDF is treated as one
+            resort fact sheet, and existing resorts are skipped automatically.
           </p>
         </div>
       </div>
 
-      <article className="panel admin-form-card">
-        <div className="admin-form-section__header">
-          <h3 className="admin-form-section__title">Enter Google Drive URL</h3>
-          <p className="admin-form-section__help">
-            Import new resorts directly into the live resort inventory. Existing resorts will not be duplicated.
-          </p>
-        </div>
-        <ImportDriveForm />
-      </article>
+      <ImportCenterForms />
     </section>
   );
 }
