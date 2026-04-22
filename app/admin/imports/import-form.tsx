@@ -19,7 +19,8 @@ export function ImportDriveForm() {
             required
           />
           <p className="field__help">
-            Use a shareable Google Drive file or folder URL. Publicly accessible PDFs and Google Docs work best.
+            Use a shareable Google Drive file or folder URL. The importer reads PDF fact sheets, treats each PDF as
+            one resort, and skips resorts that already exist.
           </p>
         </label>
       </div>

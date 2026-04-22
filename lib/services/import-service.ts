@@ -1,20 +1,11 @@
 import { env } from "@/lib/env";
-import { saveResort } from "@/lib/services/resort-service";
+import { listAdminResorts, saveResort } from "@/lib/services/resort-service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { PublishStatus, ServiceResult } from "@/lib/types";
 import { aiImportRequestSchema } from "@/lib/validations";
 import type { z } from "zod";
 
 type AiImportRequestInput = z.infer<typeof aiImportRequestSchema>;
-
-type ImportRow = {
-  id: string;
-  batch_name: string;
-  source_type: string;
-  file_path: string | null;
-  status: string;
-  created_at: string;
-};
 
 type ImportedRoom = {
   name: string;
@@ -41,13 +32,9 @@ type ImportedResort = {
   roomTypes: ImportedRoom[];
 };
 
-type ImportBatchRecord = {
-  id: string;
-  batchName: string;
-  sourceType: string;
-  sourcePath: string;
-  status: string;
-  createdAt: string;
+type OpenAiImportPayload = {
+  resorts: ImportedResort[];
+  notes: string;
 };
 
 type ImportExecutionResult = {
@@ -57,9 +44,32 @@ type ImportExecutionResult = {
   message: string;
 };
 
-type OpenAiImportPayload = {
-  resorts: ImportedResort[];
-  notes: string;
+type ImportRow = {
+  id: string;
+  batch_name: string;
+  source_type: string;
+  file_path: string | null;
+  status: string;
+  created_at: string;
+};
+
+export type ImportBatchRecord = {
+  id: string;
+  batchName: string;
+  sourceType: string;
+  sourcePath: string;
+  status: string;
+  createdAt: string;
+};
+
+type UploadedPdf = {
+  fileId: string;
+  sourceUrl: string;
+  filename: string;
+};
+
+type ImportBatchRow = {
+  id: string;
 };
 
 const importSchema = {
@@ -182,31 +192,15 @@ function normalizeGoogleDriveFileUrl(url: string) {
   return url;
 }
 
-async function resolveGoogleDriveSources(url: string) {
-  const parsed = new URL(url);
-  const folderMatch = parsed.pathname.match(/\/drive\/folders\/([^/?]+)/);
-  if (!folderMatch?.[1]) {
-    return [normalizeGoogleDriveFileUrl(url)];
+function guessFilenameFromUrl(url: string, index: number) {
+  try {
+    const parsed = new URL(url);
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    const last = parts[parts.length - 1] ?? `resort-${index + 1}.pdf`;
+    return last.toLowerCase().endsWith(".pdf") ? last : `${last}.pdf`;
+  } catch {
+    return `resort-${index + 1}.pdf`;
   }
-
-  const response = await fetch(url, { cache: "no-store" });
-  if (!response.ok) {
-    throw new Error("Unable to read the Google Drive folder. Make sure the folder is publicly accessible.");
-  }
-
-  const html = await response.text();
-  const matches = Array.from(
-    html.matchAll(/https:\/\/(?:drive|docs)\.google\.com\/(?:file\/d|document\/d|spreadsheets\/d|presentation\/d)\/[^"'&<\s]+/g)
-  )
-    .map((match) => normalizeGoogleDriveFileUrl(match[0]))
-    .filter(Boolean);
-
-  const uniqueMatches = Array.from(new Set(matches));
-  if (!uniqueMatches.length) {
-    throw new Error("No readable Google Drive files were found in that folder.");
-  }
-
-  return uniqueMatches;
 }
 
 function extractOutputText(payload: any) {
@@ -232,7 +226,85 @@ function extractOutputText(payload: any) {
   return texts.join("\n").trim();
 }
 
-async function requestOpenAiResortExtraction(fileUrls: string[], sourceUrl: string) {
+async function resolveGoogleDriveSources(url: string) {
+  const parsed = new URL(url);
+  const folderMatch = parsed.pathname.match(/\/drive\/folders\/([^/?]+)/);
+  if (!folderMatch?.[1]) {
+    return [normalizeGoogleDriveFileUrl(url)];
+  }
+
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error("Unable to read the Google Drive folder. Make sure the folder is publicly accessible.");
+  }
+
+  const html = await response.text();
+  const matches = Array.from(
+    html.matchAll(/https:\/\/(?:drive|docs)\.google\.com\/(?:file\/d|document\/d|spreadsheets\/d|presentation\/d)\/[^"'&<\s]+/g)
+  ).map((match) => normalizeGoogleDriveFileUrl(match[0]));
+
+  const pdfMatches = Array.from(
+    html.matchAll(/https?:\/\/[^"'<> \t\r\n]+\.pdf(?:\?[^"'<> \t\r\n]*)?/gi)
+  ).map((match) => match[0]);
+
+  const uniqueMatches = Array.from(
+    new Set([...matches, ...pdfMatches].map((item) => item.trim()).filter(Boolean))
+  );
+
+  if (!uniqueMatches.length) {
+    throw new Error("No readable PDF files were found in that Google Drive folder.");
+  }
+
+  return uniqueMatches;
+}
+
+async function uploadPdfToOpenAi(sourceUrl: string, index: number): Promise<UploadedPdf> {
+  if (!env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is required to import resorts from Google Drive.");
+  }
+
+  const response = await fetch(sourceUrl, { cache: "no-store" });
+  if (!response.ok) {
+    throw new Error(`Failed to download PDF from ${sourceUrl}`);
+  }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  const isPdf = contentType.includes("pdf") || sourceUrl.toLowerCase().includes(".pdf") || sourceUrl.includes("export?format=pdf");
+  if (!isPdf) {
+    throw new Error(`Source is not a PDF: ${sourceUrl}`);
+  }
+
+  const blob = await response.blob();
+  const filename = guessFilenameFromUrl(sourceUrl, index);
+  const formData = new FormData();
+  formData.append("purpose", "user_data");
+  formData.append("file", new File([blob], filename, { type: "application/pdf" }));
+
+  const uploadResponse = await fetch("https://api.openai.com/v1/files", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.OPENAI_API_KEY}`
+    },
+    body: formData
+  });
+
+  const uploadPayload = await uploadResponse.json();
+  if (!uploadResponse.ok || typeof uploadPayload?.id !== "string") {
+    const message =
+      typeof uploadPayload?.error?.message === "string"
+        ? uploadPayload.error.message
+        : "OpenAI rejected the uploaded PDF.";
+    throw new Error(message);
+  }
+
+  return {
+    fileId: uploadPayload.id,
+    sourceUrl,
+    filename
+  };
+}
+
+async function requestOpenAiResortExtraction(uploadedPdf: UploadedPdf) {
   if (!env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is required to import resorts from Google Drive.");
   }
@@ -252,13 +324,12 @@ async function requestOpenAiResortExtraction(fileUrls: string[], sourceUrl: stri
             {
               type: "input_text",
               text:
-                "Extract resort fact sheet information into structured JSON for direct publishing. Return every resort in the files. Create concise, polished SEO descriptions for the resort and each room type. If an image URL is not explicitly present, leave heroImageUrl and photoUrl as empty strings. Use published_standard when the resort has enough information for a public listing; otherwise use draft. Source URL: " +
-                sourceUrl
+                "This PDF is one resort fact sheet. Extract exactly one resort if possible. Create publish-ready resort data including SEO descriptions for the resort and each room type. If a field is missing, leave it empty instead of inventing it."
             },
-            ...fileUrls.map((fileUrl) => ({
+            {
               type: "input_file",
-              file_url: fileUrl
-            }))
+              file_id: uploadedPdf.fileId
+            }
           ]
         }
       ],
@@ -290,6 +361,19 @@ async function requestOpenAiResortExtraction(fileUrls: string[], sourceUrl: stri
   return JSON.parse(outputText) as OpenAiImportPayload;
 }
 
+async function deleteOpenAiFile(fileId: string) {
+  if (!env.OPENAI_API_KEY) {
+    return;
+  }
+
+  await fetch(`https://api.openai.com/v1/files/${fileId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${env.OPENAI_API_KEY}`
+    }
+  }).catch(() => undefined);
+}
+
 export async function createImportBatch(
   input: AiImportRequestInput
 ): Promise<ServiceResult<ImportExecutionResult>> {
@@ -308,83 +392,116 @@ export async function createImportBatch(
     .from("import_batches")
     .insert({
       batch_name: createBatchName(sourceUrl),
-      source_type: "google_drive",
+      source_type: "google_drive_pdf",
       file_path: sourceUrl,
       status: "processing"
     })
-    .select("id, batch_name, status")
+    .select("id")
     .single();
 
   if (batchError || !batchData) {
     return {
       ok: false,
-      error: "Failed to start the import batch.",
+      error: "Failed to start the import.",
       status: 500,
       details: batchError
     };
   }
 
   try {
-    const fileUrls = await resolveGoogleDriveSources(sourceUrl);
-    const extracted = await requestOpenAiResortExtraction(fileUrls, sourceUrl);
-    const importedResorts = extracted.resorts.filter((resort) => resort.name.trim());
+    const sourceFiles = await resolveGoogleDriveSources(sourceUrl);
+    const existingResorts = await listAdminResorts();
+    const existingSlugs = new Set(existingResorts.map((resort) => slugify(resort.slug)));
+    const existingNames = new Set(existingResorts.map((resort) => resort.name.trim().toLowerCase()));
 
-    if (!importedResorts.length) {
-      throw new Error("No resorts were extracted from the supplied Google Drive source.");
-    }
+    let importedCount = 0;
+    let skippedCount = 0;
+    const stagedPayloads: Array<{ sourceUrl: string; extracted: OpenAiImportPayload }> = [];
 
-    for (const resort of importedResorts) {
-      const publishing = publishingToStatus(resort.publishingMode);
-      await saveResort({
-        slug: slugify(resort.slug || resort.name),
-        name: resort.name.trim(),
-        location: resort.location.trim(),
-        category: resort.category.trim(),
-        transferType: resort.transferType.trim(),
-        description: resort.description.trim(),
-        highlights: resort.highlights.filter(Boolean),
-        mealPlans: resort.mealPlans.filter(Boolean),
-        seoTitle: resort.seoTitle.trim() || resort.name.trim(),
-        seoDescription: resort.seoDescription.trim() || resort.description.trim(),
-        seoSummary: resort.seoSummary.trim() || resort.description.trim(),
-        heroImageUrl: resort.heroImageUrl.trim(),
-        galleryMediaUrls: resort.galleryMediaUrls.filter(Boolean),
-        roomTypes: resort.roomTypes
-          .filter((room) => room.name.trim())
-          .map((room) => ({
-            name: room.name.trim(),
-            description: room.description.trim(),
-            seoDescription: room.seoDescription.trim() || room.description.trim(),
-            photoUrl: room.photoUrl.trim()
-          })),
-        status: publishing.status,
-        isFeaturedHomepage: publishing.isFeaturedHomepage
-      });
+    for (let index = 0; index < sourceFiles.length; index += 1) {
+      const uploadedPdf = await uploadPdfToOpenAi(sourceFiles[index], index);
+
+      try {
+        const extracted = await requestOpenAiResortExtraction(uploadedPdf);
+        stagedPayloads.push({ sourceUrl: sourceFiles[index], extracted });
+
+        const resort = extracted.resorts.find((item) => item.name.trim());
+        if (!resort) {
+          continue;
+        }
+
+        const slug = slugify(resort.slug || resort.name);
+        const normalizedName = resort.name.trim().toLowerCase();
+
+        if (existingSlugs.has(slug) || existingNames.has(normalizedName)) {
+          skippedCount += 1;
+          continue;
+        }
+
+        const publishing = publishingToStatus(resort.publishingMode);
+
+        await saveResort({
+          slug,
+          name: resort.name.trim(),
+          location: resort.location.trim(),
+          category: resort.category.trim(),
+          transferType: resort.transferType.trim(),
+          description: resort.description.trim(),
+          highlights: resort.highlights.filter(Boolean),
+          mealPlans: resort.mealPlans.filter(Boolean),
+          seoTitle: resort.seoTitle.trim() || resort.name.trim(),
+          seoDescription: resort.seoDescription.trim() || resort.description.trim(),
+          seoSummary: resort.seoSummary.trim() || resort.description.trim(),
+          heroImageUrl: resort.heroImageUrl.trim(),
+          galleryMediaUrls: resort.galleryMediaUrls.filter(Boolean),
+          roomTypes: resort.roomTypes
+            .filter((room) => room.name.trim())
+            .map((room) => ({
+              name: room.name.trim(),
+              description: room.description.trim(),
+              seoDescription: room.seoDescription.trim() || room.description.trim(),
+              photoUrl: room.photoUrl.trim()
+            })),
+          status: publishing.status,
+          isFeaturedHomepage: publishing.isFeaturedHomepage
+        });
+
+        existingSlugs.add(slug);
+        existingNames.add(normalizedName);
+        importedCount += 1;
+      } finally {
+        await deleteOpenAiFile(uploadedPdf.fileId);
+      }
     }
 
     await supabase.from("resort_staging").insert({
-      batch_id: batchData.id,
+      batch_id: (batchData as ImportBatchRow).id,
       raw_payload: {
         sourceUrl,
-        resolvedFiles: fileUrls
+        resolvedFiles: sourceFiles
       },
-      extracted_payload: extracted,
+      extracted_payload: {
+        items: stagedPayloads
+      },
       review_status: "ready"
     });
 
-    await supabase.from("import_batches").update({ status: "completed" }).eq("id", batchData.id);
+    await supabase
+      .from("import_batches")
+      .update({ status: importedCount > 0 ? "completed" : "completed_no_new_resorts" })
+      .eq("id", (batchData as ImportBatchRow).id);
 
     return {
       ok: true,
       data: {
-        batchId: batchData.id,
-        importedResorts: importedResorts.length,
-        processedSources: fileUrls.length,
-        message: `Imported ${importedResorts.length} resort${importedResorts.length === 1 ? "" : "s"} from Google Drive.`
+        batchId: (batchData as ImportBatchRow).id,
+        importedResorts: importedCount,
+        processedSources: sourceFiles.length,
+        message: `Processed ${sourceFiles.length} PDF${sourceFiles.length === 1 ? "" : "s"}: imported ${importedCount}, skipped ${skippedCount} existing resort${skippedCount === 1 ? "" : "s"}.`
       }
     };
   } catch (error) {
-    await supabase.from("import_batches").update({ status: "failed" }).eq("id", batchData.id);
+    await supabase.from("import_batches").update({ status: "failed" }).eq("id", (batchData as ImportBatchRow).id);
 
     return {
       ok: false,
