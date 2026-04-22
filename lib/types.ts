@@ -3,6 +3,20 @@ export type PublishStatus = "draft" | "published" | "archived";
 export type ResourceAudience = "all_partners" | "selected_partners";
 export type ChatStatus = "open" | "resolved";
 
+export type ResortPublishingMode =
+  | "draft"
+  | "archived"
+  | "published_standard"
+  | "published_featured";
+
+export type ResortRoomSummary = {
+  id?: string;
+  name: string;
+  description: string;
+  seoDescription: string;
+  photoUrl?: string;
+};
+
 export type ResortSummary = {
   id: string;
   slug: string;
@@ -13,6 +27,7 @@ export type ResortSummary = {
   summary: string;
   heroImageUrl?: string;
   status: PublishStatus;
+  isFeaturedHomepage?: boolean;
 };
 
 export type PartnerSummary = {

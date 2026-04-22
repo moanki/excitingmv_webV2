@@ -1,4 +1,4 @@
-import { createImportBatchAction } from "@/app/admin/imports/actions";
+import { ImportDriveForm } from "@/app/admin/imports/import-form";
 import { listImportBatches } from "@/lib/services/import-service";
 
 export default async function AdminImportsPage() {
@@ -18,50 +18,21 @@ export default async function AdminImportsPage() {
 
       <article className="panel admin-form-card">
         <div className="admin-form-section__header">
-          <h3 className="admin-form-section__title">Create Import Batch</h3>
+          <h3 className="admin-form-section__title">Enter Google Drive URL</h3>
           <p className="admin-form-section__help">
-            Queue a source for brochure parsing and downstream extraction review.
+            Paste a Google Drive fact sheet URL and import resorts directly into the live resort inventory.
           </p>
         </div>
-        <form action={createImportBatchAction} className="stack">
-          <div className="form-grid">
-            <label className="field">
-              <span className="field__label">Batch Name</span>
-              <input className="admin-input" name="batchName" placeholder="April partner brochure sync" />
-            </label>
-            <label className="field">
-              <span className="field__label">Source Type</span>
-              <select className="admin-select" name="sourceType" defaultValue="folder">
-                <option value="folder">Google Drive Folder</option>
-                <option value="pdf">PDF File</option>
-                <option value="zip">ZIP Upload</option>
-                <option value="manual">Manual Entry</option>
-              </select>
-            </label>
-            <label className="field field--full">
-              <span className="field__label">Google Drive URL</span>
-              <input className="admin-input" name="googleDriveUrl" placeholder="https://drive.google.com/..." />
-            </label>
-            <label className="field field--full">
-              <span className="field__label">Notes</span>
-              <textarea className="admin-textarea" name="notes" placeholder="Add context for the import review team." />
-            </label>
-          </div>
-          <div className="admin-form-actions">
-            <button className="admin-btn admin-btn--primary" type="submit">
-              Create Import Batch
-            </button>
-          </div>
-        </form>
+        <ImportDriveForm />
       </article>
 
       <div className="admin-table-shell">
         <table className="table">
           <thead>
             <tr>
-              <th>Batch</th>
+              <th>Import</th>
               <th>Source Type</th>
-              <th>Source</th>
+              <th>Google Drive Source</th>
               <th>Status</th>
               <th>Created</th>
             </tr>
@@ -71,13 +42,23 @@ export default async function AdminImportsPage() {
               <tr key={batch.id}>
                 <td>{batch.batchName}</td>
                 <td>{batch.sourceType}</td>
-                <td>{batch.sourcePath || "-"}</td>
+                <td>{batch.sourcePath ? <a href={batch.sourcePath}>{batch.sourcePath}</a> : "-"}</td>
                 <td>
                   <span className="badge">{batch.status}</span>
                 </td>
                 <td>{new Date(batch.createdAt).toLocaleString()}</td>
               </tr>
             ))}
+            {!batches.length ? (
+              <tr>
+                <td colSpan={5}>
+                  <div className="empty-state">
+                    <strong>No imports yet</strong>
+                    <p>Imported Google Drive sources will appear here after the first successful run.</p>
+                  </div>
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </div>

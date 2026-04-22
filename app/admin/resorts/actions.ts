@@ -31,9 +31,60 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function publishingState(value: string): { status: PublishStatus; isFeaturedHomepage: boolean } {
+  if (value === "published_featured") {
+    return { status: "published", isFeaturedHomepage: true };
+  }
+
+  if (value === "published_standard") {
+    return { status: "published", isFeaturedHomepage: false };
+  }
+
+  if (value === "archived") {
+    return { status: "archived", isFeaturedHomepage: false };
+  }
+
+  return { status: "draft", isFeaturedHomepage: false };
+}
+
+async function parseRoomTypes(formData: FormData) {
+  const roomCount = Number(formData.get("roomCount") ?? 0);
+  const rooms = [];
+
+  for (let index = 0; index < roomCount; index += 1) {
+    const name = String(formData.get(`room_${index}_name`) ?? "").trim();
+    const description = String(formData.get(`room_${index}_description`) ?? "").trim();
+    const seoDescription = String(formData.get(`room_${index}_seoDescription`) ?? "").trim();
+    const roomPhotoFile = formData.get(`room_${index}_photoFile`);
+    const existingPhoto = String(formData.get(`room_${index}_photoUrl`) ?? "").trim();
+    const photoUrl =
+      roomPhotoFile instanceof File && roomPhotoFile.size > 0
+        ? await uploadSiteAsset(roomPhotoFile, "resorts")
+        : existingPhoto;
+
+    if (!name && !description && !seoDescription && !photoUrl) {
+      continue;
+    }
+
+    if (!name) {
+      continue;
+    }
+
+    rooms.push({
+      name,
+      description,
+      seoDescription,
+      photoUrl
+    });
+  }
+
+  return rooms;
+}
+
 export async function saveResortAction(_: ActionState, formData: FormData) {
   try {
     const name = String(formData.get("name") ?? "").trim();
+    const publishing = publishingState(String(formData.get("publishingMode") ?? "draft").trim());
     const heroImageFile = formData.get("heroImageFile");
     const galleryFiles = formData.getAll("galleryMediaFiles");
     const uploadedHeroImage =
@@ -52,6 +103,7 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
       .split(/\r?\n|,/)
       .map((item) => item.trim())
       .filter(Boolean);
+    const roomTypes = await parseRoomTypes(formData);
     const input = {
       id: String(formData.get("id") ?? "").trim() || undefined,
       slug: slugify(String(formData.get("slug") ?? name)),
@@ -67,7 +119,9 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
       seoSummary: String(formData.get("seoSummary") ?? "").trim(),
       heroImageUrl: uploadedHeroImage,
       galleryMediaUrls: [...galleryMediaUrls, ...uploadedGalleryImages],
-      status: String(formData.get("status") ?? "draft").trim() as PublishStatus
+      roomTypes,
+      status: publishing.status,
+      isFeaturedHomepage: publishing.isFeaturedHomepage
     };
 
     if (!input.name || !input.slug) {

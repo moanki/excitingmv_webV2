@@ -4,13 +4,20 @@ import { revalidatePath } from "next/cache";
 
 import { createImportBatch } from "@/lib/services/import-service";
 
-export async function createImportBatchAction(formData: FormData) {
-  await createImportBatch({
-    batchName: String(formData.get("batchName") ?? ""),
-    sourceType: String(formData.get("sourceType") ?? "folder") as "pdf" | "zip" | "folder" | "manual",
-    googleDriveUrl: String(formData.get("googleDriveUrl") ?? ""),
-    notes: String(formData.get("notes") ?? "")
+type ActionState = { message?: string; error?: string } | undefined;
+
+export async function createImportBatchAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  const result = await createImportBatch({
+    googleDriveUrl: String(formData.get("googleDriveUrl") ?? "")
   });
 
+  if (!result.ok) {
+    return { error: result.error };
+  }
+
   revalidatePath("/admin/imports");
+  revalidatePath("/admin/resorts");
+  revalidatePath("/resorts");
+  revalidatePath("/");
+  return { message: result.data.message };
 }

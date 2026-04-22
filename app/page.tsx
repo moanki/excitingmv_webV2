@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
-import { listPublishedResorts } from "@/lib/services/resort-service";
+import { listHomepageFeaturedResorts } from "@/lib/services/resort-service";
 import {
   getHomepageAwardsContent,
   getHomepageCeoContent,
@@ -69,7 +69,7 @@ export default async function HomePage() {
     getMarketSettings("published"),
     getNavbarContent("published"),
     getFooterContent("published"),
-    listPublishedResorts()
+    listHomepageFeaturedResorts(5)
   ]);
 
   const activeMarkets = markets.options.filter((market) => market.enabled).map((market) => market.label);

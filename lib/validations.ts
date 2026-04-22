@@ -26,10 +26,13 @@ export const contactSchema = z.object({
 });
 
 export const aiImportRequestSchema = z.object({
-  batchName: z.string().min(2),
-  sourceType: z.enum(["pdf", "zip", "folder", "manual"]),
-  googleDriveUrl: z.string().url().optional().or(z.literal("")),
-  notes: z.string().max(2000).optional()
+  googleDriveUrl: z
+    .string()
+    .url()
+    .refine(
+      (value) => value.includes("drive.google.com") || value.includes("docs.google.com"),
+      "Enter a valid Google Drive or Google Docs URL."
+    )
 });
 
 export const chatStartSchema = z.object({
