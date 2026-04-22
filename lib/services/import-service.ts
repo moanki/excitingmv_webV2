@@ -68,6 +68,12 @@ type UploadedPdf = {
   filename: string;
 };
 
+type DownloadedPdf = {
+  sourceUrl: string;
+  filename: string;
+  bytes: Uint8Array;
+};
+
 type ImportBatchRow = {
   id: string;
 };
@@ -237,6 +243,20 @@ function isUsableDriveFileUrl(url: string) {
   );
 }
 
+function getGeminiApiKey() {
+  return env.GEMINI_API_KEY || env.GOOGLE_API_KEY || "";
+}
+
+function isOpenAiQuotaError(message: string) {
+  const lowered = message.toLowerCase();
+  return (
+    lowered.includes("exceeded your current quota") ||
+    lowered.includes("check your plan and billing details") ||
+    lowered.includes("insufficient_quota") ||
+    lowered.includes("billing")
+  );
+}
+
 function extractOutputText(payload: any) {
   if (typeof payload?.output_text === "string" && payload.output_text) {
     return payload.output_text;
@@ -322,11 +342,7 @@ async function resolveGoogleDriveSources(url: string) {
   return uniqueMatches;
 }
 
-async function uploadPdfToOpenAi(sourceUrl: string, index: number): Promise<UploadedPdf> {
-  if (!env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is required to import resorts from Google Drive.");
-  }
-
+async function downloadPdfSource(sourceUrl: string, index: number): Promise<DownloadedPdf> {
   const response = await fetch(sourceUrl, { cache: "no-store" });
   if (!response.ok) {
     throw new Error(`Failed to download PDF from ${sourceUrl}`);
@@ -344,11 +360,23 @@ async function uploadPdfToOpenAi(sourceUrl: string, index: number): Promise<Uplo
     throw new Error(`Source is not a PDF: ${sourceUrl}`);
   }
 
-  const blob = await response.blob();
+  const bytes = new Uint8Array(await response.arrayBuffer());
   const filename = guessFilenameFromUrl(sourceUrl, index);
+  return {
+    sourceUrl,
+    filename,
+    bytes
+  };
+}
+
+async function uploadPdfToOpenAi(downloadedPdf: DownloadedPdf): Promise<UploadedPdf> {
+  if (!env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is required to import resorts from Google Drive.");
+  }
+
   const formData = new FormData();
   formData.append("purpose", "user_data");
-  formData.append("file", new File([blob], filename, { type: "application/pdf" }));
+  formData.append("file", new File([Buffer.from(downloadedPdf.bytes)], downloadedPdf.filename, { type: "application/pdf" }));
 
   const uploadResponse = await fetch("https://api.openai.com/v1/files", {
     method: "POST",
@@ -369,8 +397,8 @@ async function uploadPdfToOpenAi(sourceUrl: string, index: number): Promise<Uplo
 
   return {
     fileId: uploadPayload.id,
-    sourceUrl,
-    filename
+    sourceUrl: downloadedPdf.sourceUrl,
+    filename: downloadedPdf.filename
   };
 }
 
@@ -431,6 +459,103 @@ async function requestOpenAiResortExtraction(uploadedPdf: UploadedPdf) {
   return JSON.parse(outputText) as OpenAiImportPayload;
 }
 
+function extractGeminiText(payload: any) {
+  const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
+  const texts: string[] = [];
+
+  candidates.forEach((candidate: any) => {
+    const parts = Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [];
+    parts.forEach((part: any) => {
+      if (typeof part?.text === "string") {
+        texts.push(part.text);
+      }
+    });
+  });
+
+  return texts.join("\n").trim();
+}
+
+async function requestGeminiResortExtraction(downloadedPdf: DownloadedPdf) {
+  const geminiApiKey = getGeminiApiKey();
+  if (!geminiApiKey) {
+    throw new Error("GEMINI_API_KEY or GOOGLE_API_KEY is required for Gemini fallback.");
+  }
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text:
+                  "This PDF is one resort fact sheet. Extract exactly one resort if possible. Create publish-ready resort data including SEO descriptions for the resort and each room type. If a field is missing, leave it empty instead of inventing it."
+              },
+              {
+                inline_data: {
+                  mime_type: "application/pdf",
+                  data: Buffer.from(downloadedPdf.bytes).toString("base64")
+                }
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseJsonSchema: importSchema
+        }
+      })
+    }
+  );
+
+  const payload = await response.json();
+  if (!response.ok) {
+    const message =
+      typeof payload?.error?.message === "string"
+        ? payload.error.message
+        : "Gemini could not extract the resort fact sheet.";
+    throw new Error(message);
+  }
+
+  const outputText = extractGeminiText(payload);
+  if (!outputText) {
+    throw new Error("Gemini returned an empty import response.");
+  }
+
+  return JSON.parse(outputText) as OpenAiImportPayload;
+}
+
+async function extractResortFactSheet(downloadedPdf: DownloadedPdf) {
+  const geminiApiKey = getGeminiApiKey();
+
+  if (!env.OPENAI_API_KEY && geminiApiKey) {
+    return requestGeminiResortExtraction(downloadedPdf);
+  }
+
+  if (!env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY is required unless a Gemini API key fallback is configured.");
+  }
+
+  const uploadedPdf = await uploadPdfToOpenAi(downloadedPdf);
+
+  try {
+    return await requestOpenAiResortExtraction(uploadedPdf);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "OpenAI import failed.";
+    if (geminiApiKey && isOpenAiQuotaError(message)) {
+      return requestGeminiResortExtraction(downloadedPdf);
+    }
+    throw error;
+  } finally {
+    await deleteOpenAiFile(uploadedPdf.fileId);
+  }
+}
+
 async function deleteOpenAiFile(fileId: string) {
   if (!env.OPENAI_API_KEY) {
     return;
@@ -489,59 +614,55 @@ export async function createImportBatch(
     const stagedPayloads: Array<{ sourceUrl: string; extracted: OpenAiImportPayload }> = [];
 
     for (let index = 0; index < sourceFiles.length; index += 1) {
-      const uploadedPdf = await uploadPdfToOpenAi(sourceFiles[index], index);
+      const downloadedPdf = await downloadPdfSource(sourceFiles[index], index);
 
-      try {
-        const extracted = await requestOpenAiResortExtraction(uploadedPdf);
-        stagedPayloads.push({ sourceUrl: sourceFiles[index], extracted });
+      const extracted = await extractResortFactSheet(downloadedPdf);
+      stagedPayloads.push({ sourceUrl: sourceFiles[index], extracted });
 
-        const resort = extracted.resorts.find((item) => item.name.trim());
-        if (!resort) {
-          continue;
-        }
-
-        const slug = slugify(resort.slug || resort.name);
-        const normalizedName = resort.name.trim().toLowerCase();
-
-        if (existingSlugs.has(slug) || existingNames.has(normalizedName)) {
-          skippedCount += 1;
-          continue;
-        }
-
-        const publishing = publishingToStatus(resort.publishingMode);
-
-        await saveResort({
-          slug,
-          name: resort.name.trim(),
-          location: resort.location.trim(),
-          category: resort.category.trim(),
-          transferType: resort.transferType.trim(),
-          description: resort.description.trim(),
-          highlights: resort.highlights.filter(Boolean),
-          mealPlans: resort.mealPlans.filter(Boolean),
-          seoTitle: resort.seoTitle.trim() || resort.name.trim(),
-          seoDescription: resort.seoDescription.trim() || resort.description.trim(),
-          seoSummary: resort.seoSummary.trim() || resort.description.trim(),
-          heroImageUrl: resort.heroImageUrl.trim(),
-          galleryMediaUrls: resort.galleryMediaUrls.filter(Boolean),
-          roomTypes: resort.roomTypes
-            .filter((room) => room.name.trim())
-            .map((room) => ({
-              name: room.name.trim(),
-              description: room.description.trim(),
-              seoDescription: room.seoDescription.trim() || room.description.trim(),
-              photoUrl: room.photoUrl.trim()
-            })),
-          status: publishing.status,
-          isFeaturedHomepage: publishing.isFeaturedHomepage
-        });
-
-        existingSlugs.add(slug);
-        existingNames.add(normalizedName);
-        importedCount += 1;
-      } finally {
-        await deleteOpenAiFile(uploadedPdf.fileId);
+      const resort = extracted.resorts.find((item) => item.name.trim());
+      if (!resort) {
+        continue;
       }
+
+      const slug = slugify(resort.slug || resort.name);
+      const normalizedName = resort.name.trim().toLowerCase();
+
+      if (existingSlugs.has(slug) || existingNames.has(normalizedName)) {
+        skippedCount += 1;
+        continue;
+      }
+
+      const publishing = publishingToStatus(resort.publishingMode);
+
+      await saveResort({
+        slug,
+        name: resort.name.trim(),
+        location: resort.location.trim(),
+        category: resort.category.trim(),
+        transferType: resort.transferType.trim(),
+        description: resort.description.trim(),
+        highlights: resort.highlights.filter(Boolean),
+        mealPlans: resort.mealPlans.filter(Boolean),
+        seoTitle: resort.seoTitle.trim() || resort.name.trim(),
+        seoDescription: resort.seoDescription.trim() || resort.description.trim(),
+        seoSummary: resort.seoSummary.trim() || resort.description.trim(),
+        heroImageUrl: resort.heroImageUrl.trim(),
+        galleryMediaUrls: resort.galleryMediaUrls.filter(Boolean),
+        roomTypes: resort.roomTypes
+          .filter((room) => room.name.trim())
+          .map((room) => ({
+            name: room.name.trim(),
+            description: room.description.trim(),
+            seoDescription: room.seoDescription.trim() || room.description.trim(),
+            photoUrl: room.photoUrl.trim()
+          })),
+        status: publishing.status,
+        isFeaturedHomepage: publishing.isFeaturedHomepage
+      });
+
+      existingSlugs.add(slug);
+      existingNames.add(normalizedName);
+      importedCount += 1;
     }
 
     await supabase.from("resort_staging").insert({
