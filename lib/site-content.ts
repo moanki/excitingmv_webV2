@@ -182,11 +182,11 @@ export const defaultHomepageFeatures: HomepageFeatureCard[] = [
       "Supabase Realtime powers direct communication between partners and the internal sales team.",
     imageUrl: ""
   },
-  {
-    eyebrow: "Admin AI",
-    title: "OpenAI restricted to import review and SEO drafting.",
-    description:
-      "AI helps the admin team accelerate data extraction and summary generation without auto-publishing.",
+    {
+      eyebrow: "Admin AI",
+      title: "AI Gateway powers import review and SEO drafting.",
+      description:
+        "AI helps the admin team accelerate data extraction and summary generation without auto-publishing.",
     imageUrl: ""
   }
 ];

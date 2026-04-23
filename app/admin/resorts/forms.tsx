@@ -1,9 +1,14 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { useActionState, useState, useTransition } from "react";
+import { Pencil, Sparkles, Trash2 } from "lucide-react";
 
-import { deleteResortAction, saveResortAction, seedResortsAction } from "@/app/admin/resorts/actions";
+import {
+  deleteResortAction,
+  generateResortSeoAction,
+  saveResortAction,
+  seedResortsAction
+} from "@/app/admin/resorts/actions";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 import type { ResortPublishingMode } from "@/lib/types";
 import type { ResortRecord } from "@/lib/services/resort-service";
@@ -175,6 +180,7 @@ function ResortEditor({
   mediaLibrary: MediaLibraryItem[];
 }) {
   const [state, action, pending] = useActionState(saveResortAction, undefined);
+  const [isGeneratingSeo, startSeoGeneration] = useTransition();
   const [rooms, setRooms] = useState(
     (resort.roomTypes ?? []).map((room) => ({
       name: room.name,
@@ -183,6 +189,52 @@ function ResortEditor({
       photoUrl: room.photoUrl
     }))
   );
+  const [name, setName] = useState(resort.name ?? "");
+  const [slug, setSlug] = useState(resort.slug ?? "");
+  const [location, setLocation] = useState(resort.location ?? "");
+  const [category, setCategory] = useState(resort.category ?? "");
+  const [transferType, setTransferType] = useState(resort.transferType ?? "");
+  const [descriptionValue, setDescriptionValue] = useState(resort.description ?? resort.summary ?? "");
+  const [highlightsValue, setHighlightsValue] = useState((resort.highlights ?? []).join("\n"));
+  const [mealPlansValue, setMealPlansValue] = useState((resort.mealPlans ?? []).join("\n"));
+  const [seoTitle, setSeoTitle] = useState(resort.seoTitle ?? resort.name ?? "");
+  const [seoDescription, setSeoDescription] = useState(resort.seoDescription ?? resort.summary ?? "");
+  const [seoSummary, setSeoSummary] = useState(resort.seoSummary ?? resort.summary ?? "");
+  const [seoStatus, setSeoStatus] = useState<{ message?: string; error?: string } | null>(null);
+
+  function splitLines(value: string) {
+    return value
+      .split(/\r?\n|,/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  function handleGenerateSeo() {
+    startSeoGeneration(async () => {
+      setSeoStatus(null);
+      const result = await generateResortSeoAction({
+        name,
+        location,
+        category,
+        transferType,
+        description: descriptionValue,
+        highlights: splitLines(highlightsValue),
+        mealPlans: splitLines(mealPlansValue)
+      });
+
+      if (!result.ok) {
+        setSeoStatus({ error: result.error });
+        return;
+      }
+
+      setSeoTitle(result.data.seoTitle);
+      setSeoDescription(result.data.seoDescription);
+      setSeoSummary(result.data.seoSummary);
+      setSeoStatus({
+        message: `Generated via ${result.data.provider} / ${result.data.model}.`
+      });
+    });
+  }
 
   return (
     <div className="panel resort-editor" id={resort.id ? `resort-editor-${resort.id}` : "resort-editor-new"}>
@@ -210,23 +262,38 @@ function ResortEditor({
           <div className="form-grid">
             <label className="field">
               <span className="field__label">Resort Name</span>
-              <input className="admin-input" name="name" defaultValue={resort.name ?? ""} />
+              <input className="admin-input" name="name" value={name} onChange={(event) => setName(event.target.value)} />
             </label>
             <label className="field">
               <span className="field__label">Slug</span>
-              <input className="admin-input" name="slug" defaultValue={resort.slug ?? ""} />
+              <input className="admin-input" name="slug" value={slug} onChange={(event) => setSlug(event.target.value)} />
             </label>
             <label className="field">
               <span className="field__label">Atoll</span>
-              <input className="admin-input" name="location" defaultValue={resort.location ?? ""} />
+              <input
+                className="admin-input"
+                name="location"
+                value={location}
+                onChange={(event) => setLocation(event.target.value)}
+              />
             </label>
             <label className="field">
               <span className="field__label">Category</span>
-              <input className="admin-input" name="category" defaultValue={resort.category ?? ""} />
+              <input
+                className="admin-input"
+                name="category"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+              />
             </label>
             <label className="field">
               <span className="field__label">Transfer Type</span>
-              <input className="admin-input" name="transferType" defaultValue={resort.transferType ?? ""} />
+              <input
+                className="admin-input"
+                name="transferType"
+                value={transferType}
+                onChange={(event) => setTransferType(event.target.value)}
+              />
             </label>
             <label className="field">
               <span className="field__label">Status</span>
@@ -255,7 +322,8 @@ function ResortEditor({
               <textarea
                 className="admin-textarea"
                 name="description"
-                defaultValue={resort.description ?? resort.summary ?? ""}
+                value={descriptionValue}
+                onChange={(event) => setDescriptionValue(event.target.value)}
               />
             </label>
             <label className="field field--full">
@@ -263,7 +331,8 @@ function ResortEditor({
               <textarea
                 className="admin-textarea"
                 name="highlights"
-                defaultValue={(resort.highlights ?? []).join("\n")}
+                value={highlightsValue}
+                onChange={(event) => setHighlightsValue(event.target.value)}
                 placeholder="One highlight per line"
               />
             </label>
@@ -283,7 +352,8 @@ function ResortEditor({
               <textarea
                 className="admin-textarea"
                 name="mealPlans"
-                defaultValue={(resort.mealPlans ?? []).join("\n")}
+                value={mealPlansValue}
+                onChange={(event) => setMealPlansValue(event.target.value)}
                 placeholder="One meal plan per line"
               />
             </label>
@@ -295,17 +365,29 @@ function ResortEditor({
             <h3 className="admin-form-section__title">SEO</h3>
             <p className="admin-form-section__help">Descriptions used for the resort listing, detail page, and imports.</p>
           </div>
+          <div className="admin-form-actions">
+            <button
+              className="admin-btn admin-btn--secondary"
+              type="button"
+              onClick={handleGenerateSeo}
+              disabled={isGeneratingSeo}
+            >
+              <Sparkles className="admin-icon" />
+              {isGeneratingSeo ? "Generating SEO..." : "Generate SEO"}
+            </button>
+          </div>
           <div className="form-grid">
             <label className="field">
               <span className="field__label">SEO Title</span>
-              <input className="admin-input" name="seoTitle" defaultValue={resort.seoTitle ?? resort.name ?? ""} />
+              <input className="admin-input" name="seoTitle" value={seoTitle} onChange={(event) => setSeoTitle(event.target.value)} />
             </label>
             <label className="field field--full">
               <span className="field__label">SEO Description</span>
               <textarea
                 className="admin-textarea"
                 name="seoDescription"
-                defaultValue={resort.seoDescription ?? resort.summary ?? ""}
+                value={seoDescription}
+                onChange={(event) => setSeoDescription(event.target.value)}
               />
             </label>
             <label className="field field--full">
@@ -313,10 +395,13 @@ function ResortEditor({
               <textarea
                 className="admin-textarea"
                 name="seoSummary"
-                defaultValue={resort.seoSummary ?? resort.summary ?? ""}
+                value={seoSummary}
+                onChange={(event) => setSeoSummary(event.target.value)}
               />
             </label>
           </div>
+          {seoStatus?.message ? <p className="admin-alert admin-alert--success">{seoStatus.message}</p> : null}
+          {seoStatus?.error ? <p className="admin-alert admin-alert--error">{seoStatus.error}</p> : null}
         </section>
 
         <section className="admin-form-section">

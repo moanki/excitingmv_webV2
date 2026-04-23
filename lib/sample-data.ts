@@ -18,11 +18,11 @@ export const homepageHighlights = [
     description:
       "Supabase Realtime powers direct communication between partners and the internal sales team."
   },
-  {
-    eyebrow: "Admin AI",
-    title: "OpenAI restricted to import review and SEO drafting.",
-    description:
-      "AI helps the admin team accelerate data extraction and summary generation without auto-publishing."
+    {
+      eyebrow: "Admin AI",
+      title: "AI Gateway powers import review and SEO drafting.",
+      description:
+        "AI helps the admin team accelerate data extraction and summary generation without auto-publishing."
   }
 ];
 

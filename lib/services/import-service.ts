@@ -1,4 +1,8 @@
-import { env } from "@/lib/env";
+import {
+  extractImportedResortsFromPdf,
+  type ImportedResort,
+  type ImportedResortPayload
+} from "@/lib/services/resort-ai-service";
 import { listAdminResorts, saveResort } from "@/lib/services/resort-service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { PublishStatus, ServiceResult } from "@/lib/types";
@@ -6,36 +10,6 @@ import { aiImportRequestSchema } from "@/lib/validations";
 import type { z } from "zod";
 
 type AiImportRequestInput = z.infer<typeof aiImportRequestSchema>;
-
-type ImportedRoom = {
-  name: string;
-  description: string;
-  seoDescription: string;
-  photoUrl: string;
-};
-
-type ImportedResort = {
-  name: string;
-  slug: string;
-  location: string;
-  category: string;
-  transferType: string;
-  description: string;
-  highlights: string[];
-  mealPlans: string[];
-  seoTitle: string;
-  seoDescription: string;
-  seoSummary: string;
-  heroImageUrl: string;
-  galleryMediaUrls: string[];
-  publishingMode: "draft" | "published_standard" | "published_featured";
-  roomTypes: ImportedRoom[];
-};
-
-type OpenAiImportPayload = {
-  resorts: ImportedResort[];
-  notes: string;
-};
 
 export type ImportExecutionResult = {
   batchId: string;
@@ -45,7 +19,7 @@ export type ImportExecutionResult = {
   skippedSources: number;
   warningCount: number;
   errorCount: number;
-  providerUsed: "openai" | "gemini" | "mixed" | "none";
+  providerUsed: string;
   message: string;
   logs: ImportLogEntry[];
 };
@@ -68,12 +42,6 @@ export type ImportBatchRecord = {
   createdAt: string;
 };
 
-type UploadedPdf = {
-  fileId: string;
-  sourceUrl: string;
-  filename: string;
-};
-
 type DownloadedPdf = {
   sourceUrl: string;
   filename: string;
@@ -88,76 +56,11 @@ export type ImportLogEntry = {
   sourceUrl: string;
   filename: string;
   status: "processing" | "imported" | "skipped" | "warning" | "error";
-  provider: "openai" | "gemini" | "none";
+  provider: string;
+  model?: string;
   message: string;
   resortName?: string;
 };
-
-const importSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["resorts", "notes"],
-  properties: {
-    resorts: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "name",
-          "slug",
-          "location",
-          "category",
-          "transferType",
-          "description",
-          "highlights",
-          "mealPlans",
-          "seoTitle",
-          "seoDescription",
-          "seoSummary",
-          "heroImageUrl",
-          "galleryMediaUrls",
-          "publishingMode",
-          "roomTypes"
-        ],
-        properties: {
-          name: { type: "string" },
-          slug: { type: "string" },
-          location: { type: "string" },
-          category: { type: "string" },
-          transferType: { type: "string" },
-          description: { type: "string" },
-          highlights: { type: "array", items: { type: "string" } },
-          mealPlans: { type: "array", items: { type: "string" } },
-          seoTitle: { type: "string" },
-          seoDescription: { type: "string" },
-          seoSummary: { type: "string" },
-          heroImageUrl: { type: "string" },
-          galleryMediaUrls: { type: "array", items: { type: "string" } },
-          publishingMode: {
-            type: "string",
-            enum: ["draft", "published_standard", "published_featured"]
-          },
-          roomTypes: {
-            type: "array",
-            items: {
-              type: "object",
-              additionalProperties: false,
-              required: ["name", "description", "seoDescription", "photoUrl"],
-              properties: {
-                name: { type: "string" },
-                description: { type: "string" },
-                seoDescription: { type: "string" },
-                photoUrl: { type: "string" }
-              }
-            }
-          }
-        }
-      }
-    },
-    notes: { type: "string" }
-  }
-} as const;
 
 function slugify(value: string) {
   return value
@@ -261,43 +164,6 @@ function isUsableDriveFileUrl(url: string) {
     lowered.includes("{resourcekeyparam}") ||
     lowered.includes("%7bresourcekeyparam%7d")
   );
-}
-
-function getGeminiApiKey() {
-  return env.GEMINI_API_KEY || env.GOOGLE_API_KEY || "";
-}
-
-function isOpenAiQuotaError(message: string) {
-  const lowered = message.toLowerCase();
-  return (
-    lowered.includes("exceeded your current quota") ||
-    lowered.includes("check your plan and billing details") ||
-    lowered.includes("insufficient_quota") ||
-    lowered.includes("billing")
-  );
-}
-
-function extractOutputText(payload: any) {
-  if (typeof payload?.output_text === "string" && payload.output_text) {
-    return payload.output_text;
-  }
-
-  const output = Array.isArray(payload?.output) ? payload.output : [];
-  const texts: string[] = [];
-
-  output.forEach((item: any) => {
-    if (item?.type !== "message" || !Array.isArray(item.content)) {
-      return;
-    }
-
-    item.content.forEach((content: any) => {
-      if (content?.type === "output_text" && typeof content.text === "string") {
-        texts.push(content.text);
-      }
-    });
-  });
-
-  return texts.join("\n").trim();
 }
 
 async function resolveGoogleDriveSources(url: string) {
@@ -407,218 +273,6 @@ async function createDownloadedPdfFromUpload(file: File): Promise<DownloadedPdf>
   };
 }
 
-async function uploadPdfToOpenAi(downloadedPdf: DownloadedPdf): Promise<UploadedPdf> {
-  if (!env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is required to import resorts from Google Drive.");
-  }
-
-  const formData = new FormData();
-  formData.append("purpose", "user_data");
-  formData.append("file", new File([Buffer.from(downloadedPdf.bytes)], downloadedPdf.filename, { type: "application/pdf" }));
-
-  const uploadResponse = await fetch("https://api.openai.com/v1/files", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${env.OPENAI_API_KEY}`
-    },
-    body: formData
-  });
-
-  const uploadPayload = await uploadResponse.json();
-  if (!uploadResponse.ok || typeof uploadPayload?.id !== "string") {
-    const message =
-      typeof uploadPayload?.error?.message === "string"
-        ? uploadPayload.error.message
-        : "OpenAI rejected the uploaded PDF.";
-    throw new Error(message);
-  }
-
-  return {
-    fileId: uploadPayload.id,
-    sourceUrl: downloadedPdf.sourceUrl,
-    filename: downloadedPdf.filename
-  };
-}
-
-async function requestOpenAiResortExtraction(uploadedPdf: UploadedPdf) {
-  if (!env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is required to import resorts from Google Drive.");
-  }
-
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${env.OPENAI_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: "gpt-5",
-      input: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "input_text",
-              text:
-                "This PDF is one resort fact sheet. Extract exactly one resort if possible. Create publish-ready resort data including SEO descriptions for the resort and each room type. If a field is missing, leave it empty instead of inventing it."
-            },
-            {
-              type: "input_file",
-              file_id: uploadedPdf.fileId
-            }
-          ]
-        }
-      ],
-      text: {
-        format: {
-          type: "json_schema",
-          name: "resort_import_payload",
-          strict: true,
-          schema: importSchema
-        }
-      }
-    })
-  });
-
-  const payload = await response.json();
-  if (!response.ok) {
-    const message =
-      typeof payload?.error?.message === "string"
-        ? payload.error.message
-        : "OpenAI could not extract the resort fact sheet.";
-    throw new Error(message);
-  }
-
-  const outputText = extractOutputText(payload);
-  if (!outputText) {
-    throw new Error("OpenAI returned an empty import response.");
-  }
-
-  return JSON.parse(outputText) as OpenAiImportPayload;
-}
-
-function extractGeminiText(payload: any) {
-  const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
-  const texts: string[] = [];
-
-  candidates.forEach((candidate: any) => {
-    const parts = Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [];
-    parts.forEach((part: any) => {
-      if (typeof part?.text === "string") {
-        texts.push(part.text);
-      }
-    });
-  });
-
-  return texts.join("\n").trim();
-}
-
-async function requestGeminiResortExtraction(downloadedPdf: DownloadedPdf) {
-  const geminiApiKey = getGeminiApiKey();
-  if (!geminiApiKey) {
-    throw new Error("GEMINI_API_KEY or GOOGLE_API_KEY is required for Gemini fallback.");
-  }
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text:
-                  "This PDF is one resort fact sheet. Extract exactly one resort if possible. Create publish-ready resort data including SEO descriptions for the resort and each room type. If a field is missing, leave it empty instead of inventing it."
-              },
-              {
-                inline_data: {
-                  mime_type: "application/pdf",
-                  data: Buffer.from(downloadedPdf.bytes).toString("base64")
-                }
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseJsonSchema: importSchema
-        }
-      })
-    }
-  );
-
-  const payload = await response.json();
-  if (!response.ok) {
-    const message =
-      typeof payload?.error?.message === "string"
-        ? payload.error.message
-        : "Gemini could not extract the resort fact sheet.";
-    throw new Error(message);
-  }
-
-  const outputText = extractGeminiText(payload);
-  if (!outputText) {
-    throw new Error("Gemini returned an empty import response.");
-  }
-
-  return JSON.parse(outputText) as OpenAiImportPayload;
-}
-
-async function extractResortFactSheet(downloadedPdf: DownloadedPdf) {
-  const geminiApiKey = getGeminiApiKey();
-
-  if (!env.OPENAI_API_KEY && geminiApiKey) {
-    return {
-      extracted: await requestGeminiResortExtraction(downloadedPdf),
-      provider: "gemini" as const
-    };
-  }
-
-  if (!env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is required unless a Gemini API key fallback is configured.");
-  }
-
-  const uploadedPdf = await uploadPdfToOpenAi(downloadedPdf);
-
-  try {
-    return {
-      extracted: await requestOpenAiResortExtraction(uploadedPdf),
-      provider: "openai" as const
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "OpenAI import failed.";
-    if (geminiApiKey && isOpenAiQuotaError(message)) {
-      return {
-        extracted: await requestGeminiResortExtraction(downloadedPdf),
-        provider: "gemini" as const
-      };
-    }
-    if (!geminiApiKey && isOpenAiQuotaError(message)) {
-      throw new Error("OpenAI quota was exceeded and no Gemini API key is configured in deployment.");
-    }
-    throw error;
-  } finally {
-    await deleteOpenAiFile(uploadedPdf.fileId);
-  }
-}
-
-async function deleteOpenAiFile(fileId: string) {
-  if (!env.OPENAI_API_KEY) {
-    return;
-  }
-
-  await fetch(`https://api.openai.com/v1/files/${fileId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${env.OPENAI_API_KEY}`
-    }
-  }).catch(() => undefined);
-}
-
 export async function createImportBatch(
   input: AiImportRequestInput
 ): Promise<ServiceResult<ImportExecutionResult>> {
@@ -663,9 +317,9 @@ export async function createImportBatch(
     let skippedCount = 0;
     let warningCount = 0;
     let errorCount = 0;
-    const providerUsage = new Set<"openai" | "gemini">();
+    const modelUsage = new Set<string>();
     const logs: ImportLogEntry[] = [];
-    const stagedPayloads: Array<{ sourceUrl: string; extracted: OpenAiImportPayload }> = [];
+    const stagedPayloads: Array<{ sourceUrl: string; extracted: ImportedResortPayload }> = [];
 
     for (let index = 0; index < sourceFiles.length; index += 1) {
       try {
@@ -678,8 +332,9 @@ export async function createImportBatch(
           message: "Downloaded fact sheet and started extraction."
         });
 
-        const { extracted, provider } = await extractResortFactSheet(downloadedPdf);
-        providerUsage.add(provider);
+        const extraction = await extractImportedResortsFromPdf(downloadedPdf);
+        const { data: extracted, usedModel, usedProvider } = extraction;
+        modelUsage.add(`${usedProvider}:${usedModel}`);
         stagedPayloads.push({ sourceUrl: sourceFiles[index], extracted });
 
         const resort = extracted.resorts.find((item) => item.name.trim());
@@ -689,7 +344,8 @@ export async function createImportBatch(
             sourceUrl: sourceFiles[index],
             filename: downloadedPdf.filename,
             status: "warning",
-            provider,
+            provider: usedProvider,
+            model: usedModel,
             message: "No resort could be extracted from this PDF."
           });
           continue;
@@ -704,7 +360,8 @@ export async function createImportBatch(
             sourceUrl: sourceFiles[index],
             filename: downloadedPdf.filename,
             status: "skipped",
-            provider,
+            provider: usedProvider,
+            model: usedModel,
             resortName: resort.name.trim(),
             message: `Skipped existing resort: ${resort.name.trim()}.`
           });
@@ -746,7 +403,8 @@ export async function createImportBatch(
           sourceUrl: sourceFiles[index],
           filename: downloadedPdf.filename,
           status: "imported",
-          provider,
+          provider: usedProvider,
+          model: usedModel,
           resortName: resort.name.trim(),
           message: `Imported resort: ${resort.name.trim()}.`
         });
@@ -788,12 +446,7 @@ export async function createImportBatch(
       })
       .eq("id", (batchData as ImportBatchRow).id);
 
-    const providerUsed =
-      providerUsage.size === 0
-        ? "none"
-        : providerUsage.size === 2
-          ? "mixed"
-          : Array.from(providerUsage)[0];
+    const providerUsed = modelUsage.size === 0 ? "none" : Array.from(modelUsage).join(", ");
 
     return {
       ok: true,
@@ -859,7 +512,7 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
     let skippedCount = 0;
     let warningCount = 0;
     let errorCount = 0;
-    const providerUsage = new Set<"openai" | "gemini">();
+    const modelUsage = new Set<string>();
     const logs: ImportLogEntry[] = [
       {
         sourceUrl: downloadedPdf.sourceUrl,
@@ -869,11 +522,12 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
         message: "Uploaded PDF received and extraction started."
       }
     ];
-    const stagedPayloads: Array<{ sourceUrl: string; extracted: OpenAiImportPayload }> = [];
+    const stagedPayloads: Array<{ sourceUrl: string; extracted: ImportedResortPayload }> = [];
 
     try {
-      const { extracted, provider } = await extractResortFactSheet(downloadedPdf);
-      providerUsage.add(provider);
+      const extraction = await extractImportedResortsFromPdf(downloadedPdf);
+      const { data: extracted, usedModel, usedProvider } = extraction;
+      modelUsage.add(`${usedProvider}:${usedModel}`);
       stagedPayloads.push({ sourceUrl: downloadedPdf.sourceUrl, extracted });
 
       const resort = extracted.resorts.find((item) => item.name.trim());
@@ -883,7 +537,8 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
           sourceUrl: downloadedPdf.sourceUrl,
           filename: downloadedPdf.filename,
           status: "warning",
-          provider,
+          provider: usedProvider,
+          model: usedModel,
           message: "No resort could be extracted from the uploaded PDF."
         });
       } else {
@@ -896,7 +551,8 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
             sourceUrl: downloadedPdf.sourceUrl,
             filename: downloadedPdf.filename,
             status: "skipped",
-            provider,
+            provider: usedProvider,
+            model: usedModel,
             resortName: resort.name.trim(),
             message: `Skipped existing resort: ${resort.name.trim()}.`
           });
@@ -934,7 +590,8 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
             sourceUrl: downloadedPdf.sourceUrl,
             filename: downloadedPdf.filename,
             status: "imported",
-            provider,
+            provider: usedProvider,
+            model: usedModel,
             resortName: resort.name.trim(),
             message: `Imported resort: ${resort.name.trim()}.`
           });
@@ -977,12 +634,7 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
       })
       .eq("id", (batchData as ImportBatchRow).id);
 
-    const providerUsed =
-      providerUsage.size === 0
-        ? "none"
-        : providerUsage.size === 2
-          ? "mixed"
-          : Array.from(providerUsage)[0];
+    const providerUsed = modelUsage.size === 0 ? "none" : Array.from(modelUsage).join(", ");
 
     return {
       ok: true,

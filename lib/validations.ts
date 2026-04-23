@@ -46,3 +46,13 @@ export const chatReplySchema = z.object({
   conversationId: z.string().uuid(),
   body: z.string().min(1)
 });
+
+export const resortSeoGenerationInputSchema = z.object({
+  name: z.string().min(2),
+  location: z.string().optional().default(""),
+  category: z.string().optional().default(""),
+  transferType: z.string().optional().default(""),
+  description: z.string().min(20),
+  highlights: z.array(z.string()).default([]),
+  mealPlans: z.array(z.string()).default([])
+});

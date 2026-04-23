@@ -94,7 +94,9 @@ function ImportRunSummary({ state }: { state: ImportActionState }) {
               </div>
               <p>{entry.message}</p>
               <small>
-                Provider: {entry.provider} | Source: {entry.sourceUrl}
+                Provider: {entry.provider}
+                {entry.model ? ` | Model: ${entry.model}` : ""}
+                {" | "}Source: {entry.sourceUrl}
               </small>
             </article>
           ))}

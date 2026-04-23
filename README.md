@@ -6,7 +6,7 @@ Production starter for the Exciting Maldives luxury B2B website and partner port
 
 - Next.js App Router
 - Supabase Auth, Postgres, Storage, Realtime
-- OpenAI for admin-only import and SEO assistance
+- Vercel AI Gateway for admin-only import and resort SEO assistance
 - Resend or SMTP for notifications
 - Vercel deployment target
 
@@ -17,8 +17,9 @@ Copy `.env.example` to `.env.local` and set:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `OPENAI_API_KEY`
-- `GEMINI_API_KEY` or `GOOGLE_API_KEY`
+- `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN`
+- `AI_GATEWAY_PREFERRED_MODELS` (optional)
+- `AI_GATEWAY_IMPORT_MODELS` (optional)
 - `RESEND_API_KEY`
 - `EMAIL_FROM`
 - `NOTIFICATION_EMAIL`

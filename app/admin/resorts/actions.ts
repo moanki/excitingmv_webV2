@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
+import { generateResortSeoCopy, type ResortSeoGenerationInput } from "@/lib/services/resort-ai-service";
 import { deleteResort, saveResort, seedSampleResorts } from "@/lib/services/resort-service";
 import { uploadSiteAsset } from "@/lib/storage/site-assets";
 import type { PublishStatus } from "@/lib/types";
+import { resortSeoGenerationInputSchema } from "@/lib/validations";
 
 type ActionState = { message?: string; error?: string } | undefined;
 
@@ -150,4 +152,31 @@ export async function deleteResortAction(formData: FormData) {
 export async function seedResortsAction() {
   await seedSampleResorts();
   revalidateResortPaths();
+}
+
+export async function generateResortSeoAction(input: ResortSeoGenerationInput) {
+  const parsed = resortSeoGenerationInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false as const,
+      error: parsed.error.issues[0]?.message ?? "Enter enough resort details to generate SEO copy."
+    };
+  }
+
+  try {
+    const result = await generateResortSeoCopy(parsed.data);
+    return {
+      ok: true as const,
+      data: {
+        ...result.data,
+        model: result.usedModel,
+        provider: result.usedProvider
+      }
+    };
+  } catch (error) {
+    return {
+      ok: false as const,
+      error: error instanceof Error ? error.message : "Failed to generate SEO copy."
+    };
+  }
 }
