@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import { generateResortSeoCopy, type ResortSeoGenerationInput } from "@/lib/services/resort-ai-service";
 import { deleteResort, saveResort, seedSampleResorts } from "@/lib/services/resort-service";
@@ -16,6 +16,7 @@ function revalidateResortPaths() {
   revalidatePath("/partner/resorts");
   revalidatePath("/admin");
   revalidatePath("/admin/resorts");
+  revalidateTag("resorts-public");
 }
 
 function splitLines(value: string) {

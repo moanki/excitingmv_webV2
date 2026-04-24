@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 import {
   createImportBatch,
@@ -33,6 +33,7 @@ export async function createImportBatchAction(_: ImportActionState, formData: Fo
   revalidatePath("/admin/resorts");
   revalidatePath("/resorts");
   revalidatePath("/");
+  revalidateTag("resorts-public");
   return { ok: true, message: result.data.message, result: result.data };
 }
 
@@ -48,5 +49,6 @@ export async function createImportUploadAction(_: ImportActionState, formData: F
   revalidatePath("/admin/resorts");
   revalidatePath("/resorts");
   revalidatePath("/");
+  revalidateTag("resorts-public");
   return { ok: true, message: result.data.message, result: result.data };
 }

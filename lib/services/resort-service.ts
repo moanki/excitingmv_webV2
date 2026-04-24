@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { sampleResorts } from "@/lib/sample-data";
 import type { PublishStatus, ResortRoomSummary, ResortSummary } from "@/lib/types";
@@ -155,6 +157,29 @@ function baseSummary(detail: ResortRecord): ResortSummary {
   };
 }
 
+async function fetchResortHeroMedia(resortIds: string[]) {
+  if (!resortIds.length) {
+    return new Map<string, string>();
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data } = await supabase
+    .from("resort_media")
+    .select("resort_id,file_path,is_hero,sort_order")
+    .is("room_id", null)
+    .in("resort_id", resortIds)
+    .order("sort_order", { ascending: true });
+
+  const mediaMap = new Map<string, string>();
+  ((data ?? []) as Array<Pick<MediaRow, "resort_id" | "file_path" | "is_hero" | "sort_order">>).forEach((row) => {
+    if (row.is_hero || !mediaMap.has(row.resort_id)) {
+      mediaMap.set(row.resort_id, row.file_path);
+    }
+  });
+
+  return mediaMap;
+}
+
 function mapRoomRow(row: RoomRow, mediaRows: MediaRow[]): ResortRoomRecord {
   const photo = mediaRows.find((item) => item.room_id === row.id)?.file_path ?? "";
 
@@ -240,17 +265,66 @@ export async function listAdminResorts(): Promise<ResortRecord[]> {
   }
 }
 
+const getCachedPublishedResorts = unstable_cache(
+  async (): Promise<ResortSummary[]> => {
+    try {
+      const supabase = createSupabaseAdminClient();
+      const { data, error } = await supabase
+        .from("resorts")
+        .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status,is_featured_homepage")
+        .in("status", ["published", "draft"])
+        .order("updated_at", { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data?.length) {
+        return sampleResorts.map((resort) => ({
+          ...resort,
+          isFeaturedHomepage: resort.isFeaturedHomepage ?? false
+        }));
+      }
+
+      const resortRows = data as Array<
+        Pick<
+          ResortRow,
+          "id" | "slug" | "name" | "atoll" | "category" | "transfer_type" | "description" | "seo_summary" | "status" | "is_featured_homepage"
+        >
+      >;
+      const heroMedia = await fetchResortHeroMedia(resortRows.map((row) => row.id));
+
+      return resortRows
+        .filter((row) => row.status !== "archived")
+        .map((row) => ({
+          id: row.id,
+          slug: row.slug,
+          name: row.name,
+          location: row.atoll ?? "",
+          category: row.category ?? "",
+          transferType: row.transfer_type ?? "",
+          summary: row.seo_summary ?? row.description ?? "",
+          heroImageUrl: heroMedia.get(row.id) ?? "",
+          status: row.status,
+          isFeaturedHomepage: Boolean(row.is_featured_homepage)
+        }))
+        .sort((left, right) => Number(right.isFeaturedHomepage) - Number(left.isFeaturedHomepage));
+    } catch {
+      return sampleResorts.map((resort) => ({
+        ...resort,
+        isFeaturedHomepage: resort.isFeaturedHomepage ?? false
+      }));
+    }
+  },
+  ["published-resorts-summaries"],
+  {
+    tags: ["resorts-public"],
+    revalidate: 300
+  }
+);
+
 export async function listPublishedResorts(): Promise<ResortSummary[]> {
-  const resorts = await listAdminResorts();
-  const published = resorts
-    .filter((resort) => resort.status === "published")
-    .sort((left, right) => Number(right.isFeaturedHomepage) - Number(left.isFeaturedHomepage));
-
-  const visible = published.length
-    ? published
-    : resorts.filter((resort) => resort.status !== "archived");
-
-  return visible.map(baseSummary);
+  return getCachedPublishedResorts();
 }
 
 export async function listHomepageFeaturedResorts(limit = 5): Promise<ResortSummary[]> {
