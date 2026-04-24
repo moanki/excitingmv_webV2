@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Inter, Playfair_Display } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 
 import "@/app/globals.css";
 import { LiveChatWidget } from "@/components/live-chat-widget";
@@ -36,7 +37,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   if (isAdminRoute) {
     return (
       <html lang="en">
-        <body className={`${inter.variable} ${playfair.variable} admin-body`}>{children}</body>
+        <body className={`${inter.variable} ${playfair.variable} admin-body`}>
+          {children}
+          <Analytics />
+        </body>
       </html>
     );
   }
@@ -65,6 +69,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           </a>
         ) : null}
         <LiveChatWidget />
+        <Analytics />
       </body>
     </html>
   );
