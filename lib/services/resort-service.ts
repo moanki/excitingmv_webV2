@@ -72,6 +72,17 @@ type MediaRow = {
   sort_order: number | null;
 };
 
+function isMissingFeaturedHomepageColumnError(error: unknown) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message?: unknown }).message ?? "")
+        : "";
+
+  return message.includes("is_featured_homepage");
+}
+
 function toStringArray(value: unknown) {
   return Array.isArray(value) ? value.map((item) => String(item)).filter(Boolean) : [];
 }
@@ -301,28 +312,53 @@ export async function saveResort(input: {
 }) {
   const supabase = createSupabaseAdminClient();
   const now = new Date().toISOString();
-  const { data, error } = await supabase
+  const basePayload = {
+    id: input.id,
+    slug: input.slug,
+    name: input.name,
+    atoll: input.location,
+    category: input.category,
+    transfer_type: input.transferType,
+    description: input.description,
+    highlights: input.highlights,
+    meal_plans: input.mealPlans,
+    seo_title: input.seoTitle,
+    seo_description: input.seoDescription,
+    seo_summary: input.seoSummary,
+    status: input.status,
+    published_at: input.status === "published" ? now : null,
+    updated_at: now
+  };
+
+  let data:
+    | {
+        id: string;
+      }
+    | null = null;
+  let error: { message?: string } | null = null;
+
+  const firstAttempt = await supabase
     .from("resorts")
     .upsert({
-      id: input.id,
-      slug: input.slug,
-      name: input.name,
-      atoll: input.location,
-      category: input.category,
-      transfer_type: input.transferType,
-      description: input.description,
-      highlights: input.highlights,
-      meal_plans: input.mealPlans,
-      seo_title: input.seoTitle,
-      seo_description: input.seoDescription,
-      seo_summary: input.seoSummary,
-      status: input.status,
-      is_featured_homepage: input.status === "published" ? input.isFeaturedHomepage : false,
-      published_at: input.status === "published" ? now : null,
-      updated_at: now
+      ...basePayload,
+      is_featured_homepage: input.status === "published" ? input.isFeaturedHomepage : false
     })
     .select("id")
     .single();
+
+  data = firstAttempt.data;
+  error = firstAttempt.error;
+
+  if (error && isMissingFeaturedHomepageColumnError(error)) {
+    const fallbackAttempt = await supabase
+      .from("resorts")
+      .upsert(basePayload)
+      .select("id")
+      .single();
+
+    data = fallbackAttempt.data;
+    error = fallbackAttempt.error;
+  }
 
   if (error || !data) {
     throw new Error(error?.message ?? "Failed to save resort.");
@@ -421,12 +457,24 @@ export async function seedSampleResorts() {
     seo_description: resort.summary,
     seo_summary: resort.summary,
     status: resort.status,
-    is_featured_homepage: index < 2 && resort.status === "published",
     published_at: resort.status === "published" ? new Date().toISOString() : null,
     updated_at: new Date().toISOString()
   }));
 
-  const { error } = await supabase.from("resorts").upsert(payload, { onConflict: "slug" });
+  const { error: firstError } = await supabase.from("resorts").upsert(
+    payload.map((resort, index) => ({
+      ...resort,
+      is_featured_homepage: index < 2 && resort.status === "published"
+    })),
+    { onConflict: "slug" }
+  );
+
+  let error = firstError;
+
+  if (error && isMissingFeaturedHomepageColumnError(error)) {
+    const fallbackAttempt = await supabase.from("resorts").upsert(payload, { onConflict: "slug" });
+    error = fallbackAttempt.error;
+  }
 
   if (error) {
     throw new Error(error.message);
