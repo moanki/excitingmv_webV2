@@ -7,6 +7,10 @@ export type ImportedRoom = {
   description: string;
   seoDescription: string;
   photoUrl: string;
+  sizeLabel: string;
+  maxOccupancy: number | null;
+  bedType: string;
+  amenities: string[];
 };
 
 export type ImportedResort = {
@@ -94,7 +98,11 @@ const importedRoomSchema = z.object({
   name: z.string(),
   description: z.string(),
   seoDescription: z.string(),
-  photoUrl: z.string()
+  photoUrl: z.string(),
+  sizeLabel: z.string(),
+  maxOccupancy: z.number().int().nullable(),
+  bedType: z.string(),
+  amenities: z.array(z.string())
 });
 
 const importedResortSchema = z.object({
@@ -181,12 +189,19 @@ const importedResortJsonSchema = {
             items: {
               type: "object",
               additionalProperties: false,
-              required: ["name", "description", "seoDescription", "photoUrl"],
+              required: ["name", "description", "seoDescription", "photoUrl", "sizeLabel", "maxOccupancy", "bedType", "amenities"],
               properties: {
                 name: { type: "string" },
                 description: { type: "string" },
                 seoDescription: { type: "string" },
-                photoUrl: { type: "string" }
+                photoUrl: { type: "string" },
+                sizeLabel: { type: "string" },
+                maxOccupancy: { type: ["integer", "null"] },
+                bedType: { type: "string" },
+                amenities: {
+                  type: "array",
+                  items: { type: "string" }
+                }
               }
             }
           }
@@ -435,6 +450,22 @@ Rules:
 - Keep strings clean and professional.
 - Generate SEO title, SEO description, and SEO summary for the resort.
 - Generate an SEO description for each room type.
+- You must extract every accommodation type listed in the PDF.
+- Look for sections or tables named Accommodation, Villas, Rooms, Suites, Residences, Bungalows, Room Categories, Stay, or similar.
+- Treat each named villa, room, suite, residence, bungalow, or accommodation category as one roomTypes item.
+- Do not skip room types just because descriptions are short.
+- If a room type has only a name and limited details, still include it with the available information.
+- For each room type, extract:
+  - name
+  - description
+  - seoDescription
+  - sizeLabel if available, otherwise empty string
+  - maxOccupancy if available, otherwise null
+  - bedType if available, otherwise empty string
+  - amenities if available, otherwise []
+  - photoUrl if explicitly available, otherwise empty string
+- If the PDF appears to contain accommodation information but you cannot confidently extract room types, use "draft" and explain the issue in notes.
+- Only return roomTypes: [] if the document genuinely contains no accommodation, room, villa, suite, residence, or bungalow information.
 - Default to "published_standard" for a normal usable resort fact sheet.
 - Use "draft" only when the extraction is materially incomplete or the document is clearly not ready for publication.
 - Use "published_featured" only if the document clearly indicates flagship/homepage-worthy positioning. Do not overuse featured.

@@ -390,7 +390,11 @@ export async function createImportBatch(
               name: room.name.trim(),
               description: room.description.trim(),
               seoDescription: room.seoDescription.trim() || room.description.trim(),
-              photoUrl: room.photoUrl.trim()
+              photoUrl: room.photoUrl.trim(),
+              sizeLabel: room.sizeLabel.trim(),
+              maxOccupancy: room.maxOccupancy,
+              bedType: room.bedType.trim(),
+              amenities: room.amenities.filter(Boolean)
             })),
           status: publishing.status,
           isFeaturedHomepage: publishing.isFeaturedHomepage
@@ -579,7 +583,11 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
                 name: room.name.trim(),
                 description: room.description.trim(),
                 seoDescription: room.seoDescription.trim() || room.description.trim(),
-                photoUrl: room.photoUrl.trim()
+                photoUrl: room.photoUrl.trim(),
+                sizeLabel: room.sizeLabel.trim(),
+                maxOccupancy: room.maxOccupancy,
+                bedType: room.bedType.trim(),
+                amenities: room.amenities.filter(Boolean)
               })),
             status: publishing.status,
             isFeaturedHomepage: publishing.isFeaturedHomepage
