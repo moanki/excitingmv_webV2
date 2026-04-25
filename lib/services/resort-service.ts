@@ -455,7 +455,7 @@ export async function saveResort(input: {
       size_label: room.sizeLabel?.trim() || null,
       max_occupancy: room.maxOccupancy ?? null,
       bed_type: room.bedType?.trim() || null,
-      features: room.amenities?.length ? room.amenities : null,
+      features: room.amenities?.filter(Boolean) ?? [],
       seo_summary: room.seoDescription.trim() || room.description.trim() || null,
       sort_order: index
     }))
