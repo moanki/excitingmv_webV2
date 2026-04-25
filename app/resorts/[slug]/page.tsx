@@ -12,12 +12,17 @@ export async function generateStaticParams() {
   return resorts.map((resort) => ({ slug: resort.slug }));
 }
 
-function formatFactList(items: string[]) {
-  if (!items.length) {
-    return "Available on request";
+function formatInlineList(items: string[], fallback: string) {
+  const cleaned = items.filter(Boolean);
+  return cleaned.length ? cleaned.join(" • ") : fallback;
+}
+
+function buildStoryCopy(resort: Awaited<ReturnType<typeof getResortBySlug>>) {
+  if (!resort) {
+    return "";
   }
 
-  return items.join(" • ");
+  return resort.description || resort.summary || resort.seoSummary || "Discover a luxury island stay in the Maldives.";
 }
 
 export default async function ResortDetailPage({
@@ -32,43 +37,39 @@ export default async function ResortDetailPage({
     notFound();
   }
 
+  const storyCopy = buildStoryCopy(resort);
   const similarResorts = await listSimilarPublishedResorts(resort.slug, resort.category, 3);
-  const heroSummary = resort.description || resort.summary || resort.seoSummary;
-  const heroBadges = [resort.location, resort.category, resort.transferType].filter(Boolean);
-  const quickFacts = [
+  const heroFacts = [
+    { label: "Location", value: resort.location || "Maldives" },
     { label: "Transfer", value: resort.transferType || "Available on request" },
-    { label: "Meal Plans", value: formatFactList(resort.mealPlans) },
-    { label: "Rooms", value: resort.roomTypes.length ? `${resort.roomTypes.length} room types` : "To be confirmed" },
-    { label: "Category", value: resort.category || "Luxury Resort" },
-    { label: "Highlights", value: resort.highlights[0] || "Curated island experience" }
+    { label: "Meal Plans", value: formatInlineList(resort.mealPlans, "Available on request") },
+    { label: "Room Types", value: `${resort.roomTypes.length || 0}` },
+    { label: "Category", value: resort.category || "Luxury Resort" }
   ];
-  const experienceSections = [
+
+  const sectionCards = [
     {
       title: "Signature Experiences",
-      items: resort.highlights.filter((item) => /experience|excursion|diving|marine|adventure/i.test(item))
+      items: resort.highlights.filter((item) => /experience|excursion|diving|marine|adventure|snorkel|cruise/i.test(item))
     },
     {
-      title: "Dining & Culinary Moments",
-      items: resort.mealPlans.filter((item) => /board|inclusive|dining|culinary/i.test(item))
+      title: "Dining & Meal Plans",
+      items: resort.mealPlans
     },
     {
-      title: "Wellness & Slow Living",
-      items: resort.highlights.filter((item) => /spa|wellness|yoga|healing|retreat/i.test(item))
+      title: "Wellness & Island Living",
+      items: resort.highlights.filter((item) => /spa|wellness|yoga|healing|retreat|relax/i.test(item))
     }
   ].filter((section) => section.items.length);
+
+  const snapshotHighlights = resort.highlights.filter(Boolean).slice(0, 6);
 
   return (
     <main className="resort-detail-page resort-story-page">
       <section className="resort-story-hero">
         <div
           className="resort-story-hero__media"
-          style={
-            resort.heroImageUrl
-              ? {
-                  backgroundImage: `linear-gradient(180deg, rgba(8, 15, 26, 0.16), rgba(8, 15, 26, 0.76)), url(${resort.heroImageUrl})`
-                }
-              : undefined
-          }
+          style={resort.heroImageUrl ? { backgroundImage: `url(${resort.heroImageUrl})` } : undefined}
         />
         <div className="resort-story-hero__overlay" />
         <div className="site-container resort-story-hero__inner">
@@ -76,11 +77,10 @@ export default async function ResortDetailPage({
             <p className="section-kicker">{resort.location || "Maldives"}</p>
             <h1>{resort.name}</h1>
             <div className="resort-story-hero__badges">
-              {heroBadges.map((badge) => (
-                <span key={badge}>{badge}</span>
-              ))}
+              <span>{resort.category || "Luxury Resort"}</span>
+              <span>{resort.transferType || "Available on request"}</span>
             </div>
-            <p className="resort-story-hero__lede">{heroSummary}</p>
+            <p className="resort-story-hero__lede">{storyCopy}</p>
             <div className="resort-story-hero__actions">
               <Link href="/contact" className="site-button site-button--teal">
                 Send Enquiry
@@ -98,14 +98,16 @@ export default async function ResortDetailPage({
 
       <section className="site-section site-section--paper resort-story-facts">
         <div className="site-container">
-          <div className="resort-story-facts__grid">
-            {quickFacts.map((fact) => (
-              <article key={fact.label} className="resort-story-fact-card">
-                <span>{fact.label}</span>
-                <strong>{fact.value}</strong>
-              </article>
-            ))}
-          </div>
+          <article className="resort-story-facts-card">
+            <div className="resort-story-facts__grid">
+              {heroFacts.map((fact) => (
+                <div key={fact.label} className="resort-story-fact-card">
+                  <span>{fact.label}</span>
+                  <strong>{fact.value}</strong>
+                </div>
+              ))}
+            </div>
+          </article>
         </div>
       </section>
 
@@ -113,16 +115,11 @@ export default async function ResortDetailPage({
         <div className="site-container resort-story-editorial">
           <article className="resort-story-editorial__main">
             <p className="eyebrow">About The Resort</p>
-            <h2>{resort.name} at a glance</h2>
-            <p>{heroSummary}</p>
-            {resort.highlights.length ? (
-              <div className="resort-story-chip-row">
-                {resort.highlights.map((highlight) => (
-                  <span key={highlight} className="resort-story-chip">
-                    {highlight}
-                  </span>
-                ))}
-              </div>
+            <h2>An island retreat shaped for luxury Maldives stays</h2>
+            <p>{resort.description || storyCopy}</p>
+            {resort.summary && resort.summary !== resort.description ? <p>{resort.summary}</p> : null}
+            {resort.seoSummary && resort.seoSummary !== resort.summary && resort.seoSummary !== resort.description ? (
+              <p>{resort.seoSummary}</p>
             ) : null}
           </article>
 
@@ -131,7 +128,7 @@ export default async function ResortDetailPage({
               <p className="eyebrow">Property Snapshot</p>
               <ul className="resort-story-aside-list">
                 <li>
-                  <span>Atoll</span>
+                  <span>Atoll / Location</span>
                   <strong>{resort.location || "Maldives"}</strong>
                 </li>
                 <li>
@@ -144,7 +141,11 @@ export default async function ResortDetailPage({
                 </li>
                 <li>
                   <span>Meal Plans</span>
-                  <strong>{formatFactList(resort.mealPlans)}</strong>
+                  <strong>{formatInlineList(resort.mealPlans, "Available on request")}</strong>
+                </li>
+                <li>
+                  <span>Highlights</span>
+                  <strong>{snapshotHighlights.length ? snapshotHighlights.join(" • ") : "Curated island experiences"}</strong>
                 </li>
               </ul>
             </article>
@@ -152,73 +153,67 @@ export default async function ResortDetailPage({
         </div>
       </section>
 
-      {resort.galleryMediaUrls.length ? (
-        <section className="site-section site-section--paper">
-          <div className="site-container">
-            <div className="section-heading">
-              <div>
-                <p className="eyebrow">Gallery</p>
-                <h2>Inside the resort experience</h2>
-              </div>
-            </div>
-            <div className="resort-story-gallery">
-              {resort.galleryMediaUrls.map((imageUrl, index) => (
-                <article
-                  key={`${imageUrl}-${index}`}
-                  className={`resort-story-gallery__item${index === 0 ? " is-featured" : ""}`}
-                  style={{ backgroundImage: `url(${imageUrl})` }}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
       <section className="site-section site-section--white" id="rooms">
         <div className="site-container">
-          <div className="section-heading">
+          <div className="section-heading resort-story-section-heading">
             <div>
               <p className="eyebrow">Rooms & Villas</p>
-              <h2>Stay options at {resort.name}</h2>
-              <p className="muted">If room records exist in the database, they are surfaced here automatically.</p>
+              <h2>Accommodation designed around island comfort</h2>
+              <p className="muted">
+                Every accommodation type saved in the database is surfaced here with its room photo and key details.
+              </p>
             </div>
           </div>
 
           {resort.roomTypes.length ? (
-            <div className="resort-story-room-grid">
-              {resort.roomTypes.map((room) => (
-                <article className="resort-story-room-card" key={room.id ?? `${room.name}-${room.sortOrder}`}>
-                  <div
-                    className="resort-story-room-card__media"
-                    style={room.photoUrl ? { backgroundImage: `url(${room.photoUrl})` } : undefined}
-                  />
-                  <div className="resort-story-room-card__body">
-                    <div className="resort-story-room-card__header">
-                      <h3>{room.name}</h3>
-                      <div className="resort-story-room-card__meta">
-                        {[room.sizeLabel, room.maxOccupancy ? `Up to ${room.maxOccupancy} guests` : "", room.bedType]
-                          .filter(Boolean)
-                          .map((item) => (
-                            <span key={item}>{item}</span>
-                          ))}
+            <div className="resort-story-room-stack">
+              {resort.roomTypes.map((room, index) => {
+                const roomMeta = [
+                  room.sizeLabel,
+                  room.maxOccupancy ? `Up to ${room.maxOccupancy} guests` : "",
+                  room.bedType,
+                  room.viewLabel
+                ].filter(Boolean);
+                const roomCopy = room.description || room.seoDescription || "Curated room details coming soon.";
+
+                return (
+                  <article
+                    className={`resort-story-room-card resort-story-room-card--feature${index % 2 === 1 ? " is-reversed" : ""}`}
+                    key={room.id ?? `${room.name}-${room.sortOrder}`}
+                  >
+                    <div
+                      className="resort-story-room-card__media"
+                      style={room.photoUrl ? { backgroundImage: `url(${room.photoUrl})` } : undefined}
+                    />
+                    <div className="resort-story-room-card__body">
+                      <div className="resort-story-room-card__header">
+                        <p className="eyebrow">Room Type</p>
+                        <h3>{room.name}</h3>
+                        {roomMeta.length ? (
+                          <div className="resort-story-room-card__meta">
+                            {roomMeta.map((item) => (
+                              <span key={item}>{item}</span>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
+                      <p>{roomCopy}</p>
+                      {room.amenities.filter(Boolean).length ? (
+                        <div className="resort-story-chip-row">
+                          {room.amenities
+                            .filter(Boolean)
+                            .slice(0, 10)
+                            .map((feature) => (
+                              <span key={feature} className="resort-story-chip">
+                                {feature}
+                              </span>
+                            ))}
+                        </div>
+                      ) : null}
                     </div>
-                    <p>{room.description || room.seoDescription || "Curated room details coming soon."}</p>
-                    {[room.viewLabel, ...room.amenities].filter(Boolean).length ? (
-                      <div className="resort-story-chip-row">
-                        {[room.viewLabel, ...room.amenities]
-                          .filter(Boolean)
-                          .slice(0, 8)
-                          .map((feature) => (
-                            <span key={feature} className="resort-story-chip">
-                              {feature}
-                            </span>
-                          ))}
-                      </div>
-                    ) : null}
-                  </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           ) : (
             <article className="resort-story-empty-card">
@@ -229,21 +224,23 @@ export default async function ResortDetailPage({
         </div>
       </section>
 
-      {experienceSections.length ? (
+      {sectionCards.length ? (
         <section className="site-section site-section--paper">
-          <div className="site-container resort-story-sections">
-            {experienceSections.map((section) => (
-              <article key={section.title} className="resort-story-section-card">
-                <p className="eyebrow">{section.title}</p>
-                <div className="resort-story-chip-row">
-                  {section.items.map((item) => (
-                    <span key={item} className="resort-story-chip">
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </article>
-            ))}
+          <div className="site-container">
+            <div className="resort-story-sections">
+              {sectionCards.map((section) => (
+                <article key={section.title} className="resort-story-section-card">
+                  <p className="eyebrow">{section.title}</p>
+                  <div className="resort-story-chip-row">
+                    {section.items.map((item) => (
+                      <span key={item} className="resort-story-chip">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
       ) : null}
@@ -252,8 +249,8 @@ export default async function ResortDetailPage({
         <section className="site-section site-section--white">
           <div className="site-container">
             <article className="resort-story-seo-card">
-              <p className="eyebrow">SEO Overview</p>
-              <h2>Why this resort resonates with luxury travelers</h2>
+              <p className="eyebrow">Luxury Travel Perspective</p>
+              <h2>Why travellers choose this resort</h2>
               <p>{resort.seoDescription}</p>
             </article>
           </div>
