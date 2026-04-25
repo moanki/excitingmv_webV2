@@ -82,7 +82,7 @@ function publishingToStatus(mode: ImportedResort["publishingMode"]): {
     return { status: "published", isFeaturedHomepage: false };
   }
 
-  return { status: "draft", isFeaturedHomepage: false };
+  return { status: "published", isFeaturedHomepage: false };
 }
 
 function createBatchName(url: string) {

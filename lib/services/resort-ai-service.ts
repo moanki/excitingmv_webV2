@@ -435,8 +435,9 @@ Rules:
 - Keep strings clean and professional.
 - Generate SEO title, SEO description, and SEO summary for the resort.
 - Generate an SEO description for each room type.
-- Use "published_standard" only when the fact sheet clearly looks ready for normal publication; otherwise use "draft".
-- Use "published_featured" only if the document clearly indicates flagship/homepage-worthy positioning. Default to "published_standard" or "draft" instead of overusing featured.
+- Default to "published_standard" for a normal usable resort fact sheet.
+- Use "draft" only when the extraction is materially incomplete or the document is clearly not ready for publication.
+- Use "published_featured" only if the document clearly indicates flagship/homepage-worthy positioning. Do not overuse featured.
 - If the PDF is not a resort fact sheet, return an empty resorts array and explain why in notes.
 
 Source file: ${document.filename}`
