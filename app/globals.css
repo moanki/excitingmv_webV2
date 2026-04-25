@@ -2894,6 +2894,30 @@ select {
   margin-top: 2rem;
 }
 
+.resort-story-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.resort-story-tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+  color: rgba(15, 23, 42, 0.78);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.resort-story-tab:hover {
+  border-color: rgba(79, 209, 197, 0.28);
+  color: var(--brand-navy);
+}
+
 .resort-story-facts {
   padding-top: 0;
   margin-top: -3rem;
@@ -3002,6 +3026,18 @@ select {
   gap: 1.5rem;
 }
 
+.resort-story-room-card--property {
+  display: grid;
+  grid-template-columns: minmax(340px, 0.92fr) minmax(0, 1.08fr);
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 2rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 246, 240, 0.98)),
+    #fff;
+  box-shadow: 0 28px 64px rgba(15, 23, 42, 0.08);
+}
+
 .resort-story-room-card--feature {
   display: grid;
   grid-template-columns: minmax(340px, 0.95fr) minmax(0, 1.05fr);
@@ -3042,6 +3078,23 @@ select {
   padding: 2rem;
 }
 
+.resort-story-room-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.resort-story-room-facts span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.05);
+  color: rgba(15, 23, 42, 0.72);
+  font-size: 0.84rem;
+}
+
 .resort-story-room-card__header {
   display: grid;
   gap: 0.75rem;
@@ -3065,9 +3118,47 @@ select {
   font-size: 0.84rem;
 }
 
+.resort-story-room-amenities {
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.resort-story-room-amenities__list,
+.resort-story-points {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resort-story-room-amenities__list li,
+.resort-story-points li {
+  position: relative;
+  padding-left: 1.35rem;
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+.resort-story-room-amenities__list li::before,
+.resort-story-points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.65rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand-teal);
+  box-shadow: 0 0 0 5px rgba(79, 209, 197, 0.14);
+}
+
 .resort-story-sections {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -3094,6 +3185,7 @@ select {
   .resort-detail-grid,
   .resort-index-hero,
   .resort-story-editorial,
+  .resort-story-room-card--property,
   .resort-story-room-card--feature,
   .resort-story-room-card--feature.is-reversed {
     grid-template-columns: 1fr;
@@ -3246,7 +3338,9 @@ select {
   .resort-index-hero__meta,
   .resort-story-facts__grid,
   .resort-story-room-stack,
-  .resort-story-sections {
+  .resort-story-sections,
+  .resort-story-room-amenities__list,
+  .resort-story-points {
     grid-template-columns: 1fr;
   }
 

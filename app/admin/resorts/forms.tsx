@@ -62,9 +62,31 @@ function RoomTypeEditor({
   setRooms,
   mediaLibrary
 }: {
-  rooms: { name: string; description: string; seoDescription: string; photoUrl: string }[];
+  rooms: {
+    name: string;
+    description: string;
+    seoDescription: string;
+    photoUrl: string;
+    sizeLabel: string;
+    maxOccupancy: string;
+    bedType: string;
+    viewLabel: string;
+    amenities: string;
+  }[];
   setRooms: React.Dispatch<
-    React.SetStateAction<{ name: string; description: string; seoDescription: string; photoUrl: string }[]>
+    React.SetStateAction<
+      {
+        name: string;
+        description: string;
+        seoDescription: string;
+        photoUrl: string;
+        sizeLabel: string;
+        maxOccupancy: string;
+        bedType: string;
+        viewLabel: string;
+        amenities: string;
+      }[]
+    >
   >;
   mediaLibrary: MediaLibraryItem[];
 }) {
@@ -140,6 +162,88 @@ function RoomTypeEditor({
                   }
                 />
               </label>
+              <label className="field">
+                <span className="field__label">Size Label</span>
+                <input
+                  className="admin-input"
+                  name={`room_${index}_sizeLabel`}
+                  value={room.sizeLabel}
+                  onChange={(event) =>
+                    setRooms((current) =>
+                      current.map((item, currentIndex) =>
+                        currentIndex === index ? { ...item, sizeLabel: event.target.value } : item
+                      )
+                    )
+                  }
+                  placeholder="e.g. 240 sqm"
+                />
+              </label>
+              <label className="field">
+                <span className="field__label">Max Occupancy</span>
+                <input
+                  className="admin-input"
+                  name={`room_${index}_maxOccupancy`}
+                  type="number"
+                  min="1"
+                  value={room.maxOccupancy}
+                  onChange={(event) =>
+                    setRooms((current) =>
+                      current.map((item, currentIndex) =>
+                        currentIndex === index ? { ...item, maxOccupancy: event.target.value } : item
+                      )
+                    )
+                  }
+                  placeholder="e.g. 3"
+                />
+              </label>
+              <label className="field">
+                <span className="field__label">Bed Type</span>
+                <input
+                  className="admin-input"
+                  name={`room_${index}_bedType`}
+                  value={room.bedType}
+                  onChange={(event) =>
+                    setRooms((current) =>
+                      current.map((item, currentIndex) =>
+                        currentIndex === index ? { ...item, bedType: event.target.value } : item
+                      )
+                    )
+                  }
+                  placeholder="e.g. King bed"
+                />
+              </label>
+              <label className="field">
+                <span className="field__label">View Label</span>
+                <input
+                  className="admin-input"
+                  name={`room_${index}_viewLabel`}
+                  value={room.viewLabel}
+                  onChange={(event) =>
+                    setRooms((current) =>
+                      current.map((item, currentIndex) =>
+                        currentIndex === index ? { ...item, viewLabel: event.target.value } : item
+                      )
+                    )
+                  }
+                  placeholder="e.g. Lagoon view"
+                />
+              </label>
+              <label className="field field--full">
+                <span className="field__label">Amenities</span>
+                <textarea
+                  className="admin-textarea"
+                  name={`room_${index}_amenities`}
+                  value={room.amenities}
+                  onChange={(event) =>
+                    setRooms((current) =>
+                      current.map((item, currentIndex) =>
+                        currentIndex === index ? { ...item, amenities: event.target.value } : item
+                      )
+                    )
+                  }
+                  placeholder="One amenity per line"
+                />
+              </label>
             </div>
 
             <MediaField
@@ -159,7 +263,20 @@ function RoomTypeEditor({
         type="button"
         className="admin-btn admin-btn--secondary"
         onClick={() =>
-          setRooms((current) => [...current, { name: "", description: "", seoDescription: "", photoUrl: "" }])
+          setRooms((current) => [
+            ...current,
+            {
+              name: "",
+              description: "",
+              seoDescription: "",
+              photoUrl: "",
+              sizeLabel: "",
+              maxOccupancy: "",
+              bedType: "",
+              viewLabel: "",
+              amenities: ""
+            }
+          ])
         }
       >
         Add Room Type
@@ -186,7 +303,12 @@ function ResortEditor({
       name: room.name,
       description: room.description,
       seoDescription: room.seoDescription,
-      photoUrl: room.photoUrl
+      photoUrl: room.photoUrl,
+      sizeLabel: room.sizeLabel ?? "",
+      maxOccupancy: room.maxOccupancy ? String(room.maxOccupancy) : "",
+      bedType: room.bedType ?? "",
+      viewLabel: room.viewLabel ?? "",
+      amenities: (room.amenities ?? []).join("\n")
     }))
   );
   const [name, setName] = useState(resort.name ?? "");

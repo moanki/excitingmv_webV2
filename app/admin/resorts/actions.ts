@@ -58,6 +58,14 @@ async function parseRoomTypes(formData: FormData) {
     const name = String(formData.get(`room_${index}_name`) ?? "").trim();
     const description = String(formData.get(`room_${index}_description`) ?? "").trim();
     const seoDescription = String(formData.get(`room_${index}_seoDescription`) ?? "").trim();
+    const sizeLabel = String(formData.get(`room_${index}_sizeLabel`) ?? "").trim();
+    const maxOccupancyValue = String(formData.get(`room_${index}_maxOccupancy`) ?? "").trim();
+    const bedType = String(formData.get(`room_${index}_bedType`) ?? "").trim();
+    const viewLabel = String(formData.get(`room_${index}_viewLabel`) ?? "").trim();
+    const amenities = String(formData.get(`room_${index}_amenities`) ?? "")
+      .split(/\r?\n|,/)
+      .map((item) => item.trim())
+      .filter(Boolean);
     const roomPhotoFile = formData.get(`room_${index}_photoFile`);
     const existingPhoto = String(formData.get(`room_${index}_photoUrl`) ?? "").trim();
     const photoUrl =
@@ -65,7 +73,7 @@ async function parseRoomTypes(formData: FormData) {
         ? await uploadSiteAsset(roomPhotoFile, "resorts")
         : existingPhoto;
 
-    if (!name && !description && !seoDescription && !photoUrl) {
+    if (!name && !description && !seoDescription && !photoUrl && !sizeLabel && !maxOccupancyValue && !bedType && !viewLabel && !amenities.length) {
       continue;
     }
 
@@ -77,7 +85,12 @@ async function parseRoomTypes(formData: FormData) {
       name,
       description,
       seoDescription,
-      photoUrl
+      photoUrl,
+      sizeLabel,
+      maxOccupancy: maxOccupancyValue ? Number(maxOccupancyValue) : null,
+      bedType,
+      viewLabel,
+      amenities
     });
   }
 

@@ -17,12 +17,18 @@ function formatInlineList(items: string[], fallback: string) {
   return cleaned.length ? cleaned.join(" • ") : fallback;
 }
 
-function buildStoryCopy(resort: Awaited<ReturnType<typeof getResortBySlug>>) {
+function buildAboutParagraphs(resort: Awaited<ReturnType<typeof getResortBySlug>>) {
   if (!resort) {
-    return "";
+    return ["Discover a luxury island stay in the Maldives."];
   }
 
-  return resort.description || resort.summary || resort.seoSummary || "Discover a luxury island stay in the Maldives.";
+  const paragraphs = [resort.description, resort.summary, resort.seoSummary]
+    .map((item) => item?.trim())
+    .filter(Boolean)
+    .filter((item, index, array) => array.indexOf(item) === index)
+    .slice(0, 2);
+
+  return paragraphs.length ? paragraphs : ["Discover a luxury island stay in the Maldives."];
 }
 
 export default async function ResortDetailPage({
@@ -37,32 +43,29 @@ export default async function ResortDetailPage({
     notFound();
   }
 
-  const storyCopy = buildStoryCopy(resort);
   const similarResorts = await listSimilarPublishedResorts(resort.slug, resort.category, 3);
-  const heroFacts = [
+  const aboutParagraphs = buildAboutParagraphs(resort);
+  const signatureExperiences = resort.highlights.filter(
+    (item) => !/spa|wellness|yoga|healing|retreat|relax/i.test(item)
+  );
+  const wellnessHighlights = resort.highlights.filter((item) =>
+    /spa|wellness|yoga|healing|retreat|relax/i.test(item)
+  );
+  const topFacts = [
     { label: "Location", value: resort.location || "Maldives" },
     { label: "Transfer", value: resort.transferType || "Available on request" },
     { label: "Meal Plans", value: formatInlineList(resort.mealPlans, "Available on request") },
-    { label: "Room Types", value: `${resort.roomTypes.length || 0}` },
+    { label: "Room Types", value: resort.roomTypes.length ? `${resort.roomTypes.length}` : "To be confirmed" },
     { label: "Category", value: resort.category || "Luxury Resort" }
   ];
 
-  const sectionCards = [
-    {
-      title: "Signature Experiences",
-      items: resort.highlights.filter((item) => /experience|excursion|diving|marine|adventure|snorkel|cruise/i.test(item))
-    },
-    {
-      title: "Dining & Meal Plans",
-      items: resort.mealPlans
-    },
-    {
-      title: "Wellness & Island Living",
-      items: resort.highlights.filter((item) => /spa|wellness|yoga|healing|retreat|relax/i.test(item))
-    }
-  ].filter((section) => section.items.length);
-
-  const snapshotHighlights = resort.highlights.filter(Boolean).slice(0, 6);
+  const sectionLinks = [
+    { href: "#overview", label: "Overview" },
+    { href: "#rooms", label: "Rooms & Villas" },
+    ...(signatureExperiences.length ? [{ href: "#experiences", label: "Experiences" }] : []),
+    ...(wellnessHighlights.length ? [{ href: "#wellness", label: "Wellness" }] : []),
+    ...(similarResorts.length ? [{ href: "#similar-resorts", label: "Similar Resorts" }] : [])
+  ];
 
   return (
     <main className="resort-detail-page resort-story-page">
@@ -80,27 +83,20 @@ export default async function ResortDetailPage({
               <span>{resort.category || "Luxury Resort"}</span>
               <span>{resort.transferType || "Available on request"}</span>
             </div>
-            <p className="resort-story-hero__lede">{storyCopy}</p>
             <div className="resort-story-hero__actions">
-              <Link href="/contact" className="site-button site-button--teal">
-                Send Enquiry
-              </Link>
               <a href="#rooms" className="site-button site-button--ghost">
                 View Rooms
               </a>
-              <Link href="/contact" className="site-button site-button--ghost">
-                Contact Us
-              </Link>
             </div>
           </div>
         </div>
       </section>
 
       <section className="site-section site-section--paper resort-story-facts">
-        <div className="site-container">
+        <div className="site-container stack">
           <article className="resort-story-facts-card">
             <div className="resort-story-facts__grid">
-              {heroFacts.map((fact) => (
+              {topFacts.map((fact) => (
                 <div key={fact.label} className="resort-story-fact-card">
                   <span>{fact.label}</span>
                   <strong>{fact.value}</strong>
@@ -108,19 +104,25 @@ export default async function ResortDetailPage({
               ))}
             </div>
           </article>
+
+          <nav className="resort-story-tabs" aria-label="Resort sections">
+            {sectionLinks.map((link) => (
+              <a key={link.href} href={link.href} className="resort-story-tab">
+                {link.label}
+              </a>
+            ))}
+          </nav>
         </div>
       </section>
 
-      <section className="site-section site-section--white">
+      <section className="site-section site-section--white" id="overview">
         <div className="site-container resort-story-editorial">
           <article className="resort-story-editorial__main">
             <p className="eyebrow">About The Resort</p>
-            <h2>An island retreat shaped for luxury Maldives stays</h2>
-            <p>{resort.description || storyCopy}</p>
-            {resort.summary && resort.summary !== resort.description ? <p>{resort.summary}</p> : null}
-            {resort.seoSummary && resort.seoSummary !== resort.summary && resort.seoSummary !== resort.description ? (
-              <p>{resort.seoSummary}</p>
-            ) : null}
+            <h2>A modern island stay designed around comfort and place</h2>
+            {aboutParagraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
           </article>
 
           <aside className="resort-story-editorial__aside">
@@ -145,7 +147,11 @@ export default async function ResortDetailPage({
                 </li>
                 <li>
                   <span>Highlights</span>
-                  <strong>{snapshotHighlights.length ? snapshotHighlights.join(" • ") : "Curated island experiences"}</strong>
+                  <strong>
+                    {resort.highlights.filter(Boolean).length
+                      ? resort.highlights.filter(Boolean).slice(0, 4).join(" • ")
+                      : "Curated island experiences"}
+                  </strong>
                 </li>
               </ul>
             </article>
@@ -158,16 +164,14 @@ export default async function ResortDetailPage({
           <div className="section-heading resort-story-section-heading">
             <div>
               <p className="eyebrow">Rooms & Villas</p>
-              <h2>Accommodation designed around island comfort</h2>
-              <p className="muted">
-                Every accommodation type saved in the database is surfaced here with its room photo and key details.
-              </p>
+              <h2>Explore the accommodation collection</h2>
+              <p className="muted">Large room cards highlight the stay experience without any booking clutter.</p>
             </div>
           </div>
 
           {resort.roomTypes.length ? (
             <div className="resort-story-room-stack">
-              {resort.roomTypes.map((room, index) => {
+              {resort.roomTypes.map((room) => {
                 const roomMeta = [
                   room.sizeLabel,
                   room.maxOccupancy ? `Up to ${room.maxOccupancy} guests` : "",
@@ -175,12 +179,10 @@ export default async function ResortDetailPage({
                   room.viewLabel
                 ].filter(Boolean);
                 const roomCopy = room.description || room.seoDescription || "Curated room details coming soon.";
+                const amenities = room.amenities.filter(Boolean);
 
                 return (
-                  <article
-                    className={`resort-story-room-card resort-story-room-card--feature${index % 2 === 1 ? " is-reversed" : ""}`}
-                    key={room.id ?? `${room.name}-${room.sortOrder}`}
-                  >
+                  <article className="resort-story-room-card--property" key={room.id ?? `${room.name}-${room.sortOrder}`}>
                     <div
                       className="resort-story-room-card__media"
                       style={room.photoUrl ? { backgroundImage: `url(${room.photoUrl})` } : undefined}
@@ -189,25 +191,26 @@ export default async function ResortDetailPage({
                       <div className="resort-story-room-card__header">
                         <p className="eyebrow">Room Type</p>
                         <h3>{room.name}</h3>
-                        {roomMeta.length ? (
-                          <div className="resort-story-room-card__meta">
-                            {roomMeta.map((item) => (
-                              <span key={item}>{item}</span>
-                            ))}
-                          </div>
-                        ) : null}
                       </div>
+
+                      {roomMeta.length ? (
+                        <div className="resort-story-room-facts">
+                          {roomMeta.map((item) => (
+                            <span key={item}>{item}</span>
+                          ))}
+                        </div>
+                      ) : null}
+
                       <p>{roomCopy}</p>
-                      {room.amenities.filter(Boolean).length ? (
-                        <div className="resort-story-chip-row">
-                          {room.amenities
-                            .filter(Boolean)
-                            .slice(0, 10)
-                            .map((feature) => (
-                              <span key={feature} className="resort-story-chip">
-                                {feature}
-                              </span>
+
+                      {amenities.length ? (
+                        <div className="resort-story-room-amenities">
+                          <p className="eyebrow">Room Amenities</p>
+                          <ul className="resort-story-room-amenities__list">
+                            {amenities.map((feature) => (
+                              <li key={feature}>{feature}</li>
                             ))}
+                          </ul>
                         </div>
                       ) : null}
                     </div>
@@ -224,41 +227,38 @@ export default async function ResortDetailPage({
         </div>
       </section>
 
-      {sectionCards.length ? (
-        <section className="site-section site-section--paper">
+      {signatureExperiences.length ? (
+        <section className="site-section site-section--paper" id="experiences">
           <div className="site-container">
-            <div className="resort-story-sections">
-              {sectionCards.map((section) => (
-                <article key={section.title} className="resort-story-section-card">
-                  <p className="eyebrow">{section.title}</p>
-                  <div className="resort-story-chip-row">
-                    {section.items.map((item) => (
-                      <span key={item} className="resort-story-chip">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </article>
-              ))}
-            </div>
+            <article className="resort-story-section-card">
+              <p className="eyebrow">Signature Experiences</p>
+              <ul className="resort-story-points">
+                {signatureExperiences.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </article>
           </div>
         </section>
       ) : null}
 
-      {resort.seoDescription ? (
-        <section className="site-section site-section--white">
+      {wellnessHighlights.length ? (
+        <section className="site-section site-section--white" id="wellness">
           <div className="site-container">
-            <article className="resort-story-seo-card">
-              <p className="eyebrow">Luxury Travel Perspective</p>
-              <h2>Why travellers choose this resort</h2>
-              <p>{resort.seoDescription}</p>
+            <article className="resort-story-section-card">
+              <p className="eyebrow">Wellness & Island Living</p>
+              <ul className="resort-story-points">
+                {wellnessHighlights.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             </article>
           </div>
         </section>
       ) : null}
 
       {similarResorts.length ? (
-        <section className="site-section site-section--paper">
+        <section className="site-section site-section--paper" id="similar-resorts">
           <div className="site-container">
             <div className="section-heading">
               <div>
