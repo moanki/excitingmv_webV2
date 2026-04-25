@@ -3162,6 +3162,471 @@ select {
   gap: 1rem;
 }
 
+.admin-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--admin-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.admin-back-link:hover {
+  color: var(--admin-text);
+}
+
+.resort-manager-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.resort-search-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: min(100%, 24rem);
+  padding: 0 1rem;
+  min-height: 48px;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 118, 110, 0.14);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+}
+
+.resort-search-field input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--admin-text);
+  font-size: 0.94rem;
+}
+
+.resort-search-field input:focus {
+  outline: none;
+}
+
+.resort-filter-pills {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.resort-filter-pills button,
+.admin-section-tabs a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 118, 110, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--admin-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.resort-filter-pills button:hover,
+.resort-filter-pills button.is-active,
+.admin-section-tabs a:hover {
+  border-color: rgba(15, 118, 110, 0.28);
+  background: rgba(15, 118, 110, 0.08);
+  color: var(--admin-accent);
+}
+
+.resort-manager-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.resort-manager-card {
+  display: grid;
+  grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+  gap: 1.25rem;
+  padding: 1rem;
+  border-radius: 24px;
+  border: 1px solid rgba(15, 118, 110, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 245, 238, 0.96));
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+}
+
+.resort-manager-card__media,
+.resort-manager-card__media img {
+  width: 100%;
+  height: 100%;
+  min-height: 190px;
+  border-radius: 20px;
+  object-fit: cover;
+}
+
+.resort-manager-card__media {
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.resort-manager-card__media-placeholder {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  min-height: 190px;
+  color: var(--admin-muted);
+  font-size: 0.9rem;
+}
+
+.resort-manager-card__body,
+.resort-manager-card__topline,
+.resort-manager-card__meta,
+.resort-manager-card__actions,
+.resort-workspace__topbar,
+.resort-workspace__header,
+.resort-workspace__meta,
+.admin-room-card__summary,
+.admin-room-card__metrics,
+.admin-room-card__actions,
+.admin-inline-actions,
+.admin-amenity-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.resort-manager-card__body,
+.resort-workspace__header-copy {
+  display: grid;
+  gap: 1rem;
+}
+
+.resort-manager-card__topline,
+.resort-workspace__topbar,
+.resort-workspace__header {
+  justify-content: space-between;
+}
+
+.resort-manager-card__topline h3,
+.resort-workspace__header h1 {
+  margin: 0;
+}
+
+.resort-manager-card__topline p {
+  margin: 0.35rem 0 0;
+  color: var(--admin-muted);
+}
+
+.resort-manager-card__badges,
+.resort-workspace__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.resort-manager-card__meta {
+  color: var(--admin-muted);
+  font-size: 0.88rem;
+  flex-wrap: wrap;
+}
+
+.resort-manager-card__actions {
+  flex-wrap: wrap;
+}
+
+.resort-manager-card__actions form {
+  display: contents;
+}
+
+.badge.is-success {
+  background: rgba(25, 135, 84, 0.12);
+  color: #166534;
+}
+
+.badge.is-featured {
+  background: rgba(212, 171, 74, 0.16);
+  color: #8c6112;
+}
+
+.badge.is-draft {
+  background: rgba(15, 23, 42, 0.08);
+  color: rgba(15, 23, 42, 0.72);
+}
+
+.badge.is-muted {
+  background: rgba(107, 114, 128, 0.12);
+  color: #4b5563;
+}
+
+.resort-workspace {
+  gap: 1.25rem;
+}
+
+.resort-workspace__topbar {
+  flex-wrap: wrap;
+}
+
+.resort-workspace__topbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.resort-workspace__header {
+  padding: 1.6rem 1.75rem;
+  border-radius: 28px;
+  border: 1px solid rgba(15, 118, 110, 0.1);
+  background:
+    radial-gradient(circle at top left, rgba(13, 118, 110, 0.1), transparent 42%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 245, 238, 0.96));
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+}
+
+.resort-workspace__meta {
+  color: var(--admin-muted);
+  font-size: 0.86rem;
+}
+
+.admin-section-tabs {
+  position: sticky;
+  top: 1rem;
+  z-index: 4;
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  padding: 0.8rem;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 118, 110, 0.08);
+  background: rgba(248, 245, 238, 0.88);
+  backdrop-filter: blur(14px);
+}
+
+.resort-workspace__form {
+  gap: 1rem;
+}
+
+.admin-toggle-field {
+  grid-column: 1 / -1;
+}
+
+.admin-toggle-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(15, 118, 110, 0.1);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.admin-toggle-card strong {
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.admin-toggle-card p {
+  margin: 0;
+  color: var(--admin-muted);
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+
+.admin-toggle-card input {
+  width: 22px;
+  height: 22px;
+}
+
+.admin-room-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-room-card {
+  border: 1px solid rgba(15, 118, 110, 0.12);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  overflow: hidden;
+}
+
+.admin-room-card.is-expanded {
+  box-shadow: 0 24px 50px rgba(15, 23, 42, 0.08);
+}
+
+.admin-room-card__summary {
+  width: 100%;
+  justify-content: space-between;
+  padding: 1rem;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-room-card__thumb {
+  width: 140px;
+  min-width: 140px;
+  height: 108px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.admin-room-card__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-room-card__thumb-placeholder,
+.admin-table-thumb--empty {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--admin-muted);
+  font-size: 0.82rem;
+}
+
+.admin-room-card__copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-room-card__eyebrow {
+  margin-bottom: 0.45rem;
+  color: var(--admin-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-room-card__copy h4 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+.admin-room-card__copy p {
+  margin: 0.55rem 0 0;
+  color: var(--admin-muted);
+  line-height: 1.6;
+}
+
+.admin-room-card__metrics {
+  flex-direction: column;
+  align-items: flex-end;
+  color: var(--admin-muted);
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.admin-room-card__body {
+  display: grid;
+  gap: 1rem;
+  padding: 0 1rem 1rem;
+}
+
+.admin-room-card__actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.admin-empty-panel {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1.35rem 1.45rem;
+  border-radius: 22px;
+  border: 1px dashed rgba(15, 118, 110, 0.22);
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--admin-muted);
+}
+
+.admin-empty-panel h3,
+.admin-empty-panel h4 {
+  margin: 0;
+  color: var(--admin-text);
+}
+
+.admin-empty-panel p,
+.admin-empty-inline p {
+  margin: 0;
+}
+
+.admin-empty-inline {
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  border: 1px dashed var(--admin-border);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--admin-muted);
+}
+
+.admin-amenity-editor {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.admin-amenity-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.admin-amenity-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.65rem;
+}
+
+.admin-icon-only {
+  width: 46px;
+  padding: 0;
+}
+
+.admin-textarea--compact {
+  min-height: 90px;
+}
+
+.admin-checklist-card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem 1.1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(212, 171, 74, 0.24);
+  background: rgba(212, 171, 74, 0.09);
+}
+
+.admin-checklist-card h4 {
+  margin: 0;
+}
+
+.admin-checklist-card ul {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--admin-muted);
+}
+
+.admin-form-actions--start {
+  justify-content: flex-start;
+}
+
+.resort-workspace__footer-actions {
+  position: sticky;
+  bottom: 0.75rem;
+  padding: 0.9rem;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 118, 110, 0.08);
+  background: rgba(248, 245, 238, 0.94);
+  backdrop-filter: blur(14px);
+}
+
 @media (max-width: 1100px) {
   .featured-grid,
   .services-grid,
@@ -3188,6 +3653,11 @@ select {
   .resort-story-room-card--property,
   .resort-story-room-card--feature,
   .resort-story-room-card--feature.is-reversed {
+    grid-template-columns: 1fr;
+  }
+
+  .resort-manager-card,
+  .admin-room-card__summary {
     grid-template-columns: 1fr;
   }
 
@@ -3228,7 +3698,12 @@ select {
 
   .admin-page-header,
   .admin-record-card__header,
-  .media-selected-state {
+  .media-selected-state,
+  .resort-workspace__topbar,
+  .resort-workspace__header,
+  .admin-room-card__summary,
+  .admin-room-card__actions,
+  .admin-toggle-card {
     flex-direction: column;
   }
 
@@ -3305,6 +3780,14 @@ select {
   .site-footer__bottom {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .resort-manager-card__badges,
+  .resort-workspace__meta,
+  .admin-room-card__metrics {
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
   }
 }
 

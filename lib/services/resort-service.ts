@@ -262,6 +262,26 @@ export async function listAdminResorts(): Promise<ResortRecord[]> {
   }
 }
 
+export async function getAdminResortById(id: string): Promise<ResortRecord | null> {
+  try {
+    const supabase = createSupabaseAdminClient();
+    const { data, error } = await supabase.from("resorts").select("*").eq("id", id).maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    const [resort] = await attachResortRelations([mapResort(data as ResortRow)]);
+    return resort ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function listPublishedResortRows() {
   const supabase = createSupabaseAdminClient();
   const firstAttempt = await supabase

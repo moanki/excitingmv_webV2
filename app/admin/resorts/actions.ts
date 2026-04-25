@@ -50,6 +50,16 @@ function publishingState(value: string): { status: PublishStatus; isFeaturedHome
   return { status: "draft", isFeaturedHomepage: false };
 }
 
+function publishingStateFromStatus(statusValue: string, featuredValue: FormDataEntryValue | null) {
+  const status = statusValue === "published" || statusValue === "archived" ? statusValue : "draft";
+  const isFeaturedHomepage = featuredValue === "on" && status === "published";
+
+  return {
+    status,
+    isFeaturedHomepage
+  } as const;
+}
+
 async function parseRoomTypes(formData: FormData) {
   const roomCount = Number(formData.get("roomCount") ?? 0);
   const rooms = [];
@@ -100,7 +110,13 @@ async function parseRoomTypes(formData: FormData) {
 export async function saveResortAction(_: ActionState, formData: FormData) {
   try {
     const name = String(formData.get("name") ?? "").trim();
-    const publishing = publishingState(String(formData.get("publishingMode") ?? "draft").trim());
+    const explicitPublishingMode = String(formData.get("publishingMode") ?? "").trim();
+    const publishing = explicitPublishingMode
+      ? publishingState(explicitPublishingMode)
+      : publishingStateFromStatus(
+          String(formData.get("status") ?? "draft").trim(),
+          formData.get("isFeaturedHomepage")
+        );
     const heroImageFile = formData.get("heroImageFile");
     const galleryFiles = formData.getAll("galleryMediaFiles");
     const uploadedHeroImage =

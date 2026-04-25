@@ -128,6 +128,10 @@ const pageMeta: Record<string, { title: string; description: string }> = {
     title: "Resort Manager",
     description: "Maintain listings, editorial data, and publish readiness."
   },
+  "/admin/resorts/new": {
+    title: "Add New Resort",
+    description: "Create a focused property workspace without the rest of the resort list in view."
+  },
   "/admin/resources": {
     title: "Resource Library",
     description: "Organize protected files and public resource inventory."
@@ -170,9 +174,29 @@ function isActive(pathname: string, href: string) {
   return pathname.startsWith(href);
 }
 
+function getCurrentPageMeta(pathname: string) {
+  const exactMatch = pageMeta[pathname];
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  if (pathname.startsWith("/admin/resorts/") && pathname.endsWith("/edit")) {
+    return {
+      title: "Edit Resort",
+      description: "Focused resort editing workspace for one selected property."
+    };
+  }
+
+  const matchedEntry = Object.entries(pageMeta)
+    .filter(([href]) => href !== "/admin" && pathname.startsWith(href))
+    .sort((left, right) => right[0].length - left[0].length)[0];
+
+  return matchedEntry?.[1] ?? pageMeta["/admin"];
+}
+
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const current = pageMeta[pathname] ?? pageMeta["/admin"];
+  const current = getCurrentPageMeta(pathname);
 
   return (
     <div className="admin-shell">

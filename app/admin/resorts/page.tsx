@@ -1,32 +1,27 @@
-import {
-  CreateResortForm,
-  ExistingResortForms,
-  ResortInventoryTable,
-  SeedResortsButton
-} from "@/app/admin/resorts/forms";
+import Link from "next/link";
+
+import { ResortManagerListView, SeedResortsButton } from "@/app/admin/resorts/forms";
 import { getResortCounts, listAdminResorts } from "@/lib/services/resort-service";
-import { listSiteAssets } from "@/lib/storage/site-assets";
 
 export default async function AdminResortsPage() {
-  const [resorts, counts, mediaLibrary] = await Promise.all([
-    listAdminResorts(),
-    getResortCounts(),
-    listSiteAssets()
-  ]);
+  const [resorts, counts] = await Promise.all([listAdminResorts(), getResortCounts()]);
 
   return (
     <section className="stack">
       <div className="admin-page-header">
         <div className="admin-page-header__content">
           <p className="eyebrow">Resort Manager</p>
-          <h1 className="section-title">Manage your resort inventory and homepage featured collection.</h1>
+          <h1 className="section-title">Manage resort content, rooms, media, and publishing.</h1>
           <p className="admin-page-lede">
-            Total resorts added: {counts.total}. Mark a resort as <strong>Published Featured</strong> to surface it
-            in the homepage featured resorts area, up to 5 properties.
+            This workspace is for browsing and managing resorts only. Open a focused add or edit workspace when you
+            need to change resort details.
           </p>
         </div>
         <div className="admin-page-header__actions">
           <SeedResortsButton />
+          <Link href="/admin/resorts/new" className="admin-btn admin-btn--primary">
+            + Add New Resort
+          </Link>
         </div>
       </div>
 
@@ -49,18 +44,7 @@ export default async function AdminResortsPage() {
         </article>
       </div>
 
-      <article className="panel admin-form-card">
-        <div className="admin-form-section__header">
-          <h3 className="admin-form-section__title">All Resorts</h3>
-          <p className="admin-form-section__help">
-            Review every resort in one table, update the publishing state, and jump straight into editing.
-          </p>
-        </div>
-        <ResortInventoryTable resorts={resorts} />
-      </article>
-
-      <CreateResortForm mediaLibrary={mediaLibrary} />
-      <ExistingResortForms resorts={resorts} mediaLibrary={mediaLibrary} />
+      <ResortManagerListView resorts={resorts} />
     </section>
   );
 }
