@@ -15,6 +15,11 @@ export type ResortRoomSummary = {
   description: string;
   seoDescription: string;
   photoUrl?: string;
+  sizeLabel?: string;
+  maxOccupancy?: number | null;
+  bedType?: string;
+  viewLabel?: string;
+  amenities?: string[];
 };
 
 export type ResortSummary = {

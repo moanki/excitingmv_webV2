@@ -11,6 +11,11 @@ export type ResortRoomRecord = {
   seoDescription: string;
   photoUrl: string;
   sortOrder: number;
+  sizeLabel: string;
+  maxOccupancy: number | null;
+  bedType: string;
+  viewLabel: string;
+  amenities: string[];
 };
 
 export type ResortRecord = {
@@ -62,6 +67,10 @@ type RoomRow = {
   resort_id: string;
   name: string;
   short_description: string | null;
+  size_label: string | null;
+  max_occupancy: number | null;
+  bed_type: string | null;
+  features: unknown;
   seo_summary: string | null;
   sort_order: number | null;
 };
@@ -89,28 +98,8 @@ function toStringArray(value: unknown) {
   return Array.isArray(value) ? value.map((item) => String(item)).filter(Boolean) : [];
 }
 
-function fallbackResortDetail(summary: ResortSummary): ResortRecord {
-  return {
-    id: summary.id,
-    slug: summary.slug,
-    name: summary.name,
-    location: summary.location,
-    category: summary.category,
-    transferType: summary.transferType,
-    summary: summary.summary,
-    description: summary.summary,
-    highlights: ["Premium positioning", "Partner-ready sales narrative"],
-    mealPlans: ["Bed & Breakfast", "Half Board", "Full Board"],
-    status: summary.status,
-    isFeaturedHomepage: summary.isFeaturedHomepage ?? false,
-    seoTitle: summary.name,
-    seoDescription: summary.summary,
-    seoSummary: summary.summary,
-    heroImageUrl: "",
-    galleryMediaUrls: [],
-    roomTypes: [],
-    publishedAt: summary.status === "published" ? new Date().toISOString() : null
-  };
+function normalizeText(value: string | null | undefined) {
+  return value?.trim() ?? "";
 }
 
 function mapResortRow(row: ResortRow): ResortRecord {
@@ -142,19 +131,8 @@ function mapResortRow(row: ResortRow): ResortRecord {
   };
 }
 
-function baseSummary(detail: ResortRecord): ResortSummary {
-  return {
-    id: detail.id,
-    slug: detail.slug,
-    name: detail.name,
-    location: detail.location,
-    category: detail.category,
-    transferType: detail.transferType,
-    summary: detail.summary,
-    heroImageUrl: detail.heroImageUrl,
-    status: detail.status,
-    isFeaturedHomepage: detail.isFeaturedHomepage
-  };
+function mapResort(row: ResortRow): ResortRecord {
+  return mapResortRow(row);
 }
 
 async function fetchResortHeroMedia(resortIds: string[]) {
@@ -180,16 +158,34 @@ async function fetchResortHeroMedia(resortIds: string[]) {
   return mediaMap;
 }
 
-function mapRoomRow(row: RoomRow, mediaRows: MediaRow[]): ResortRoomRecord {
-  const photo = mediaRows.find((item) => item.room_id === row.id)?.file_path ?? "";
+function getPrimaryImage(mediaRows: MediaRow[]) {
+  const hero = mediaRows.find((row) => row.is_hero)?.file_path;
+  return hero ?? mediaRows[0]?.file_path ?? "";
+}
+
+function getRoomImage(roomId: string, mediaRows: MediaRow[], resortHeroImageUrl = "") {
+  const roomMedia = mediaRows.filter((row) => row.room_id === roomId);
+  return getPrimaryImage(roomMedia) || resortHeroImageUrl;
+}
+
+function mapRoom(row: RoomRow, mediaRows: MediaRow[], resortHeroImageUrl = ""): ResortRoomRecord {
+  const description = normalizeText(row.short_description);
+  const seoDescription = normalizeText(row.seo_summary) || description;
+  const amenities = toStringArray(row.features);
+  const viewLabel = amenities.find((item) => /view/i.test(item)) ?? "";
 
   return {
     id: row.id,
     name: row.name,
-    description: row.short_description ?? "",
-    seoDescription: row.seo_summary ?? row.short_description ?? "",
-    photoUrl: photo,
-    sortOrder: row.sort_order ?? 0
+    description,
+    seoDescription,
+    photoUrl: getRoomImage(row.id, mediaRows, resortHeroImageUrl),
+    sortOrder: row.sort_order ?? 0,
+    sizeLabel: normalizeText(row.size_label),
+    maxOccupancy: row.max_occupancy ?? null,
+    bedType: normalizeText(row.bed_type),
+    viewLabel,
+    amenities
   };
 }
 
@@ -208,7 +204,7 @@ async function attachResortRelations(resorts: ResortRecord[]) {
       .order("sort_order", { ascending: true }),
     supabase
       .from("rooms")
-      .select("id,resort_id,name,short_description,seo_summary,sort_order")
+      .select("id,resort_id,name,short_description,size_label,max_occupancy,bed_type,features,seo_summary,sort_order")
       .in("resort_id", resortIds)
       .order("sort_order", { ascending: true })
   ]);
@@ -231,7 +227,8 @@ async function attachResortRelations(resorts: ResortRecord[]) {
   const roomMap = new Map<string, ResortRoomRecord[]>();
   typedRoomRows.forEach((row) => {
     const current = roomMap.get(row.resort_id) ?? [];
-    current.push(mapRoomRow(row, typedMediaRows));
+    const resortHeroImageUrl = resortMediaMap.get(row.resort_id)?.heroImageUrl ?? "";
+    current.push(mapRoom(row, typedMediaRows, resortHeroImageUrl));
     roomMap.set(row.resort_id, current);
   });
 
@@ -256,46 +253,46 @@ export async function listAdminResorts(): Promise<ResortRecord[]> {
     }
 
     if (!data?.length) {
-      return sampleResorts.map(fallbackResortDetail);
+      return [];
     }
 
-    return attachResortRelations((data as ResortRow[]).map(mapResortRow));
+    return attachResortRelations((data as ResortRow[]).map(mapResort));
   } catch {
-    return sampleResorts.map(fallbackResortDetail);
+    return [];
   }
+}
+
+async function listPublishedResortRows() {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("resorts")
+    .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status,is_featured_homepage")
+    .eq("status", "published")
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as Array<
+    Pick<
+      ResortRow,
+      "id" | "slug" | "name" | "atoll" | "category" | "transfer_type" | "description" | "seo_summary" | "status" | "is_featured_homepage"
+    >
+  >;
 }
 
 const getCachedPublishedResorts = unstable_cache(
   async (): Promise<ResortSummary[]> => {
     try {
-      const supabase = createSupabaseAdminClient();
-      const { data, error } = await supabase
-        .from("resorts")
-        .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status,is_featured_homepage")
-        .in("status", ["published", "draft"])
-        .order("updated_at", { ascending: false });
+      const resortRows = await listPublishedResortRows();
 
-      if (error) {
-        throw error;
+      if (!resortRows.length) {
+        return [];
       }
-
-      if (!data?.length) {
-        return sampleResorts.map((resort) => ({
-          ...resort,
-          isFeaturedHomepage: resort.isFeaturedHomepage ?? false
-        }));
-      }
-
-      const resortRows = data as Array<
-        Pick<
-          ResortRow,
-          "id" | "slug" | "name" | "atoll" | "category" | "transfer_type" | "description" | "seo_summary" | "status" | "is_featured_homepage"
-        >
-      >;
       const heroMedia = await fetchResortHeroMedia(resortRows.map((row) => row.id));
 
       return resortRows
-        .filter((row) => row.status !== "archived")
         .map((row) => ({
           id: row.id,
           slug: row.slug,
@@ -310,10 +307,7 @@ const getCachedPublishedResorts = unstable_cache(
         }))
         .sort((left, right) => Number(right.isFeaturedHomepage) - Number(left.isFeaturedHomepage));
     } catch {
-      return sampleResorts.map((resort) => ({
-        ...resort,
-        isFeaturedHomepage: resort.isFeaturedHomepage ?? false
-      }));
+      return [];
     }
   },
   ["published-resorts-summaries"],
@@ -328,41 +322,54 @@ export async function listPublishedResorts(): Promise<ResortSummary[]> {
 }
 
 export async function listHomepageFeaturedResorts(limit = 5): Promise<ResortSummary[]> {
-  const resorts = await listAdminResorts();
+  const resorts = await listPublishedResorts();
   const featured = resorts
-    .filter((resort) => resort.status === "published" && resort.isFeaturedHomepage)
+    .filter((resort) => resort.isFeaturedHomepage)
     .slice(0, limit);
 
   if (featured.length) {
-    return featured.map(baseSummary);
+    return featured;
   }
 
-  return resorts
-    .filter((resort) => resort.status === "published")
-    .slice(0, limit)
-    .map(baseSummary);
+  return resorts.slice(0, limit);
 }
 
 export async function getResortBySlug(slug: string): Promise<ResortRecord | null> {
   try {
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase.from("resorts").select("*").eq("slug", slug).maybeSingle();
+    const { data, error } = await supabase
+      .from("resorts")
+      .select("*")
+      .eq("slug", slug)
+      .eq("status", "published")
+      .maybeSingle();
 
     if (error) {
       throw error;
     }
 
     if (!data) {
-      const fallback = sampleResorts.find((resort) => resort.slug === slug);
-      return fallback ? fallbackResortDetail(fallback) : null;
+      return null;
     }
 
-    const [resort] = await attachResortRelations([mapResortRow(data as ResortRow)]);
+    const [resort] = await attachResortRelations([mapResort(data as ResortRow)]);
     return resort ?? null;
   } catch {
-    const fallback = sampleResorts.find((resort) => resort.slug === slug);
-    return fallback ? fallbackResortDetail(fallback) : null;
+    return null;
   }
+}
+
+export async function listSimilarPublishedResorts(slug: string, category: string, limit = 3): Promise<ResortSummary[]> {
+  const resorts = await listPublishedResorts();
+
+  return resorts
+    .filter((resort) => resort.slug !== slug)
+    .sort((left, right) => {
+      const leftScore = Number(Boolean(category) && left.category === category);
+      const rightScore = Number(Boolean(category) && right.category === category);
+      return rightScore - leftScore;
+    })
+    .slice(0, limit);
 }
 
 export async function saveResort(input: {
@@ -445,6 +452,10 @@ export async function saveResort(input: {
       resort_id: data.id,
       name: room.name.trim(),
       short_description: room.description.trim() || null,
+      size_label: room.sizeLabel?.trim() || null,
+      max_occupancy: room.maxOccupancy ?? null,
+      bed_type: room.bedType?.trim() || null,
+      features: room.amenities?.length ? room.amenities : null,
       seo_summary: room.seoDescription.trim() || room.description.trim() || null,
       sort_order: index
     }))

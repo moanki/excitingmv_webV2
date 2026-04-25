@@ -6,21 +6,34 @@ export default async function ResortsPage() {
   const resorts = await listPublishedResorts();
 
   return (
-    <main className="site-section site-section--paper">
+    <main className="site-section site-section--paper resort-index-page">
       <div className="site-container stack">
-        <div className="section-heading">
-          <div>
-            <p className="eyebrow">Resort Collection</p>
-            <h1 className="section-title">Explore the resorts currently published on the website.</h1>
-            <p className="muted">
-              Each resort card now follows the same banner, atoll, and category data managed inside the admin portal.
-            </p>
+        <section className="resort-index-hero">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Resort Collection</p>
+              <h1 className="section-title">Explore all resorts currently published on the website.</h1>
+              <p className="muted">
+                This public collection now reflects only active published resorts from Supabase, with archived or
+                deleted inventory excluded from view.
+              </p>
+            </div>
           </div>
-        </div>
+          <div className="resort-index-hero__meta">
+            <article className="resort-index-stat">
+              <span>Published Resorts</span>
+              <strong>{resorts.length}</strong>
+            </article>
+            <article className="resort-index-stat">
+              <span>Collection Style</span>
+              <strong>Luxury Maldives</strong>
+            </article>
+          </div>
+        </section>
 
-        <div className="resort-collection-grid">
+        <div className="resort-collection-grid resort-collection-grid--luxury">
           {resorts.map((resort) => (
-            <article key={resort.slug} className="resort-collection-card">
+            <article key={resort.slug} className="resort-collection-card resort-collection-card--luxury">
               <div
                 className="resort-collection-card__media"
                 style={

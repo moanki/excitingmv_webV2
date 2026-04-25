@@ -2709,6 +2709,345 @@ select {
   gap: 1.5rem;
 }
 
+.resort-index-page {
+  background:
+    radial-gradient(circle at top, rgba(232, 180, 75, 0.08), transparent 26%),
+    linear-gradient(180deg, #fbf7f1, #f4eee4);
+}
+
+.resort-index-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 1.5rem;
+  align-items: end;
+}
+
+.resort-index-hero__meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.resort-index-stat,
+.resort-story-fact-card,
+.resort-story-aside-card,
+.resort-story-section-card,
+.resort-story-seo-card,
+.resort-story-empty-card {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 1.75rem;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.06);
+}
+
+.resort-index-stat {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1.35rem 1.4rem;
+}
+
+.resort-index-stat span,
+.resort-story-fact-card span,
+.resort-story-aside-list span {
+  color: rgba(15, 23, 42, 0.58);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.resort-index-stat strong {
+  font-family: var(--font-serif), serif;
+  font-size: 1.55rem;
+}
+
+.resort-collection-grid--luxury {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.resort-collection-card--luxury {
+  border-color: rgba(15, 23, 42, 0.07);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.resort-collection-card--luxury .resort-collection-card__media {
+  min-height: 320px;
+}
+
+.resort-collection-card--luxury .resort-collection-card__content {
+  padding: 1.75rem;
+}
+
+.resort-collection-card--luxury h2,
+.resort-collection-card--luxury h3 {
+  margin: 0;
+  font-family: var(--font-serif), serif;
+  font-size: 1.7rem;
+}
+
+.resort-story-page {
+  background:
+    linear-gradient(180deg, rgba(248, 245, 240, 0.4), rgba(248, 245, 240, 1)),
+    var(--brand-paper);
+}
+
+.resort-story-hero {
+  position: relative;
+  min-height: 92dvh;
+  background: #09111f;
+}
+
+.resort-story-hero__media {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(8, 15, 26, 0.12), rgba(8, 15, 26, 0.78)),
+    linear-gradient(120deg, rgba(232, 180, 75, 0.12), rgba(79, 209, 197, 0.08));
+  background-position: center;
+  background-size: cover;
+}
+
+.resort-story-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top right, rgba(232, 180, 75, 0.16), transparent 25%),
+    linear-gradient(180deg, rgba(8, 15, 26, 0.08), rgba(8, 15, 26, 0.72) 55%, rgba(8, 15, 26, 0.92));
+}
+
+.resort-story-hero__inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: end;
+  min-height: 92dvh;
+  padding-top: 10rem;
+  padding-bottom: 5rem;
+}
+
+.resort-story-hero__copy {
+  max-width: 56rem;
+  color: var(--brand-white);
+}
+
+.resort-story-hero__copy h1 {
+  margin: 0;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(3.4rem, 7vw, 6.4rem);
+  line-height: 0.92;
+}
+
+.resort-story-hero__badges,
+.resort-story-chip-row,
+.resort-story-room-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.resort-story-hero__badges {
+  margin-top: 1.4rem;
+}
+
+.resort-story-hero__badges span,
+.resort-story-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(16px);
+}
+
+.resort-story-hero__badges span {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.resort-story-hero__lede {
+  max-width: 48rem;
+  margin: 1.5rem 0 0;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 1.05rem;
+  line-height: 1.9;
+}
+
+.resort-story-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.resort-story-facts {
+  padding-top: 0;
+  margin-top: -3rem;
+  position: relative;
+  z-index: 2;
+}
+
+.resort-story-facts__grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.resort-story-fact-card {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1.35rem;
+}
+
+.resort-story-fact-card strong {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.resort-story-editorial {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.resort-story-editorial__main,
+.resort-story-editorial__aside {
+  display: grid;
+  gap: 1rem;
+}
+
+.resort-story-editorial__main h2,
+.resort-story-seo-card h2 {
+  margin: 0;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(2rem, 3.3vw, 3.4rem);
+  line-height: 1.02;
+}
+
+.resort-story-editorial__main p,
+.resort-story-seo-card p,
+.resort-story-empty-card p,
+.resort-story-room-card__body p {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.9;
+}
+
+.resort-story-aside-card,
+.resort-story-seo-card,
+.resort-story-empty-card,
+.resort-story-section-card {
+  padding: 1.6rem;
+}
+
+.resort-story-aside-list {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resort-story-aside-list li {
+  display: grid;
+  gap: 0.2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.resort-story-aside-list li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.resort-story-aside-list strong {
+  font-size: 1rem;
+}
+
+.resort-story-chip {
+  background: rgba(79, 209, 197, 0.09);
+  border-color: rgba(79, 209, 197, 0.16);
+  color: var(--brand-navy);
+}
+
+.resort-story-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.resort-story-gallery__item {
+  min-height: 260px;
+  border-radius: 1.75rem;
+  background-position: center;
+  background-size: cover;
+  box-shadow: var(--luxury-shadow);
+}
+
+.resort-story-gallery__item.is-featured {
+  grid-column: span 2;
+  min-height: 420px;
+}
+
+.resort-story-room-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.resort-story-room-card {
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 1.75rem;
+  background: #ffffff;
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.07);
+}
+
+.resort-story-room-card__media {
+  min-height: 260px;
+  background:
+    linear-gradient(180deg, rgba(232, 180, 75, 0.12), rgba(15, 23, 42, 0.08)),
+    #ece7dc;
+  background-position: center;
+  background-size: cover;
+}
+
+.resort-story-room-card__body {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.resort-story-room-card__header {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.resort-story-room-card__header h3,
+.resort-story-empty-card h3 {
+  margin: 0;
+  font-family: var(--font-serif), serif;
+  font-size: 1.5rem;
+}
+
+.resort-story-room-card__meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.05);
+  color: rgba(15, 23, 42, 0.7);
+  font-size: 0.84rem;
+}
+
+.resort-story-sections {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
 @media (max-width: 1100px) {
   .featured-grid,
   .services-grid,
@@ -2716,7 +3055,12 @@ select {
   .resort-highlights-grid,
   .resort-gallery-grid,
   .room-grid,
-  .resort-collection-grid {
+  .resort-collection-grid,
+  .resort-collection-grid--luxury,
+  .resort-story-facts__grid,
+  .resort-story-sections,
+  .resort-story-room-grid,
+  .resort-story-gallery {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -2725,7 +3069,9 @@ select {
   .why-us,
   .newsletter-block,
   .site-footer__grid,
-  .resort-detail-grid {
+  .resort-detail-grid,
+  .resort-index-hero,
+  .resort-story-editorial {
     grid-template-columns: 1fr;
   }
 
@@ -2866,7 +3212,13 @@ select {
   .resort-gallery-grid,
   .resort-highlights-grid,
   .resort-collection-grid,
-  .resort-detail-facts {
+  .resort-detail-facts,
+  .resort-collection-grid--luxury,
+  .resort-index-hero__meta,
+  .resort-story-facts__grid,
+  .resort-story-gallery,
+  .resort-story-room-grid,
+  .resort-story-sections {
     grid-template-columns: 1fr;
   }
 
@@ -2874,6 +3226,17 @@ select {
   .newsletter-block__media,
   .map-panel__canvas {
     min-height: 420px;
+  }
+
+  .resort-story-hero__inner {
+    align-items: center;
+    min-height: 84dvh;
+    padding-top: 8rem;
+  }
+
+  .resort-story-gallery__item.is-featured {
+    grid-column: span 1;
+    min-height: 280px;
   }
 
   .chat-widget,
