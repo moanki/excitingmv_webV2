@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { sampleResorts } from "@/lib/sample-data";
@@ -264,22 +264,41 @@ export async function listAdminResorts(): Promise<ResortRecord[]> {
 
 async function listPublishedResortRows() {
   const supabase = createSupabaseAdminClient();
-  const { data, error } = await supabase
+  const firstAttempt = await supabase
     .from("resorts")
     .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status,is_featured_homepage")
     .eq("status", "published")
     .order("updated_at", { ascending: false });
 
-  if (error) {
-    throw error;
+  if (!firstAttempt.error) {
+    return (firstAttempt.data ?? []) as Array<
+      Pick<
+        ResortRow,
+        "id" | "slug" | "name" | "atoll" | "category" | "transfer_type" | "description" | "seo_summary" | "status" | "is_featured_homepage"
+      >
+    >;
   }
 
-  return (data ?? []) as Array<
-    Pick<
-      ResortRow,
-      "id" | "slug" | "name" | "atoll" | "category" | "transfer_type" | "description" | "seo_summary" | "status" | "is_featured_homepage"
-    >
-  >;
+  if (!isMissingFeaturedHomepageColumnError(firstAttempt.error)) {
+    throw firstAttempt.error;
+  }
+
+  const fallbackAttempt = await supabase
+    .from("resorts")
+    .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status")
+    .eq("status", "published")
+    .order("updated_at", { ascending: false });
+
+  if (fallbackAttempt.error) {
+    throw fallbackAttempt.error;
+  }
+
+  return ((fallbackAttempt.data ?? []) as Array<
+    Pick<ResortRow, "id" | "slug" | "name" | "atoll" | "category" | "transfer_type" | "description" | "seo_summary" | "status">
+  >).map((row) => ({
+    ...row,
+    is_featured_homepage: false
+  }));
 }
 
 const getCachedPublishedResorts = unstable_cache(
@@ -306,7 +325,8 @@ const getCachedPublishedResorts = unstable_cache(
           isFeaturedHomepage: Boolean(row.is_featured_homepage)
         }))
         .sort((left, right) => Number(right.isFeaturedHomepage) - Number(left.isFeaturedHomepage));
-    } catch {
+    } catch (error) {
+      console.error("Failed to load published resorts", error);
       return [];
     }
   },
@@ -516,6 +536,11 @@ export async function saveResort(input: {
       throw new Error(mediaError.message);
     }
   }
+
+  revalidateTag("resorts-public");
+  revalidatePath("/");
+  revalidatePath("/resorts");
+  revalidatePath(`/resorts/${input.slug}`);
 }
 
 export async function deleteResort(id: string) {
@@ -525,6 +550,10 @@ export async function deleteResort(id: string) {
   if (error) {
     throw new Error(error.message);
   }
+
+  revalidateTag("resorts-public");
+  revalidatePath("/");
+  revalidatePath("/resorts");
 }
 
 export async function seedSampleResorts() {
