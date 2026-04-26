@@ -62,6 +62,9 @@ export type ImportLogEntry = {
   resortName?: string;
 };
 
+const MAX_RETURN_LOGS = 24;
+const MAX_STAGING_ITEMS = 12;
+
 function slugify(value: string) {
   return value
     .toLowerCase()
@@ -94,6 +97,50 @@ function createBatchName(url: string) {
 function createUploadBatchName(filename: string) {
   const stamp = new Date().toISOString().slice(0, 10);
   return `Upload import ${filename} ${stamp}`;
+}
+
+function compactLogs(logs: ImportLogEntry[]) {
+  if (logs.length <= MAX_RETURN_LOGS) {
+    return logs;
+  }
+
+  const visibleLogs = logs.slice(0, MAX_RETURN_LOGS - 1);
+  visibleLogs.push({
+    sourceUrl: "system://import-summary",
+    filename: "Import Summary",
+    status: "warning",
+    provider: "system",
+    message: `${logs.length - visibleLogs.length} additional log entries were omitted from the live response to keep the import stable.`
+  });
+
+  return visibleLogs;
+}
+
+function compactStagingPayload(
+  sourceUrl: string,
+  sourceFiles: string[],
+  stagedPayloads: Array<{ sourceUrl: string; extracted: ImportedResortPayload }>
+) {
+  return {
+    sourceUrl,
+    resolvedFileCount: sourceFiles.length,
+    resolvedFiles: sourceFiles.slice(0, MAX_STAGING_ITEMS),
+    items: stagedPayloads.slice(0, MAX_STAGING_ITEMS).map((item) => ({
+      sourceUrl: item.sourceUrl,
+      notes: item.extracted.notes,
+      resortCount: item.extracted.resorts.length,
+      resorts: item.extracted.resorts.map((resort) => ({
+        name: resort.name,
+        slug: resort.slug,
+        location: resort.location,
+        category: resort.category,
+        publishingMode: resort.publishingMode,
+        roomTypeCount: resort.roomTypes.length
+      }))
+    })),
+    truncated:
+      sourceFiles.length > MAX_STAGING_ITEMS || stagedPayloads.length > MAX_STAGING_ITEMS
+  };
 }
 
 function normalizeGoogleDriveFileUrl(url: string) {
@@ -428,11 +475,11 @@ export async function createImportBatch(
       batch_id: (batchData as ImportBatchRow).id,
       raw_payload: {
         sourceUrl,
-        resolvedFiles: sourceFiles
+        resolvedFileCount: sourceFiles.length,
+        resolvedFiles: sourceFiles.slice(0, MAX_STAGING_ITEMS),
+        truncated: sourceFiles.length > MAX_STAGING_ITEMS
       },
-      extracted_payload: {
-        items: stagedPayloads
-      },
+      extracted_payload: compactStagingPayload(sourceUrl, sourceFiles, stagedPayloads),
       review_status: "ready"
     });
 
@@ -464,7 +511,7 @@ export async function createImportBatch(
         errorCount,
         providerUsed,
         message: `Processed ${sourceFiles.length} PDF${sourceFiles.length === 1 ? "" : "s"}: imported ${importedCount}, skipped ${skippedCount}, warnings ${warningCount}, errors ${errorCount}.`,
-        logs
+        logs: compactLogs(logs)
       }
     };
   } catch (error) {
@@ -622,9 +669,7 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
         source: "upload",
         filename: downloadedPdf.filename
       },
-      extracted_payload: {
-        items: stagedPayloads
-      },
+      extracted_payload: compactStagingPayload(downloadedPdf.sourceUrl, [downloadedPdf.sourceUrl], stagedPayloads),
       review_status: "ready"
     });
 
@@ -656,7 +701,7 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
         errorCount,
         providerUsed,
         message: `Processed uploaded PDF: imported ${importedCount}, skipped ${skippedCount}, warnings ${warningCount}, errors ${errorCount}.`,
-        logs
+        logs: compactLogs(logs)
       }
     };
   } catch (error) {

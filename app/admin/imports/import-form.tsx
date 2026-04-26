@@ -1,13 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState, type FormEvent } from "react";
 
 import {
   createImportBatchAction,
   createImportUploadAction,
   type ImportActionState
 } from "@/app/admin/imports/actions";
-import type { ImportLogEntry } from "@/lib/services/import-service";
+import type { ImportExecutionResult, ImportLogEntry } from "@/lib/services/import-service";
 
 function ImportProgress({
   pending,
@@ -107,7 +107,52 @@ function ImportRunSummary({ state }: { state: ImportActionState }) {
 }
 
 function ImportDrivePanel() {
-  const [state, action, pending] = useActionState(createImportBatchAction, undefined);
+  const [state, setState] = useState<ImportActionState>(undefined);
+  const [pending, setPending] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setState(undefined);
+
+    try {
+      const formData = new FormData(event.currentTarget);
+      const response = await fetch("/api/admin/imports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          googleDriveUrl: String(formData.get("googleDriveUrl") ?? "")
+        })
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | { ok?: boolean; error?: string; message?: string; data?: ImportExecutionResult }
+        | null;
+
+      if (!response.ok || !payload?.ok || !payload.data || !payload.message) {
+        setState({
+          ok: false,
+          error: payload?.error || "Google Drive import failed."
+        });
+        return;
+      }
+
+      setState({
+        ok: true,
+        message: payload.message,
+        result: payload.data
+      });
+    } catch (error) {
+      setState({
+        ok: false,
+        error: error instanceof Error ? error.message : "Google Drive import failed."
+      });
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
     <article className="panel admin-form-card">
@@ -119,7 +164,7 @@ function ImportDrivePanel() {
         </p>
       </div>
 
-      <form action={action} className="stack">
+      <form onSubmit={handleSubmit} className="stack">
         <div className="form-grid">
           <label className="field field--full">
             <span className="field__label">Google Drive URL</span>
