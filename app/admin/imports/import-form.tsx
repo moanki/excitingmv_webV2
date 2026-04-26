@@ -1,9 +1,8 @@
 "use client";
 
-import { useActionState, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 
 import {
-  createImportUploadAction,
   type ImportActionState
 } from "@/app/admin/imports/actions";
 import type { ImportExecutionResult, ImportLogEntry } from "@/lib/services/import-service";
@@ -322,7 +321,47 @@ function ImportDrivePanel() {
 }
 
 function ImportUploadPanel() {
-  const [state, action, pending] = useActionState(createImportUploadAction, undefined);
+  const [state, setState] = useState<ImportActionState>(undefined);
+  const [pending, setPending] = useState(false);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setState(undefined);
+
+    try {
+      const formData = new FormData(event.currentTarget);
+      const response = await fetch("/api/admin/imports", {
+        method: "POST",
+        body: formData
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | { ok?: boolean; error?: string; message?: string; data?: ImportExecutionResult }
+        | null;
+
+      if (!response.ok || !payload?.ok || !payload.data || !payload.message) {
+        setState({
+          ok: false,
+          error: payload?.error || "Uploaded PDF import failed."
+        });
+        return;
+      }
+
+      setState({
+        ok: true,
+        message: payload.message,
+        result: payload.data
+      });
+    } catch (error) {
+      setState({
+        ok: false,
+        error: error instanceof Error ? error.message : "Uploaded PDF import failed."
+      });
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
     <article className="panel admin-form-card">
@@ -334,7 +373,7 @@ function ImportUploadPanel() {
         </p>
       </div>
 
-      <form action={action} className="stack">
+      <form onSubmit={handleSubmit} className="stack">
         <div className="form-grid">
           <label className="field field--full">
             <span className="field__label">Fact Sheet PDF</span>

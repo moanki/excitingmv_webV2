@@ -3,6 +3,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 
 import {
   finalizeDriveImportBatch,
+  importUploadedFactSheet,
   processDriveImportSource,
   startDriveImportBatch,
   type ImportLogEntry
@@ -13,6 +14,33 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 export async function POST(request: Request) {
+  const contentType = request.headers.get("content-type") ?? "";
+
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await request.formData();
+    const upload = formData.get("factSheetFile");
+    const result = await importUploadedFactSheet(upload instanceof File ? upload : new File([], ""));
+
+    if (!result.ok) {
+      return NextResponse.json(
+        { ok: false, error: result.error, details: result.details },
+        { status: result.status ?? 500 }
+      );
+    }
+
+    revalidatePath("/admin/imports");
+    revalidatePath("/admin/resorts");
+    revalidatePath("/resorts");
+    revalidatePath("/");
+    revalidateTag("resorts-public");
+
+    return NextResponse.json({
+      ok: true,
+      message: result.data.message,
+      data: result.data
+    });
+  }
+
   const json = await request.json().catch(() => null);
   const mode = typeof json?.mode === "string" ? json.mode : "start";
 
