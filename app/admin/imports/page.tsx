@@ -1,6 +1,9 @@
+import { listImportCheckpoints } from "@/lib/services/import-service";
 import { ImportCenterForms } from "@/app/admin/imports/import-form";
 
 export default async function AdminImportsPage() {
+  const checkpoints = await listImportCheckpoints();
+
   return (
     <section className="stack">
       <div className="admin-page-header">
@@ -14,7 +17,7 @@ export default async function AdminImportsPage() {
         </div>
       </div>
 
-      <ImportCenterForms />
+      <ImportCenterForms checkpoints={checkpoints} />
     </section>
   );
 }

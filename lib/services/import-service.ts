@@ -64,8 +64,49 @@ type DownloadedPdf = {
   bytes: Uint8Array;
 };
 
+type ImportCheckpointPayload = {
+  checkpointVersion: 2;
+  sourceUrl: string;
+  filename: string;
+  notes: string;
+  resorts: ImportedResort[];
+};
+
 type ImportBatchRow = {
   id: string;
+};
+
+type ResortStagingRow = {
+  id: string;
+  batch_id: string;
+  raw_payload: Record<string, unknown> | null;
+  extracted_payload: Record<string, unknown> | null;
+  review_status: string;
+  created_at: string;
+  import_batches:
+    | {
+        batch_name: string;
+        source_type: string;
+      }
+    | Array<{
+        batch_name: string;
+        source_type: string;
+      }>
+    | null;
+};
+
+export type ImportCheckpointRecord = {
+  id: string;
+  batchId: string;
+  batchName: string;
+  sourceType: string;
+  sourceUrl: string;
+  filename: string;
+  notes: string;
+  reviewStatus: string;
+  createdAt: string;
+  resorts: ImportedResort[];
+  canPublish: boolean;
 };
 
 export type ImportLogEntry = {
@@ -261,6 +302,59 @@ function compactStagingPayload(
     truncated:
       sourceFiles.length > MAX_STAGING_ITEMS || stagedPayloads.length > MAX_STAGING_ITEMS
   };
+}
+
+function buildCheckpointPayload(sourceUrl: string, filename: string, extracted: ImportedResortPayload): ImportCheckpointPayload {
+  return {
+    checkpointVersion: 2,
+    sourceUrl,
+    filename,
+    notes: extracted.notes,
+    resorts: extracted.resorts
+  };
+}
+
+function toSaveResortInput(resort: ImportedResort) {
+  const publishing = publishingToStatus(resort.publishingMode);
+
+  return {
+    slug: slugify(resort.slug || resort.name),
+    name: resort.name.trim(),
+    location: resort.location.trim(),
+    category: resort.category.trim(),
+    transferType: resort.transferType.trim(),
+    description: resort.description.trim(),
+    highlights: resort.highlights.filter(Boolean),
+    mealPlans: resort.mealPlans.filter(Boolean),
+    seoTitle: resort.seoTitle.trim() || resort.name.trim(),
+    seoDescription: resort.seoDescription.trim() || resort.description.trim(),
+    seoSummary: resort.seoSummary.trim() || resort.description.trim(),
+    heroImageUrl: resort.heroImageUrl.trim(),
+    galleryMediaUrls: resort.galleryMediaUrls.filter(Boolean),
+    roomTypes: resort.roomTypes
+      .filter((room) => room.name.trim())
+      .map((room) => ({
+        name: room.name.trim(),
+        description: room.description.trim(),
+        seoDescription: room.seoDescription.trim() || room.description.trim(),
+        photoUrl: room.photoUrl.trim(),
+        sizeLabel: room.sizeLabel.trim(),
+        maxOccupancy: room.maxOccupancy,
+        bedType: room.bedType.trim(),
+        amenities: room.amenities.filter(Boolean)
+      })),
+    status: publishing.status,
+    isFeaturedHomepage: publishing.isFeaturedHomepage
+  };
+}
+
+function isDuplicateImportedResort(
+  resort: ImportedResort,
+  existingIndex: ReturnType<typeof buildExistingResortIdentityIndex>
+) {
+  const slug = slugify(resort.slug || resort.name);
+  const normalizedName = normalizeIdentity(resort.name);
+  return existingIndex.slugSet.has(slug) || existingIndex.normalizedNameSet.has(normalizedName);
 }
 
 function normalizeGoogleDriveFileUrl(url: string) {
@@ -586,7 +680,7 @@ export async function processDriveImportSource(input: {
             sourceUrl: input.sourceUrl,
             filename: downloadedPdf.filename
           },
-          compactStagingPayload(input.sourceUrl, [input.sourceUrl], stagedPayloads)
+          buildCheckpointPayload(input.sourceUrl, downloadedPdf.filename, extracted)
         );
 
         return {
@@ -603,10 +697,7 @@ export async function processDriveImportSource(input: {
         };
       }
 
-      const slug = slugify(resort.slug || resort.name);
-      const normalizedName = normalizeIdentity(resort.name);
-
-      if (existingIndex.slugSet.has(slug) || existingIndex.normalizedNameSet.has(normalizedName)) {
+      if (isDuplicateImportedResort(resort, existingIndex)) {
         logs.push({
           sourceUrl: input.sourceUrl,
           filename: downloadedPdf.filename,
@@ -623,7 +714,7 @@ export async function processDriveImportSource(input: {
             sourceUrl: input.sourceUrl,
             filename: downloadedPdf.filename
           },
-          compactStagingPayload(input.sourceUrl, [input.sourceUrl], stagedPayloads)
+          buildCheckpointPayload(input.sourceUrl, downloadedPdf.filename, extracted)
         );
 
         return {
@@ -640,37 +731,7 @@ export async function processDriveImportSource(input: {
         };
       }
 
-      const publishing = publishingToStatus(resort.publishingMode);
-
-      await saveResort({
-        slug,
-        name: resort.name.trim(),
-        location: resort.location.trim(),
-        category: resort.category.trim(),
-        transferType: resort.transferType.trim(),
-        description: resort.description.trim(),
-        highlights: resort.highlights.filter(Boolean),
-        mealPlans: resort.mealPlans.filter(Boolean),
-        seoTitle: resort.seoTitle.trim() || resort.name.trim(),
-        seoDescription: resort.seoDescription.trim() || resort.description.trim(),
-        seoSummary: resort.seoSummary.trim() || resort.description.trim(),
-        heroImageUrl: resort.heroImageUrl.trim(),
-        galleryMediaUrls: resort.galleryMediaUrls.filter(Boolean),
-        roomTypes: resort.roomTypes
-          .filter((room) => room.name.trim())
-          .map((room) => ({
-            name: room.name.trim(),
-            description: room.description.trim(),
-            seoDescription: room.seoDescription.trim() || room.description.trim(),
-            photoUrl: room.photoUrl.trim(),
-            sizeLabel: room.sizeLabel.trim(),
-            maxOccupancy: room.maxOccupancy,
-            bedType: room.bedType.trim(),
-            amenities: room.amenities.filter(Boolean)
-          })),
-        status: publishing.status,
-        isFeaturedHomepage: publishing.isFeaturedHomepage
-      });
+      await saveResort(toSaveResortInput(resort));
 
       logs.push({
         sourceUrl: input.sourceUrl,
@@ -688,7 +749,7 @@ export async function processDriveImportSource(input: {
           sourceUrl: input.sourceUrl,
           filename: downloadedPdf.filename
         },
-        compactStagingPayload(input.sourceUrl, [input.sourceUrl], stagedPayloads)
+        buildCheckpointPayload(input.sourceUrl, downloadedPdf.filename, extracted)
       );
 
       return {
@@ -1097,10 +1158,7 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
           message: "No resort could be extracted from the uploaded PDF."
         });
       } else {
-        const slug = slugify(resort.slug || resort.name);
-        const normalizedName = normalizeIdentity(resort.name);
-
-        if (existingIndex.slugSet.has(slug) || existingIndex.normalizedNameSet.has(normalizedName)) {
+        if (isDuplicateImportedResort(resort, existingIndex)) {
           skippedCount += 1;
           logs.push({
             sourceUrl: downloadedPdf.sourceUrl,
@@ -1112,37 +1170,7 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
             message: `Skipped existing resort: ${resort.name.trim()}.`
           });
         } else {
-          const publishing = publishingToStatus(resort.publishingMode);
-
-          await saveResort({
-            slug,
-            name: resort.name.trim(),
-            location: resort.location.trim(),
-            category: resort.category.trim(),
-            transferType: resort.transferType.trim(),
-            description: resort.description.trim(),
-            highlights: resort.highlights.filter(Boolean),
-            mealPlans: resort.mealPlans.filter(Boolean),
-            seoTitle: resort.seoTitle.trim() || resort.name.trim(),
-            seoDescription: resort.seoDescription.trim() || resort.description.trim(),
-            seoSummary: resort.seoSummary.trim() || resort.description.trim(),
-            heroImageUrl: resort.heroImageUrl.trim(),
-            galleryMediaUrls: resort.galleryMediaUrls.filter(Boolean),
-            roomTypes: resort.roomTypes
-              .filter((room) => room.name.trim())
-              .map((room) => ({
-                name: room.name.trim(),
-                description: room.description.trim(),
-                seoDescription: room.seoDescription.trim() || room.description.trim(),
-                photoUrl: room.photoUrl.trim(),
-                sizeLabel: room.sizeLabel.trim(),
-                maxOccupancy: room.maxOccupancy,
-                bedType: room.bedType.trim(),
-                amenities: room.amenities.filter(Boolean)
-              })),
-            status: publishing.status,
-            isFeaturedHomepage: publishing.isFeaturedHomepage
-          });
+          await saveResort(toSaveResortInput(resort));
 
           importedCount += 1;
           logs.push({
@@ -1167,15 +1195,17 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
       });
     }
 
-    await supabase.from("resort_staging").insert({
-      batch_id: (batchData as ImportBatchRow).id,
-      raw_payload: {
-        source: "upload",
-        filename: downloadedPdf.filename
-      },
-      extracted_payload: compactStagingPayload(downloadedPdf.sourceUrl, [downloadedPdf.sourceUrl], stagedPayloads),
-      review_status: "ready"
-    });
+    if (stagedPayloads[0]) {
+      await insertResortStagingRecord(
+        (batchData as ImportBatchRow).id,
+        {
+          source: "upload",
+          filename: downloadedPdf.filename,
+          sourceUrl: downloadedPdf.sourceUrl
+        },
+        buildCheckpointPayload(downloadedPdf.sourceUrl, downloadedPdf.filename, stagedPayloads[0].extracted)
+      );
+    }
 
     await supabase
       .from("import_batches")
@@ -1321,10 +1351,7 @@ export async function importStoredFactSheet(input: {
           message: "No resort could be extracted from the uploaded PDF."
         });
       } else {
-        const slug = slugify(resort.slug || resort.name);
-        const normalizedName = normalizeIdentity(resort.name);
-
-        if (existingIndex.slugSet.has(slug) || existingIndex.normalizedNameSet.has(normalizedName)) {
+        if (isDuplicateImportedResort(resort, existingIndex)) {
           skippedCount += 1;
           logs.push({
             sourceUrl: downloadedPdf.sourceUrl,
@@ -1336,37 +1363,7 @@ export async function importStoredFactSheet(input: {
             message: `Skipped existing resort: ${resort.name.trim()}.`
           });
         } else {
-          const publishing = publishingToStatus(resort.publishingMode);
-
-          await saveResort({
-            slug,
-            name: resort.name.trim(),
-            location: resort.location.trim(),
-            category: resort.category.trim(),
-            transferType: resort.transferType.trim(),
-            description: resort.description.trim(),
-            highlights: resort.highlights.filter(Boolean),
-            mealPlans: resort.mealPlans.filter(Boolean),
-            seoTitle: resort.seoTitle.trim() || resort.name.trim(),
-            seoDescription: resort.seoDescription.trim() || resort.description.trim(),
-            seoSummary: resort.seoSummary.trim() || resort.description.trim(),
-            heroImageUrl: resort.heroImageUrl.trim(),
-            galleryMediaUrls: resort.galleryMediaUrls.filter(Boolean),
-            roomTypes: resort.roomTypes
-              .filter((room) => room.name.trim())
-              .map((room) => ({
-                name: room.name.trim(),
-                description: room.description.trim(),
-                seoDescription: room.seoDescription.trim() || room.description.trim(),
-                photoUrl: room.photoUrl.trim(),
-                sizeLabel: room.sizeLabel.trim(),
-                maxOccupancy: room.maxOccupancy,
-                bedType: room.bedType.trim(),
-                amenities: room.amenities.filter(Boolean)
-              })),
-            status: publishing.status,
-            isFeaturedHomepage: publishing.isFeaturedHomepage
-          });
+          await saveResort(toSaveResortInput(resort));
 
           importedCount += 1;
           logs.push({
@@ -1391,16 +1388,17 @@ export async function importStoredFactSheet(input: {
       });
     }
 
-    await supabase.from("resort_staging").insert({
-      batch_id: (batchData as ImportBatchRow).id,
-      raw_payload: {
-        source: "stored-upload",
-        filename: downloadedPdf.filename,
-        sourceUrl: downloadedPdf.sourceUrl
-      },
-      extracted_payload: compactStagingPayload(downloadedPdf.sourceUrl, [downloadedPdf.sourceUrl], stagedPayloads),
-      review_status: "ready"
-    });
+    if (stagedPayloads[0]) {
+      await insertResortStagingRecord(
+        (batchData as ImportBatchRow).id,
+        {
+          source: "stored-upload",
+          filename: downloadedPdf.filename,
+          sourceUrl: downloadedPdf.sourceUrl
+        },
+        buildCheckpointPayload(downloadedPdf.sourceUrl, downloadedPdf.filename, stagedPayloads[0].extracted)
+      );
+    }
 
     await supabase
       .from("import_batches")
@@ -1438,6 +1436,124 @@ export async function importStoredFactSheet(input: {
     return {
       ok: false,
       error: error instanceof Error ? error.message : "The stored PDF import failed."
+    };
+  }
+}
+
+function mapImportBatchRelation(
+  relation: ResortStagingRow["import_batches"]
+): { batch_name: string; source_type: string } | null {
+  if (!relation) {
+    return null;
+  }
+
+  return Array.isArray(relation) ? relation[0] ?? null : relation;
+}
+
+function mapCheckpointRow(row: ResortStagingRow): ImportCheckpointRecord {
+  const relation = mapImportBatchRelation(row.import_batches);
+  const extracted = row.extracted_payload ?? {};
+  const raw = row.raw_payload ?? {};
+  const checkpointPayload = extracted as Partial<ImportCheckpointPayload> & {
+    items?: Array<{ resorts?: Array<Record<string, unknown>> }>;
+  };
+  const resorts = Array.isArray(checkpointPayload.resorts) ? (checkpointPayload.resorts as ImportedResort[]) : [];
+  const sourceUrl =
+    typeof checkpointPayload.sourceUrl === "string"
+      ? checkpointPayload.sourceUrl
+      : typeof raw.sourceUrl === "string"
+        ? raw.sourceUrl
+        : "";
+  const filename =
+    typeof checkpointPayload.filename === "string"
+      ? checkpointPayload.filename
+      : typeof raw.filename === "string"
+        ? raw.filename
+        : "Checkpoint";
+
+  return {
+    id: row.id,
+    batchId: row.batch_id,
+    batchName: relation?.batch_name ?? "Import checkpoint",
+    sourceType: relation?.source_type ?? "unknown",
+    sourceUrl,
+    filename,
+    notes: typeof checkpointPayload.notes === "string" ? checkpointPayload.notes : "",
+    reviewStatus: row.review_status,
+    createdAt: row.created_at,
+    resorts,
+    canPublish: resorts.length > 0 && checkpointPayload.checkpointVersion === 2
+  };
+}
+
+export async function listImportCheckpoints(limit = 20): Promise<ImportCheckpointRecord[]> {
+  try {
+    const supabase = createSupabaseAdminClient();
+    const { data, error } = await supabase
+      .from("resort_staging")
+      .select("id,batch_id,raw_payload,extracted_payload,review_status,created_at,import_batches(batch_name,source_type)")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return ((data ?? []) as ResortStagingRow[]).map(mapCheckpointRow);
+  } catch (error) {
+    console.error("Failed to list import checkpoints", error);
+    return [];
+  }
+}
+
+export async function publishImportCheckpoint(input: {
+  checkpointId: string;
+  resortIndex: number;
+}): Promise<ServiceResult<{ resortName: string; slug: string }>> {
+  try {
+    const checkpoints = await listImportCheckpoints(100);
+    const checkpoint = checkpoints.find((item) => item.id === input.checkpointId);
+
+    if (!checkpoint || !checkpoint.canPublish) {
+      return {
+        ok: false,
+        error: "Checkpoint is not available for production publish."
+      };
+    }
+
+    const resort = checkpoint.resorts[input.resortIndex];
+    if (!resort) {
+      return {
+        ok: false,
+        error: "Resort entry not found in the selected checkpoint."
+      };
+    }
+
+    const existingIndex = buildExistingResortIdentityIndex(await listAdminResorts());
+    if (isDuplicateImportedResort(resort, existingIndex)) {
+      return {
+        ok: false,
+        error: `${resort.name.trim()} already exists in resorts.`
+      };
+    }
+
+    const saveInput = toSaveResortInput(resort);
+    await saveResort(saveInput);
+
+    const supabase = createSupabaseAdminClient();
+    await supabase.from("resort_staging").update({ review_status: "published" }).eq("id", checkpoint.id);
+
+    return {
+      ok: true,
+      data: {
+        resortName: resort.name.trim(),
+        slug: saveInput.slug
+      }
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Failed to publish the checkpoint."
     };
   }
 }

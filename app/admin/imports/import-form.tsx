@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { ArchiveRestore, X } from "lucide-react";
 
 import {
   type ImportActionState
 } from "@/app/admin/imports/actions";
-import type { ImportExecutionResult, ImportLogEntry } from "@/lib/services/import-service";
+import type { ImportCheckpointRecord, ImportExecutionResult, ImportLogEntry } from "@/lib/services/import-service";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type DriveImportProgress = {
@@ -18,6 +19,142 @@ type DriveImportProgress = {
   providerUsages: string[];
   logs: ImportLogEntry[];
 };
+
+function formatCheckpointDate(value: string) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(new Date(value));
+}
+
+function CheckpointModal({
+  checkpoints
+}: {
+  checkpoints: ImportCheckpointRecord[];
+}) {
+  const [open, setOpen] = useState(false);
+  const [pendingKey, setPendingKey] = useState("");
+  const [message, setMessage] = useState<string>("");
+  const [error, setError] = useState<string>("");
+
+  async function publishCheckpoint(checkpointId: string, resortIndex: number) {
+    setPendingKey(`${checkpointId}:${resortIndex}`);
+    setMessage("");
+    setError("");
+
+    try {
+      const response = await fetch("/api/admin/imports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          mode: "publish-checkpoint",
+          checkpointId,
+          resortIndex
+        })
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | { ok?: boolean; error?: string; message?: string }
+        | null;
+
+      if (!response.ok || !payload?.ok) {
+        setError(payload?.error || "Checkpoint publish failed.");
+        return;
+      }
+
+      setMessage(payload.message || "Checkpoint published.");
+      window.location.reload();
+    } catch (publishError) {
+      setError(publishError instanceof Error ? publishError.message : "Checkpoint publish failed.");
+    } finally {
+      setPendingKey("");
+    }
+  }
+
+  return (
+    <>
+      <button type="button" className="admin-icon-button" aria-label="Open import checkpoints" onClick={() => setOpen(true)}>
+        <ArchiveRestore className="admin-icon" />
+      </button>
+
+      {open ? (
+        <div className="admin-modal-backdrop" role="presentation" onClick={() => setOpen(false)}>
+          <div className="admin-modal-panel" role="dialog" aria-modal="true" aria-label="Import checkpoints" onClick={(event) => event.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div>
+                <h3>Import Checkpoints</h3>
+                <p>Resume from saved extraction results without re-importing.</p>
+              </div>
+              <button type="button" className="admin-icon-button" aria-label="Close import checkpoints" onClick={() => setOpen(false)}>
+                <X className="admin-icon" />
+              </button>
+            </div>
+
+            {message ? <p className="admin-alert admin-alert--success">{message}</p> : null}
+            {error ? <p className="admin-alert admin-alert--error">{error}</p> : null}
+
+            <div className="admin-checkpoint-list">
+              {checkpoints.length ? (
+                checkpoints.map((checkpoint) => (
+                  <article key={checkpoint.id} className="admin-checkpoint-card">
+                    <div className="admin-checkpoint-card__header">
+                      <div>
+                        <strong>{checkpoint.filename}</strong>
+                        <p>{checkpoint.batchName}</p>
+                      </div>
+                      <span className={`admin-status-badge is-${checkpoint.reviewStatus === "published" ? "approved" : checkpoint.reviewStatus === "ready" ? "pending" : "neutral"}`}>
+                        {checkpoint.reviewStatus}
+                      </span>
+                    </div>
+
+                    <div className="admin-checkpoint-meta">
+                      <span>{formatCheckpointDate(checkpoint.createdAt)}</span>
+                      <span>{checkpoint.sourceType}</span>
+                    </div>
+
+                    {checkpoint.notes ? <p className="admin-checkpoint-notes">{checkpoint.notes}</p> : null}
+
+                    {checkpoint.resorts.length ? (
+                      <div className="admin-checkpoint-resorts">
+                        {checkpoint.resorts.map((resort, resortIndex) => (
+                          <div key={`${checkpoint.id}-${resortIndex}`} className="admin-checkpoint-resort">
+                            <div>
+                              <strong>{resort.name}</strong>
+                              <p>{resort.location || "Maldives"} · {resort.category || "Resort"}</p>
+                            </div>
+                            <button
+                              type="button"
+                              className="admin-btn admin-btn--primary"
+                              disabled={!checkpoint.canPublish || pendingKey === `${checkpoint.id}:${resortIndex}`}
+                              onClick={() => publishCheckpoint(checkpoint.id, resortIndex)}
+                            >
+                              {pendingKey === `${checkpoint.id}:${resortIndex}` ? "Adding..." : "Add to Production"}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="field__help">Legacy checkpoint summary only. Re-import once if you need a publishable checkpoint.</p>
+                    )}
+                  </article>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <strong>No checkpoints saved yet.</strong>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
 
 function ImportProgress({
   pending,
@@ -471,9 +608,12 @@ function ImportUploadPanel() {
   );
 }
 
-export function ImportCenterForms() {
+export function ImportCenterForms({ checkpoints }: { checkpoints: ImportCheckpointRecord[] }) {
   return (
     <div className="stack">
+      <div className="admin-page-actions admin-page-actions--end">
+        <CheckpointModal checkpoints={checkpoints} />
+      </div>
       <ImportDrivePanel />
       <ImportUploadPanel />
     </div>

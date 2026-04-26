@@ -5,6 +5,7 @@ import {
   finalizeDriveImportBatch,
   importStoredFactSheet,
   importUploadedFactSheet,
+  publishImportCheckpoint,
   processDriveImportSource,
   startDriveImportBatch,
   type ImportLogEntry
@@ -213,6 +214,37 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       message: result.data.message,
+      data: result.data
+    });
+  }
+
+  if (mode === "publish-checkpoint") {
+    if (!json?.checkpointId || typeof json?.resortIndex !== "number") {
+      return NextResponse.json({ ok: false, error: "Invalid checkpoint publish request." }, { status: 400 });
+    }
+
+    const result = await publishImportCheckpoint({
+      checkpointId: String(json.checkpointId),
+      resortIndex: Number(json.resortIndex)
+    });
+
+    if (!result.ok) {
+      return NextResponse.json(
+        { ok: false, error: result.error, details: result.details },
+        { status: result.status ?? 500 }
+      );
+    }
+
+    revalidatePath("/admin/imports");
+    revalidatePath("/admin/resorts");
+    revalidatePath("/resorts");
+    revalidatePath(`/resorts/${result.data.slug}`);
+    revalidatePath("/");
+    revalidateTag("resorts-public");
+
+    return NextResponse.json({
+      ok: true,
+      message: `${result.data.resortName} added to production.`,
       data: result.data
     });
   }
