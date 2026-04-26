@@ -113,11 +113,11 @@ export function LiveChatWidget() {
   return (
     <div className={`chat-widget ${open ? "is-open" : ""}`}>
       <button className="chat-toggle" type="button" onClick={() => setOpen((value) => !value)}>
-        {open ? "Close chat" : "Live chat"}
+        {open ? "Close chat" : "Chat now"}
       </button>
       {open ? (
         <div className="chat-panel">
-          <p className="eyebrow">Live Support</p>
+          <p className="eyebrow">Chat Now</p>
           {conversation ? (
             <div className="stack">
               <div className="chat-messages">

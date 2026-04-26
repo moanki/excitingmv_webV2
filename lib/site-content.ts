@@ -414,7 +414,7 @@ export const defaultFooterContent: FooterContent = {
 
 export const defaultWhatsAppSettings: WhatsAppSettings = {
   enabled: true,
-  label: "Chat on WhatsApp",
+  label: "Chat Now",
   number: "+9600000000",
   link: "https://wa.me/9600000000",
   presetMessage: "Hello Exciting Maldives, we would like partner support."

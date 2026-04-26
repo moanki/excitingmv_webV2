@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Inter, Playfair_Display } from "next/font/google";
+import { MessageCircle } from "lucide-react";
 
 import "@/app/globals.css";
 import { LiveChatWidget } from "@/components/live-chat-widget";
@@ -61,7 +62,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             rel="noreferrer"
             aria-label={whatsApp.label}
           >
-            <span>{whatsApp.label}</span>
+            <MessageCircle size={18} />
+            <span>{whatsApp.label || "Chat Now"}</span>
           </a>
         ) : null}
         <LiveChatWidget />

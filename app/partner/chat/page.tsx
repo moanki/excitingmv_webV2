@@ -3,7 +3,7 @@ import { sampleMessages } from "@/lib/sample-data";
 export default function PartnerChatPage() {
   return (
     <section>
-      <p className="eyebrow">Live Support</p>
+      <p className="eyebrow">Chat Now</p>
       <h1 className="section-title">Realtime sales support for partner questions.</h1>
       <div className="stack">
         {sampleMessages.map((message) => (

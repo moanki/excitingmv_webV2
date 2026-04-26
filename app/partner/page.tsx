@@ -18,7 +18,7 @@ export default async function PartnerDashboardPage() {
           <strong>{resources.length}</strong>
         </article>
         <article className="stat-card">
-          <p className="eyebrow">Live Support</p>
+          <p className="eyebrow">Chat Now</p>
           <strong>Chat Enabled</strong>
         </article>
       </div>

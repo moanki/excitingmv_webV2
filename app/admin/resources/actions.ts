@@ -18,6 +18,7 @@ export async function saveResourceAction(formData: FormData) {
   });
 
   revalidatePath("/admin/resources");
+  revalidatePath("/admin/resource-permissions");
   revalidatePath("/partner/resources");
   revalidatePath("/partner");
 }
@@ -30,6 +31,7 @@ export async function deleteResourceAction(formData: FormData) {
 
   await deleteResource(id);
   revalidatePath("/admin/resources");
+  revalidatePath("/admin/resource-permissions");
   revalidatePath("/partner/resources");
   revalidatePath("/partner");
 }

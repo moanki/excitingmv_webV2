@@ -11,6 +11,7 @@ import {
   LayoutTemplate,
   LifeBuoy,
   Mail,
+  KeyRound,
   Settings2,
   Shield,
   Sparkles,
@@ -50,13 +51,13 @@ const navGroups: NavGroup[] = [
       {
         href: "/admin/partners",
         label: "Partners",
-        description: "Review registrations and status changes",
+        description: "Queue, approvals, and exports",
         icon: Building2
       },
       {
         href: "/admin/newsletters",
-        label: "Newsletter Leads",
-        description: "Lead capture and export queue",
+        label: "Newsletter",
+        description: "Leads and exports",
         icon: Mail
       },
       {
@@ -78,14 +79,20 @@ const navGroups: NavGroup[] = [
       },
       {
         href: "/admin/resources",
-        label: "Resources",
-        description: "Partner documents and access",
+        label: "Resource Library",
+        description: "Files, links, and statuses",
         icon: FolderKanban
+      },
+      {
+        href: "/admin/resource-permissions",
+        label: "Resource Permissions",
+        description: "Partner access and assignments",
+        icon: KeyRound
       },
       {
         href: "/admin/imports",
         label: "AI Import Center",
-        description: "Batch intake and extraction review",
+        description: "Import intake and review",
         icon: Sparkles
       },
       {
@@ -118,11 +125,11 @@ const navGroups: NavGroup[] = [
 const pageMeta: Record<string, { title: string; description: string }> = {
   "/admin": {
     title: "Admin Dashboard",
-    description: "Operational pulse across approvals, content, and access control."
+    description: ""
   },
   "/admin/partners": {
     title: "Partner Queue",
-    description: "Review registrations, decisions, and follow-up context."
+    description: ""
   },
   "/admin/resorts": {
     title: "Resort Manager",
@@ -134,11 +141,23 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   },
   "/admin/resources": {
     title: "Resource Library",
-    description: "Organize protected files and public resource inventory."
+    description: ""
+  },
+  "/admin/resources/new": {
+    title: "Add Resource",
+    description: ""
+  },
+  "/admin/resource-permissions": {
+    title: "Resource Permissions",
+    description: ""
+  },
+  "/admin/resource-permissions/new": {
+    title: "Create Permission",
+    description: ""
   },
   "/admin/newsletters": {
     title: "Newsletter Leads",
-    description: "Monitor new leads and export lists for outreach."
+    description: ""
   },
   "/admin/chat": {
     title: "Chat Inbox",
@@ -146,7 +165,7 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   },
   "/admin/imports": {
     title: "AI Import Center",
-    description: "Track batch intake, extraction status, and review flow."
+    description: ""
   },
   "/admin/settings": {
     title: "Site Settings",
@@ -154,7 +173,7 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   },
   "/admin/user-access": {
     title: "User Access",
-    description: "Create admins, assign access, and manage active users."
+    description: ""
   },
   "/admin/roles": {
     title: "Roles",
@@ -205,7 +224,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <p className="admin-kicker">Exciting Maldives</p>
           <div>
             <h1>Admin Center</h1>
-            <p>Quiet, structured workspace for operations, content, and approvals.</p>
+            <p>Operations workspace</p>
           </div>
         </div>
 
@@ -251,7 +270,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <div className="admin-topbar-copy">
             <p className="admin-breadcrumb">Admin Center / {current.title}</p>
             <h2>{current.title}</h2>
-            <p>{current.description}</p>
+            {current.description ? <p>{current.description}</p> : null}
           </div>
           <div className="admin-topbar-actions">
             <button type="button" className="admin-icon-button" aria-label="Notifications">

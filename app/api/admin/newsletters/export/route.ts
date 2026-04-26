@@ -4,8 +4,17 @@ function csvEscape(value: string) {
   return `"${String(value ?? "").replace(/"/g, '""')}"`;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const selectedIds = (url.searchParams.get("ids") ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
   const submissions = await listNewsletterSubmissions();
+  const rowsToExport = selectedIds.length
+    ? submissions.filter((submission) => selectedIds.includes(submission.id))
+    : submissions;
   const rows = [
     [
       "Full Name",
@@ -18,7 +27,7 @@ export async function GET() {
       "Status",
       "Created At"
     ],
-    ...submissions.map((submission) => [
+    ...rowsToExport.map((submission) => [
       submission.fullName,
       submission.agencyName,
       submission.email,
