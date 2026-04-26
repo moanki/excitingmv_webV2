@@ -1,6 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-const SITE_ASSET_BUCKET = "site-assets";
+export const SITE_ASSET_BUCKET = "site-assets";
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 const SITE_ASSET_PREFIXES = [
   "homepage/hero",

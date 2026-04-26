@@ -343,17 +343,47 @@ function ImportUploadPanel() {
       }
 
       const supabase = createSupabaseBrowserClient();
-      const safeName = upload.name
-        .toLowerCase()
-        .replace(/[^a-z0-9.]+/g, "-")
-        .replace(/-+/g, "-")
-        .replace(/^-+|-+$/g, "");
-      const storagePath = `imports/${Date.now()}-${crypto.randomUUID()}-${safeName || "fact-sheet.pdf"}`;
-      const uploadResult = await supabase.storage.from("site-assets").upload(storagePath, upload, {
-        cacheControl: "3600",
-        contentType: upload.type || "application/pdf",
-        upsert: true
+      const signedUploadResponse = await fetch("/api/admin/imports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          mode: "create-upload-url",
+          filename: upload.name,
+          contentType: upload.type || "application/pdf"
+        })
       });
+
+      const signedUploadPayload = (await signedUploadResponse.json().catch(() => null)) as
+        | {
+            ok?: boolean;
+            error?: string;
+            data?: {
+              bucket: string;
+              path: string;
+              token: string;
+              publicUrl: string;
+              contentType: string;
+            };
+          }
+        | null;
+
+      if (!signedUploadResponse.ok || !signedUploadPayload?.ok || !signedUploadPayload.data) {
+        setState({
+          ok: false,
+          error: signedUploadPayload?.error || "Could not prepare PDF upload."
+        });
+        return;
+      }
+
+      const uploadResult = await supabase.storage
+        .from(signedUploadPayload.data.bucket)
+        .uploadToSignedUrl(signedUploadPayload.data.path, signedUploadPayload.data.token, upload, {
+          cacheControl: "3600",
+          contentType: signedUploadPayload.data.contentType,
+          upsert: true
+        });
 
       if (uploadResult.error) {
         setState({
@@ -363,7 +393,6 @@ function ImportUploadPanel() {
         return;
       }
 
-      const { data: publicUrlData } = supabase.storage.from("site-assets").getPublicUrl(storagePath);
       const response = await fetch("/api/admin/imports", {
         method: "POST",
         headers: {
@@ -371,7 +400,7 @@ function ImportUploadPanel() {
         },
         body: JSON.stringify({
           mode: "upload-url",
-          sourceUrl: publicUrlData.publicUrl,
+          sourceUrl: signedUploadPayload.data.publicUrl,
           filename: upload.name
         })
       });

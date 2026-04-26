@@ -9,10 +9,20 @@ import {
   startDriveImportBatch,
   type ImportLogEntry
 } from "@/lib/services/import-service";
+import { SITE_ASSET_BUCKET } from "@/lib/storage/site-assets";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { aiImportRequestSchema } from "@/lib/validations";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
+
+function slugFilename(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9.]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 export async function POST(request: Request) {
   const contentType = request.headers.get("content-type") ?? "";
@@ -98,6 +108,43 @@ export async function POST(request: Request) {
       ok: true,
       message: result.data.message,
       data: result.data
+    });
+  }
+
+  if (mode === "create-upload-url") {
+    const filename = String(json?.filename ?? "").trim();
+    const contentType = String(json?.contentType ?? "").trim() || "application/pdf";
+
+    if (!filename) {
+      return NextResponse.json({ ok: false, error: "Filename is required." }, { status: 400 });
+    }
+
+    const safeName = slugFilename(filename) || "fact-sheet.pdf";
+    const storagePath = `imports/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
+    const supabase = createSupabaseAdminClient();
+    const signed = await supabase.storage.from(SITE_ASSET_BUCKET).createSignedUploadUrl(storagePath, {
+      upsert: true
+    });
+
+    if (signed.error || !signed.data) {
+      return NextResponse.json(
+        { ok: false, error: signed.error?.message ?? "Failed to create upload URL." },
+        { status: 500 }
+      );
+    }
+
+    const { data: publicUrlData } = supabase.storage.from(SITE_ASSET_BUCKET).getPublicUrl(storagePath);
+
+    return NextResponse.json({
+      ok: true,
+      data: {
+        bucket: SITE_ASSET_BUCKET,
+        path: storagePath,
+        token: signed.data.token,
+        signedUrl: signed.data.signedUrl,
+        publicUrl: publicUrlData.publicUrl,
+        contentType
+      }
     });
   }
 
