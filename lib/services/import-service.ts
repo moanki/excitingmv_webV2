@@ -24,6 +24,22 @@ export type ImportExecutionResult = {
   logs: ImportLogEntry[];
 };
 
+export type DriveImportStartResult = {
+  batchId: string;
+  sourceFiles: string[];
+  message: string;
+};
+
+export type ImportExecutionDelta = {
+  processedSources: number;
+  importedResorts: number;
+  skippedSources: number;
+  warningCount: number;
+  errorCount: number;
+  providerUsage: string | null;
+  logs: ImportLogEntry[];
+};
+
 type ImportRow = {
   id: string;
   batch_name: string;
@@ -275,6 +291,53 @@ async function resolveGoogleDriveSources(url: string) {
   return uniqueMatches;
 }
 
+async function createImportBatchRecord(batchName: string, sourceType: string, filePath: string) {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("import_batches")
+    .insert({
+      batch_name: batchName,
+      source_type: sourceType,
+      file_path: filePath,
+      status: "processing"
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    throw new Error("Failed to start the import.");
+  }
+
+  return (data as ImportBatchRow).id;
+}
+
+async function insertResortStagingRecord(
+  batchId: string,
+  rawPayload: Record<string, unknown>,
+  extractedPayload: Record<string, unknown>
+) {
+  const supabase = createSupabaseAdminClient();
+
+  try {
+    await supabase.from("resort_staging").insert({
+      batch_id: batchId,
+      raw_payload: rawPayload,
+      extracted_payload: extractedPayload,
+      review_status: "ready"
+    });
+  } catch (error) {
+    console.error("Failed to store import staging payload", error);
+  }
+}
+
+function deriveBatchStatus(importedCount: number, errorCount: number) {
+  if (errorCount > 0) {
+    return importedCount > 0 ? "completed_with_errors" : "failed";
+  }
+
+  return importedCount > 0 ? "completed" : "completed_no_new_resorts";
+}
+
 async function downloadPdfSource(sourceUrl: string, index: number): Promise<DownloadedPdf> {
   const response = await fetch(sourceUrl, { cache: "no-store" });
   if (!response.ok) {
@@ -318,6 +381,289 @@ async function createDownloadedPdfFromUpload(file: File): Promise<DownloadedPdf>
     filename,
     bytes
   };
+}
+
+export async function startDriveImportBatch(
+  input: AiImportRequestInput
+): Promise<ServiceResult<DriveImportStartResult>> {
+  const parsed = aiImportRequestSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error: parsed.error.issues[0]?.message ?? "Enter a valid Google Drive URL."
+    };
+  }
+
+  try {
+    const sourceUrl = parsed.data.googleDriveUrl;
+    const sourceFiles = await resolveGoogleDriveSources(sourceUrl);
+    const batchId = await createImportBatchRecord(createBatchName(sourceUrl), "google_drive_pdf", sourceUrl);
+
+    return {
+      ok: true,
+      data: {
+        batchId,
+        sourceFiles,
+        message: `Found ${sourceFiles.length} PDF${sourceFiles.length === 1 ? "" : "s"} to import.`
+      }
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Failed to prepare the Google Drive import."
+    };
+  }
+}
+
+export async function processDriveImportSource(input: {
+  batchId: string;
+  sourceUrl: string;
+  sourceIndex: number;
+}): Promise<ServiceResult<ImportExecutionDelta>> {
+  try {
+    const existingResorts = await listAdminResorts();
+    const existingSlugs = new Set(existingResorts.map((resort) => slugify(resort.slug)));
+    const existingNames = new Set(existingResorts.map((resort) => resort.name.trim().toLowerCase()));
+    const downloadedPdf = await downloadPdfSource(input.sourceUrl, input.sourceIndex);
+    const logs: ImportLogEntry[] = [
+      {
+        sourceUrl: input.sourceUrl,
+        filename: downloadedPdf.filename,
+        status: "processing",
+        provider: "none",
+        message: "Downloaded fact sheet and started extraction."
+      }
+    ];
+    const stagedPayloads: Array<{ sourceUrl: string; extracted: ImportedResortPayload }> = [];
+
+    try {
+      const extraction = await extractImportedResortsFromPdf(downloadedPdf);
+      const { data: extracted, usedModel, usedProvider } = extraction;
+      const providerUsage = `${usedProvider}:${usedModel}`;
+      stagedPayloads.push({ sourceUrl: input.sourceUrl, extracted });
+
+      const resort = extracted.resorts.find((item) => item.name.trim());
+      if (!resort) {
+        logs.push({
+          sourceUrl: input.sourceUrl,
+          filename: downloadedPdf.filename,
+          status: "warning",
+          provider: usedProvider,
+          model: usedModel,
+          message: "No resort could be extracted from this PDF."
+        });
+
+        await insertResortStagingRecord(
+          input.batchId,
+          {
+            sourceUrl: input.sourceUrl,
+            filename: downloadedPdf.filename
+          },
+          compactStagingPayload(input.sourceUrl, [input.sourceUrl], stagedPayloads)
+        );
+
+        return {
+          ok: true,
+          data: {
+            processedSources: 1,
+            importedResorts: 0,
+            skippedSources: 0,
+            warningCount: 1,
+            errorCount: 0,
+            providerUsage,
+            logs: compactLogs(logs)
+          }
+        };
+      }
+
+      const slug = slugify(resort.slug || resort.name);
+      const normalizedName = resort.name.trim().toLowerCase();
+
+      if (existingSlugs.has(slug) || existingNames.has(normalizedName)) {
+        logs.push({
+          sourceUrl: input.sourceUrl,
+          filename: downloadedPdf.filename,
+          status: "skipped",
+          provider: usedProvider,
+          model: usedModel,
+          resortName: resort.name.trim(),
+          message: `Skipped existing resort: ${resort.name.trim()}.`
+        });
+
+        await insertResortStagingRecord(
+          input.batchId,
+          {
+            sourceUrl: input.sourceUrl,
+            filename: downloadedPdf.filename
+          },
+          compactStagingPayload(input.sourceUrl, [input.sourceUrl], stagedPayloads)
+        );
+
+        return {
+          ok: true,
+          data: {
+            processedSources: 1,
+            importedResorts: 0,
+            skippedSources: 1,
+            warningCount: 0,
+            errorCount: 0,
+            providerUsage,
+            logs: compactLogs(logs)
+          }
+        };
+      }
+
+      const publishing = publishingToStatus(resort.publishingMode);
+
+      await saveResort({
+        slug,
+        name: resort.name.trim(),
+        location: resort.location.trim(),
+        category: resort.category.trim(),
+        transferType: resort.transferType.trim(),
+        description: resort.description.trim(),
+        highlights: resort.highlights.filter(Boolean),
+        mealPlans: resort.mealPlans.filter(Boolean),
+        seoTitle: resort.seoTitle.trim() || resort.name.trim(),
+        seoDescription: resort.seoDescription.trim() || resort.description.trim(),
+        seoSummary: resort.seoSummary.trim() || resort.description.trim(),
+        heroImageUrl: resort.heroImageUrl.trim(),
+        galleryMediaUrls: resort.galleryMediaUrls.filter(Boolean),
+        roomTypes: resort.roomTypes
+          .filter((room) => room.name.trim())
+          .map((room) => ({
+            name: room.name.trim(),
+            description: room.description.trim(),
+            seoDescription: room.seoDescription.trim() || room.description.trim(),
+            photoUrl: room.photoUrl.trim(),
+            sizeLabel: room.sizeLabel.trim(),
+            maxOccupancy: room.maxOccupancy,
+            bedType: room.bedType.trim(),
+            amenities: room.amenities.filter(Boolean)
+          })),
+        status: publishing.status,
+        isFeaturedHomepage: publishing.isFeaturedHomepage
+      });
+
+      logs.push({
+        sourceUrl: input.sourceUrl,
+        filename: downloadedPdf.filename,
+        status: "imported",
+        provider: usedProvider,
+        model: usedModel,
+        resortName: resort.name.trim(),
+        message: `Imported resort: ${resort.name.trim()}.`
+      });
+
+      await insertResortStagingRecord(
+        input.batchId,
+        {
+          sourceUrl: input.sourceUrl,
+          filename: downloadedPdf.filename
+        },
+        compactStagingPayload(input.sourceUrl, [input.sourceUrl], stagedPayloads)
+      );
+
+      return {
+        ok: true,
+        data: {
+          processedSources: 1,
+          importedResorts: 1,
+          skippedSources: 0,
+          warningCount: 0,
+          errorCount: 0,
+          providerUsage,
+          logs: compactLogs(logs)
+        }
+      };
+    } catch (error) {
+      logs.push({
+        sourceUrl: input.sourceUrl,
+        filename: downloadedPdf.filename,
+        status: "error",
+        provider: "none",
+        message: error instanceof Error ? error.message : "Import failed for this file."
+      });
+
+      return {
+        ok: true,
+        data: {
+          processedSources: 1,
+          importedResorts: 0,
+          skippedSources: 0,
+          warningCount: 0,
+          errorCount: 1,
+          providerUsage: null,
+          logs: compactLogs(logs)
+        }
+      };
+    }
+  } catch (error) {
+    return {
+      ok: true,
+      data: {
+        processedSources: 1,
+        importedResorts: 0,
+        skippedSources: 0,
+        warningCount: 0,
+        errorCount: 1,
+        providerUsage: null,
+        logs: [
+          {
+            sourceUrl: input.sourceUrl,
+            filename: guessFilenameFromUrl(input.sourceUrl, input.sourceIndex),
+            status: "error",
+            provider: "none",
+            message: error instanceof Error ? error.message : "Import failed for this file."
+          }
+        ]
+      }
+    };
+  }
+}
+
+export async function finalizeDriveImportBatch(input: {
+  batchId: string;
+  totalSources: number;
+  importedResorts: number;
+  skippedSources: number;
+  warningCount: number;
+  errorCount: number;
+  providerUsages: string[];
+  logs: ImportLogEntry[];
+}): Promise<ServiceResult<ImportExecutionResult>> {
+  try {
+    const supabase = createSupabaseAdminClient();
+    await supabase
+      .from("import_batches")
+      .update({
+        status: deriveBatchStatus(input.importedResorts, input.errorCount)
+      })
+      .eq("id", input.batchId);
+
+    const providerUsed = input.providerUsages.length ? Array.from(new Set(input.providerUsages)).join(", ") : "none";
+
+    return {
+      ok: true,
+      data: {
+        batchId: input.batchId,
+        importedResorts: input.importedResorts,
+        processedSources: input.totalSources,
+        totalSources: input.totalSources,
+        skippedSources: input.skippedSources,
+        warningCount: input.warningCount,
+        errorCount: input.errorCount,
+        providerUsed,
+        message: `Processed ${input.totalSources} PDF${input.totalSources === 1 ? "" : "s"}: imported ${input.importedResorts}, skipped ${input.skippedSources}, warnings ${input.warningCount}, errors ${input.errorCount}.`,
+        logs: compactLogs(input.logs)
+      }
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "Failed to finalize the Google Drive import."
+    };
+  }
 }
 
 export async function createImportBatch(

@@ -3,24 +3,41 @@
 import { useActionState, useState, type FormEvent } from "react";
 
 import {
-  createImportBatchAction,
   createImportUploadAction,
   type ImportActionState
 } from "@/app/admin/imports/actions";
 import type { ImportExecutionResult, ImportLogEntry } from "@/lib/services/import-service";
 
+type DriveImportProgress = {
+  totalSources: number;
+  processedSources: number;
+  importedResorts: number;
+  skippedSources: number;
+  warningCount: number;
+  errorCount: number;
+  providerUsages: string[];
+  logs: ImportLogEntry[];
+};
+
 function ImportProgress({
   pending,
   state,
-  pendingLabel
+  pendingLabel,
+  liveProgress
 }: {
   pending: boolean;
   state: ImportActionState;
   pendingLabel: string;
+  liveProgress?: DriveImportProgress | null;
 }) {
-  const progressValue = pending ? 68 : state?.ok ? 100 : 0;
+  const processedSources = pending ? liveProgress?.processedSources ?? 0 : state?.ok ? state.result.processedSources : 0;
+  const totalSources = pending ? liveProgress?.totalSources ?? 0 : state?.ok ? state.result.totalSources : 0;
+  const progressValue =
+    pending && totalSources > 0 ? Math.max(8, Math.min(96, Math.round((processedSources / totalSources) * 100))) : state?.ok ? 100 : 0;
   const progressLabel = pending
-    ? pendingLabel
+    ? totalSources > 0
+      ? `${pendingLabel} (${processedSources}/${totalSources})`
+      : pendingLabel
     : state?.ok
       ? `Completed ${state.result.processedSources} of ${state.result.totalSources} files`
       : "Waiting to start";
@@ -109,40 +126,141 @@ function ImportRunSummary({ state }: { state: ImportActionState }) {
 function ImportDrivePanel() {
   const [state, setState] = useState<ImportActionState>(undefined);
   const [pending, setPending] = useState(false);
+  const [liveProgress, setLiveProgress] = useState<DriveImportProgress | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
     setState(undefined);
+    setLiveProgress(null);
 
     try {
       const formData = new FormData(event.currentTarget);
-      const response = await fetch("/api/admin/imports", {
+      const startResponse = await fetch("/api/admin/imports", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
+          mode: "start",
           googleDriveUrl: String(formData.get("googleDriveUrl") ?? "")
         })
       });
 
-      const payload = (await response.json().catch(() => null)) as
+      const startPayload = (await startResponse.json().catch(() => null)) as
+        | {
+            ok?: boolean;
+            error?: string;
+            message?: string;
+            data?: { batchId: string; sourceFiles: string[]; message: string };
+          }
+        | null;
+
+      if (!startResponse.ok || !startPayload?.ok || !startPayload.data || !startPayload.message) {
+        setState({
+          ok: false,
+          error: startPayload?.error || "Google Drive import failed."
+        });
+        return;
+      }
+
+      const progress: DriveImportProgress = {
+        totalSources: startPayload.data.sourceFiles.length,
+        processedSources: 0,
+        importedResorts: 0,
+        skippedSources: 0,
+        warningCount: 0,
+        errorCount: 0,
+        providerUsages: [],
+        logs: []
+      };
+      setLiveProgress(progress);
+
+      for (let index = 0; index < startPayload.data.sourceFiles.length; index += 1) {
+        const processResponse = await fetch("/api/admin/imports", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            mode: "process",
+            batchId: startPayload.data.batchId,
+            sourceUrl: startPayload.data.sourceFiles[index],
+            sourceIndex: index
+          })
+        });
+
+        const processPayload = (await processResponse.json().catch(() => null)) as
+          | {
+              ok?: boolean;
+              error?: string;
+              data?: {
+                processedSources: number;
+                importedResorts: number;
+                skippedSources: number;
+                warningCount: number;
+                errorCount: number;
+                providerUsage: string | null;
+                logs: ImportLogEntry[];
+              };
+            }
+          | null;
+
+        if (!processResponse.ok || !processPayload?.ok || !processPayload.data) {
+          setState({
+            ok: false,
+            error: processPayload?.error || "Google Drive import failed while processing a resort PDF."
+          });
+          setPending(false);
+          return;
+        }
+
+        progress.processedSources += processPayload.data.processedSources;
+        progress.importedResorts += processPayload.data.importedResorts;
+        progress.skippedSources += processPayload.data.skippedSources;
+        progress.warningCount += processPayload.data.warningCount;
+        progress.errorCount += processPayload.data.errorCount;
+        if (processPayload.data.providerUsage) {
+          progress.providerUsages.push(processPayload.data.providerUsage);
+        }
+        progress.logs = [...progress.logs, ...processPayload.data.logs];
+        setLiveProgress({ ...progress, logs: [...progress.logs] });
+      }
+
+      const finalizeResponse = await fetch("/api/admin/imports", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          mode: "finalize",
+          batchId: startPayload.data.batchId,
+          totalSources: progress.totalSources,
+          importedResorts: progress.importedResorts,
+          skippedSources: progress.skippedSources,
+          warningCount: progress.warningCount,
+          errorCount: progress.errorCount,
+          providerUsages: progress.providerUsages,
+          logs: progress.logs
+        })
+      });
+
+      const finalizePayload = (await finalizeResponse.json().catch(() => null)) as
         | { ok?: boolean; error?: string; message?: string; data?: ImportExecutionResult }
         | null;
 
-      if (!response.ok || !payload?.ok || !payload.data || !payload.message) {
+      if (!finalizeResponse.ok || !finalizePayload?.ok || !finalizePayload.data || !finalizePayload.message) {
         setState({
           ok: false,
-          error: payload?.error || "Google Drive import failed."
+          error: finalizePayload?.error || "Google Drive import could not be finalized."
         });
         return;
       }
 
       setState({
         ok: true,
-        message: payload.message,
-        result: payload.data
+        message: finalizePayload.message,
+        result: finalizePayload.data
       });
     } catch (error) {
       setState({
@@ -181,7 +299,12 @@ function ImportDrivePanel() {
           </label>
         </div>
 
-        <ImportProgress pending={pending} state={state} pendingLabel="Importing Google Drive PDFs" />
+        <ImportProgress
+          pending={pending}
+          state={state}
+          pendingLabel="Importing Google Drive PDFs"
+          liveProgress={liveProgress}
+        />
 
         <div className="admin-form-actions">
           <button className="admin-btn admin-btn--primary" type="submit" disabled={pending}>
