@@ -235,6 +235,20 @@ function providerFromModel(model: string) {
   return model.split("/")[0] || "unknown";
 }
 
+function extractJsonCandidate(value: string) {
+  const trimmed = value.trim();
+  const codeFenceMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const candidate = codeFenceMatch?.[1]?.trim() || trimmed;
+  const firstBrace = candidate.indexOf("{");
+  const lastBrace = candidate.lastIndexOf("}");
+
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    return candidate.slice(firstBrace, lastBrace + 1);
+  }
+
+  return candidate;
+}
+
 function extractOutputText(payload: GatewayResponsesPayload) {
   if (typeof payload.output_text === "string" && payload.output_text.trim()) {
     return payload.output_text.trim();
@@ -297,6 +311,78 @@ async function getActiveModelChain(purpose: GatewayPurpose) {
   }
 
   return active;
+}
+
+async function parseGatewayStructuredOutput<T>(options: {
+  rawText: string;
+  schema: z.ZodType<T>;
+  schemaName: string;
+  jsonSchema: object;
+  purpose: GatewayPurpose;
+}) {
+  const candidate = extractJsonCandidate(options.rawText);
+
+  try {
+    return options.schema.parse(JSON.parse(candidate));
+  } catch (error) {
+    const attemptedModels = await getActiveModelChain(options.purpose);
+    const repairResponse = await fetch("https://ai-gateway.vercel.sh/v1/responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getGatewayToken()}`
+      },
+      body: JSON.stringify({
+        model: attemptedModels[0],
+        input: [
+          {
+            type: "message",
+            role: "user",
+            content: [
+              {
+                type: "input_text",
+                text:
+                  "Repair the following malformed JSON-like model output into valid strict JSON matching the required schema. Preserve the extracted facts only. Do not invent facts. If a field is missing, use an empty string, empty array, or null as appropriate. Return JSON only.\n\nMalformed output:\n" +
+                  candidate
+              }
+            ]
+          }
+        ],
+        text: {
+          format: {
+            type: "json_schema",
+            name: options.schemaName,
+            strict: true,
+            schema: options.jsonSchema
+          }
+        },
+        reasoning: {
+          effort: "low"
+        },
+        providerOptions: {
+          gateway: {
+            models: attemptedModels.slice(1),
+            tags: ["feature:structured-json-repair", `surface:${options.purpose}`]
+          }
+        }
+      })
+    });
+
+    const repairPayload = (await repairResponse.json()) as GatewayResponsesPayload;
+    if (!repairResponse.ok) {
+      throw new Error(
+        repairPayload.error?.message ||
+          (error instanceof Error ? error.message : "Failed to parse structured AI output.")
+      );
+    }
+
+    const repairedText = extractOutputText(repairPayload);
+    if (!repairedText) {
+      throw new Error("The AI gateway returned empty repaired JSON output.");
+    }
+
+    return options.schema.parse(JSON.parse(extractJsonCandidate(repairedText)));
+  }
 }
 
 function logGatewayOutcome(feature: string, result: { usedModel: string; attemptedModels: string[] }) {
@@ -381,7 +467,13 @@ Resort input:
     throw new Error("Vercel AI Gateway returned an empty SEO response.");
   }
 
-  const parsed = resortSeoOutputSchema.parse(JSON.parse(outputText));
+  const parsed = await parseGatewayStructuredOutput({
+    rawText: outputText,
+    schema: resortSeoOutputSchema,
+    schemaName: "resort_seo_fields",
+    jsonSchema: resortSeoJsonSchema,
+    purpose: "resortSeo"
+  });
   const usedModel = payload.model || attemptedModels[0];
   const data = {
     seoTitle: sanitizeLine(parsed.seoTitle, 70),
@@ -489,7 +581,13 @@ Source file: ${document.filename}`
     throw new Error("Vercel AI Gateway returned an empty resort import response.");
   }
 
-  const parsed = importedResortPayloadSchema.parse(JSON.parse(outputText));
+  const parsed = await parseGatewayStructuredOutput({
+    rawText: outputText,
+    schema: importedResortPayloadSchema,
+    schemaName: "imported_resort_payload",
+    jsonSchema: importedResortJsonSchema,
+    purpose: "importCenter"
+  });
   const usedModel = payload.model || attemptedModels[0];
   const result = {
     data: parsed,
