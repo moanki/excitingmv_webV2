@@ -53,6 +53,22 @@ async function ensureBucket() {
   const existing = buckets?.find((bucket) => bucket.name === SITE_ASSET_BUCKET);
 
   if (existing) {
+    await supabase.storage
+      .updateBucket(SITE_ASSET_BUCKET, {
+        public: true,
+        fileSizeLimit: `${MAX_FILE_SIZE}`,
+        allowedMimeTypes: [
+          "image/png",
+          "image/jpeg",
+          "image/webp",
+          "image/svg+xml",
+          "application/pdf",
+          "video/mp4",
+          "video/webm",
+          "video/quicktime"
+        ]
+      })
+      .catch(() => undefined);
     return supabase;
   }
 
@@ -64,6 +80,7 @@ async function ensureBucket() {
       "image/jpeg",
       "image/webp",
       "image/svg+xml",
+      "application/pdf",
       "video/mp4",
       "video/webm",
       "video/quicktime"

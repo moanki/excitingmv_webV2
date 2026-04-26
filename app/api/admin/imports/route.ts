@@ -3,6 +3,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 
 import {
   finalizeDriveImportBatch,
+  importStoredFactSheet,
   importUploadedFactSheet,
   processDriveImportSource,
   startDriveImportBatch,
@@ -62,6 +63,36 @@ export async function POST(request: Request) {
         { status: result.status ?? 500 }
       );
     }
+
+    return NextResponse.json({
+      ok: true,
+      message: result.data.message,
+      data: result.data
+    });
+  }
+
+  if (mode === "upload-url") {
+    if (!json?.sourceUrl || !json?.filename) {
+      return NextResponse.json({ ok: false, error: "Invalid uploaded PDF request." }, { status: 400 });
+    }
+
+    const result = await importStoredFactSheet({
+      sourceUrl: String(json.sourceUrl),
+      filename: String(json.filename)
+    });
+
+    if (!result.ok) {
+      return NextResponse.json(
+        { ok: false, error: result.error, details: result.details },
+        { status: result.status ?? 500 }
+      );
+    }
+
+    revalidatePath("/admin/imports");
+    revalidatePath("/admin/resorts");
+    revalidatePath("/resorts");
+    revalidatePath("/");
+    revalidateTag("resorts-public");
 
     return NextResponse.json({
       ok: true,

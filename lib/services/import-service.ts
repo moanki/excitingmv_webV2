@@ -1217,6 +1217,231 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
   }
 }
 
+export async function importStoredFactSheet(input: {
+  sourceUrl: string;
+  filename: string;
+}): Promise<ServiceResult<ImportExecutionResult>> {
+  if (!input.sourceUrl.trim()) {
+    return {
+      ok: false,
+      error: "Stored PDF source URL is required."
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data: batchData, error: batchError } = await supabase
+    .from("import_batches")
+    .insert({
+      batch_name: createUploadBatchName(input.filename || "uploaded-fact-sheet.pdf"),
+      source_type: "uploaded_pdf",
+      file_path: input.sourceUrl,
+      status: "processing"
+    })
+    .select("id")
+    .single();
+
+  if (batchError || !batchData) {
+    return {
+      ok: false,
+      error: "Failed to start the stored PDF import.",
+      status: 500,
+      details: batchError
+    };
+  }
+
+  try {
+    const existingResorts = await listAdminResorts();
+    const existingIndex = buildExistingResortIdentityIndex(existingResorts);
+    const downloadedPdf = await downloadPdfSource(input.sourceUrl, 0);
+    downloadedPdf.filename = input.filename?.trim() || downloadedPdf.filename;
+
+    let importedCount = 0;
+    let skippedCount = 0;
+    let warningCount = 0;
+    let errorCount = 0;
+    const modelUsage = new Set<string>();
+    const logs: ImportLogEntry[] = [
+      {
+        sourceUrl: downloadedPdf.sourceUrl,
+        filename: downloadedPdf.filename,
+        status: "processing",
+        provider: "none",
+        message: "Stored PDF received and extraction started."
+      }
+    ];
+    const stagedPayloads: Array<{ sourceUrl: string; extracted: ImportedResortPayload }> = [];
+
+    const filenameDuplicate = matchExistingResortByFilename(downloadedPdf.filename, existingIndex);
+    if (filenameDuplicate) {
+      logs.push({
+        sourceUrl: downloadedPdf.sourceUrl,
+        filename: downloadedPdf.filename,
+        status: "skipped",
+        provider: "system",
+        message: "Skipped before AI extraction because the PDF filename matches an existing resort."
+      });
+
+      await supabase
+        .from("import_batches")
+        .update({ status: "completed_no_new_resorts" })
+        .eq("id", (batchData as ImportBatchRow).id);
+
+      return {
+        ok: true,
+        data: {
+          batchId: (batchData as ImportBatchRow).id,
+          importedResorts: 0,
+          processedSources: 1,
+          totalSources: 1,
+          skippedSources: 1,
+          warningCount: 0,
+          errorCount: 0,
+          providerUsed: "none",
+          message: "Processed uploaded PDF: imported 0, skipped 1, warnings 0, errors 0.",
+          logs: compactLogs(logs)
+        }
+      };
+    }
+
+    try {
+      const extraction = await extractImportedResortsFromPdf(downloadedPdf);
+      const { data: extracted, usedModel, usedProvider } = extraction;
+      modelUsage.add(`${usedProvider}:${usedModel}`);
+      stagedPayloads.push({ sourceUrl: downloadedPdf.sourceUrl, extracted });
+
+      const resort = extracted.resorts.find((item) => item.name.trim());
+      if (!resort) {
+        warningCount += 1;
+        logs.push({
+          sourceUrl: downloadedPdf.sourceUrl,
+          filename: downloadedPdf.filename,
+          status: "warning",
+          provider: usedProvider,
+          model: usedModel,
+          message: "No resort could be extracted from the uploaded PDF."
+        });
+      } else {
+        const slug = slugify(resort.slug || resort.name);
+        const normalizedName = normalizeIdentity(resort.name);
+
+        if (existingIndex.slugSet.has(slug) || existingIndex.normalizedNameSet.has(normalizedName)) {
+          skippedCount += 1;
+          logs.push({
+            sourceUrl: downloadedPdf.sourceUrl,
+            filename: downloadedPdf.filename,
+            status: "skipped",
+            provider: usedProvider,
+            model: usedModel,
+            resortName: resort.name.trim(),
+            message: `Skipped existing resort: ${resort.name.trim()}.`
+          });
+        } else {
+          const publishing = publishingToStatus(resort.publishingMode);
+
+          await saveResort({
+            slug,
+            name: resort.name.trim(),
+            location: resort.location.trim(),
+            category: resort.category.trim(),
+            transferType: resort.transferType.trim(),
+            description: resort.description.trim(),
+            highlights: resort.highlights.filter(Boolean),
+            mealPlans: resort.mealPlans.filter(Boolean),
+            seoTitle: resort.seoTitle.trim() || resort.name.trim(),
+            seoDescription: resort.seoDescription.trim() || resort.description.trim(),
+            seoSummary: resort.seoSummary.trim() || resort.description.trim(),
+            heroImageUrl: resort.heroImageUrl.trim(),
+            galleryMediaUrls: resort.galleryMediaUrls.filter(Boolean),
+            roomTypes: resort.roomTypes
+              .filter((room) => room.name.trim())
+              .map((room) => ({
+                name: room.name.trim(),
+                description: room.description.trim(),
+                seoDescription: room.seoDescription.trim() || room.description.trim(),
+                photoUrl: room.photoUrl.trim(),
+                sizeLabel: room.sizeLabel.trim(),
+                maxOccupancy: room.maxOccupancy,
+                bedType: room.bedType.trim(),
+                amenities: room.amenities.filter(Boolean)
+              })),
+            status: publishing.status,
+            isFeaturedHomepage: publishing.isFeaturedHomepage
+          });
+
+          importedCount += 1;
+          logs.push({
+            sourceUrl: downloadedPdf.sourceUrl,
+            filename: downloadedPdf.filename,
+            status: "imported",
+            provider: usedProvider,
+            model: usedModel,
+            resortName: resort.name.trim(),
+            message: `Imported resort: ${resort.name.trim()}.`
+          });
+        }
+      }
+    } catch (error) {
+      errorCount += 1;
+      logs.push({
+        sourceUrl: downloadedPdf.sourceUrl,
+        filename: downloadedPdf.filename,
+        status: "error",
+        provider: "none",
+        message: error instanceof Error ? error.message : "Import failed for the uploaded file."
+      });
+    }
+
+    await supabase.from("resort_staging").insert({
+      batch_id: (batchData as ImportBatchRow).id,
+      raw_payload: {
+        source: "stored-upload",
+        filename: downloadedPdf.filename,
+        sourceUrl: downloadedPdf.sourceUrl
+      },
+      extracted_payload: compactStagingPayload(downloadedPdf.sourceUrl, [downloadedPdf.sourceUrl], stagedPayloads),
+      review_status: "ready"
+    });
+
+    await supabase
+      .from("import_batches")
+      .update({
+        status:
+          errorCount > 0
+            ? importedCount > 0
+              ? "completed_with_errors"
+              : "failed"
+            : importedCount > 0
+              ? "completed"
+              : "completed_no_new_resorts"
+      })
+      .eq("id", (batchData as ImportBatchRow).id);
+
+    const providerUsed = modelUsage.size === 0 ? "none" : Array.from(modelUsage).join(", ");
+
+    return {
+      ok: true,
+      data: {
+        batchId: (batchData as ImportBatchRow).id,
+        importedResorts: importedCount,
+        processedSources: 1,
+        totalSources: 1,
+        skippedSources: skippedCount,
+        warningCount,
+        errorCount,
+        providerUsed,
+        message: `Processed uploaded PDF: imported ${importedCount}, skipped ${skippedCount}, warnings ${warningCount}, errors ${errorCount}.`,
+        logs: compactLogs(logs)
+      }
+    };
+  } catch (error) {
+    await supabase.from("import_batches").update({ status: "failed" }).eq("id", (batchData as ImportBatchRow).id);
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "The stored PDF import failed."
+    };
+  }
+}
+
 export async function listImportBatches(): Promise<ImportBatchRecord[]> {
   try {
     const supabase = createSupabaseAdminClient();

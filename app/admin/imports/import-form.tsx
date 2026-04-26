@@ -6,6 +6,7 @@ import {
   type ImportActionState
 } from "@/app/admin/imports/actions";
 import type { ImportExecutionResult, ImportLogEntry } from "@/lib/services/import-service";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type DriveImportProgress = {
   totalSources: number;
@@ -331,9 +332,48 @@ function ImportUploadPanel() {
 
     try {
       const formData = new FormData(event.currentTarget);
+      const upload = formData.get("factSheetFile");
+
+      if (!(upload instanceof File) || upload.size === 0) {
+        setState({
+          ok: false,
+          error: "Upload a PDF fact sheet to start the import."
+        });
+        return;
+      }
+
+      const supabase = createSupabaseBrowserClient();
+      const safeName = upload.name
+        .toLowerCase()
+        .replace(/[^a-z0-9.]+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      const storagePath = `imports/${Date.now()}-${crypto.randomUUID()}-${safeName || "fact-sheet.pdf"}`;
+      const uploadResult = await supabase.storage.from("site-assets").upload(storagePath, upload, {
+        cacheControl: "3600",
+        contentType: upload.type || "application/pdf",
+        upsert: true
+      });
+
+      if (uploadResult.error) {
+        setState({
+          ok: false,
+          error: uploadResult.error.message
+        });
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage.from("site-assets").getPublicUrl(storagePath);
       const response = await fetch("/api/admin/imports", {
         method: "POST",
-        body: formData
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          mode: "upload-url",
+          sourceUrl: publicUrlData.publicUrl,
+          filename: upload.name
+        })
       });
 
       const payload = (await response.json().catch(() => null)) as
