@@ -80,6 +80,19 @@ export type ImportLogEntry = {
 
 const MAX_RETURN_LOGS = 24;
 const MAX_STAGING_ITEMS = 12;
+const FILENAME_STOP_MARKERS = [
+  "fact sheet",
+  "factsheet",
+  "brochure",
+  "full version",
+  "full-version",
+  "version",
+  "rate sheet",
+  "rates",
+  "presentation",
+  "profile",
+  "deck"
+];
 
 function slugify(value: string) {
   return value
@@ -113,6 +126,97 @@ function createBatchName(url: string) {
 function createUploadBatchName(filename: string) {
   const stamp = new Date().toISOString().slice(0, 10);
   return `Upload import ${filename} ${stamp}`;
+}
+
+function normalizeIdentity(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function buildExistingResortIdentityIndex(
+  resorts: Awaited<ReturnType<typeof listAdminResorts>>
+) {
+  const slugSet = new Set<string>();
+  const normalizedNameSet = new Set<string>();
+
+  resorts.forEach((resort) => {
+    const slug = slugify(resort.slug || resort.name);
+    const normalizedName = normalizeIdentity(resort.name);
+
+    if (slug) {
+      slugSet.add(slug);
+    }
+
+    if (normalizedName) {
+      normalizedNameSet.add(normalizedName);
+    }
+  });
+
+  return { slugSet, normalizedNameSet };
+}
+
+function getFilenameBaseName(filename: string) {
+  return filename.replace(/\.[^.]+$/u, "").trim();
+}
+
+function getFilenameDuplicateCandidates(filename: string) {
+  const baseName = getFilenameBaseName(filename);
+  const lowered = baseName.toLowerCase();
+  const candidates = new Set<string>([baseName]);
+
+  for (const marker of FILENAME_STOP_MARKERS) {
+    const markerIndex = lowered.indexOf(marker);
+    if (markerIndex > 0) {
+      candidates.add(baseName.slice(0, markerIndex).replace(/[-–—|]+$/u, "").trim());
+    }
+  }
+
+  baseName
+    .split(/\s[-–—|]\s|[-–—|]/u)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .forEach((part) => candidates.add(part));
+
+  const slugCandidates = new Set<string>();
+  const normalizedCandidates = new Set<string>();
+
+  for (const candidate of candidates) {
+    const slugCandidate = slugify(candidate);
+    const normalizedCandidate = normalizeIdentity(candidate);
+
+    if (slugCandidate) {
+      slugCandidates.add(slugCandidate);
+    }
+
+    if (normalizedCandidate) {
+      normalizedCandidates.add(normalizedCandidate);
+    }
+  }
+
+  return {
+    slugCandidates,
+    normalizedCandidates
+  };
+}
+
+function matchExistingResortByFilename(
+  filename: string,
+  existingIndex: ReturnType<typeof buildExistingResortIdentityIndex>
+) {
+  const { slugCandidates, normalizedCandidates } = getFilenameDuplicateCandidates(filename);
+
+  for (const slugCandidate of slugCandidates) {
+    if (existingIndex.slugSet.has(slugCandidate)) {
+      return slugCandidate;
+    }
+  }
+
+  for (const normalizedCandidate of normalizedCandidates) {
+    if (existingIndex.normalizedNameSet.has(normalizedCandidate)) {
+      return normalizedCandidate;
+    }
+  }
+
+  return null;
 }
 
 function compactLogs(logs: ImportLogEntry[]) {
@@ -422,8 +526,7 @@ export async function processDriveImportSource(input: {
 }): Promise<ServiceResult<ImportExecutionDelta>> {
   try {
     const existingResorts = await listAdminResorts();
-    const existingSlugs = new Set(existingResorts.map((resort) => slugify(resort.slug)));
-    const existingNames = new Set(existingResorts.map((resort) => resort.name.trim().toLowerCase()));
+    const existingIndex = buildExistingResortIdentityIndex(existingResorts);
     const downloadedPdf = await downloadPdfSource(input.sourceUrl, input.sourceIndex);
     const logs: ImportLogEntry[] = [
       {
@@ -435,6 +538,30 @@ export async function processDriveImportSource(input: {
       }
     ];
     const stagedPayloads: Array<{ sourceUrl: string; extracted: ImportedResortPayload }> = [];
+
+    const filenameDuplicate = matchExistingResortByFilename(downloadedPdf.filename, existingIndex);
+    if (filenameDuplicate) {
+      logs.push({
+        sourceUrl: input.sourceUrl,
+        filename: downloadedPdf.filename,
+        status: "skipped",
+        provider: "system",
+        message: "Skipped before AI extraction because the PDF filename matches an existing resort."
+      });
+
+      return {
+        ok: true,
+        data: {
+          processedSources: 1,
+          importedResorts: 0,
+          skippedSources: 1,
+          warningCount: 0,
+          errorCount: 0,
+          providerUsage: null,
+          logs: compactLogs(logs)
+        }
+      };
+    }
 
     try {
       const extraction = await extractImportedResortsFromPdf(downloadedPdf);
@@ -477,9 +604,9 @@ export async function processDriveImportSource(input: {
       }
 
       const slug = slugify(resort.slug || resort.name);
-      const normalizedName = resort.name.trim().toLowerCase();
+      const normalizedName = normalizeIdentity(resort.name);
 
-      if (existingSlugs.has(slug) || existingNames.has(normalizedName)) {
+      if (existingIndex.slugSet.has(slug) || existingIndex.normalizedNameSet.has(normalizedName)) {
         logs.push({
           sourceUrl: input.sourceUrl,
           filename: downloadedPdf.filename,
@@ -901,8 +1028,7 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
 
   try {
     const existingResorts = await listAdminResorts();
-    const existingSlugs = new Set(existingResorts.map((resort) => slugify(resort.slug)));
-    const existingNames = new Set(existingResorts.map((resort) => resort.name.trim().toLowerCase()));
+    const existingIndex = buildExistingResortIdentityIndex(existingResorts);
     const downloadedPdf = await createDownloadedPdfFromUpload(file);
 
     let importedCount = 0;
@@ -920,6 +1046,38 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
       }
     ];
     const stagedPayloads: Array<{ sourceUrl: string; extracted: ImportedResortPayload }> = [];
+
+    const filenameDuplicate = matchExistingResortByFilename(downloadedPdf.filename, existingIndex);
+    if (filenameDuplicate) {
+      logs.push({
+        sourceUrl: downloadedPdf.sourceUrl,
+        filename: downloadedPdf.filename,
+        status: "skipped",
+        provider: "system",
+        message: "Skipped before AI extraction because the PDF filename matches an existing resort."
+      });
+
+      await supabase
+        .from("import_batches")
+        .update({ status: "completed_no_new_resorts" })
+        .eq("id", (batchData as ImportBatchRow).id);
+
+      return {
+        ok: true,
+        data: {
+          batchId: (batchData as ImportBatchRow).id,
+          importedResorts: 0,
+          processedSources: 1,
+          totalSources: 1,
+          skippedSources: 1,
+          warningCount: 0,
+          errorCount: 0,
+          providerUsed: "none",
+          message: "Processed uploaded PDF: imported 0, skipped 1, warnings 0, errors 0.",
+          logs: compactLogs(logs)
+        }
+      };
+    }
 
     try {
       const extraction = await extractImportedResortsFromPdf(downloadedPdf);
@@ -940,9 +1098,9 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
         });
       } else {
         const slug = slugify(resort.slug || resort.name);
-        const normalizedName = resort.name.trim().toLowerCase();
+        const normalizedName = normalizeIdentity(resort.name);
 
-        if (existingSlugs.has(slug) || existingNames.has(normalizedName)) {
+        if (existingIndex.slugSet.has(slug) || existingIndex.normalizedNameSet.has(normalizedName)) {
           skippedCount += 1;
           logs.push({
             sourceUrl: downloadedPdf.sourceUrl,
