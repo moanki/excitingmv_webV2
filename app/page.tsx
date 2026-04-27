@@ -1,5 +1,14 @@
 import Link from "next/link";
+import {
+  BadgePercent,
+  BriefcaseBusiness,
+  Headphones,
+  Plane,
+  Route,
+  UsersRound
+} from "lucide-react";
 
+import { GlobalMarketMap } from "@/components/global-market-map";
 import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
 import { listHomepageFeaturedResorts } from "@/lib/services/resort-service";
 import {
@@ -34,6 +43,15 @@ const defaultPartnerLogos = [
   "Baros",
   "Anantara"
 ];
+
+const serviceIcons = {
+  "badge-percent": BadgePercent,
+  "briefcase-business": BriefcaseBusiness,
+  headphones: Headphones,
+  plane: Plane,
+  route: Route,
+  "users-round": UsersRound
+};
 
 function pickResortImage(index: number) {
   return featuredImages[index % featuredImages.length];
@@ -72,7 +90,8 @@ export default async function HomePage() {
     listHomepageFeaturedResorts(5)
   ]);
 
-  const activeMarkets = markets.options.filter((market) => market.enabled).map((market) => market.label);
+  const activeMarkets = markets.options.filter((market) => market.enabled);
+  const marketLabels = activeMarkets.map((market) => market.label);
   const navLabels = navbar.navItems.filter((item) => item.enabled).map((item) => item.label);
   const partnerLogos = navLabels.length ? navLabels : defaultPartnerLogos;
   const featuredResorts = resorts.slice(0, 5);
@@ -100,16 +119,18 @@ export default async function HomePage() {
         <div className="home-hero__overlay" />
         <div className="home-hero__inner">
           <div className="home-hero__copy">
-            <p className="home-hero__kicker">{hero.eyebrow}</p>
+            {hero.eyebrow ? <p className="home-hero__kicker">{hero.eyebrow}</p> : null}
             <h1>{hero.title}</h1>
             <p className="home-hero__lede">{hero.description}</p>
             <div className="home-hero__actions">
               <Link href={hero.primaryCtaHref} className="site-button site-button--teal">
                 {hero.primaryCtaLabel}
               </Link>
-              <Link href={hero.secondaryCtaHref} className="site-button site-button--ghost">
-                {hero.secondaryCtaLabel}
-              </Link>
+              {hero.secondaryCtaLabel && hero.secondaryCtaHref ? (
+                <Link href={hero.secondaryCtaHref} className="site-button site-button--ghost">
+                  {hero.secondaryCtaLabel}
+                </Link>
+              ) : null}
             </div>
           </div>
         </div>
@@ -181,44 +202,36 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="site-section site-section--navy">
+      <section className="site-section site-section--navy" id="global-markets">
         <div className="site-container">
           <div className="section-heading section-heading--center section-heading--light">
-            <h2>Global Markets</h2>
+            <h2>{markets.sectionTitle || "Global Markets"}</h2>
             <p>Supporting travel designers and agencies across global markets.</p>
           </div>
-          <div className="map-panel">
-            <div className="map-panel__canvas">
-              <div className="map-marker map-marker--one">
-                <span>Europe</span>
-              </div>
-              <div className="map-marker map-marker--two">
-                <span>Russia &amp; CIS</span>
-              </div>
-              <div className="map-marker map-marker--three">
-                <span>Middle East</span>
-              </div>
-              <div className="map-marker map-marker--four">
-                <span>South Asia</span>
-              </div>
-            </div>
-          </div>
+          <GlobalMarketMap markets={activeMarkets.length ? activeMarkets : markets.options} />
         </div>
       </section>
 
       <section className="site-section site-section--white">
         <div className="site-container">
           <div className="section-heading section-heading--center">
-            <h2>DMC Services</h2>
+            <h2>Services We Provide</h2>
             <p>Comprehensive on-ground support for our partners</p>
           </div>
           <div className="services-grid">
-            {services.filter((service) => service.enabled && service.title).map((service) => (
-              <div className="service-card" key={service.title}>
-                <div className="service-card__icon" />
-                <h3>{service.title}</h3>
-              </div>
-            ))}
+            {services.filter((service) => service.enabled && service.title).map((service) => {
+              const Icon = serviceIcons[service.icon as keyof typeof serviceIcons] ?? BriefcaseBusiness;
+
+              return (
+                <div className="service-card" key={service.title}>
+                  <div className="service-card__icon">
+                    <Icon size={24} strokeWidth={1.8} />
+                  </div>
+                  <h3>{service.title}</h3>
+                  <p>{service.description}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -325,7 +338,7 @@ export default async function HomePage() {
             <p className="section-kicker">{newsletter.sectionLabel}</p>
             <h2>{newsletter.title}</h2>
             <p className="newsletter-block__lede">{newsletter.description}</p>
-            <NewsletterSignupForm markets={activeMarkets.length ? activeMarkets : defaultPartnerLogos} />
+            <NewsletterSignupForm markets={marketLabels.length ? marketLabels : defaultPartnerLogos} />
           </div>
         </div>
       </section>

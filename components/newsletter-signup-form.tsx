@@ -44,27 +44,27 @@ export function NewsletterSignupForm({ markets }: { markets: string[] }) {
     <form action={onSubmit} className="newsletter-form">
       <div className="newsletter-form__grid">
         <label className="newsletter-field">
-          <span>Full Name: *</span>
-          <input name="fullName" required />
+          <span>Full Name *</span>
+          <input name="fullName" placeholder="Your name" required />
         </label>
         <label className="newsletter-field">
-          <span>Travel Agency / Tour Operator Name: *</span>
-          <input name="agencyName" required />
+          <span>Agency *</span>
+          <input name="agencyName" placeholder="Company name" required />
         </label>
         <label className="newsletter-field">
-          <span>Country of Origin: *</span>
-          <input name="countryOfOrigin" required />
+          <span>Country *</span>
+          <input name="countryOfOrigin" placeholder="Country" required />
         </label>
         <label className="newsletter-field">
-          <span>Contact Number: *</span>
-          <input name="contactNumber" required />
+          <span>Phone *</span>
+          <input name="contactNumber" placeholder="+00" required />
         </label>
         <label className="newsletter-field">
-          <span>Email Address: *</span>
-          <input name="email" type="email" required />
+          <span>Email *</span>
+          <input name="email" type="email" placeholder="name@agency.com" required />
         </label>
         <label className="newsletter-field">
-          <span>Primary Market: *</span>
+          <span>Market *</span>
           <select name="primaryMarket" defaultValue="" required>
             <option value="" disabled>
               Select a market
@@ -77,17 +77,12 @@ export function NewsletterSignupForm({ markets }: { markets: string[] }) {
           </select>
         </label>
         <label className="newsletter-field newsletter-field--full">
-          <span>Additional Notes:</span>
-          <textarea name="additionalNotes" />
+          <span>Notes</span>
+          <textarea name="additionalNotes" placeholder="Optional context" />
         </label>
       </div>
       <p className="newsletter-form__microcopy">
-        Only thoughtful updates we believe are worth sharing.
-      </p>
-      <p className="newsletter-form__consent">
-        Only thoughtful updates we believe are worth sharing. By submitting this form, you agree
-        to receive relevant updates and offers from Exciting Maldives. You may opt out at any
-        time.
+        Thoughtful partner updates only. You may opt out at any time.
       </p>
       <button className="newsletter-form__submit" type="submit" disabled={pending}>
         {pending ? "Submitting..." : "Stay In Touch"}

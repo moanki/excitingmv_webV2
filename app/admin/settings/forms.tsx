@@ -648,13 +648,27 @@ export function NotificationSettingsForm({
 
 export function MarketSettingsForm({ markets }: { markets: MarketSettings }) {
   const [state, action, pending] = useActionState(saveMarketDraftAction, undefined);
+  const marketRows = Array.from({ length: 8 }, (_, index) => {
+    const market = markets.options[index];
+    return (
+      market ?? {
+        id: `market-${index + 1}`,
+        label: "",
+        latitude: 0,
+        longitude: 0,
+        region: "",
+        displayOrder: index + 1,
+        enabled: false
+      }
+    );
+  });
 
   return (
     <div className="panel">
       <div className="section-heading">
         <div>
           <p className="eyebrow">Primary Markets</p>
-          <h2>Manage the market dropdown values used across lead capture forms.</h2>
+          <h2>Manage the markets shown on the homepage Mapbox section and lead forms.</h2>
         </div>
         <form action={publishMarketAction}>
           <button className="button-muted" type="submit">
@@ -670,17 +684,34 @@ export function MarketSettingsForm({ markets }: { markets: MarketSettings }) {
           </label>
         </div>
         <div className="stack">
-          {markets.options.map((market, index) => (
+          {marketRows.map((market, index) => (
             <div className="panel panel-soft" key={`${market.label}-${index}`}>
               <div className="form-grid">
+                <input type="hidden" name={`market_${index}_id`} defaultValue={market.id} />
                 <label className="field">
                   Market Label
                   <input name={`market_${index}_label`} defaultValue={market.label} />
                 </label>
+                <label className="field">
+                  Region / Category
+                  <input name={`market_${index}_region`} defaultValue={market.region} />
+                </label>
+                <label className="field">
+                  Latitude
+                  <input name={`market_${index}_latitude`} defaultValue={market.latitude} inputMode="decimal" />
+                </label>
+                <label className="field">
+                  Longitude
+                  <input name={`market_${index}_longitude`} defaultValue={market.longitude} inputMode="decimal" />
+                </label>
+                <label className="field">
+                  Display Order
+                  <input name={`market_${index}_displayOrder`} defaultValue={market.displayOrder} inputMode="numeric" />
+                </label>
               </div>
               <ToggleField
                 name={`market_${index}_enabled`}
-                label="Show market option"
+                label="Show market on homepage map"
                 defaultChecked={market.enabled}
               />
             </div>
@@ -894,6 +925,25 @@ export function HomepageServicesForm({ services }: { services: HomepageServiceIt
               <label className="field">
                 Service Title
                 <input name={`service_${index}_title`} defaultValue={item.title} />
+              </label>
+              <label className="field">
+                Icon
+                <select name={`service_${index}_icon`} defaultValue={item.icon}>
+                  <option value="briefcase-business">Contracting</option>
+                  <option value="route">Itinerary</option>
+                  <option value="plane">Arrival</option>
+                  <option value="headphones">Support</option>
+                  <option value="users-round">Groups</option>
+                  <option value="badge-percent">Offers</option>
+                </select>
+              </label>
+              <label className="field">
+                Display Order
+                <input name={`service_${index}_displayOrder`} defaultValue={item.displayOrder} inputMode="numeric" />
+              </label>
+              <label className="field" style={{ gridColumn: "1 / -1" }}>
+                Short Description
+                <textarea name={`service_${index}_description`} defaultValue={item.description} />
               </label>
             </div>
             <ToggleField

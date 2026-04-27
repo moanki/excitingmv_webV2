@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Hotel, Info, LogIn, Map, UsersRound } from "lucide-react";
 
 import type { NavbarContent } from "@/lib/site-content";
 
 export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     function onScroll() {
@@ -19,14 +19,27 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const navItems = navbar.navItems.filter((item) => item.enabled && item.label && item.href);
+  const configuredItems = navbar.navItems.filter((item) => item.enabled && item.label && item.href);
+  const navItems = [
+    { label: "Resorts", href: configuredItems.find((item) => item.label === "Resorts")?.href || "/resorts", external: false },
+    { label: "About Us", href: configuredItems.find((item) => item.label === "About Us")?.href || "/about", external: false },
+    { label: "Map", href: configuredItems.find((item) => item.label === "Map")?.href || "/#global-markets", external: false },
+    { label: "Info", href: configuredItems.find((item) => item.label === "Info")?.href || "/travel-guide", external: false }
+  ];
+  const mobileItems = [
+    { ...navItems[0], Icon: Hotel },
+    { ...navItems[1], Icon: UsersRound },
+    { ...navItems[2], Icon: Map },
+    { ...navItems[3], Icon: Info },
+    { label: "Portal", href: navbar.ctaHref || "/partner/login", external: false, Icon: LogIn }
+  ];
   const navClassName = `site-nav${scrolled ? " is-scrolled" : ""}`;
-  const activeLogoUrl = scrolled ? navbar.blackLogoUrl || navbar.primaryLogoUrl : navbar.whiteLogoUrl || navbar.primaryLogoUrl;
+  const activeLogoUrl = scrolled ? navbar.primaryLogoUrl || navbar.whiteLogoUrl : navbar.whiteLogoUrl || navbar.primaryLogoUrl;
 
   return (
     <header className={navClassName}>
       <div className="site-nav__inner">
-        <Link href="/" className="site-nav__brand" onClick={() => setOpen(false)}>
+        <Link href="/" className="site-nav__brand">
           {activeLogoUrl ? (
             <img
               src={activeLogoUrl}
@@ -36,7 +49,6 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
           ) : (
             <span className="site-nav__brand-label">{navbar.brandLabel || "Exciting Maldives"}</span>
           )}
-          <span className="site-nav__brand-kicker">{navbar.brandKicker || "Luxury Travel Network"}</span>
         </Link>
 
         <nav className="site-nav__links" aria-label="Primary">
@@ -52,51 +64,25 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
             )
           )}
           {navbar.ctaEnabled ? (
-            <Link href={navbar.ctaHref} className="site-nav__cta">
-              {navbar.ctaLabel}
+            <Link href={navbar.ctaHref || "/partner/login"} className="site-nav__cta">
+              Login to Partner Portal
             </Link>
           ) : null}
         </nav>
 
-        <button
-          type="button"
-          className="site-nav__toggle"
-          aria-expanded={open}
-          aria-label="Toggle menu"
-          onClick={() => setOpen((value) => !value)}
-        >
-          <span />
-          <span />
-          <span />
-        </button>
+        <Link href={navbar.ctaHref || "/partner/login"} className="site-nav__mobile-portal" aria-label="Login to Partner Portal">
+          <LogIn size={18} />
+        </Link>
       </div>
 
-      <div className={`site-nav__mobile${open ? " is-open" : ""}`}>
-        <div className="site-nav__mobile-panel">
-          {navItems.map((item) =>
-            item.external ? (
-              <a
-                href={item.href}
-                key={`${item.label}-${item.href}`}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => setOpen(false)}
-              >
-                {item.label}
-              </a>
-            ) : (
-              <Link href={item.href} key={`${item.label}-${item.href}`} onClick={() => setOpen(false)}>
-                {item.label}
-              </Link>
-            )
-          )}
-          {navbar.ctaEnabled ? (
-            <Link href={navbar.ctaHref} className="site-nav__cta site-nav__cta--mobile" onClick={() => setOpen(false)}>
-              {navbar.ctaLabel}
-            </Link>
-          ) : null}
-        </div>
-      </div>
+      <nav className="mobile-bottom-nav" aria-label="Mobile primary">
+        {mobileItems.map(({ Icon, ...item }) => (
+          <Link href={item.href} key={`${item.label}-${item.href}`} className="mobile-bottom-nav__item">
+            <Icon size={19} strokeWidth={1.9} />
+            <span>{item.label}</span>
+          </Link>
+        ))}
+      </nav>
     </header>
   );
 }

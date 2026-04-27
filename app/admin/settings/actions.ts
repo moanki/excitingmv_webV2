@@ -104,7 +104,7 @@ async function parseFooterBadges(formData: FormData, prefix: "membership" | "awa
       return {
         name: stringValue(formData, `${prefix}_${index}_name`),
         imageUrl: imageFile
-          ? await uploadSiteAsset(imageFile, `site/${prefix}`)
+          ? await uploadSiteAsset(imageFile, `site/${prefix}`, "badge")
           : stringValue(formData, `${prefix}_${index}_imageUrl`),
         href: stringValue(formData, `${prefix}_${index}_href`),
         enabled: booleanValue(formData, `${prefix}_${index}_enabled`)
@@ -137,7 +137,7 @@ async function parseHomepageAwards(formData: FormData): Promise<HomepageAwardsCo
         return {
           name: stringValue(formData, `award_${index}_name`),
           imageUrl: imageFile
-            ? await uploadSiteAsset(imageFile, "homepage/awards")
+            ? await uploadSiteAsset(imageFile, "homepage/awards", "badge")
             : stringValue(formData, `award_${index}_imageUrl`),
           href: stringValue(formData, `award_${index}_href`),
           enabled: booleanValue(formData, `award_${index}_enabled`)
@@ -160,11 +160,11 @@ export async function saveHeroDraftAction(_: ActionState, formData: FormData): P
       secondaryCtaLabel: stringValue(formData, "secondaryCtaLabel"),
       secondaryCtaHref: stringValue(formData, "secondaryCtaHref"),
       mediaUrl: heroMediaFile
-        ? await uploadSiteAsset(heroMediaFile, "homepage/hero")
+        ? await uploadSiteAsset(heroMediaFile, "homepage/hero", "hero")
         : stringValue(formData, "mediaUrl"),
       mediaType: stringValue(formData, "mediaType") === "video" ? "video" : "image",
       mediaPosterUrl: heroPosterFile
-        ? await uploadSiteAsset(heroPosterFile, "homepage/hero")
+        ? await uploadSiteAsset(heroPosterFile, "homepage/hero", "hero")
         : stringValue(formData, "mediaPosterUrl")
     };
 
@@ -197,7 +197,7 @@ export async function saveFeaturesDraftAction(_: ActionState, formData: FormData
           title: stringValue(formData, `feature_${index}_title`),
           description: stringValue(formData, `feature_${index}_description`),
           imageUrl: imageFile
-            ? await uploadSiteAsset(imageFile, "homepage/features")
+            ? await uploadSiteAsset(imageFile, "homepage/features", "card")
             : stringValue(formData, `feature_${index}_imageUrl`)
         };
       })
@@ -255,7 +255,7 @@ export async function saveCeoDraftAction(_: ActionState, formData: FormData): Pr
       name: stringValue(formData, "name"),
       title: stringValue(formData, "title"),
       photoUrl: photoFile
-        ? await uploadSiteAsset(photoFile, "homepage/ceo")
+        ? await uploadSiteAsset(photoFile, "homepage/ceo", "portrait")
         : stringValue(formData, "photoUrl")
     };
     return finalizeSettingSave({
@@ -284,7 +284,7 @@ export async function saveStoryDraftAction(_: ActionState, formData: FormData): 
       title: stringValue(formData, "title"),
       description: stringValue(formData, "description"),
       imageUrl: imageFile
-        ? await uploadSiteAsset(imageFile, "homepage/story")
+        ? await uploadSiteAsset(imageFile, "homepage/story", "portrait")
         : stringValue(formData, "imageUrl")
     };
     return finalizeSettingSave({
@@ -309,6 +309,9 @@ export async function saveServicesDraftAction(_: ActionState, formData: FormData
   try {
     const services: HomepageServiceItem[] = [0, 1, 2, 3, 4, 5].map((index) => ({
       title: stringValue(formData, `service_${index}_title`),
+      description: stringValue(formData, `service_${index}_description`),
+      icon: stringValue(formData, `service_${index}_icon`),
+      displayOrder: Number(stringValue(formData, `service_${index}_displayOrder`)) || index + 1,
       enabled: booleanValue(formData, `service_${index}_enabled`)
     }));
     return finalizeSettingSave({
@@ -364,7 +367,7 @@ export async function saveGuideDraftAction(_: ActionState, formData: FormData): 
           title: stringValue(formData, `guide_${index}_title`),
           description: stringValue(formData, `guide_${index}_description`),
           imageUrl: imageFile
-            ? await uploadSiteAsset(imageFile, "homepage/guide")
+            ? await uploadSiteAsset(imageFile, "homepage/guide", "card")
             : stringValue(formData, `guide_${index}_imageUrl`)
         };
       })
@@ -395,7 +398,7 @@ export async function saveNewsletterContentDraftAction(_: ActionState, formData:
       title: stringValue(formData, "title"),
       description: stringValue(formData, "description"),
       imageUrl: imageFile
-        ? await uploadSiteAsset(imageFile, "homepage/newsletter")
+        ? await uploadSiteAsset(imageFile, "homepage/newsletter", "banner")
         : stringValue(formData, "imageUrl")
     };
     return finalizeSettingSave({
@@ -447,13 +450,13 @@ export async function saveNavbarDraftAction(_: ActionState, formData: FormData):
       brandKicker: stringValue(formData, "brandKicker"),
       brandLabel: stringValue(formData, "brandLabel"),
       primaryLogoUrl: primaryLogoFile
-        ? await uploadSiteAsset(primaryLogoFile, "site/logos")
+        ? await uploadSiteAsset(primaryLogoFile, "site/logos", "logo")
         : stringValue(formData, "primaryLogoUrl"),
       whiteLogoUrl: whiteLogoFile
-        ? await uploadSiteAsset(whiteLogoFile, "site/logos")
+        ? await uploadSiteAsset(whiteLogoFile, "site/logos", "logo")
         : stringValue(formData, "whiteLogoUrl"),
       blackLogoUrl: blackLogoFile
-        ? await uploadSiteAsset(blackLogoFile, "site/logos")
+        ? await uploadSiteAsset(blackLogoFile, "site/logos", "logo")
         : stringValue(formData, "blackLogoUrl"),
       navItems: [0, 1, 2, 3, 4, 5].map((index) => ({
         label: stringValue(formData, `nav_${index}_label`),
@@ -495,7 +498,7 @@ export async function saveFooterDraftAction(_: ActionState, formData: FormData):
       address: stringValue(formData, "address"),
       samoaUrl: stringValue(formData, "samoaUrl"),
       companyLogoUrl: companyLogoFile
-        ? await uploadSiteAsset(companyLogoFile, "site/footer")
+        ? await uploadSiteAsset(companyLogoFile, "site/footer", "logo")
         : stringValue(formData, "companyLogoUrl"),
       linkGroups: parseFooterGroups(formData),
       memberships: await parseFooterBadges(formData, "membership"),
@@ -580,10 +583,15 @@ export async function saveMarketDraftAction(_: ActionState, formData: FormData):
   try {
     const markets: MarketSettings = {
       sectionTitle: stringValue(formData, "sectionTitle"),
-      options: [0, 1, 2, 3, 4, 5].map((index) => ({
+      options: [0, 1, 2, 3, 4, 5, 6, 7].map((index) => ({
+        id: stringValue(formData, `market_${index}_id`) || `market-${index + 1}`,
         label: stringValue(formData, `market_${index}_label`),
+        latitude: Number(stringValue(formData, `market_${index}_latitude`)) || 0,
+        longitude: Number(stringValue(formData, `market_${index}_longitude`)) || 0,
+        region: stringValue(formData, `market_${index}_region`),
+        displayOrder: Number(stringValue(formData, `market_${index}_displayOrder`)) || index + 1,
         enabled: booleanValue(formData, `market_${index}_enabled`)
-      }))
+      })).filter((market) => market.label)
     };
 
     return finalizeSettingSave({

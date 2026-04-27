@@ -43,6 +43,9 @@ export type HomepageStoryContent = {
 
 export type HomepageServiceItem = {
   title: string;
+  description: string;
+  icon: string;
+  displayOrder: number;
   enabled: boolean;
 };
 
@@ -138,7 +141,12 @@ export type NotificationSettings = {
 };
 
 export type MarketOption = {
+  id: string;
   label: string;
+  latitude: number;
+  longitude: number;
+  region: string;
+  displayOrder: number;
   enabled: boolean;
 };
 
@@ -154,14 +162,14 @@ type SiteSettingEnvelope<T> = {
 };
 
 export const defaultHeroContent: HomepageHeroContent = {
-  eyebrow: "Corporate B2B Maldives Platform",
-  title: "The luxury-facing partner portal for curated Maldives sales.",
+  eyebrow: "",
+  title: "Curated Maldives partnerships for the world's leading travel professionals.",
   description:
     "Built for destination partners, contracting teams, and internal operators who need premium resort presentation, protected trade resources, live support, and clean admin workflows from one polished platform.",
   primaryCtaLabel: "Partner With Us",
   primaryCtaHref: "/partner/register",
-  secondaryCtaLabel: "Admin Center",
-  secondaryCtaHref: "/admin/login",
+  secondaryCtaLabel: "",
+  secondaryCtaHref: "",
   mediaUrl: "",
   mediaType: "image",
   mediaPosterUrl: ""
@@ -218,12 +226,48 @@ export const defaultHomepageStoryContent: HomepageStoryContent = {
 };
 
 export const defaultHomepageServices: HomepageServiceItem[] = [
-  { title: "Luxury Resort Contracting", enabled: true },
-  { title: "Bespoke Itinerary Planning", enabled: true },
-  { title: "VIP Arrival & Transfer Coordination", enabled: true },
-  { title: "Dedicated On-Island Partner Support", enabled: true },
-  { title: "Group & Incentive Handling", enabled: true },
-  { title: "Trade Rate & Offer Management", enabled: true }
+  {
+    title: "Luxury Resort Contracting",
+    description: "Commercially fluent resort partnerships, preferred rates, and product positioning for premium agencies.",
+    icon: "briefcase-business",
+    displayOrder: 1,
+    enabled: true
+  },
+  {
+    title: "Bespoke Itinerary Planning",
+    description: "Tailored island combinations, transfer logic, and guest flow planned with destination-level precision.",
+    icon: "route",
+    displayOrder: 2,
+    enabled: true
+  },
+  {
+    title: "VIP Arrival & Transfer Coordination",
+    description: "Seamless airport handling, lounge support, seaplane and speedboat coordination for high-value guests.",
+    icon: "plane",
+    displayOrder: 3,
+    enabled: true
+  },
+  {
+    title: "Dedicated On-Island Partner Support",
+    description: "Responsive in-destination support for sales teams, operations teams, and live guest requirements.",
+    icon: "headphones",
+    displayOrder: 4,
+    enabled: true
+  },
+  {
+    title: "Group & Incentive Handling",
+    description: "Premium group logistics, buyouts, incentives, and event support shaped around the right island product.",
+    icon: "users-round",
+    displayOrder: 5,
+    enabled: true
+  },
+  {
+    title: "Trade Rate & Offer Management",
+    description: "Clean access to market-ready offers, tactical campaigns, and partner-facing commercial updates.",
+    icon: "badge-percent",
+    displayOrder: 6,
+    enabled: true
+  }
 ];
 
 export const defaultHomepageWhyUs: HomepageWhyUsItem[] = [
@@ -304,21 +348,19 @@ export const defaultHomepageAwardsContent: HomepageAwardsContent = {
 };
 
 export const defaultNavbarContent: NavbarContent = {
-  brandKicker: "Luxury Travel Network",
+  brandKicker: "",
   brandLabel: "Exciting Maldives",
   primaryLogoUrl: "https://dummyimage.com/420x120/0f172a/ffffff&text=Exciting+Maldives",
   whiteLogoUrl: "https://dummyimage.com/420x120/ffffff/0f172a&text=Exciting+Maldives",
   blackLogoUrl: "https://dummyimage.com/420x120/111111/ffffff&text=Exciting+Maldives",
   navItems: [
     { label: "Resorts", href: "/resorts", enabled: true, external: false },
-    { label: "Experiences", href: "/experiences", enabled: true, external: false },
     { label: "About Us", href: "/about", enabled: true, external: false },
-    { label: "Travel Guide", href: "/travel-guide", enabled: true, external: false },
-    { label: "Partner Login", href: "/partner/login", enabled: true, external: false },
-    { label: "Contact", href: "/contact", enabled: true, external: false }
+    { label: "Map", href: "/#global-markets", enabled: true, external: false },
+    { label: "Info", href: "/travel-guide", enabled: true, external: false }
   ],
-  ctaLabel: "Become a Partner",
-  ctaHref: "/partner/register",
+  ctaLabel: "Login to Partner Portal",
+  ctaHref: "/partner/login",
   ctaEnabled: true
 };
 
@@ -427,12 +469,44 @@ export const defaultNotificationSettings: NotificationSettings = {
 };
 
 export const defaultMarketSettings: MarketSettings = {
-  sectionTitle: "Primary Markets",
+  sectionTitle: "Global Markets",
   options: [
-    { label: "Russia & CIS", enabled: true },
-    { label: "Europe", enabled: true },
-    { label: "Middle East (UAE & GCC)", enabled: true },
-    { label: "South Asia", enabled: true }
+    {
+      id: "europe",
+      label: "Europe",
+      latitude: 48.8566,
+      longitude: 2.3522,
+      region: "Europe",
+      displayOrder: 1,
+      enabled: true
+    },
+    {
+      id: "russia-cis",
+      label: "Russia & CIS",
+      latitude: 55.7558,
+      longitude: 37.6173,
+      region: "CIS",
+      displayOrder: 2,
+      enabled: true
+    },
+    {
+      id: "middle-east",
+      label: "Middle East",
+      latitude: 25.2048,
+      longitude: 55.2708,
+      region: "GCC",
+      displayOrder: 3,
+      enabled: true
+    },
+    {
+      id: "south-asia",
+      label: "South Asia",
+      latitude: 6.9271,
+      longitude: 79.8612,
+      region: "South Asia",
+      displayOrder: 4,
+      enabled: true
+    }
   ]
 };
 
@@ -473,6 +547,55 @@ async function getSiteSettingMode<T>(key: string, fallback: T, mode: "draft" | "
   };
 }
 
+function numericValue(value: unknown, fallback: number) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function normalizeHomepageServices(items: unknown): HomepageServiceItem[] {
+  const source = Array.isArray(items) ? items : defaultHomepageServices;
+  return source
+    .map((item, index) => {
+      const value = item as Partial<HomepageServiceItem>;
+      const fallback = defaultHomepageServices[index] ?? defaultHomepageServices[0];
+
+      return {
+        title: value.title ?? fallback.title,
+        description: value.description ?? fallback.description,
+        icon: value.icon ?? fallback.icon,
+        displayOrder: numericValue(value.displayOrder, index + 1),
+        enabled: value.enabled ?? true
+      };
+    })
+    .sort((a, b) => a.displayOrder - b.displayOrder);
+}
+
+function normalizeMarketSettings(settings: unknown): MarketSettings {
+  const source = (settings ?? defaultMarketSettings) as Partial<MarketSettings>;
+  const options = Array.isArray(source.options) ? source.options : defaultMarketSettings.options;
+
+  return {
+    sectionTitle: source.sectionTitle || defaultMarketSettings.sectionTitle,
+    options: options
+      .map((item, index) => {
+        const value = item as Partial<MarketOption>;
+        const fallback = defaultMarketSettings.options[index] ?? defaultMarketSettings.options[0];
+        const label = value.label || fallback.label;
+
+        return {
+          id: value.id || label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || `market-${index + 1}`,
+          label,
+          latitude: numericValue(value.latitude, fallback.latitude),
+          longitude: numericValue(value.longitude, fallback.longitude),
+          region: value.region ?? fallback.region,
+          displayOrder: numericValue(value.displayOrder, index + 1),
+          enabled: value.enabled ?? true
+        };
+      })
+      .sort((a, b) => a.displayOrder - b.displayOrder)
+  };
+}
+
 export async function getHomepageHeroContent(mode: "draft" | "published" = "published") {
   return getSiteSettingMode("homepage.hero", defaultHeroContent, mode);
 }
@@ -494,7 +617,11 @@ export async function getHomepageStoryContent(mode: "draft" | "published" = "pub
 }
 
 export async function getHomepageServices(mode: "draft" | "published" = "published") {
-  return getSiteSettingMode("homepage.services", defaultHomepageServices, mode);
+  const entry = await getSiteSettingMode("homepage.services", defaultHomepageServices, mode);
+  return {
+    ...entry,
+    content: normalizeHomepageServices(entry.content)
+  };
 }
 
 export async function getHomepageWhyUs(mode: "draft" | "published" = "published") {
@@ -530,7 +657,11 @@ export async function getNotificationSettings(mode: "draft" | "published" = "pub
 }
 
 export async function getMarketSettings(mode: "draft" | "published" = "published") {
-  return getSiteSettingMode("site.markets", defaultMarketSettings, mode);
+  const entry = await getSiteSettingMode("site.markets", defaultMarketSettings, mode);
+  return {
+    ...entry,
+    content: normalizeMarketSettings(entry.content)
+  };
 }
 
 export async function saveSiteSettingDraft<T>(key: string, fallback: T, draftValue: T) {
