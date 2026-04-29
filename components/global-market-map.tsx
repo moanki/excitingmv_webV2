@@ -1,9 +1,9 @@
 "use client";
 
-import "mapbox-gl/dist/mapbox-gl.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 
-import mapboxgl from "mapbox-gl";
-import { useEffect, useMemo, useRef } from "react";
+import { Map, Marker, Popup } from "react-map-gl/maplibre";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { MarketOption } from "@/lib/site-content";
 
@@ -11,111 +11,232 @@ type GlobalMarketMapProps = {
   markets: MarketOption[];
 };
 
+/**
+ * Minimal luxury world map — countries only, no sea, English labels.
+ * Uses a runtime-modified positron style from OpenFreeMap.
+ */
 export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
-  const mapContainerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const configuredToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-  const token =
-    configuredToken && !/replace|placeholder/i.test(configuredToken) ? configuredToken : undefined;
+  const [selectedMarket, setSelectedMarket] = useState<MarketOption | null>(null);
+  const [mapStyle, setMapStyle] = useState<object | string | null>(null);
+
+  useEffect(() => {
+    fetch("https://tiles.openfreemap.org/styles/positron")
+      .then((res) => res.json())
+      .then((style) => {
+        // Remove the ne2_shaded raster source (satellite/topography imagery)
+        if (style.sources?.ne2_shaded) {
+          delete style.sources.ne2_shaded;
+        }
+
+        // IDs of layers we want to KEEP
+        const keepIds = new Set([
+          "background",
+          "landcover_ice_shelf",
+          "landcover_glacier",
+          "boundary_state",
+          "boundary_country_z0-4",
+          "boundary_country_z5-",
+          "place_country_other",
+          "place_country_minor",
+          "place_country_major",
+          "place_state",
+          "place_city_large",
+          "place_city",
+        ]);
+
+        // Filter layers to only keep country-relevant ones, plus add a land fill
+        style.layers = style.layers
+          .filter((layer: any) => {
+            // Remove the raster hillshade layer
+            if (layer.source === "ne2_shaded") return false;
+            return keepIds.has(layer.id);
+          })
+          .map((layer: any) => {
+            // Make background the section bg color (transparent so CSS bg shows)
+            if (layer.id === "background") {
+              return {
+                ...layer,
+                paint: { "background-color": "rgba(0,0,0,0)" },
+              };
+            }
+
+            // Style country boundaries — thin, elegant
+            if (layer.id.startsWith("boundary_country")) {
+              return {
+                ...layer,
+                paint: {
+                  ...layer.paint,
+                  "line-color": "rgba(255,255,255,0.22)",
+                  "line-width": 0.8,
+                  "line-blur": 0,
+                },
+              };
+            }
+
+            // State boundaries — very subtle
+            if (layer.id === "boundary_state") {
+              return {
+                ...layer,
+                paint: {
+                  ...layer.paint,
+                  "line-color": "rgba(255,255,255,0.08)",
+                  "line-width": 0.5,
+                  "line-dasharray": [2, 2],
+                },
+              };
+            }
+
+            // Country labels — light, elegant, uppercase
+            if (layer.id.startsWith("place_country") || layer.id === "place_state") {
+              return {
+                ...layer,
+                layout: {
+                  ...layer.layout,
+                  // Only show English name
+                  "text-field": ["coalesce", ["get", "name_en"], ["get", "name"]],
+                  "text-transform": "uppercase",
+                  "text-font": ["Noto Sans Regular"],
+                  "text-letter-spacing": 0.15,
+                },
+                paint: {
+                  ...layer.paint,
+                  "text-color": "rgba(255,255,255,0.52)",
+                  "text-halo-color": "rgba(15,23,42,0.6)",
+                  "text-halo-width": 1.2,
+                },
+              };
+            }
+
+            // City labels
+            if (layer.id.startsWith("place_city")) {
+              return {
+                ...layer,
+                layout: {
+                  ...layer.layout,
+                  "text-field": ["coalesce", ["get", "name_en"], ["get", "name"]],
+                  "text-transform": "uppercase",
+                  "text-font": ["Noto Sans Regular"],
+                  "text-letter-spacing": 0.08,
+                },
+                paint: {
+                  ...layer.paint,
+                  "text-color": "rgba(255,255,255,0.32)",
+                  "text-halo-color": "rgba(15,23,42,0.5)",
+                  "text-halo-width": 1,
+                },
+              };
+            }
+
+            return layer;
+          });
+
+        // Insert a land-fill layer right after the background
+        // This renders all land polygons with a subtle fill
+        style.layers.splice(1, 0, {
+          id: "land-fill",
+          type: "fill",
+          source: "openmaptiles",
+          "source-layer": "landcover",
+          minzoom: 0,
+          maxzoom: 24,
+          paint: {
+            "fill-color": "rgba(255,255,255,0.07)",
+          },
+        });
+
+        // Add country fills using admin boundaries
+        style.layers.splice(2, 0, {
+          id: "country-fill",
+          type: "fill",
+          source: "openmaptiles",
+          "source-layer": "boundary",
+          filter: ["all", ["==", ["get", "admin_level"], 2], ["==", ["get", "maritime"], 0]],
+          paint: {
+            "fill-color": "rgba(79,209,197,0.06)",
+          },
+        });
+
+        setMapStyle(style);
+      })
+      .catch(() => {
+        setMapStyle("https://tiles.openfreemap.org/styles/positron");
+      });
+  }, []);
+
   const activeMarkets = useMemo(
     () => markets.filter((market) => market.enabled && market.label && market.latitude && market.longitude),
     [markets]
   );
 
-  useEffect(() => {
-    if (!token || !mapContainerRef.current || mapRef.current) {
-      return;
-    }
+  const handleMarkerClick = useCallback((market: MarketOption) => {
+    setSelectedMarket((prev) => (prev?.id === market.id ? null : market));
+  }, []);
 
-    mapboxgl.accessToken = token;
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: "mapbox://styles/mapbox/dark-v11",
-      center: [28, 18],
-      zoom: 1.25,
-      attributionControl: false,
-      cooperativeGestures: true,
-      projection: "globe"
-    });
+  const handlePopupClose = useCallback(() => {
+    setSelectedMarket(null);
+  }, []);
 
-    mapRef.current = map;
-    map.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-right");
-
-    map.on("style.load", () => {
-      map.setFog({
-        color: "rgb(7, 15, 28)",
-        "high-color": "rgb(18, 45, 70)",
-        "horizon-blend": 0.08
-      });
-    });
-
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
-  }, [token]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) {
-      return;
-    }
-
-    const markers: mapboxgl.Marker[] = activeMarkets.map((market) => {
-      const markerElement = document.createElement("div");
-      markerElement.className = "market-map-marker";
-      const dot = document.createElement("span");
-      const label = document.createElement("strong");
-      label.textContent = market.label;
-      markerElement.append(dot, label);
-
-      const popup = document.createElement("div");
-      const popupTitle = document.createElement("strong");
-      popupTitle.textContent = market.label;
-      popup.append(popupTitle);
-
-      if (market.region) {
-        const popupRegion = document.createElement("span");
-        popupRegion.textContent = market.region;
-        popup.append(popupRegion);
-      }
-
-      return new mapboxgl.Marker(markerElement)
-        .setLngLat([market.longitude, market.latitude])
-        .setPopup(new mapboxgl.Popup({ offset: 18, closeButton: false }).setDOMContent(popup))
-        .addTo(map);
-    });
-
-    if (activeMarkets.length) {
-      const bounds = new mapboxgl.LngLatBounds();
-      activeMarkets.forEach((market) => bounds.extend([market.longitude, market.latitude]));
-      map.fitBounds(bounds, { padding: 90, maxZoom: 2.4, duration: 1100 });
-    }
-
-    return () => {
-      markers.forEach((marker) => marker.remove());
-    };
-  }, [activeMarkets]);
+  if (!mapStyle) {
+    return (
+      <div className="market-map">
+        <div className="market-map__canvas" aria-label="Global market reach map" />
+        <div className="market-map__summary">
+          <strong>{activeMarkets.length || markets.length}</strong>
+          <span>active partner markets</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="market-map">
-      <div ref={mapContainerRef} className="market-map__canvas" aria-label="Global market reach map" />
-      {!token ? (
-        <div className="market-map__fallback">
-          {activeMarkets.map((market, index) => (
-            <span
+      <div className="market-map__canvas" aria-label="Global market reach map">
+        <Map
+          initialViewState={{
+            longitude: 28,
+            latitude: 18,
+            zoom: 1.25,
+          }}
+          style={{ width: "100%", height: "100%" }}
+          mapStyle={mapStyle}
+          attributionControl={false}
+          cooperativeGestures
+        >
+          {activeMarkets.map((market) => (
+            <Marker
               key={market.id}
-              className="market-map__fallback-pin"
-              style={{
-                left: `${18 + ((index * 17) % 64)}%`,
-                top: `${24 + ((index * 13) % 44)}%`
+              longitude={market.longitude}
+              latitude={market.latitude}
+              anchor="center"
+              onClick={(e) => {
+                e.originalEvent.stopPropagation();
+                handleMarkerClick(market);
               }}
             >
-              {market.label}
-            </span>
+              <div className="market-map-marker">
+                <span />
+                <strong>{market.label}</strong>
+              </div>
+            </Marker>
           ))}
-        </div>
-      ) : null}
+
+          {selectedMarket && (
+            <Popup
+              longitude={selectedMarket.longitude}
+              latitude={selectedMarket.latitude}
+              anchor="bottom"
+              offset={18}
+              closeButton={false}
+              onClose={handlePopupClose}
+              className="market-map-popup"
+            >
+              <strong>{selectedMarket.label}</strong>
+              {selectedMarket.region ? <span>{selectedMarket.region}</span> : null}
+            </Popup>
+          )}
+        </Map>
+      </div>
+
       <div className="market-map__summary">
         <strong>{activeMarkets.length || markets.length}</strong>
         <span>active partner markets</span>

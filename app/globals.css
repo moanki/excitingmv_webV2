@@ -224,7 +224,7 @@ select {
 }
 
 .home-page {
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .home-hero {
@@ -4396,7 +4396,7 @@ select {
   text-transform: uppercase;
 }
 
-.mapboxgl-popup-content {
+.maplibregl-popup-content {
   display: grid;
   gap: 0.25rem;
   border-radius: 14px;
@@ -4405,9 +4405,13 @@ select {
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.2);
 }
 
-.mapboxgl-popup-content span {
+.maplibregl-popup-content span {
   color: var(--text-soft);
   font-size: 0.8rem;
+}
+
+.market-map-popup .maplibregl-popup-tip {
+  border-bottom-color: rgba(255, 255, 255, 0.96);
 }
 
 .services-grid {
@@ -4684,5 +4688,440 @@ select {
 
   .newsletter-form__submit {
     width: 100%;
+  }
+}
+
+/* ─── Homepage Map: minimalist, countries only ─────────────────────────── */
+.home-map-section {
+  position: relative;
+  background: var(--brand-navy);
+  padding-bottom: 0;
+}
+
+.home-map-section__heading {
+  padding-top: 6rem;
+  padding-bottom: 2.5rem;
+}
+
+.home-map-section .market-map {
+  border: 0;
+  border-radius: 0;
+  min-height: 540px;
+  box-shadow: none;
+  background: transparent;
+}
+
+.home-map-section .market-map__canvas {
+  min-height: 540px;
+}
+
+.home-map-section .market-map__summary {
+  display: none;
+}
+
+.maplibregl-ctrl-attrib,
+.maplibregl-ctrl-attrib-button {
+  display: none !important;
+}
+
+.home-map-section .maplibregl-ctrl-top-right {
+  display: none;
+}
+
+/* Map markers — luxury teal dot + label */
+.market-map-marker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.market-map-marker span {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--brand-teal);
+  box-shadow: 0 0 0 6px rgba(79, 209, 197, 0.2);
+  animation: marker-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes marker-pulse {
+  0%, 100% { box-shadow: 0 0 0 6px rgba(79, 209, 197, 0.2); }
+  50% { box-shadow: 0 0 0 12px rgba(79, 209, 197, 0.08); }
+}
+
+.market-map-marker strong {
+  color: var(--brand-white);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.market-map-popup .maplibregl-popup-content {
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  background: var(--brand-navy);
+  color: var(--brand-white);
+  font-size: 0.8rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Awards: open, no card, bigger badges ─────────────────────────────── */
+.awards-open {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem 3rem;
+  padding: 2rem 0 1rem;
+}
+
+.award-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.88;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.award-badge:hover {
+  opacity: 1;
+  transform: scale(1.06);
+}
+
+.award-badge__img {
+  width: auto;
+  height: 120px;
+  max-width: 280px;
+  object-fit: contain;
+  filter: grayscale(18%);
+  transition: filter 0.25s ease, transform 0.25s ease;
+}
+
+.award-badge:hover .award-badge__img {
+  filter: grayscale(0%);
+  transform: scale(1.06);
+}
+
+.award-badge__name {
+  font-family: var(--font-serif), serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--brand-navy);
+  letter-spacing: 0.04em;
+}
+
+/* ─── Services / Why-Us Freeze-Screen Parallax ─────────────────────────── */
+.svc-section {
+  padding-bottom: 0;
+  overflow: visible;
+}
+
+.svc-parallax {
+  position: relative;
+  /* height is set inline via JS: (count+1) * 100vh */
+}
+
+.svc-parallax__sticky {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  overflow: hidden;
+}
+
+/* Image panel */
+.svc-parallax__media-col {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+.svc-parallax__media-sticky {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.svc-parallax__image {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transform: scale(1.06);
+  transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1), transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, transform;
+}
+
+.svc-parallax__image.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.svc-parallax__image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(15, 23, 42, 0.38) 0%, rgba(15, 23, 42, 0.08) 100%);
+}
+
+/* Text column */
+.svc-parallax__text-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem 4rem 4rem 5rem;
+  overflow: hidden;
+}
+
+.svc-parallax--reverse .svc-parallax__text-col {
+  padding: 4rem 5rem 4rem 4rem;
+}
+
+.svc-parallax__item {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: 0 1.5rem;
+  padding: 2.5rem 0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.07);
+  opacity: 0.18;
+  transform: translateY(0.6rem);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+  cursor: default;
+}
+
+.svc-parallax__item.is-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.svc-parallax__item:last-child {
+  border-bottom: 0;
+}
+
+.svc-parallax__item-icon {
+  color: var(--brand-teal);
+  font-size: 1.5rem;
+  line-height: 1.8rem;
+  margin-top: 0.15rem;
+}
+
+.svc-parallax__item-body h3 {
+  margin: 0 0 0.65rem;
+  font-family: var(--font-serif), serif;
+  font-size: 1.45rem;
+  line-height: 1.2;
+}
+
+.svc-parallax__item-body p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.98rem;
+  line-height: 1.8;
+}
+
+@media (max-width: 860px) {
+  .svc-parallax__sticky {
+    grid-template-columns: 1fr;
+    height: auto;
+    position: relative;
+  }
+
+  .svc-parallax {
+    height: auto !important;
+  }
+
+  .svc-parallax__media-col {
+    height: 52vw;
+    min-height: 280px;
+  }
+
+  .svc-parallax__image.is-active {
+    opacity: 1;
+  }
+
+  .svc-parallax__text-col {
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  .svc-parallax--reverse .svc-parallax__text-col {
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  .svc-parallax__item {
+    opacity: 1;
+    transform: none;
+    padding: 1.5rem 0;
+  }
+}
+
+/* ─── Newsletter: side-by-side with photo ──────────────────────────────── */
+.newsletter-blend {
+  position: relative;
+  padding: 7rem 0;
+  background: var(--brand-paper);
+}
+
+.newsletter-blend__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 4rem;
+  align-items: stretch;
+  max-width: var(--container);
+}
+
+.newsletter-blend__photo {
+  border-radius: 2rem;
+  overflow: hidden;
+  min-height: 480px;
+}
+
+.newsletter-blend__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.newsletter-blend__form-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.newsletter-blend__form-col .section-kicker {
+  color: var(--brand-teal);
+}
+
+.newsletter-blend__form-col h2 {
+  color: var(--brand-navy);
+  font-family: var(--font-serif), serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1.1;
+  margin: 0 0 1rem;
+}
+
+.newsletter-blend__lede {
+  color: var(--text-soft);
+  font-size: 1.04rem;
+  max-width: 520px;
+  margin-bottom: 0;
+}
+
+/* Form styling — no card box */
+.newsletter-blend .newsletter-form {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  margin-top: 2rem;
+}
+
+.newsletter-blend .newsletter-form label,
+.newsletter-blend .newsletter-field span {
+  color: var(--brand-navy);
+}
+
+.newsletter-blend .newsletter-field input,
+.newsletter-blend .newsletter-field select,
+.newsletter-blend .newsletter-field textarea {
+  background: transparent;
+  border-color: rgba(15, 23, 42, 0.16);
+  color: var(--brand-navy);
+}
+
+.newsletter-blend .newsletter-field input::placeholder,
+.newsletter-blend .newsletter-field textarea::placeholder {
+  color: rgba(15, 23, 42, 0.38);
+}
+
+.newsletter-blend .newsletter-form__microcopy {
+  color: var(--text-soft);
+}
+
+@media (max-width: 860px) {
+  .newsletter-blend__inner {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .newsletter-blend__photo {
+    min-height: 280px;
+    max-height: 360px;
+  }
+
+  .newsletter-blend {
+    padding: 5rem 0;
+  }
+}
+
+/* ─── WhatsApp: icon-only circle ───────────────────────────────────────── */
+.whatsapp-float {
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.whatsapp-float svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* ─── Live Chat: icon button + floating "Live Agent" label ─────────────── */
+.chat-widget__launcher {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.chat-widget__label {
+  display: inline-block;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  background: var(--brand-navy);
+  color: var(--brand-white);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
+  animation: label-pulse 3s ease-in-out infinite;
+}
+
+@keyframes label-pulse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.chat-toggle {
+  width: 52px;
+  height: 52px;
+  min-height: 0;
+  padding: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.chat-toggle svg {
+  width: 22px;
+  height: 22px;
+}
+
+@media (max-width: 900px) {
+  .chat-widget {
+    right: 0.9rem;
+    bottom: 5.8rem;
   }
 }

@@ -1,14 +1,8 @@
 import Link from "next/link";
-import {
-  BadgePercent,
-  BriefcaseBusiness,
-  Headphones,
-  Plane,
-  Route,
-  UsersRound
-} from "lucide-react";
 
 import { GlobalMarketMap } from "@/components/global-market-map";
+import { ServicesParallax } from "@/components/services-parallax";
+import { WhyUsParallax } from "@/components/why-us-parallax";
 import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
 import { listHomepageFeaturedResorts } from "@/lib/services/resort-service";
 import {
@@ -35,6 +29,16 @@ const featuredImages = [
   "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1400&q=80"
 ];
 
+// High-fidelity resort images for the services parallax (overwater bungalows / Maldives)
+const serviceImages = [
+  "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1600&q=90"
+];
+
 const defaultPartnerLogos = [
   "Soneva",
   "JOALI",
@@ -43,15 +47,6 @@ const defaultPartnerLogos = [
   "Baros",
   "Anantara"
 ];
-
-const serviceIcons = {
-  "badge-percent": BadgePercent,
-  "briefcase-business": BriefcaseBusiness,
-  headphones: Headphones,
-  plane: Plane,
-  route: Route,
-  "users-round": UsersRound
-};
 
 function pickResortImage(index: number) {
   return featuredImages[index % featuredImages.length];
@@ -202,38 +197,24 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="site-section site-section--navy" id="global-markets">
-        <div className="site-container">
+      <section className="home-map-section" id="global-markets">
+        <div className="home-map-section__heading site-container">
           <div className="section-heading section-heading--center section-heading--light">
             <h2>{markets.sectionTitle || "Global Markets"}</h2>
             <p>Supporting travel designers and agencies across global markets.</p>
           </div>
-          <GlobalMarketMap markets={activeMarkets.length ? activeMarkets : markets.options} />
         </div>
+        <GlobalMarketMap markets={activeMarkets.length ? activeMarkets : markets.options} />
       </section>
 
-      <section className="site-section site-section--white">
+      <section className="site-section site-section--white svc-section">
         <div className="site-container">
           <div className="section-heading section-heading--center">
             <h2>Services We Provide</h2>
             <p>Comprehensive on-ground support for our partners</p>
           </div>
-          <div className="services-grid">
-            {services.filter((service) => service.enabled && service.title).map((service) => {
-              const Icon = serviceIcons[service.icon as keyof typeof serviceIcons] ?? BriefcaseBusiness;
-
-              return (
-                <div className="service-card" key={service.title}>
-                  <div className="service-card__icon">
-                    <Icon size={24} strokeWidth={1.8} />
-                  </div>
-                  <h3>{service.title}</h3>
-                  <p>{service.description}</p>
-                </div>
-              );
-            })}
-          </div>
         </div>
+        <ServicesParallax services={services} images={serviceImages} />
       </section>
 
       <section className="expertise-band">
@@ -247,29 +228,21 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="site-section site-section--paper">
-        <div className="site-container why-us">
-          <div className="why-us__copy">
-            <p className="section-kicker">Our Value Proposition</p>
+      <section className="site-section site-section--paper svc-section">
+        <div className="site-container">
+          <div className="section-heading section-heading--center">
             <h2>Why Travel Designers Choose Us</h2>
-            <div className="why-us__list">
-              {whyUs.map((item) => (
-                <article className="why-us__item" key={item.title}>
-                  <div className="why-us__check" />
-                  <div>
-                    <h3>{item.title}</h3>
-                    <p>{item.description}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-          <div className="why-us__visual">
-            <div className="stacked-card stacked-card--back" />
-            <div className="stacked-card stacked-card--mid" />
-            <div className="stacked-card stacked-card--front" />
+            <p>Our Value Proposition</p>
           </div>
         </div>
+        <WhyUsParallax 
+          items={whyUs} 
+          images={[
+            "https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=1600&q=90",
+            "https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1600&q=90",
+            "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=90"
+          ]} 
+        />
       </section>
 
       <section className="site-section site-section--white awards-strip">
@@ -278,11 +251,13 @@ export default async function HomePage() {
             <h2>{awards.title}</h2>
             <p>{awards.summary || homepageHighlights[0]?.description}</p>
           </div>
-          <div className="awards-cloud">
+          <div className="awards-open">
             {awards.items.filter((item) => item.enabled && (item.name || item.imageUrl)).map((award) => (
-              <span className="award-pill" key={award.name || award.imageUrl}>
-                {award.imageUrl ? <img src={award.imageUrl} alt={award.name} className="award-pill__image" /> : award.name}
-              </span>
+              <div className="award-badge" key={award.name || award.imageUrl}>
+                {award.imageUrl
+                  ? <img src={award.imageUrl} alt={award.name} className="award-badge__img" />
+                  : <span className="award-badge__name">{award.name}</span>}
+              </div>
             ))}
           </div>
         </div>
@@ -331,13 +306,18 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="site-section site-section--paper">
-        <div className="site-container newsletter-block">
-          <div className="newsletter-block__media" style={{ backgroundImage: `url(${newsletter.imageUrl})` }} />
-          <div className="newsletter-block__content">
+      <section className="newsletter-blend">
+        <div className="site-container newsletter-blend__inner">
+          <div className="newsletter-blend__photo">
+            <img
+              src={newsletter.imageUrl || "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1200&q=80"}
+              alt="Maldives resort"
+            />
+          </div>
+          <div className="newsletter-blend__form-col">
             <p className="section-kicker">{newsletter.sectionLabel}</p>
             <h2>{newsletter.title}</h2>
-            <p className="newsletter-block__lede">{newsletter.description}</p>
+            <p className="newsletter-blend__lede">{newsletter.description}</p>
             <NewsletterSignupForm markets={marketLabels.length ? marketLabels : defaultPartnerLogos} />
           </div>
         </div>
