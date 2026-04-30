@@ -6205,3 +6205,287 @@ select {
     width: 100%;
   }
 }
+
+/* Targeted homepage refinements requested after the luxury pass */
+@media (min-width: 901px) {
+  .site-nav {
+    padding: 1rem 0;
+  }
+
+  .site-nav__inner,
+  .site-nav.is-scrolled .site-nav__inner {
+    min-height: 88px;
+    border: 0;
+    border-radius: 0;
+    background: rgba(251, 247, 239, 0.96);
+    box-shadow: 0 10px 30px rgba(19, 32, 43, 0.08);
+    backdrop-filter: none;
+  }
+
+  .site-nav__brand-logo {
+    height: 70px;
+    max-width: 280px;
+  }
+
+  .site-nav__links {
+    gap: clamp(1.6rem, 2.8vw, 3rem);
+  }
+
+  .site-nav__links a {
+    color: rgba(19, 32, 43, 0.7) !important;
+    font-size: 0.86rem;
+    letter-spacing: 0.14em;
+  }
+
+  .site-nav__login {
+    color: rgba(19, 32, 43, 0.62) !important;
+  }
+
+  .site-nav__cta,
+  .site-nav.is-scrolled .site-nav__cta {
+    min-height: 48px;
+    padding: 0 1.5rem;
+  }
+
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+}
+
+.lux-hero h1 {
+  font-size: clamp(2.45rem, 4.2vw, 4.75rem);
+  max-width: 14ch;
+}
+
+.lux-section-heading h2,
+.lux-editorial-copy h2,
+.lux-story-copy h2 {
+  font-size: clamp(2rem, 3.15vw, 3.4rem);
+  line-height: 1.08;
+}
+
+.lux-retreat-carousel,
+.lux-guide-carousel {
+  display: flex;
+  gap: 1rem;
+  width: max-content;
+  animation: lux-horizontal-drift 38s linear infinite;
+}
+
+.lux-retreat-carousel:hover,
+.lux-guide-carousel:hover {
+  animation-play-state: paused;
+}
+
+.lux-retreat-card {
+  flex: 0 0 clamp(320px, 31vw, 430px);
+  min-height: 390px;
+}
+
+.lux-retreat-card:first-child,
+.lux-retreat-card:nth-child(2),
+.lux-retreat-card:nth-child(n + 3),
+.lux-retreat-grid--1 .lux-retreat-card,
+.lux-retreat-grid--2 .lux-retreat-card {
+  grid-column: auto;
+}
+
+.lux-portrait-card__caption {
+  display: none;
+}
+
+.lux-signature span {
+  color: #8a5d16;
+}
+
+.lux-story-split,
+.lux-market-map-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
+}
+
+.lux-story-copy {
+  padding: clamp(1rem, 2vw, 2rem) 0;
+}
+
+.lux-story-copy p:not(.lux-eyebrow) {
+  color: rgba(19, 32, 43, 0.68);
+  font-size: 1.03rem;
+  line-height: 1.85;
+}
+
+.lux-story-image-panel {
+  min-height: 520px;
+  overflow: hidden;
+  border-radius: var(--lux-radius);
+  box-shadow: var(--lux-shadow);
+}
+
+.lux-story-image-panel .lux-story-panel__image {
+  min-height: 520px;
+}
+
+.lux-market-map-split {
+  padding-top: 0;
+}
+
+.lux-market-map-grid .lux-section-heading {
+  margin-bottom: 0;
+}
+
+.lux-market-map-grid .lux-section-heading h2 {
+  font-size: clamp(2rem, 3vw, 3.1rem);
+}
+
+.lux-market-map-card .market-map {
+  min-height: 520px;
+  border-radius: var(--lux-radius);
+  background:
+    radial-gradient(circle at 18% 28%, rgba(79, 209, 197, 0.18), transparent 22%),
+    radial-gradient(circle at 74% 36%, rgba(200, 161, 90, 0.14), transparent 20%),
+    linear-gradient(135deg, #07131f, #112536);
+}
+
+.lux-market-map-card .market-map__canvas,
+.lux-market-map-card .home-map-section .market-map__canvas {
+  min-height: 520px;
+}
+
+.lux-parallax-section {
+  padding-top: 0;
+}
+
+.svc-parallax__heading {
+  display: grid;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(19, 32, 43, 0.08);
+}
+
+.svc-parallax__heading .lux-eyebrow {
+  font-family: var(--font-serif), serif;
+  color: var(--lux-ink);
+  font-size: clamp(2rem, 3.1vw, 3.3rem);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.05;
+  text-transform: none;
+}
+
+.svc-parallax__heading span {
+  max-width: 580px;
+  color: rgba(19, 32, 43, 0.64);
+  line-height: 1.7;
+}
+
+.lux-parallax-section .svc-parallax__text-col {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.lux-parallax-section .svc-parallax__item {
+  padding: 1.45rem 0;
+  opacity: 0.42;
+}
+
+.lux-parallax-section .svc-parallax__item.is-active {
+  opacity: 1;
+}
+
+.lux-parallax-section--why .svc-parallax__media-col {
+  order: 2;
+}
+
+.lux-parallax-section--why .svc-parallax__text-col {
+  order: 1;
+}
+
+.lux-awards-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem 3.25rem;
+}
+
+.lux-award-logo {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.lux-award-logo img {
+  max-width: 260px;
+  max-height: 128px;
+  filter: none;
+  opacity: 0.94;
+}
+
+.lux-guide-carousel {
+  animation-duration: 42s;
+}
+
+.lux-guide-card,
+.lux-guide-card--featured {
+  flex: 0 0 clamp(310px, 28vw, 390px);
+  display: flex;
+  flex-direction: column;
+  min-height: 480px;
+  grid-row: auto;
+  grid-template-columns: none;
+}
+
+.lux-guide-card__image,
+.lux-guide-card--featured .lux-guide-card__image {
+  min-height: 230px;
+}
+
+@keyframes lux-horizontal-drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 0.5rem));
+  }
+}
+
+@media (max-width: 1100px) {
+  .lux-story-split,
+  .lux-market-map-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .lux-retreat-carousel,
+  .lux-guide-carousel {
+    width: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    animation: none;
+  }
+
+  .lux-retreat-card,
+  .lux-guide-card,
+  .lux-guide-card--featured {
+    flex-basis: min(86vw, 390px);
+    scroll-snap-align: start;
+  }
+
+  .lux-story-image-panel,
+  .lux-story-image-panel .lux-story-panel__image,
+  .lux-market-map-card .market-map,
+  .lux-market-map-card .market-map__canvas {
+    min-height: 360px;
+  }
+
+  .svc-parallax__heading .lux-eyebrow {
+    font-size: clamp(2rem, 9vw, 2.7rem);
+  }
+}

@@ -1,29 +1,13 @@
 import Link from "next/link";
-import {
-  ArrowRight,
-  Award,
-  BadgePercent,
-  BriefcaseBusiness,
-  Compass,
-  Crown,
-  Gem,
-  Globe2,
-  Headphones,
-  MapPin,
-  Plane,
-  Route,
-  ShieldCheck,
-  Sparkles,
-  UsersRound,
-  Waves
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { GlobalMarketMap } from "@/components/global-market-map";
 import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
+import { ServicesParallax } from "@/components/services-parallax";
+import { WhyUsParallax } from "@/components/why-us-parallax";
 import { listHomepageFeaturedResorts } from "@/lib/services/resort-service";
 import type { ResortSummary } from "@/lib/types";
 import {
-  getFooterContent,
   getHomepageAwardsContent,
   getHomepageCeoContent,
   getHomepageFeatures,
@@ -35,12 +19,8 @@ import {
   getHomepageStoryContent,
   getHomepageWhyUs,
   getMarketSettings,
-  getNavbarContent,
   type HomepageGuideItem,
-  type HomepageServiceItem,
   type HomepageStat,
-  type HomepageWhyUsItem,
-  type MarketOption
 } from "@/lib/site-content";
 
 const featuredImages = [
@@ -54,21 +34,24 @@ const featuredImages = [
 const heroFallback =
   "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=2200&q=85";
 
+const serviceImages = [
+  "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=90"
+];
+
+const whyImages = [
+  "https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=90"
+];
+
 const partnerBenefits = ["Priority Support", "Exclusive Rates", "Access to Offers"];
 
 const defaultPartnerLogos = ["Soneva", "JOALI", "Patina", "Milaidhoo", "Baros", "Anantara"];
-
-const serviceIconMap = {
-  "badge-percent": BadgePercent,
-  "briefcase-business": BriefcaseBusiness,
-  headphones: Headphones,
-  plane: Plane,
-  route: Route,
-  "users-round": UsersRound
-};
-
-const marketIconMap = [Globe2, Compass, MapPin, Waves];
-const whyIcons = [Crown, BriefcaseBusiness, ShieldCheck];
 
 function pickResortImage(index: number) {
   return featuredImages[index % featuredImages.length];
@@ -150,9 +133,9 @@ function FeaturedRetreats({ resorts }: { resorts: ResortSummary[] }) {
           </Link>
         </div>
 
-        <div className={`lux-retreat-grid lux-retreat-grid--${Math.min(Math.max(displayItems.length, 1), 5)}`}>
-          {displayItems.map((item) => (
-            <Link href={item.href} key={`${item.href}-${item.title}`} className="lux-retreat-card">
+        <div className="lux-retreat-carousel" aria-label="Featured resort portfolio">
+          {[...displayItems, ...displayItems].map((item, index) => (
+            <Link href={item.href} key={`${item.href}-${item.title}-${index}`} className="lux-retreat-card">
               <div
                 className="lux-retreat-card__image"
                 style={{ backgroundImage: `url(${item.image})` }}
@@ -166,36 +149,6 @@ function FeaturedRetreats({ resorts }: { resorts: ResortSummary[] }) {
               </div>
             </Link>
           ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ServicesBento({ services }: { services: HomepageServiceItem[] }) {
-  const enabled = services.filter((service) => service.enabled && service.title);
-
-  return (
-    <section className="lux-section lux-section--sand">
-      <div className="lux-container">
-        <SectionHeading
-          eyebrow="DMC Services"
-          title="Commercial support, island logistics, and product clarity in one partner rhythm"
-          description="Built for luxury travel teams who need accuracy before the guest ever arrives."
-        />
-        <div className="lux-bento-grid">
-          {enabled.map((service, index) => {
-            const Icon = serviceIconMap[service.icon as keyof typeof serviceIconMap] || Sparkles;
-            return (
-              <article className={`lux-bento-card${index < 2 ? " lux-bento-card--large" : ""}`} key={service.title}>
-                <div className="lux-icon-box">
-                  <Icon size={22} />
-                </div>
-                <h3>{service.title}</h3>
-                <p>{service.description}</p>
-              </article>
-            );
-          })}
         </div>
       </div>
     </section>
@@ -219,53 +172,6 @@ function TrustStats({ stats }: { stats: HomepageStat[] }) {
   );
 }
 
-function WhyUs({ items }: { items: HomepageWhyUsItem[] }) {
-  const displayItems = items.filter((item) => item.title).slice(0, 3);
-
-  return (
-    <section className="lux-section lux-section--ivory">
-      <div className="lux-container">
-        <SectionHeading
-          eyebrow="Why Travel Designers Choose Us"
-          title="The confidence layer behind every Maldives recommendation"
-          description="Local precision, commercial fluency, and resort relationships that protect high-value bookings."
-        />
-        <div className="lux-why-grid">
-          {displayItems.map((item, index) => {
-            const Icon = whyIcons[index] || Gem;
-            return (
-              <article className="lux-why-card" key={item.title}>
-                <div className="lux-icon-box lux-icon-box--dark">
-                  <Icon size={22} />
-                </div>
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-              </article>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function MarketCards({ markets }: { markets: MarketOption[] }) {
-  return (
-    <div className="lux-market-cards">
-      {markets.map((market, index) => {
-        const Icon = marketIconMap[index % marketIconMap.length];
-        return (
-          <article className="lux-market-card" key={market.id}>
-            <Icon size={20} />
-            <strong>{market.label}</strong>
-            <span>{market.region}</span>
-          </article>
-        );
-      })}
-    </div>
-  );
-}
-
 function TravelGuideMagazine({ guide }: { guide: HomepageGuideItem[] }) {
   const articles = guide.filter((item) => item.title);
 
@@ -282,13 +188,10 @@ function TravelGuideMagazine({ guide }: { guide: HomepageGuideItem[] }) {
             View all insights <ArrowRight size={16} />
           </Link>
         </div>
-        <div className="lux-guide-grid">
-          {articles.map((item, index) => (
-            <article className={`lux-guide-card${index === 0 ? " lux-guide-card--featured" : ""}`} key={item.title}>
-              <div
-                className="lux-guide-card__image"
-                style={{ backgroundImage: `url(${item.imageUrl || pickResortImage(index + 1)})` }}
-              />
+        <div className="lux-guide-carousel" aria-label="Maldives travel guide insights">
+          {[...articles, ...articles].map((item, index) => (
+            <article className="lux-guide-card" key={`${item.title}-${index}`}>
+              <div className="lux-guide-card__image" style={{ backgroundImage: `url(${item.imageUrl || pickResortImage(index + 1)})` }} />
               <div className="lux-guide-card__content">
                 <span>{item.category}</span>
                 <h3>{item.title}</h3>
@@ -316,8 +219,6 @@ export default async function HomePage() {
     { content: guide },
     { content: newsletter },
     { content: markets },
-    { content: navbar },
-    { content: footer },
     resorts
   ] = await Promise.all([
     getHomepageHeroContent("published"),
@@ -331,16 +232,13 @@ export default async function HomePage() {
     getHomepageGuide("published"),
     getHomepageNewsletterContent("published"),
     getMarketSettings("published"),
-    getNavbarContent("published"),
-    getFooterContent("published"),
     listHomepageFeaturedResorts(5)
   ]);
 
   const activeMarkets = markets.options.filter((market) => market.enabled);
   const marketList = activeMarkets.length ? activeMarkets : markets.options;
   const marketLabels = marketList.map((market) => market.label);
-  const navLabels = navbar.navItems.filter((item) => item.enabled).map((item) => item.label);
-  const partnerLogos = navLabels.length ? navLabels : defaultPartnerLogos;
+  const partnerLogos = defaultPartnerLogos;
   const featuredResorts = resorts.slice(0, 5);
   const heroStats = getHeroStats(stats);
   const heroImage = hero.mediaUrl || heroFallback;
@@ -426,38 +324,53 @@ export default async function HomePage() {
       </section>
 
       <section className="lux-section lux-section--ivory">
-        <div className="lux-container lux-story-market">
-          <div className="lux-story-panel">
+        <div className="lux-container lux-story-split">
+          <div className="lux-story-copy">
+            <p className="lux-eyebrow">{story.sectionLabel}</p>
+            <h2>{story.title}</h2>
+            <p>{story.description}</p>
+          </div>
+          <div className="lux-story-image-panel">
             <div
               className="lux-story-panel__image"
               style={{ backgroundImage: `url(${story.imageUrl || featuredImages[1]})` }}
             />
-            <div className="lux-story-panel__copy">
-              <p className="lux-eyebrow">{story.sectionLabel}</p>
-              <h2>{story.title}</h2>
-              <p>{story.description}</p>
-            </div>
           </div>
-          <div className="lux-market-panel" id="global-markets">
+        </div>
+      </section>
+
+      <section className="lux-section lux-section--ivory lux-market-map-split" id="global-markets">
+        <div className="lux-container lux-market-map-grid">
+          <div className="lux-market-panel">
             <SectionHeading
               eyebrow={markets.sectionTitle || "Global Markets"}
               title="Connected to the markets shaping premium Maldives demand"
               description="A focused DMC presence for travel designers and agencies across priority regions."
             />
-            <MarketCards markets={marketList} />
+          </div>
+          <div className="lux-market-map-card">
+            <GlobalMarketMap markets={marketList} />
           </div>
         </div>
       </section>
 
-      <section className="lux-map-section">
-        <div className="lux-container">
-          <GlobalMarketMap markets={marketList} />
-        </div>
+      <section className="lux-section lux-section--sand svc-section lux-parallax-section">
+        <ServicesParallax
+          services={services}
+          images={serviceImages}
+          title="DMC Services"
+          description="Commercial support, island logistics, and product clarity in one partner rhythm."
+        />
       </section>
-
-      <ServicesBento services={services} />
       <TrustStats stats={stats} />
-      <WhyUs items={whyUs} />
+      <section className="lux-section lux-section--ivory svc-section lux-parallax-section lux-parallax-section--why">
+        <WhyUsParallax
+          items={whyUs}
+          images={whyImages}
+          title="Why Travel Designers Choose Us"
+          description="Local precision, commercial fluency, and resort relationships that protect high-value bookings."
+        />
+      </section>
 
       <section className="lux-section lux-section--sand">
         <div className="lux-container">

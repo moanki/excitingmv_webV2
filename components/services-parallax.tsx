@@ -6,6 +6,8 @@ import type { HomepageServiceItem } from "@/lib/site-content";
 type ServicesParallaxProps = {
   services: HomepageServiceItem[];
   images: string[];
+  title?: string;
+  description?: string;
 };
 
 const serviceIcons: Record<string, string> = {
@@ -22,7 +24,7 @@ const serviceIcons: Record<string, string> = {
  * through each service. The image on the left crossfades to match. Once all
  * items have been shown, the section un-pins and normal scrolling resumes.
  */
-export function ServicesParallax({ services, images }: ServicesParallaxProps) {
+export function ServicesParallax({ services, images, title, description }: ServicesParallaxProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const enabledServices = services.filter((s) => s.enabled && s.title);
@@ -81,6 +83,12 @@ export function ServicesParallax({ services, images }: ServicesParallaxProps) {
 
         {/* Right: text items */}
         <div className="svc-parallax__text-col">
+          {title ? (
+            <div className="svc-parallax__heading">
+              <p className="lux-eyebrow">{title}</p>
+              {description ? <span>{description}</span> : null}
+            </div>
+          ) : null}
           {enabledServices.map((service, index) => (
             <div
               key={service.title}
