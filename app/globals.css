@@ -5125,3 +5125,1083 @@ select {
     bottom: 5.8rem;
   }
 }
+
+/* Luxury 2026 homepage polish */
+:root {
+  --lux-navy: #07131f;
+  --lux-charcoal: #111820;
+  --lux-ink: #13202b;
+  --lux-ivory: #fbf7ef;
+  --lux-sand: #f1e7d7;
+  --lux-gold: #c8a15a;
+  --lux-gold-soft: #ead8aa;
+  --lux-glass: rgba(255, 255, 255, 0.14);
+  --lux-border: rgba(19, 32, 43, 0.12);
+  --lux-light-border: rgba(255, 255, 255, 0.18);
+  --lux-shadow: 0 28px 80px rgba(19, 32, 43, 0.14);
+  --lux-radius: 28px;
+}
+
+.lux-home {
+  background: var(--lux-ivory);
+  color: var(--lux-ink);
+}
+
+.lux-container {
+  width: min(calc(100% - 3rem), 1280px);
+  margin: 0 auto;
+}
+
+.site-nav {
+  padding: 0.85rem 0;
+}
+
+.site-nav__inner {
+  min-height: 76px;
+  padding: 0 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(7, 19, 31, 0.34);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(22px);
+}
+
+.site-nav.is-scrolled {
+  padding: 0.55rem 0;
+  background: transparent;
+  border-bottom: 0;
+}
+
+.site-nav.is-scrolled .site-nav__inner {
+  border-color: rgba(19, 32, 43, 0.08);
+  background: rgba(251, 247, 239, 0.84);
+  box-shadow: 0 18px 60px rgba(19, 32, 43, 0.11);
+}
+
+.site-nav__brand-logo {
+  height: 54px;
+}
+
+.site-nav__links {
+  gap: clamp(1rem, 2vw, 2rem);
+}
+
+.site-nav__links a {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+}
+
+.site-nav__login {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.site-nav.is-scrolled .site-nav__login {
+  color: rgba(19, 32, 43, 0.58) !important;
+}
+
+.site-nav__cta {
+  min-height: 46px;
+  padding: 0 1.35rem;
+  background: linear-gradient(135deg, var(--lux-gold), #f0d58d);
+  color: var(--lux-navy) !important;
+  box-shadow: 0 18px 42px rgba(200, 161, 90, 0.24);
+}
+
+.site-nav.is-scrolled .site-nav__cta {
+  background: linear-gradient(135deg, var(--lux-gold), #f0d58d);
+  color: var(--lux-navy) !important;
+}
+
+.lux-eyebrow {
+  margin: 0;
+  color: var(--lux-gold);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.lux-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-height: 54px;
+  padding: 0 1.45rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.lux-button:hover {
+  transform: translateY(-2px);
+}
+
+.lux-button--gold {
+  background: linear-gradient(135deg, var(--lux-gold), #f2d891);
+  color: var(--lux-navy);
+  box-shadow: 0 18px 52px rgba(200, 161, 90, 0.25);
+}
+
+.lux-button--glass {
+  border: 1px solid var(--lux-light-border);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  backdrop-filter: blur(16px);
+}
+
+.lux-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--lux-ink);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.lux-hero {
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--lux-navy);
+}
+
+.lux-hero__media,
+.lux-hero__asset,
+.lux-hero__overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.lux-hero__asset {
+  width: 100%;
+  height: 100%;
+  background-position: center;
+  background-size: cover;
+  object-fit: cover;
+  animation: lux-hero-drift 18s ease-in-out infinite alternate;
+}
+
+.lux-hero__overlay {
+  background:
+    radial-gradient(circle at 78% 22%, rgba(200, 161, 90, 0.18), transparent 28%),
+    linear-gradient(90deg, rgba(7, 19, 31, 0.92) 0%, rgba(7, 19, 31, 0.64) 45%, rgba(7, 19, 31, 0.2) 100%),
+    linear-gradient(180deg, rgba(7, 19, 31, 0.16) 0%, rgba(7, 19, 31, 0.86) 100%);
+}
+
+.lux-hero__inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.55fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: end;
+  min-height: 100dvh;
+  padding: 11rem 0 8.5rem;
+}
+
+.lux-hero__copy {
+  max-width: 780px;
+}
+
+.lux-hero h1,
+.lux-section-heading h2,
+.lux-editorial-copy h2,
+.lux-story-panel h2,
+.lux-partner-cta h2,
+.lux-contact-copy h2 {
+  margin: 0;
+  font-family: var(--font-serif), serif;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.lux-hero h1 {
+  margin-top: 1rem;
+  color: white;
+  font-size: clamp(3.4rem, 7vw, 7.2rem);
+  line-height: 0.92;
+  max-width: 11ch;
+}
+
+.lux-hero__copy > p:not(.lux-eyebrow) {
+  max-width: 650px;
+  margin: 1.5rem 0 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: clamp(1rem, 1.45vw, 1.22rem);
+  line-height: 1.8;
+}
+
+.lux-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 2rem;
+}
+
+.lux-hero__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.lux-hero-stat,
+.lux-trust-card {
+  border: 1px solid var(--lux-light-border);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
+}
+
+.lux-hero-stat {
+  min-height: 132px;
+  padding: 1.15rem;
+  color: white;
+}
+
+.lux-hero-stat strong,
+.lux-trust-card strong {
+  display: block;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(2rem, 3.5vw, 3.3rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.lux-hero-stat span,
+.lux-trust-card span {
+  display: block;
+  margin-top: 0.65rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.lux-hero__ticker {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  padding: 1.25rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(7, 19, 31, 0.56);
+  overflow: hidden;
+  backdrop-filter: blur(18px);
+}
+
+.lux-hero__ticker div {
+  display: flex;
+  gap: 4rem;
+  width: max-content;
+  padding-left: 1.5rem;
+  animation: hero-logos 34s linear infinite;
+}
+
+.lux-hero__ticker span {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.lux-section {
+  padding: clamp(5rem, 8vw, 8.5rem) 0;
+}
+
+.lux-section--ivory {
+  background: var(--lux-ivory);
+}
+
+.lux-section--sand {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(200, 161, 90, 0.1), transparent 30%),
+    var(--lux-sand);
+}
+
+.lux-section-heading {
+  max-width: 780px;
+  margin-bottom: 3rem;
+}
+
+.lux-section-heading--light {
+  color: white;
+}
+
+.lux-section-heading h2 {
+  margin-top: 0.7rem;
+  color: inherit;
+  font-size: clamp(2.35rem, 4.8vw, 5rem);
+  line-height: 1;
+}
+
+.lux-section-heading > p:not(.lux-eyebrow) {
+  max-width: 620px;
+  margin: 1rem 0 0;
+  color: rgba(19, 32, 43, 0.66);
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.lux-section-heading--light > p:not(.lux-eyebrow) {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.lux-heading-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.lux-heading-row .lux-section-heading {
+  margin-bottom: 0;
+}
+
+.lux-retreat-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.lux-retreat-card {
+  position: relative;
+  min-height: 430px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: var(--lux-radius);
+  background: var(--lux-navy);
+  box-shadow: var(--lux-shadow);
+}
+
+.lux-retreat-card:first-child {
+  grid-column: span 3;
+}
+
+.lux-retreat-card:nth-child(2) {
+  grid-column: span 3;
+}
+
+.lux-retreat-card:nth-child(n + 3) {
+  grid-column: span 2;
+  min-height: 360px;
+}
+
+.lux-retreat-grid--1 .lux-retreat-card,
+.lux-retreat-grid--2 .lux-retreat-card {
+  grid-column: span 3;
+}
+
+.lux-retreat-card__image,
+.lux-retreat-card__shade {
+  position: absolute;
+  inset: 0;
+}
+
+.lux-retreat-card__image {
+  background-position: center;
+  background-size: cover;
+  transition: transform 0.7s ease;
+}
+
+.lux-retreat-card:hover .lux-retreat-card__image {
+  transform: scale(1.06);
+}
+
+.lux-retreat-card__shade {
+  background: linear-gradient(180deg, rgba(7, 19, 31, 0.06), rgba(7, 19, 31, 0.82));
+}
+
+.lux-retreat-card__content {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  gap: 0.65rem;
+  padding: 1.45rem;
+  color: white;
+}
+
+.lux-retreat-card__content span,
+.lux-guide-card__content span {
+  color: var(--lux-gold-soft);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.lux-retreat-card h3,
+.lux-bento-card h3,
+.lux-why-card h3,
+.lux-guide-card h3 {
+  margin: 0;
+  font-family: var(--font-serif), serif;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.lux-retreat-card h3 {
+  font-size: clamp(1.65rem, 2.6vw, 2.45rem);
+  line-height: 1.05;
+}
+
+.lux-retreat-card p,
+.lux-retreat-card strong {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.lux-retreat-card strong,
+.lux-guide-card a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.lux-editorial-split,
+.lux-story-market,
+.lux-contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
+}
+
+.lux-editorial-split--ceo {
+  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
+}
+
+.lux-portrait-card,
+.lux-story-panel,
+.lux-contact-card {
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: var(--lux-radius);
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: var(--lux-shadow);
+  backdrop-filter: blur(18px);
+}
+
+.lux-portrait-card {
+  position: relative;
+  min-height: 620px;
+  overflow: hidden;
+}
+
+.lux-portrait-card__image,
+.lux-story-panel__image,
+.lux-contact-image {
+  background-position: center;
+  background-size: cover;
+}
+
+.lux-portrait-card__image {
+  position: absolute;
+  inset: 0;
+}
+
+.lux-portrait-card__caption {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  left: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--lux-light-border);
+  border-radius: 20px;
+  background: rgba(7, 19, 31, 0.62);
+  color: white;
+  backdrop-filter: blur(16px);
+}
+
+.lux-portrait-card__caption strong,
+.lux-portrait-card__caption span,
+.lux-signature strong,
+.lux-signature span {
+  display: block;
+}
+
+.lux-portrait-card__caption span,
+.lux-signature span {
+  margin-top: 0.25rem;
+  color: var(--lux-gold-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.lux-editorial-copy h2,
+.lux-story-panel h2,
+.lux-contact-copy h2 {
+  margin-top: 0.85rem;
+  font-size: clamp(2.2rem, 4.4vw, 4.5rem);
+  line-height: 1.06;
+}
+
+.lux-editorial-copy p:not(.lux-eyebrow),
+.lux-story-panel p:not(.lux-eyebrow),
+.lux-contact-copy p:not(.lux-eyebrow),
+.lux-partner-cta p {
+  color: rgba(19, 32, 43, 0.68);
+  font-size: 1.02rem;
+  line-height: 1.85;
+}
+
+.lux-signature {
+  margin-top: 2rem;
+}
+
+.lux-story-market {
+  align-items: stretch;
+}
+
+.lux-story-panel {
+  overflow: hidden;
+}
+
+.lux-story-panel__image {
+  min-height: 360px;
+}
+
+.lux-story-panel__copy {
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.lux-market-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.lux-market-cards,
+.lux-why-grid,
+.lux-trust-band__grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.lux-market-cards {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lux-market-card {
+  display: grid;
+  gap: 0.6rem;
+  min-height: 150px;
+  padding: 1.25rem;
+  border: 1px solid var(--lux-border);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 16px 44px rgba(19, 32, 43, 0.06);
+}
+
+.lux-market-card svg {
+  color: var(--lux-gold);
+}
+
+.lux-market-card strong {
+  align-self: end;
+  font-family: var(--font-serif), serif;
+  font-size: 1.45rem;
+}
+
+.lux-market-card span {
+  color: rgba(19, 32, 43, 0.55);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.lux-map-section {
+  padding: 0 0 clamp(5rem, 8vw, 8rem);
+  background: var(--lux-ivory);
+}
+
+.lux-map-section .market-map {
+  border-radius: var(--lux-radius);
+}
+
+.lux-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.lux-bento-card,
+.lux-why-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: var(--lux-radius);
+  background: rgba(255, 255, 255, 0.54);
+  box-shadow: 0 18px 54px rgba(19, 32, 43, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.lux-bento-card {
+  grid-column: span 1;
+  min-height: 260px;
+  padding: 1.4rem;
+}
+
+.lux-bento-card--large {
+  grid-column: span 2;
+}
+
+.lux-bento-card:hover,
+.lux-why-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--lux-shadow);
+}
+
+.lux-icon-box {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: rgba(200, 161, 90, 0.18);
+  color: var(--lux-ink);
+}
+
+.lux-icon-box--dark {
+  background: rgba(7, 19, 31, 0.08);
+  color: var(--lux-navy);
+}
+
+.lux-bento-card h3,
+.lux-why-card h3 {
+  margin-top: 1.35rem;
+  font-size: 1.55rem;
+  line-height: 1.15;
+}
+
+.lux-bento-card p,
+.lux-why-card p,
+.lux-guide-card p {
+  margin: 0.8rem 0 0;
+  color: rgba(19, 32, 43, 0.64);
+  line-height: 1.75;
+}
+
+.lux-trust-band {
+  padding: 4rem 0;
+  background:
+    radial-gradient(circle at 16% 20%, rgba(200, 161, 90, 0.18), transparent 28%),
+    linear-gradient(135deg, #07131f, #142333);
+}
+
+.lux-trust-band__grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.lux-trust-card {
+  padding: 1.35rem;
+  color: white;
+}
+
+.lux-why-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.lux-why-card {
+  padding: 1.45rem;
+  background: white;
+}
+
+.lux-awards-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.lux-award-logo {
+  display: grid;
+  place-items: center;
+  min-height: 138px;
+  padding: 1.25rem;
+  border: 1px solid rgba(19, 32, 43, 0.08);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.66);
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+.lux-award-logo:hover {
+  transform: translateY(-3px);
+}
+
+.lux-award-logo img {
+  width: auto;
+  max-width: 190px;
+  max-height: 78px;
+  object-fit: contain;
+  filter: grayscale(1) contrast(0.9);
+  opacity: 0.78;
+}
+
+.lux-award-logo:hover img {
+  filter: grayscale(0);
+  opacity: 1;
+}
+
+.lux-award-logo span {
+  text-align: center;
+  font-family: var(--font-serif), serif;
+  font-size: 1.25rem;
+}
+
+.lux-partner-cta {
+  padding: clamp(5rem, 9vw, 9rem) 0;
+  background:
+    linear-gradient(90deg, rgba(7, 19, 31, 0.92), rgba(7, 19, 31, 0.62)),
+    url("https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=1800&q=84") center/cover;
+  color: white;
+}
+
+.lux-partner-cta__inner {
+  max-width: 900px;
+}
+
+.lux-partner-cta h2 {
+  max-width: 760px;
+  margin-top: 0.75rem;
+  font-size: clamp(2.65rem, 5.4vw, 5.4rem);
+  line-height: 0.98;
+}
+
+.lux-partner-cta p {
+  max-width: 650px;
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.lux-benefit-pills,
+.lux-contact-assurance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin: 1.7rem 0 2rem;
+}
+
+.lux-benefit-pills span,
+.lux-contact-assurance span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.lux-benefit-pills span {
+  border: 1px solid var(--lux-light-border);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.lux-guide-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
+  gap: 1rem;
+}
+
+.lux-guide-card {
+  display: grid;
+  grid-template-columns: 0.9fr 1fr;
+  min-height: 230px;
+  overflow: hidden;
+  border: 1px solid var(--lux-border);
+  border-radius: 24px;
+  background: white;
+  box-shadow: 0 18px 50px rgba(19, 32, 43, 0.07);
+}
+
+.lux-guide-card--featured {
+  grid-row: span 3;
+  grid-template-columns: 1fr;
+}
+
+.lux-guide-card__image {
+  min-height: 100%;
+  background-position: center;
+  background-size: cover;
+}
+
+.lux-guide-card--featured .lux-guide-card__image {
+  min-height: 430px;
+}
+
+.lux-guide-card__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.35rem;
+}
+
+.lux-guide-card h3 {
+  margin-top: 0.8rem;
+  font-size: clamp(1.35rem, 2.2vw, 2.2rem);
+  line-height: 1.12;
+}
+
+.lux-guide-card a {
+  margin-top: 1.2rem;
+  color: var(--lux-ink);
+}
+
+.lux-contact-section {
+  padding: clamp(5rem, 8vw, 8rem) 0;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(200, 161, 90, 0.14), transparent 26%),
+    var(--lux-sand);
+}
+
+.lux-contact-grid {
+  align-items: stretch;
+}
+
+.lux-contact-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.lux-contact-assurance span {
+  background: rgba(255, 255, 255, 0.62);
+  color: rgba(19, 32, 43, 0.78);
+}
+
+.lux-contact-image {
+  min-height: 260px;
+  margin-top: 1.5rem;
+  border-radius: var(--lux-radius);
+  box-shadow: var(--lux-shadow);
+}
+
+.lux-contact-card {
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+
+.lux-contact-card .newsletter-form {
+  margin: 0;
+  padding: clamp(1.1rem, 2vw, 1.5rem);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: none;
+}
+
+.lux-contact-card .newsletter-form__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lux-contact-card .newsletter-field,
+.lux-contact-card .newsletter-field:nth-child(4),
+.lux-contact-card .newsletter-field:nth-child(5),
+.lux-contact-card .newsletter-field:nth-child(6) {
+  grid-column: span 1;
+}
+
+.lux-contact-card .newsletter-field--full {
+  grid-column: 1 / -1;
+}
+
+.lux-contact-card .newsletter-field input,
+.lux-contact-card .newsletter-field select,
+.lux-contact-card .newsletter-field textarea {
+  border-color: rgba(19, 32, 43, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.lux-contact-card .newsletter-field input:focus,
+.lux-contact-card .newsletter-field select:focus,
+.lux-contact-card .newsletter-field textarea:focus {
+  border-color: var(--lux-gold);
+  outline: 3px solid rgba(200, 161, 90, 0.18);
+}
+
+.site-footer {
+  background:
+    radial-gradient(circle at 12% 16%, rgba(200, 161, 90, 0.12), transparent 24%),
+    var(--lux-navy);
+}
+
+.site-footer__grid {
+  gap: clamp(2rem, 5vw, 4rem);
+}
+
+.site-footer__logo-image {
+  max-height: 76px;
+  width: auto;
+}
+
+.site-footer__badge {
+  min-height: 72px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.site-footer__badge-image {
+  max-height: 48px;
+  object-fit: contain;
+}
+
+@keyframes lux-hero-drift {
+  from {
+    transform: scale(1.02);
+  }
+  to {
+    transform: scale(1.08) translate3d(-1%, -1%, 0);
+  }
+}
+
+@media (max-width: 1100px) {
+  .lux-hero__inner,
+  .lux-editorial-split,
+  .lux-story-market,
+  .lux-contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lux-hero__stats,
+  .lux-bento-grid,
+  .lux-trust-band__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lux-retreat-card,
+  .lux-retreat-card:first-child,
+  .lux-retreat-card:nth-child(2),
+  .lux-retreat-card:nth-child(n + 3),
+  .lux-retreat-grid--1 .lux-retreat-card,
+  .lux-retreat-grid--2 .lux-retreat-card {
+    grid-column: span 3;
+  }
+
+  .lux-guide-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .site-nav__inner {
+    min-height: 66px;
+    padding: 0 0.8rem;
+  }
+
+  .site-nav__brand-logo {
+    height: 50px;
+    max-width: 190px;
+  }
+
+  .site-nav__mobile-portal {
+    color: white;
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .lux-container {
+    width: min(calc(100% - 1.5rem), 1280px);
+  }
+
+  .lux-hero__inner {
+    align-items: center;
+    padding: 8.5rem 0 6rem;
+  }
+
+  .lux-hero h1 {
+    font-size: clamp(3rem, 14vw, 4.4rem);
+    max-width: 10ch;
+  }
+
+  .lux-heading-row {
+    display: grid;
+    align-items: start;
+  }
+
+  .lux-retreat-grid,
+  .lux-bento-grid,
+  .lux-why-grid,
+  .lux-awards-strip,
+  .lux-market-cards,
+  .lux-contact-card .newsletter-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lux-retreat-card,
+  .lux-retreat-card:first-child,
+  .lux-retreat-card:nth-child(2),
+  .lux-retreat-card:nth-child(n + 3),
+  .lux-retreat-grid--1 .lux-retreat-card,
+  .lux-retreat-grid--2 .lux-retreat-card,
+  .lux-bento-card,
+  .lux-bento-card--large {
+    grid-column: auto;
+  }
+
+  .lux-retreat-card {
+    min-height: 380px;
+  }
+
+  .lux-portrait-card {
+    min-height: 460px;
+  }
+
+  .lux-contact-card .newsletter-field,
+  .lux-contact-card .newsletter-field:nth-child(4),
+  .lux-contact-card .newsletter-field:nth-child(5),
+  .lux-contact-card .newsletter-field:nth-child(6),
+  .lux-contact-card .newsletter-field--full {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 560px) {
+  .lux-hero__stats,
+  .lux-trust-band__grid,
+  .lux-guide-card {
+    grid-template-columns: 1fr;
+  }
+
+  .lux-hero__ticker {
+    display: none;
+  }
+
+  .lux-hero-stat {
+    min-height: 112px;
+  }
+
+  .lux-section-heading h2,
+  .lux-editorial-copy h2,
+  .lux-story-panel h2,
+  .lux-contact-copy h2,
+  .lux-partner-cta h2 {
+    font-size: clamp(2.15rem, 11vw, 3.2rem);
+  }
+
+  .lux-guide-card__image,
+  .lux-guide-card--featured .lux-guide-card__image {
+    min-height: 250px;
+  }
+
+  .lux-button {
+    width: 100%;
+  }
+}

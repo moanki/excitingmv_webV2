@@ -1,16 +1,33 @@
 import Link from "next/link";
+import {
+  ArrowRight,
+  Award,
+  BadgePercent,
+  BriefcaseBusiness,
+  Compass,
+  Crown,
+  Gem,
+  Globe2,
+  Headphones,
+  MapPin,
+  Plane,
+  Route,
+  ShieldCheck,
+  Sparkles,
+  UsersRound,
+  Waves
+} from "lucide-react";
 
 import { GlobalMarketMap } from "@/components/global-market-map";
-import { ServicesParallax } from "@/components/services-parallax";
-import { WhyUsParallax } from "@/components/why-us-parallax";
 import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
 import { listHomepageFeaturedResorts } from "@/lib/services/resort-service";
+import type { ResortSummary } from "@/lib/types";
 import {
+  getFooterContent,
   getHomepageAwardsContent,
   getHomepageCeoContent,
-  getFooterContent,
-  getHomepageGuide,
   getHomepageFeatures,
+  getHomepageGuide,
   getHomepageHeroContent,
   getHomepageNewsletterContent,
   getHomepageServices,
@@ -18,7 +35,12 @@ import {
   getHomepageStoryContent,
   getHomepageWhyUs,
   getMarketSettings,
-  getNavbarContent
+  getNavbarContent,
+  type HomepageGuideItem,
+  type HomepageServiceItem,
+  type HomepageStat,
+  type HomepageWhyUsItem,
+  type MarketOption
 } from "@/lib/site-content";
 
 const featuredImages = [
@@ -29,27 +51,256 @@ const featuredImages = [
   "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1400&q=80"
 ];
 
-// High-fidelity resort images for the services parallax (overwater bungalows / Maldives)
-const serviceImages = [
-  "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=1600&q=90",
-  "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1600&q=90",
-  "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1600&q=90",
-  "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1600&q=90",
-  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=90",
-  "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1600&q=90"
-];
+const heroFallback =
+  "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=2200&q=85";
 
-const defaultPartnerLogos = [
-  "Soneva",
-  "JOALI",
-  "Patina",
-  "Milaidhoo",
-  "Baros",
-  "Anantara"
-];
+const partnerBenefits = ["Priority Support", "Exclusive Rates", "Access to Offers"];
+
+const defaultPartnerLogos = ["Soneva", "JOALI", "Patina", "Milaidhoo", "Baros", "Anantara"];
+
+const serviceIconMap = {
+  "badge-percent": BadgePercent,
+  "briefcase-business": BriefcaseBusiness,
+  headphones: Headphones,
+  plane: Plane,
+  route: Route,
+  "users-round": UsersRound
+};
+
+const marketIconMap = [Globe2, Compass, MapPin, Waves];
+const whyIcons = [Crown, BriefcaseBusiness, ShieldCheck];
 
 function pickResortImage(index: number) {
   return featuredImages[index % featuredImages.length];
+}
+
+function getStat(stats: HomepageStat[], label: string, fallback: string) {
+  return stats.find((item) => item.label.toLowerCase().includes(label.toLowerCase()))?.value || fallback;
+}
+
+function getHeroStats(stats: HomepageStat[]) {
+  return [
+    { value: getStat(stats, "resort", "198+"), label: "Resorts" },
+    { value: getStat(stats, "experience", "20+"), label: "Years Experience" },
+    { value: getStat(stats, "support", "24/7"), label: "Local Support" },
+    { value: getStat(stats, "partner", "Global"), label: "Travel Partners" }
+  ];
+}
+
+function SectionHeading({
+  eyebrow,
+  title,
+  description,
+  light = false
+}: {
+  eyebrow: string;
+  title: string;
+  description?: string;
+  light?: boolean;
+}) {
+  return (
+    <div className={`lux-section-heading${light ? " lux-section-heading--light" : ""}`}>
+      <p className="lux-eyebrow">{eyebrow}</p>
+      <h2>{title}</h2>
+      {description ? <p>{description}</p> : null}
+    </div>
+  );
+}
+
+function FeaturedRetreats({ resorts }: { resorts: ResortSummary[] }) {
+  const displayItems = resorts.length
+    ? resorts.map((resort, index) => ({
+        href: `/resorts/${resort.slug}`,
+        image: resort.heroImageUrl || pickResortImage(index),
+        eyebrow: resort.category || "Luxury Resort",
+        title: resort.name,
+        meta: `${resort.location || "Maldives"}${resort.transferType ? ` · ${resort.transferType}` : ""}`,
+        cta: "View partner profile"
+      }))
+    : [
+        {
+          href: "/resorts",
+          image: pickResortImage(0),
+          eyebrow: "Resort Portfolio",
+          title: "Curated private-island retreats",
+          meta: "Maldives luxury collection",
+          cta: "Explore the collection"
+        },
+        {
+          href: "/resorts",
+          image: pickResortImage(3),
+          eyebrow: "Trade Intelligence",
+          title: "Partner-ready island positioning",
+          meta: "Rates, offers, access, and fit",
+          cta: "Explore the collection"
+        }
+      ];
+
+  return (
+    <section className="lux-section lux-section--ivory">
+      <div className="lux-container">
+        <div className="lux-heading-row">
+          <SectionHeading
+            eyebrow="Featured Retreats"
+            title="A luxury resort portfolio shaped for trade conversations"
+            description="Image-led island intelligence for advisors, operators, and contracting teams."
+          />
+          <Link href="/resorts" className="lux-text-link">
+            View all resorts <ArrowRight size={16} />
+          </Link>
+        </div>
+
+        <div className={`lux-retreat-grid lux-retreat-grid--${Math.min(Math.max(displayItems.length, 1), 5)}`}>
+          {displayItems.map((item) => (
+            <Link href={item.href} key={`${item.href}-${item.title}`} className="lux-retreat-card">
+              <div
+                className="lux-retreat-card__image"
+                style={{ backgroundImage: `url(${item.image})` }}
+              />
+              <div className="lux-retreat-card__shade" />
+              <div className="lux-retreat-card__content">
+                <span>{item.eyebrow}</span>
+                <h3>{item.title}</h3>
+                <p>{item.meta}</p>
+                <strong>{item.cta} <ArrowRight size={15} /></strong>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ServicesBento({ services }: { services: HomepageServiceItem[] }) {
+  const enabled = services.filter((service) => service.enabled && service.title);
+
+  return (
+    <section className="lux-section lux-section--sand">
+      <div className="lux-container">
+        <SectionHeading
+          eyebrow="DMC Services"
+          title="Commercial support, island logistics, and product clarity in one partner rhythm"
+          description="Built for luxury travel teams who need accuracy before the guest ever arrives."
+        />
+        <div className="lux-bento-grid">
+          {enabled.map((service, index) => {
+            const Icon = serviceIconMap[service.icon as keyof typeof serviceIconMap] || Sparkles;
+            return (
+              <article className={`lux-bento-card${index < 2 ? " lux-bento-card--large" : ""}`} key={service.title}>
+                <div className="lux-icon-box">
+                  <Icon size={22} />
+                </div>
+                <h3>{service.title}</h3>
+                <p>{service.description}</p>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TrustStats({ stats }: { stats: HomepageStat[] }) {
+  const displayStats = stats.length ? stats : getHeroStats([]);
+
+  return (
+    <section className="lux-trust-band" aria-label="Exciting Maldives partner credibility">
+      <div className="lux-container lux-trust-band__grid">
+        {displayStats.map((item) => (
+          <div className="lux-trust-card" key={`${item.value}-${item.label}`}>
+            <strong>{item.value}</strong>
+            <span>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function WhyUs({ items }: { items: HomepageWhyUsItem[] }) {
+  const displayItems = items.filter((item) => item.title).slice(0, 3);
+
+  return (
+    <section className="lux-section lux-section--ivory">
+      <div className="lux-container">
+        <SectionHeading
+          eyebrow="Why Travel Designers Choose Us"
+          title="The confidence layer behind every Maldives recommendation"
+          description="Local precision, commercial fluency, and resort relationships that protect high-value bookings."
+        />
+        <div className="lux-why-grid">
+          {displayItems.map((item, index) => {
+            const Icon = whyIcons[index] || Gem;
+            return (
+              <article className="lux-why-card" key={item.title}>
+                <div className="lux-icon-box lux-icon-box--dark">
+                  <Icon size={22} />
+                </div>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MarketCards({ markets }: { markets: MarketOption[] }) {
+  return (
+    <div className="lux-market-cards">
+      {markets.map((market, index) => {
+        const Icon = marketIconMap[index % marketIconMap.length];
+        return (
+          <article className="lux-market-card" key={market.id}>
+            <Icon size={20} />
+            <strong>{market.label}</strong>
+            <span>{market.region}</span>
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
+function TravelGuideMagazine({ guide }: { guide: HomepageGuideItem[] }) {
+  const articles = guide.filter((item) => item.title);
+
+  return (
+    <section className="lux-section lux-section--ivory">
+      <div className="lux-container">
+        <div className="lux-heading-row">
+          <SectionHeading
+            eyebrow="Maldives Travel Guide"
+            title="Editorial intelligence for sharper destination selling"
+            description="Partner-facing insight on geography, seasonality, transfers, room types, and client fit."
+          />
+          <Link href="/travel-guide" className="lux-text-link">
+            View all insights <ArrowRight size={16} />
+          </Link>
+        </div>
+        <div className="lux-guide-grid">
+          {articles.map((item, index) => (
+            <article className={`lux-guide-card${index === 0 ? " lux-guide-card--featured" : ""}`} key={item.title}>
+              <div
+                className="lux-guide-card__image"
+                style={{ backgroundImage: `url(${item.imageUrl || pickResortImage(index + 1)})` }}
+              />
+              <div className="lux-guide-card__content">
+                <span>{item.category}</span>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+                <Link href="/travel-guide">Read insight <ArrowRight size={15} /></Link>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export default async function HomePage() {
@@ -86,51 +337,61 @@ export default async function HomePage() {
   ]);
 
   const activeMarkets = markets.options.filter((market) => market.enabled);
-  const marketLabels = activeMarkets.map((market) => market.label);
+  const marketList = activeMarkets.length ? activeMarkets : markets.options;
+  const marketLabels = marketList.map((market) => market.label);
   const navLabels = navbar.navItems.filter((item) => item.enabled).map((item) => item.label);
   const partnerLogos = navLabels.length ? navLabels : defaultPartnerLogos;
   const featuredResorts = resorts.slice(0, 5);
+  const heroStats = getHeroStats(stats);
+  const heroImage = hero.mediaUrl || heroFallback;
 
   return (
-    <main className="home-page">
-      <section className="home-hero">
-        <div className="home-hero__media">
-          {hero.mediaUrl ? (
-            hero.mediaType === "video" ? (
-              <video
-                className="home-hero__media-asset"
-                src={hero.mediaUrl}
-                poster={hero.mediaPosterUrl || undefined}
-                autoPlay
-                muted
-                loop
-                playsInline
-              />
-            ) : (
-              <img className="home-hero__media-asset" src={hero.mediaUrl} alt={hero.title} />
-            )
-          ) : null}
+    <main className="home-page lux-home">
+      <section className="lux-hero">
+        <div className="lux-hero__media">
+          {hero.mediaUrl && hero.mediaType === "video" ? (
+            <video
+              className="lux-hero__asset"
+              src={hero.mediaUrl}
+              poster={hero.mediaPosterUrl || undefined}
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+          ) : (
+            <div className="lux-hero__asset" style={{ backgroundImage: `url(${heroImage})` }} />
+          )}
         </div>
-        <div className="home-hero__overlay" />
-        <div className="home-hero__inner">
-          <div className="home-hero__copy">
-            {hero.eyebrow ? <p className="home-hero__kicker">{hero.eyebrow}</p> : null}
-            <h1>{hero.title}</h1>
-            <p className="home-hero__lede">{hero.description}</p>
-            <div className="home-hero__actions">
-              <Link href={hero.primaryCtaHref} className="site-button site-button--teal">
-                {hero.primaryCtaLabel}
+        <div className="lux-hero__overlay" />
+        <div className="lux-container lux-hero__inner">
+          <div className="lux-hero__copy">
+            <p className="lux-eyebrow">{hero.eyebrow || "Premium Maldives DMC Platform"}</p>
+            <h1>{hero.title || "A Premium Maldives B2B Travel Ecosystem"}</h1>
+            <p>
+              {hero.description ||
+                "Curated resorts, protected trade resources, and local destination expertise for global travel partners."}
+            </p>
+            <div className="lux-hero__actions">
+              <Link href="/resorts" className="lux-button lux-button--gold">
+                Explore Resorts <ArrowRight size={16} />
               </Link>
-              {hero.secondaryCtaLabel && hero.secondaryCtaHref ? (
-                <Link href={hero.secondaryCtaHref} className="site-button site-button--ghost">
-                  {hero.secondaryCtaLabel}
-                </Link>
-              ) : null}
+              <Link href="/partner/register" className="lux-button lux-button--glass">
+                Become a Partner
+              </Link>
             </div>
           </div>
+          <div className="lux-hero__stats">
+            {heroStats.map((item) => (
+              <div className="lux-hero-stat" key={item.label}>
+                <strong>{item.value}</strong>
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="home-hero__logos">
-          <div className="home-hero__logos-track">
+        <div className="lux-hero__ticker" aria-hidden="true">
+          <div>
             {[...partnerLogos, ...partnerLogos].map((label, index) => (
               <span key={`${label}-${index}`}>{label}</span>
             ))}
@@ -138,45 +399,25 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="site-section site-section--white">
-        <div className="site-container">
-          <div className="section-heading section-heading--center">
-            <h2>Featured Retreats</h2>
-            <p>Hand-picked luxury island experiences</p>
-          </div>
-          <div className="featured-grid">
-            {featuredResorts.map((resort, index) => (
-              <Link href={`/resorts/${resort.slug}`} key={resort.slug} className="featured-card">
-                <div
-                  className="featured-card__image"
-                  style={{
-                    backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.08), rgba(15,23,42,0.72)), url(${resort.heroImageUrl || pickResortImage(index)})`
-                  }}
-                />
-                <div className="featured-card__content">
-                  <h3>{resort.name}</h3>
-                  <div className="featured-card__meta">
-                    <span>{resort.location}</span>
-                    <span>{resort.category}</span>
-                  </div>
-                  <span className="featured-card__cta">View More</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FeaturedRetreats resorts={featuredResorts} />
 
-      <section className="site-section site-section--paper">
-        <div className="site-container split-section">
-          <div className="portrait-frame">
-            <div className="portrait-frame__image" style={{ backgroundImage: `url(${ceo.photoUrl})` }} />
+      <section className="lux-section lux-section--sand">
+        <div className="lux-container lux-editorial-split lux-editorial-split--ceo">
+          <div className="lux-portrait-card">
+            <div
+              className="lux-portrait-card__image"
+              style={{ backgroundImage: `url(${ceo.photoUrl || featuredImages[2]})` }}
+            />
+            <div className="lux-portrait-card__caption">
+              <strong>{ceo.name}</strong>
+              <span>{ceo.title}</span>
+            </div>
           </div>
-          <div className="split-section__copy">
-            <p className="section-kicker">{ceo.sectionLabel}</p>
-            <h2>“{ceo.quote}”</h2>
+          <div className="lux-editorial-copy">
+            <p className="lux-eyebrow">{ceo.sectionLabel}</p>
+            <h2>&ldquo;{ceo.quote}&rdquo;</h2>
             <p>{ceo.message}</p>
-            <div className="split-section__signature">
+            <div className="lux-signature">
               <strong>{ceo.name}</strong>
               <span>{ceo.title}</span>
             </div>
@@ -184,140 +425,101 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="site-section site-section--white">
-        <div className="site-container split-section split-section--reverse">
-          <div className="split-section__copy">
-            <p className="section-kicker">{story.sectionLabel}</p>
-            <h2>{story.title}</h2>
-            <p>{story.description}</p>
-          </div>
-          <div className="portrait-frame">
-            <div className="portrait-frame__image" style={{ backgroundImage: `url(${story.imageUrl})` }} />
-          </div>
-        </div>
-      </section>
-
-      <section className="home-map-section" id="global-markets">
-        <div className="home-map-section__heading site-container">
-          <div className="section-heading section-heading--center section-heading--light">
-            <h2>{markets.sectionTitle || "Global Markets"}</h2>
-            <p>Supporting travel designers and agencies across global markets.</p>
-          </div>
-        </div>
-        <GlobalMarketMap markets={activeMarkets.length ? activeMarkets : markets.options} />
-      </section>
-
-      <section className="site-section site-section--white svc-section">
-        <div className="site-container">
-          <div className="section-heading section-heading--center">
-            <h2>Services We Provide</h2>
-            <p>Comprehensive on-ground support for our partners</p>
-          </div>
-        </div>
-        <ServicesParallax services={services} images={serviceImages} />
-      </section>
-
-      <section className="expertise-band">
-        <div className="site-container expertise-band__inner">
-          {stats.map((item) => (
-            <div className="expertise-stat" key={item.label}>
-              <strong>{item.value}</strong>
-              <span>{item.label}</span>
+      <section className="lux-section lux-section--ivory">
+        <div className="lux-container lux-story-market">
+          <div className="lux-story-panel">
+            <div
+              className="lux-story-panel__image"
+              style={{ backgroundImage: `url(${story.imageUrl || featuredImages[1]})` }}
+            />
+            <div className="lux-story-panel__copy">
+              <p className="lux-eyebrow">{story.sectionLabel}</p>
+              <h2>{story.title}</h2>
+              <p>{story.description}</p>
             </div>
-          ))}
+          </div>
+          <div className="lux-market-panel" id="global-markets">
+            <SectionHeading
+              eyebrow={markets.sectionTitle || "Global Markets"}
+              title="Connected to the markets shaping premium Maldives demand"
+              description="A focused DMC presence for travel designers and agencies across priority regions."
+            />
+            <MarketCards markets={marketList} />
+          </div>
         </div>
       </section>
 
-      <section className="site-section site-section--paper svc-section">
-        <div className="site-container">
-          <div className="section-heading section-heading--center">
-            <h2>Why Travel Designers Choose Us</h2>
-            <p>Our Value Proposition</p>
-          </div>
+      <section className="lux-map-section">
+        <div className="lux-container">
+          <GlobalMarketMap markets={marketList} />
         </div>
-        <WhyUsParallax 
-          items={whyUs} 
-          images={[
-            "https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=1600&q=90",
-            "https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1600&q=90",
-            "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=90"
-          ]} 
-        />
       </section>
 
-      <section className="site-section site-section--white awards-strip">
-        <div className="site-container">
-          <div className="section-heading section-heading--center">
-            <h2>{awards.title}</h2>
-            <p>{awards.summary || homepageHighlights[0]?.description}</p>
+      <ServicesBento services={services} />
+      <TrustStats stats={stats} />
+      <WhyUs items={whyUs} />
+
+      <section className="lux-section lux-section--sand">
+        <div className="lux-container">
+          <SectionHeading
+            eyebrow="Prestigious Awards"
+            title={awards.title}
+            description={awards.summary || homepageHighlights[0]?.description || "Recognition across luxury travel and partner networks."}
+          />
+          <div className="lux-awards-strip">
+            {awards.items
+              .filter((item) => item.enabled && (item.name || item.imageUrl))
+              .map((award) => (
+                <div className="lux-award-logo" key={award.name || award.imageUrl}>
+                  {award.imageUrl ? (
+                    <img src={award.imageUrl} alt={award.name || "Award recognition"} />
+                  ) : (
+                    <span>{award.name}</span>
+                  )}
+                </div>
+              ))}
           </div>
-          <div className="awards-open">
-            {awards.items.filter((item) => item.enabled && (item.name || item.imageUrl)).map((award) => (
-              <div className="award-badge" key={award.name || award.imageUrl}>
-                {award.imageUrl
-                  ? <img src={award.imageUrl} alt={award.name} className="award-badge__img" />
-                  : <span className="award-badge__name">{award.name}</span>}
-              </div>
+        </div>
+      </section>
+
+      <section className="lux-partner-cta">
+        <div className="lux-container lux-partner-cta__inner">
+          <p className="lux-eyebrow">Partner Network</p>
+          <h2>Join Our Global Network of Travel Professionals</h2>
+          <p>
+            Apply for protected access to curated resort intelligence, trade-ready offers, and responsive Maldives
+            support from a team built around B2B luxury selling.
+          </p>
+          <div className="lux-benefit-pills">
+            {partnerBenefits.map((benefit) => (
+              <span key={benefit}>{benefit}</span>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="join-banner">
-        <div className="join-banner__media" />
-        <div className="join-banner__overlay" />
-        <div className="join-banner__inner">
-          <h2>Join Our Global Network of Travel Professionals</h2>
-          <div className="join-banner__checks">
-            <span>Priority Support</span>
-            <span>Exclusive Rates</span>
-            <span>Access to Offers</span>
-          </div>
-          <Link href="/partner/register" className="site-button site-button--teal">
-            Become a Travel Partner
+          <Link href="/partner/register" className="lux-button lux-button--gold">
+            Become a Travel Partner <ArrowRight size={16} />
           </Link>
         </div>
       </section>
 
-      <section className="site-section site-section--white">
-        <div className="site-container">
-          <div className="section-heading">
-            <div>
-              <h2>The Maldives Travel Guide</h2>
-              <p>Destination knowledge for professionals</p>
-            </div>
-            <Link href="/travel-guide" className="section-heading__link">
-              View All Insights
-            </Link>
-          </div>
-          <div className="guide-grid">
-            {guide.map((item, index) => (
-              <article className="guide-card" key={item.title}>
-                <div
-                  className="guide-card__image"
-                  style={{ backgroundImage: `url(${item.imageUrl || pickResortImage(index + 1)})` }}
-                />
-                <span className="guide-card__category">{item.category}</span>
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+      <TravelGuideMagazine guide={guide} />
 
-      <section className="newsletter-blend">
-        <div className="site-container newsletter-blend__inner">
-          <div className="newsletter-blend__photo">
-            <img
-              src={newsletter.imageUrl || "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1200&q=80"}
-              alt="Maldives resort"
+      <section className="lux-contact-section" id="newsletter">
+        <div className="lux-container lux-contact-grid">
+          <div className="lux-contact-copy">
+            <p className="lux-eyebrow">{newsletter.sectionLabel}</p>
+            <h2>{newsletter.title}</h2>
+            <p>{newsletter.description}</p>
+            <div className="lux-contact-assurance">
+              <span>Trade-focused updates</span>
+              <span>Human follow-up</span>
+              <span>No noisy campaigns</span>
+            </div>
+            <div
+              className="lux-contact-image"
+              style={{ backgroundImage: `url(${newsletter.imageUrl || featuredImages[3]})` }}
             />
           </div>
-          <div className="newsletter-blend__form-col">
-            <p className="section-kicker">{newsletter.sectionLabel}</p>
-            <h2>{newsletter.title}</h2>
-            <p className="newsletter-blend__lede">{newsletter.description}</p>
+          <div className="lux-contact-card">
             <NewsletterSignupForm markets={marketLabels.length ? marketLabels : defaultPartnerLogos} />
           </div>
         </div>
