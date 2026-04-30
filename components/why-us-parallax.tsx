@@ -6,13 +6,15 @@ import type { HomepageWhyUsItem } from "@/lib/site-content";
 type WhyUsParallaxProps = {
   items: HomepageWhyUsItem[];
   images: string[];
+  title?: string;
+  description?: string;
 };
 
 /**
  * Freeze-screen parallax for "Why Us" — identical to ServicesParallax but
  * with text on the LEFT and image on the RIGHT.
  */
-export function WhyUsParallax({ items, images }: WhyUsParallaxProps) {
+export function WhyUsParallax({ items, images, title, description }: WhyUsParallaxProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const enabledItems = items.filter((s) => s.title);
@@ -53,6 +55,12 @@ export function WhyUsParallax({ items, images }: WhyUsParallaxProps) {
       <div className="svc-parallax__sticky">
         {/* Left: text column */}
         <div className="svc-parallax__text-col">
+          {title ? (
+            <div className="svc-parallax__heading">
+              <p className="lux-eyebrow">{title}</p>
+              {description ? <span>{description}</span> : null}
+            </div>
+          ) : null}
           {enabledItems.map((item, index) => (
             <div
               key={item.title}
