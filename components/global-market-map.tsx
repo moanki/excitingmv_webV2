@@ -3,6 +3,7 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import { Map, Marker, Popup } from "react-map-gl/maplibre";
+import type { StyleSpecification } from "maplibre-gl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { MarketOption } from "@/lib/site-content";
@@ -17,12 +18,12 @@ type GlobalMarketMapProps = {
  */
 export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
   const [selectedMarket, setSelectedMarket] = useState<MarketOption | null>(null);
-  const [mapStyle, setMapStyle] = useState<object | string | null>(null);
+  const [mapStyle, setMapStyle] = useState<StyleSpecification | string | null>(null);
 
   useEffect(() => {
     fetch("https://tiles.openfreemap.org/styles/positron")
       .then((res) => res.json())
-      .then((style) => {
+      .then((style: StyleSpecification & { sources?: Record<string, unknown>; layers?: any[] }) => {
         // Remove the ne2_shaded raster source (satellite/topography imagery)
         if (style.sources?.ne2_shaded) {
           delete style.sources.ne2_shaded;

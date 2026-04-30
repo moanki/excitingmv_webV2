@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Hotel, Info, LogIn, Map, UsersRound } from "lucide-react";
+import { Hotel, Info, LogIn, Map, UserPlus, UsersRound } from "lucide-react";
 
 import type { NavbarContent } from "@/lib/site-content";
 
@@ -64,14 +64,17 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
             )
           )}
           {navbar.ctaEnabled ? (
-            <Link href={navbar.ctaHref || "/partner/login"} className="site-nav__cta">
-              Login to Partner Portal
+            <Link href={navbar.ctaHref || "/partner/login"} className="site-nav__login">
+              Partner Login
             </Link>
           ) : null}
+          <Link href="/partner/register" className="site-nav__cta">
+            Become a Partner
+          </Link>
         </nav>
 
-        <Link href={navbar.ctaHref || "/partner/login"} className="site-nav__mobile-portal" aria-label="Login to Partner Portal">
-          <LogIn size={18} />
+        <Link href="/partner/register" className="site-nav__mobile-portal" aria-label="Become a Partner">
+          <UserPlus size={18} />
         </Link>
       </div>
 
