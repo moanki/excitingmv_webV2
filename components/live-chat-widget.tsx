@@ -112,9 +112,28 @@ export function LiveChatWidget() {
 
   return (
     <div className={`chat-widget ${open ? "is-open" : ""}`}>
-      <button className="chat-toggle" type="button" onClick={() => setOpen((value) => !value)}>
-        {open ? "Close chat" : "Chat now"}
-      </button>
+      <div className="chat-widget__launcher">
+        {!open && <span className="chat-widget__label">Live Agent</span>}
+        <button
+          className="chat-toggle"
+          type="button"
+          onClick={() => setOpen((value) => !value)}
+          aria-label={open ? "Close chat" : "Chat with a live agent"}
+        >
+          {open ? (
+            /* Close X */
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          ) : (
+            /* Chat bubble */
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2z" />
+            </svg>
+          )}
+        </button>
+      </div>
       {open ? (
         <div className="chat-panel">
           <p className="eyebrow">Chat Now</p>

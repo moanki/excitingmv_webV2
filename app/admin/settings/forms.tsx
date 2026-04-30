@@ -668,7 +668,7 @@ export function MarketSettingsForm({ markets }: { markets: MarketSettings }) {
       <div className="section-heading">
         <div>
           <p className="eyebrow">Primary Markets</p>
-          <h2>Manage the markets shown on the homepage Mapbox section and lead forms.</h2>
+          <h2>Manage the markets shown on the homepage map section and lead forms.</h2>
         </div>
         <form action={publishMarketAction}>
           <button className="button-muted" type="submit">
