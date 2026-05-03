@@ -6531,7 +6531,7 @@ select {
   display: grid;
   grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
   gap: clamp(2.5rem, 6vw, 6rem);
-  align-items: center;
+  align-items: stretch;
 }
 
 .market-editorial__copy {
@@ -6595,13 +6595,15 @@ select {
 
 .market-editorial__visual {
   position: relative;
-  min-height: 620px;
+  display: flex;
+  min-height: 0;
 }
 
 .market-editorial__map {
-  position: absolute;
-  inset: 0 0 6rem 0;
+  position: relative;
   overflow: hidden;
+  width: 100%;
+  min-height: 100%;
   border-radius: 32px;
   background: var(--lux-navy);
   box-shadow: 0 34px 90px rgba(7, 19, 31, 0.2);
@@ -6609,7 +6611,8 @@ select {
 
 .market-editorial__map .market-map,
 .market-editorial__map .market-map__canvas {
-  min-height: 520px;
+  min-height: 100%;
+  height: 100%;
   border: 0;
   border-radius: 0;
   box-shadow: none;
@@ -6617,9 +6620,8 @@ select {
 
 .market-editorial__map .market-map {
   background:
-    radial-gradient(circle at 20% 28%, rgba(79, 209, 197, 0.24), transparent 22%),
-    radial-gradient(circle at 74% 36%, rgba(200, 161, 90, 0.18), transparent 20%),
-    linear-gradient(135deg, #07131f, #142f43);
+    radial-gradient(circle at 28% 36%, rgba(248, 241, 220, 0.1), transparent 24%),
+    linear-gradient(135deg, #081723, #153247);
 }
 
 .market-editorial__map .market-map__summary {
@@ -6628,21 +6630,29 @@ select {
 
 .market-editorial__map .market-map__fallback {
   display: block;
-  opacity: 0.9;
+  opacity: 0.45;
 }
 
-.market-editorial__photo {
-  position: absolute;
-  right: 2rem;
-  bottom: 0;
-  width: min(46%, 340px);
-  min-height: 230px;
-  border: 8px solid var(--lux-ivory);
-  border-radius: 26px;
-  background-position: center;
-  background-size: cover;
-  box-shadow: 0 28px 70px rgba(7, 19, 31, 0.2);
-  transform: translateY(10px);
+.market-editorial__map .market-map-marker {
+  gap: 0.4rem;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.market-editorial__map .market-map-marker span {
+  width: 9px;
+  height: 9px;
+  background: #d6ad62;
+  box-shadow: 0 0 0 6px rgba(214, 173, 98, 0.16);
+}
+
+.market-editorial__map .market-map-marker strong {
+  color: rgba(255, 250, 235, 0.78);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
 }
 
 .services-editorial-section,
@@ -6656,13 +6666,14 @@ select {
   gap: clamp(2rem, 5vw, 5rem);
   width: min(calc(100% - 3rem), var(--container));
   margin: 0 auto;
-  align-items: start;
+  align-items: stretch;
 }
 
 .services-editorial__media {
   position: sticky;
   top: 8rem;
-  min-height: 680px;
+  align-self: stretch;
+  min-height: 100%;
   overflow: hidden;
   border-radius: 34px;
   background: var(--lux-navy);
@@ -6716,6 +6727,7 @@ select {
 
 .services-editorial__item {
   opacity: 0.48;
+  padding: 1.15rem 0;
   transition: opacity 0.35s ease, transform 0.35s ease;
 }
 
@@ -6738,6 +6750,11 @@ select {
   font-size: clamp(1.45rem, 2.2vw, 2.1rem);
   font-weight: 600;
   line-height: 1.15;
+}
+
+.services-editorial__item h3 {
+  font-size: clamp(1.08rem, 1.45vw, 1.38rem);
+  line-height: 1.2;
 }
 
 .services-editorial__item p,
@@ -6814,17 +6831,11 @@ select {
   }
 
   .market-editorial__visual {
-    min-height: 520px;
+    min-height: 360px;
   }
 
   .market-editorial__map {
-    inset: 0 0 7rem 0;
-  }
-
-  .market-editorial__photo {
-    right: 1rem;
-    width: min(72%, 290px);
-    min-height: 190px;
+    min-height: 360px;
   }
 
   .services-editorial,

@@ -120,11 +120,6 @@ function MarketEditorial({ markets }: { markets: MarketOption[] }) {
         <div className="market-editorial__map">
           <GlobalMarketMap markets={markets} />
         </div>
-        <div
-          className="market-editorial__photo"
-          style={{ backgroundImage: `url(${featuredImages[3]})` }}
-          aria-hidden="true"
-        />
       </div>
     </div>
   );

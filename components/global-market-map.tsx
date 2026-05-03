@@ -67,8 +67,8 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
                 ...layer,
                 paint: {
                   ...layer.paint,
-                  "line-color": "rgba(255,255,255,0.42)",
-                  "line-width": 1,
+                  "line-color": "rgba(248,241,220,0.78)",
+                  "line-width": 1.25,
                   "line-blur": 0,
                 },
               };
@@ -80,7 +80,7 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
                 ...layer,
                 paint: {
                   ...layer.paint,
-                  "line-color": "rgba(255,255,255,0.08)",
+                  "line-color": "rgba(248,241,220,0.2)",
                   "line-width": 0.5,
                   "line-dasharray": [2, 2],
                 },
@@ -101,8 +101,8 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
                 },
                 paint: {
                   ...layer.paint,
-                  "text-color": "rgba(255,255,255,0.82)",
-                  "text-halo-color": "rgba(7,19,31,0.78)",
+                  "text-color": "rgba(255,250,235,0.88)",
+                  "text-halo-color": "rgba(7,19,31,0.72)",
                   "text-halo-width": 1.4,
                 },
               };
@@ -121,7 +121,7 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
                 },
                 paint: {
                   ...layer.paint,
-                  "text-color": "rgba(255,255,255,0.5)",
+                  "text-color": "rgba(255,250,235,0.58)",
                   "text-halo-color": "rgba(7,19,31,0.62)",
                   "text-halo-width": 1,
                 },
@@ -141,7 +141,7 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
           minzoom: 0,
           maxzoom: 24,
           paint: {
-            "fill-color": "rgba(255,255,255,0.16)",
+            "fill-color": "rgba(248,241,220,0.26)",
           },
         });
 
@@ -153,7 +153,7 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
           "source-layer": "boundary",
           filter: ["all", ["==", ["get", "admin_level"], 2], ["==", ["get", "maritime"], 0]],
           paint: {
-            "fill-color": "rgba(79,209,197,0.13)",
+            "fill-color": "rgba(248,241,220,0.18)",
           },
         });
 
