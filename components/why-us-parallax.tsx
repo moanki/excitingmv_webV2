@@ -1,97 +1,46 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
-import type { HomepageWhyUsItem } from "@/lib/site-content";
+import type { HomepageStat, HomepageWhyUsItem } from "@/lib/site-content";
 
 type WhyUsParallaxProps = {
   items: HomepageWhyUsItem[];
   images: string[];
   title?: string;
   description?: string;
+  proofStats?: HomepageStat[];
 };
 
-/**
- * Freeze-screen parallax for "Why Us" — identical to ServicesParallax but
- * with text on the LEFT and image on the RIGHT.
- */
-export function WhyUsParallax({ items, images, title, description }: WhyUsParallaxProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const sectionRef = useRef<HTMLDivElement | null>(null);
-  const enabledItems = items.filter((s) => s.title);
-  const count = enabledItems.length;
-
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section || count < 1) return;
-
-    const handleScroll = () => {
-      const rect = section.getBoundingClientRect();
-      const sectionTop = window.scrollY + rect.top;
-      const scrolled = window.scrollY - sectionTop;
-      const totalScrollRange = section.scrollHeight - window.innerHeight;
-
-      if (scrolled < 0 || totalScrollRange <= 0) {
-        setActiveIndex(0);
-        return;
-      }
-
-      const progress = Math.min(scrolled / totalScrollRange, 1);
-      const idx = Math.min(Math.floor(progress * count), count - 1);
-      setActiveIndex(idx);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [count]);
+export function WhyUsParallax({ items, images, title, description, proofStats = [] }: WhyUsParallaxProps) {
+  const enabledItems = items.filter((item) => item.title).slice(0, 4);
+  const proof = proofStats.slice(0, 4);
 
   return (
-    <div
-      className="svc-parallax svc-parallax--reverse"
-      ref={sectionRef}
-      style={{ height: `${Math.max(count, 1) * 100}vh` }}
-    >
-      <div className="svc-parallax__sticky">
-        {/* Left: text column */}
-        <div className="svc-parallax__text-col">
-          {title ? (
-            <div className="svc-parallax__heading">
-              <p className="lux-eyebrow">{title}</p>
-              {description ? <span>{description}</span> : null}
-            </div>
-          ) : null}
-          {enabledItems.map((item, index) => (
-            <div
-              key={item.title}
-              className={`svc-parallax__item ${activeIndex === index ? "is-active" : ""}`}
-            >
-              <div className="svc-parallax__item-icon">◉</div>
-              <div className="svc-parallax__item-body">
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Right: image panel */}
-        <div className="svc-parallax__media-col">
-          <div className="svc-parallax__media-sticky">
-            {enabledItems.map((item, index) => (
-              <div
-                key={item.title}
-                className={`svc-parallax__image ${activeIndex === index ? "is-active" : ""}`}
-                style={{
-                  backgroundImage: `url(${images[index % images.length]})`,
-                }}
-                aria-hidden="true"
-              >
-                <div className="svc-parallax__image-overlay" />
-              </div>
+    <div className="why-trust">
+      <div className="why-trust__intro">
+        <p className="lux-eyebrow">{title || "Why Travel Designers Choose Us"}</p>
+        <h2>Local precision for partners who need more than a resort list.</h2>
+        {description ? <p>{description}</p> : null}
+        {proof.length ? (
+          <div className="why-trust__proof" aria-label="Exciting Maldives proof points">
+            {proof.map((item) => (
+              <span key={`${item.value}-${item.label}`}>
+                <strong>{item.value}</strong> {item.label}
+              </span>
             ))}
           </div>
-        </div>
+        ) : null}
+      </div>
+
+      <div className="why-trust__image" style={{ backgroundImage: `url(${images[0]})` }} aria-hidden="true" />
+
+      <div className="why-trust__reasons">
+        {enabledItems.map((item, index) => (
+          <article className="why-trust__reason" key={item.title}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <div>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </div>
+          </article>
+        ))}
       </div>
     </div>
   );

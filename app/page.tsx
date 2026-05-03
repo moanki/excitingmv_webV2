@@ -21,6 +21,7 @@ import {
   getMarketSettings,
   type HomepageGuideItem,
   type HomepageStat,
+  type MarketOption,
 } from "@/lib/site-content";
 
 const featuredImages = [
@@ -36,22 +37,44 @@ const heroFallback =
 
 const serviceImages = [
   "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1600&q=90",
-  "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1600&q=90",
-  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=90",
   "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1600&q=90",
   "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1600&q=90",
-  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=90"
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=90",
+  "https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1600&q=90"
 ];
 
 const whyImages = [
-  "https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=1600&q=90",
-  "https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1600&q=90",
-  "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=90"
+  "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1800&q=90"
 ];
+
+const marketDescriptions = [
+  "Established partner demand for premium island stays.",
+  "Long-haul luxury advisors and specialist tour operators.",
+  "High-value family, wellness, and celebration travel.",
+  "Fast-growing regional access and destination familiarity.",
+  "Strategic luxury demand across emerging partner networks."
+];
+
+const marketStatuses = ["Core", "Core", "Strategic", "Growth", "Strategic"];
 
 const partnerBenefits = ["Priority Support", "Exclusive Rates", "Access to Offers"];
 
 const defaultPartnerLogos = ["Soneva", "JOALI", "Patina", "Milaidhoo", "Baros", "Anantara"];
+
+function getMarketDisplayLabel(label: string) {
+  const normalized = label.toLowerCase();
+
+  if (normalized.includes("middle east")) {
+    return "Middle East & GCC";
+  }
+
+  if (normalized.includes("south asia")) {
+    return "India & South Asia";
+  }
+
+  return label;
+}
 
 function pickResortImage(index: number) {
   return featuredImages[index % featuredImages.length];
@@ -68,6 +91,43 @@ function getHeroStats(stats: HomepageStat[]) {
     { value: getStat(stats, "support", "24/7"), label: "Local Support" },
     { value: getStat(stats, "partner", "Global"), label: "Travel Partners" }
   ];
+}
+
+function MarketEditorial({ markets }: { markets: MarketOption[] }) {
+  const displayMarkets = markets.slice(0, 5);
+
+  return (
+    <div className="market-editorial">
+      <div className="market-editorial__copy">
+        <p className="lux-eyebrow">Global Markets</p>
+        <h2>Connected to the markets shaping premium Maldives demand</h2>
+        <p>
+          A focused DMC presence for travel designers and agencies across the regions driving premium Maldives
+          bookings, trade offers, and repeat luxury demand.
+        </p>
+        <div className="market-editorial__rows">
+          {displayMarkets.map((market, index) => (
+            <div className="market-editorial__row" key={market.id}>
+              <strong>{getMarketDisplayLabel(market.label)}</strong>
+              <span>{marketDescriptions[index] || "Focused trade relationships and partner support."}</span>
+              <em>{marketStatuses[index] || "Active"}</em>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="market-editorial__visual">
+        <div className="market-editorial__map">
+          <GlobalMarketMap markets={markets} />
+        </div>
+        <div
+          className="market-editorial__photo"
+          style={{ backgroundImage: `url(${featuredImages[3]})` }}
+          aria-hidden="true"
+        />
+      </div>
+    </div>
+  );
 }
 
 function SectionHeading({
@@ -339,22 +399,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="lux-section lux-section--ivory lux-market-map-split" id="global-markets">
-        <div className="lux-container lux-market-map-grid">
-          <div className="lux-market-panel">
-            <SectionHeading
-              eyebrow={markets.sectionTitle || "Global Markets"}
-              title="Connected to the markets shaping premium Maldives demand"
-              description="A focused DMC presence for travel designers and agencies across priority regions."
-            />
-          </div>
-          <div className="lux-market-map-card">
-            <GlobalMarketMap markets={marketList} />
-          </div>
+      <section className="lux-section lux-section--ivory market-editorial-section" id="global-markets">
+        <div className="lux-container">
+          <MarketEditorial markets={marketList} />
         </div>
       </section>
 
-      <section className="lux-section lux-section--sand svc-section lux-parallax-section">
+      <section className="lux-section lux-section--sand services-editorial-section">
         <ServicesParallax
           services={services}
           images={serviceImages}
@@ -363,12 +414,13 @@ export default async function HomePage() {
         />
       </section>
       <TrustStats stats={stats} />
-      <section className="lux-section lux-section--ivory svc-section lux-parallax-section lux-parallax-section--why">
+      <section className="lux-section lux-section--ivory why-trust-section">
         <WhyUsParallax
           items={whyUs}
           images={whyImages}
           title="Why Travel Designers Choose Us"
           description="Local precision, commercial fluency, and resort relationships that protect high-value bookings."
+          proofStats={stats}
         />
       </section>
 

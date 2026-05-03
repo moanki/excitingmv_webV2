@@ -6525,3 +6525,321 @@ select {
     font-size: clamp(2rem, 9vw, 2.7rem);
   }
 }
+
+/* Editorial refinements for Global Markets, DMC Services, and Why Us */
+.market-editorial {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  gap: clamp(2.5rem, 6vw, 6rem);
+  align-items: center;
+}
+
+.market-editorial__copy {
+  max-width: 520px;
+}
+
+.market-editorial__copy h2,
+.services-editorial__heading h2,
+.why-trust__intro h2 {
+  margin: 0.85rem 0 0;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(2rem, 3.4vw, 3.35rem);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.04;
+}
+
+.market-editorial__copy > p:not(.lux-eyebrow),
+.services-editorial__heading > p,
+.why-trust__intro > p {
+  margin: 1.1rem 0 0;
+  color: rgba(19, 32, 43, 0.68);
+  font-size: 1.02rem;
+  line-height: 1.8;
+}
+
+.market-editorial__rows {
+  margin-top: 2rem;
+  border-top: 1px solid rgba(19, 32, 43, 0.12);
+}
+
+.market-editorial__row {
+  display: grid;
+  grid-template-columns: minmax(130px, 0.8fr) minmax(0, 1.3fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(19, 32, 43, 0.1);
+}
+
+.market-editorial__row strong {
+  font-family: var(--font-serif), serif;
+  font-size: 1.22rem;
+  font-weight: 600;
+}
+
+.market-editorial__row span {
+  color: rgba(19, 32, 43, 0.58);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.market-editorial__row em {
+  color: #8a5d16;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.market-editorial__visual {
+  position: relative;
+  min-height: 620px;
+}
+
+.market-editorial__map {
+  position: absolute;
+  inset: 0 0 6rem 0;
+  overflow: hidden;
+  border-radius: 32px;
+  background: var(--lux-navy);
+  box-shadow: 0 34px 90px rgba(7, 19, 31, 0.2);
+}
+
+.market-editorial__map .market-map,
+.market-editorial__map .market-map__canvas {
+  min-height: 520px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.market-editorial__map .market-map {
+  background:
+    radial-gradient(circle at 20% 28%, rgba(79, 209, 197, 0.24), transparent 22%),
+    radial-gradient(circle at 74% 36%, rgba(200, 161, 90, 0.18), transparent 20%),
+    linear-gradient(135deg, #07131f, #142f43);
+}
+
+.market-editorial__map .market-map__summary {
+  display: none;
+}
+
+.market-editorial__map .market-map__fallback {
+  display: block;
+  opacity: 0.9;
+}
+
+.market-editorial__photo {
+  position: absolute;
+  right: 2rem;
+  bottom: 0;
+  width: min(46%, 340px);
+  min-height: 230px;
+  border: 8px solid var(--lux-ivory);
+  border-radius: 26px;
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 28px 70px rgba(7, 19, 31, 0.2);
+  transform: translateY(10px);
+}
+
+.services-editorial-section,
+.why-trust-section {
+  overflow: clip;
+}
+
+.services-editorial {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  width: min(calc(100% - 3rem), var(--container));
+  margin: 0 auto;
+  align-items: start;
+}
+
+.services-editorial__media {
+  position: sticky;
+  top: 8rem;
+  min-height: 680px;
+  overflow: hidden;
+  border-radius: 34px;
+  background: var(--lux-navy);
+  box-shadow: 0 30px 90px rgba(7, 19, 31, 0.18);
+}
+
+.services-editorial__image {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  opacity: 0;
+  transform: scale(1.015);
+  transition: opacity 0.8s ease, transform 1.2s ease;
+}
+
+.services-editorial__image::after,
+.why-trust__image::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background: linear-gradient(180deg, rgba(7, 19, 31, 0.05), rgba(7, 19, 31, 0.3));
+}
+
+.services-editorial__image.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.services-editorial__content {
+  max-width: 680px;
+}
+
+.services-editorial__heading {
+  margin-bottom: 1.3rem;
+}
+
+.services-editorial__list,
+.why-trust__reasons {
+  border-top: 1px solid rgba(19, 32, 43, 0.12);
+}
+
+.services-editorial__item,
+.why-trust__reason {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  gap: 1.25rem;
+  padding: 1.45rem 0;
+  border-bottom: 1px solid rgba(19, 32, 43, 0.1);
+}
+
+.services-editorial__item {
+  opacity: 0.48;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.services-editorial__item.is-active {
+  opacity: 1;
+  transform: translateX(0.35rem);
+}
+
+.services-editorial__item > span,
+.why-trust__reason > span {
+  color: #9b742e;
+  font-family: var(--font-serif), serif;
+  font-size: 1.05rem;
+}
+
+.services-editorial__item h3,
+.why-trust__reason h3 {
+  margin: 0;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(1.45rem, 2.2vw, 2.1rem);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.services-editorial__item p,
+.why-trust__reason p {
+  margin: 0.6rem 0 0;
+  color: rgba(19, 32, 43, 0.62);
+  line-height: 1.75;
+}
+
+.why-trust {
+  width: min(calc(100% - 3rem), var(--container));
+  margin: 0 auto;
+}
+
+.why-trust__intro {
+  max-width: 850px;
+  margin-bottom: 3rem;
+}
+
+.why-trust__proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.5rem;
+  margin-top: 1.35rem;
+  color: rgba(19, 32, 43, 0.6);
+  font-size: 0.86rem;
+}
+
+.why-trust__proof span {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: baseline;
+}
+
+.why-trust__proof strong {
+  color: var(--lux-ink);
+  font-family: var(--font-serif), serif;
+  font-size: 1.25rem;
+}
+
+.why-trust__image {
+  position: relative;
+  min-height: 520px;
+  margin-bottom: 3rem;
+  overflow: hidden;
+  border-radius: 34px;
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 30px 90px rgba(7, 19, 31, 0.14);
+  transform: translateY(8px);
+}
+
+.why-trust__reasons {
+  max-width: 960px;
+}
+
+@media (max-width: 1100px) {
+  .market-editorial,
+  .services-editorial {
+    grid-template-columns: 1fr;
+  }
+
+  .services-editorial__media {
+    position: relative;
+    top: auto;
+    min-height: 460px;
+  }
+}
+
+@media (max-width: 700px) {
+  .market-editorial__row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  .market-editorial__visual {
+    min-height: 520px;
+  }
+
+  .market-editorial__map {
+    inset: 0 0 7rem 0;
+  }
+
+  .market-editorial__photo {
+    right: 1rem;
+    width: min(72%, 290px);
+    min-height: 190px;
+  }
+
+  .services-editorial,
+  .why-trust {
+    width: min(calc(100% - 1.5rem), var(--container));
+  }
+
+  .services-editorial__media,
+  .why-trust__image {
+    min-height: 340px;
+    border-radius: 24px;
+  }
+
+  .services-editorial__item,
+  .why-trust__reason {
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+  }
+}

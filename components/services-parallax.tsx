@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
 import type { HomepageServiceItem } from "@/lib/site-content";
 
 type ServicesParallaxProps = {
@@ -10,94 +11,67 @@ type ServicesParallaxProps = {
   description?: string;
 };
 
-const serviceIcons: Record<string, string> = {
-  "badge-percent": "◈",
-  "briefcase-business": "◉",
-  headphones: "◎",
-  plane: "◆",
-  route: "◇",
-  "users-round": "◈",
-};
-
-/**
- * Freeze-screen parallax: the entire section is pinned while the user scrolls
- * through each service. The image on the left crossfades to match. Once all
- * items have been shown, the section un-pins and normal scrolling resumes.
- */
 export function ServicesParallax({ services, images, title, description }: ServicesParallaxProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const sectionRef = useRef<HTMLDivElement | null>(null);
-  const enabledServices = services.filter((s) => s.enabled && s.title);
-  const count = enabledServices.length;
+  const itemRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const enabledServices = services.filter((service) => service.enabled && service.title);
 
   useEffect(() => {
-    const section = sectionRef.current;
-    if (!section || count < 1) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
 
-    const handleScroll = () => {
-      const rect = section.getBoundingClientRect();
-      const sectionTop = window.scrollY + rect.top;
-      const scrolled = window.scrollY - sectionTop;
-      const totalScrollRange = section.scrollHeight - window.innerHeight;
-
-      if (scrolled < 0 || totalScrollRange <= 0) {
-        setActiveIndex(0);
-        return;
+        if (visible?.target instanceof HTMLElement) {
+          const index = Number(visible.target.dataset.index);
+          if (Number.isFinite(index)) {
+            setActiveIndex(index);
+          }
+        }
+      },
+      {
+        rootMargin: "-30% 0px -45% 0px",
+        threshold: [0.25, 0.5, 0.75]
       }
+    );
 
-      const progress = Math.min(scrolled / totalScrollRange, 1);
-      const idx = Math.min(Math.floor(progress * count), count - 1);
-      setActiveIndex(idx);
-    };
+    itemRefs.current.filter(Boolean).forEach((item) => observer.observe(item as Element));
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [count]);
+    return () => observer.disconnect();
+  }, [enabledServices.length]);
 
   return (
-    <div
-      className="svc-parallax"
-      ref={sectionRef}
-      style={{ height: `${Math.max(count, 1) * 100}vh` }}
-    >
-      <div className="svc-parallax__sticky">
-        {/* Left: image panel */}
-        <div className="svc-parallax__media-col">
-          <div className="svc-parallax__media-sticky">
-            {enabledServices.map((service, index) => (
-              <div
-                key={service.title}
-                className={`svc-parallax__image ${activeIndex === index ? "is-active" : ""}`}
-                style={{
-                  backgroundImage: `url(${images[index % images.length]})`,
-                }}
-                aria-hidden="true"
-              >
-                <div className="svc-parallax__image-overlay" />
-              </div>
-            ))}
-          </div>
+    <div className="services-editorial">
+      <div className="services-editorial__media" aria-hidden="true">
+        {enabledServices.map((service, index) => (
+          <div
+            key={service.title}
+            className={`services-editorial__image ${activeIndex === index ? "is-active" : ""}`}
+            style={{ backgroundImage: `url(${images[index % images.length]})` }}
+          />
+        ))}
+      </div>
+
+      <div className="services-editorial__content">
+        <div className="services-editorial__heading">
+          <p className="lux-eyebrow">Destination Management</p>
+          <h2>{title || "DMC Services"}</h2>
+          {description ? <p>{description}</p> : null}
         </div>
 
-        {/* Right: text items */}
-        <div className="svc-parallax__text-col">
-          {title ? (
-            <div className="svc-parallax__heading">
-              <p className="lux-eyebrow">{title}</p>
-              {description ? <span>{description}</span> : null}
-            </div>
-          ) : null}
+        <div className="services-editorial__list">
           {enabledServices.map((service, index) => (
             <div
+              className={`services-editorial__item ${activeIndex === index ? "is-active" : ""}`}
               key={service.title}
-              className={`svc-parallax__item ${activeIndex === index ? "is-active" : ""}`}
+              data-index={index}
+              ref={(node) => {
+                itemRefs.current[index] = node;
+              }}
             >
-              <div className="svc-parallax__item-icon">
-                {serviceIcons[service.icon] ?? "◉"}
-              </div>
-              <div className="svc-parallax__item-body">
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <div>
                 <h3>{service.title}</h3>
                 <p>{service.description}</p>
               </div>
