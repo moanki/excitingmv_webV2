@@ -50,7 +50,7 @@ export function WhyUsParallax({ items, images, title, description }: WhyUsParall
     <div
       className="svc-parallax svc-parallax--reverse"
       ref={sectionRef}
-      style={{ height: `${(count + 1) * 100}vh` }}
+      style={{ height: `${Math.max(count, 1) * 100}vh` }}
     >
       <div className="svc-parallax__sticky">
         {/* Left: text column */}

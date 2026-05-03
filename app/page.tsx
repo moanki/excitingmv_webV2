@@ -373,7 +373,7 @@ export default async function HomePage() {
       </section>
 
       <section className="lux-section lux-section--sand">
-        <div className="lux-container">
+        <div className="lux-container lux-awards-container">
           <SectionHeading
             eyebrow="Prestigious Awards"
             title={awards.title}

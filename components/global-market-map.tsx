@@ -67,8 +67,8 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
                 ...layer,
                 paint: {
                   ...layer.paint,
-                  "line-color": "rgba(255,255,255,0.22)",
-                  "line-width": 0.8,
+                  "line-color": "rgba(255,255,255,0.42)",
+                  "line-width": 1,
                   "line-blur": 0,
                 },
               };
@@ -101,9 +101,9 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
                 },
                 paint: {
                   ...layer.paint,
-                  "text-color": "rgba(255,255,255,0.52)",
-                  "text-halo-color": "rgba(15,23,42,0.6)",
-                  "text-halo-width": 1.2,
+                  "text-color": "rgba(255,255,255,0.82)",
+                  "text-halo-color": "rgba(7,19,31,0.78)",
+                  "text-halo-width": 1.4,
                 },
               };
             }
@@ -121,8 +121,8 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
                 },
                 paint: {
                   ...layer.paint,
-                  "text-color": "rgba(255,255,255,0.32)",
-                  "text-halo-color": "rgba(15,23,42,0.5)",
+                  "text-color": "rgba(255,255,255,0.5)",
+                  "text-halo-color": "rgba(7,19,31,0.62)",
                   "text-halo-width": 1,
                 },
               };
@@ -141,7 +141,7 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
           minzoom: 0,
           maxzoom: 24,
           paint: {
-            "fill-color": "rgba(255,255,255,0.07)",
+            "fill-color": "rgba(255,255,255,0.16)",
           },
         });
 
@@ -153,7 +153,7 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
           "source-layer": "boundary",
           filter: ["all", ["==", ["get", "admin_level"], 2], ["==", ["get", "maritime"], 0]],
           paint: {
-            "fill-color": "rgba(79,209,197,0.06)",
+            "fill-color": "rgba(79,209,197,0.13)",
           },
         });
 
@@ -180,6 +180,7 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
   if (!mapStyle) {
     return (
       <div className="market-map">
+        <div className="market-map__fallback" aria-hidden="true" />
         <div className="market-map__canvas" aria-label="Global market reach map" />
         <div className="market-map__summary">
           <strong>{activeMarkets.length || markets.length}</strong>
@@ -191,6 +192,7 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
 
   return (
     <div className="market-map">
+      <div className="market-map__fallback" aria-hidden="true" />
       <div className="market-map__canvas" aria-label="Global market reach map">
         <Map
           initialViewState={{
