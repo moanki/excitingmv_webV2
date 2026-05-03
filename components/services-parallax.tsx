@@ -60,7 +60,7 @@ export function ServicesParallax({ services, images, title, description }: Servi
     <div
       className="svc-parallax"
       ref={sectionRef}
-      style={{ height: `${(count + 1) * 100}vh` }}
+      style={{ height: `${Math.max(count, 1) * 100}vh` }}
     >
       <div className="svc-parallax__sticky">
         {/* Left: image panel */}

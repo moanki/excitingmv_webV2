@@ -5554,7 +5554,7 @@ select {
 }
 
 .lux-retreat-card h3 {
-  font-size: clamp(1.65rem, 2.6vw, 2.45rem);
+  font-size: clamp(1.28rem, 1.75vw, 1.82rem);
   line-height: 1.05;
 }
 
@@ -6214,17 +6214,18 @@ select {
 
   .site-nav__inner,
   .site-nav.is-scrolled .site-nav__inner {
-    min-height: 88px;
+    width: min(calc(100% - 3rem), 1360px);
+    min-height: 104px;
     border: 0;
     border-radius: 0;
-    background: rgba(251, 247, 239, 0.96);
-    box-shadow: 0 10px 30px rgba(19, 32, 43, 0.08);
+    background: transparent;
+    box-shadow: none;
     backdrop-filter: none;
   }
 
   .site-nav__brand-logo {
-    height: 70px;
-    max-width: 280px;
+    height: 92px;
+    max-width: 360px;
   }
 
   .site-nav__links {
@@ -6232,12 +6233,20 @@ select {
   }
 
   .site-nav__links a {
-    color: rgba(19, 32, 43, 0.7) !important;
+    color: rgba(255, 255, 255, 0.88) !important;
     font-size: 0.86rem;
     letter-spacing: 0.14em;
   }
 
   .site-nav__login {
+    color: rgba(255, 255, 255, 0.76) !important;
+  }
+
+  .site-nav.is-scrolled .site-nav__links a {
+    color: rgba(19, 32, 43, 0.72) !important;
+  }
+
+  .site-nav.is-scrolled .site-nav__login {
     color: rgba(19, 32, 43, 0.62) !important;
   }
 
@@ -6278,8 +6287,9 @@ select {
 }
 
 .lux-retreat-card {
-  flex: 0 0 clamp(320px, 31vw, 430px);
-  min-height: 390px;
+  flex: 0 0 clamp(280px, 26vw, 360px);
+  min-height: 330px;
+  border: 0;
 }
 
 .lux-retreat-card:first-child,
@@ -6343,18 +6353,33 @@ select {
   min-height: 520px;
   border-radius: var(--lux-radius);
   background:
-    radial-gradient(circle at 18% 28%, rgba(79, 209, 197, 0.18), transparent 22%),
-    radial-gradient(circle at 74% 36%, rgba(200, 161, 90, 0.14), transparent 20%),
-    linear-gradient(135deg, #07131f, #112536);
+    radial-gradient(circle at 18% 28%, rgba(79, 209, 197, 0.24), transparent 22%),
+    radial-gradient(circle at 74% 36%, rgba(200, 161, 90, 0.18), transparent 20%),
+    linear-gradient(135deg, #07131f, #142f43);
+  box-shadow: 0 34px 90px rgba(7, 19, 31, 0.22);
 }
 
 .lux-market-map-card .market-map__canvas,
 .lux-market-map-card .home-map-section .market-map__canvas {
   min-height: 520px;
+  z-index: 2;
+}
+
+.lux-market-map-card .market-map__fallback {
+  display: block;
+  opacity: 0.9;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    radial-gradient(circle at 42% 38%, rgba(255,255,255,0.12), transparent 18%),
+    radial-gradient(circle at 64% 53%, rgba(79,209,197,0.13), transparent 17%);
+  background-size: 68px 68px, 68px 68px, 100% 100%, 100% 100%;
 }
 
 .lux-parallax-section {
   padding-top: 0;
+  padding-bottom: 0;
+  overflow: hidden;
 }
 
 .svc-parallax__heading {
@@ -6411,6 +6436,17 @@ select {
   gap: 2.5rem 3.25rem;
 }
 
+.lux-awards-container .lux-section-heading {
+  margin-right: auto;
+  margin-left: auto;
+  text-align: center;
+}
+
+.lux-awards-container .lux-section-heading > p:not(.lux-eyebrow) {
+  margin-right: auto;
+  margin-left: auto;
+}
+
 .lux-award-logo {
   min-height: auto;
   padding: 0;
@@ -6421,8 +6457,8 @@ select {
 }
 
 .lux-award-logo img {
-  max-width: 260px;
-  max-height: 128px;
+  max-width: 340px;
+  max-height: 170px;
   filter: none;
   opacity: 0.94;
 }
