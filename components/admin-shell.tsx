@@ -8,6 +8,7 @@ import {
   Building2,
   FolderKanban,
   Gauge,
+  Image,
   LayoutTemplate,
   LifeBuoy,
   Mail,
@@ -78,6 +79,12 @@ const navGroups: NavGroup[] = [
         icon: LayoutTemplate
       },
       {
+        href: "/admin/media",
+        label: "Media Library",
+        description: "Upload, reuse, and delete assets",
+        icon: Image
+      },
+      {
         href: "/admin/resources",
         label: "Resource Library",
         description: "Files, links, and statuses",
@@ -138,6 +145,10 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   "/admin/resorts/new": {
     title: "Add New Resort",
     description: "Create a focused property workspace without the rest of the resort list in view."
+  },
+  "/admin/media": {
+    title: "Media Library",
+    description: "Manage reusable images, videos, and files for content workflows."
   },
   "/admin/resources": {
     title: "Resource Library",

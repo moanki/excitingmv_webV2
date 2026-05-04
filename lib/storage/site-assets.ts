@@ -32,6 +32,7 @@ const SITE_ASSET_PREFIXES = [
   "site/footer",
   "site/membership",
   "site/award",
+  "media-library",
   "resorts"
 ];
 
@@ -220,7 +221,7 @@ export async function listSiteAssets() {
       }
 
       for (const entry of data) {
-        if (!entry.name || entry.id === null) {
+        if (!entry.name || entry.id === null || /-(thumb|card|banner)\.webp$/i.test(entry.name)) {
           continue;
         }
 
@@ -237,5 +238,50 @@ export async function listSiteAssets() {
     return items;
   } catch {
     return [];
+  }
+}
+
+function storagePathFromPublicUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    const marker = `/object/public/${SITE_ASSET_BUCKET}/`;
+    const index = parsed.pathname.indexOf(marker);
+
+    if (index === -1) {
+      return "";
+    }
+
+    return decodeURIComponent(parsed.pathname.slice(index + marker.length));
+  } catch {
+    return "";
+  }
+}
+
+function variantPathsFor(path: string) {
+  const match = path.match(/^(.*)\.([a-z0-9]+)$/i);
+  if (!match) {
+    return [path];
+  }
+
+  const [, base, extension] = match;
+  if (extension.toLowerCase() !== "webp") {
+    return [path];
+  }
+
+  return [path, `${base}-thumb.webp`, `${base}-card.webp`, `${base}-banner.webp`];
+}
+
+export async function deleteSiteAsset(publicUrl: string) {
+  const path = storagePathFromPublicUrl(publicUrl);
+
+  if (!path) {
+    throw new Error("Could not identify the selected media file.");
+  }
+
+  const supabase = await ensureBucket();
+  const { error } = await supabase.storage.from(SITE_ASSET_BUCKET).remove(variantPathsFor(path));
+
+  if (error) {
+    throw new Error(error.message);
   }
 }

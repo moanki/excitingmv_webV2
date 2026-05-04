@@ -568,7 +568,7 @@ export function ResortEditor({
         <a href="#seo-publish">SEO & Publish</a>
       </nav>
 
-      <form id={formId} action={action} className="stack admin-form-card resort-workspace__form">
+      <form id={formId} action={action} encType="multipart/form-data" className="stack admin-form-card resort-workspace__form">
         {resort.id ? <input type="hidden" name="id" value={resort.id} /> : null}
         <input type="hidden" name="roomCount" value={rooms.length} />
 

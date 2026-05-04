@@ -80,7 +80,7 @@ async function parseRoomTypes(formData: FormData) {
     const existingPhoto = String(formData.get(`room_${index}_photoUrl`) ?? "").trim();
     const photoUrl =
       roomPhotoFile instanceof File && roomPhotoFile.size > 0
-        ? await uploadSiteAsset(roomPhotoFile, "resorts")
+        ? await uploadSiteAsset(roomPhotoFile, "resorts", "card")
         : existingPhoto;
 
     if (!name && !description && !seoDescription && !photoUrl && !sizeLabel && !maxOccupancyValue && !bedType && !viewLabel && !amenities.length) {
@@ -121,13 +121,13 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
     const galleryFiles = formData.getAll("galleryMediaFiles");
     const uploadedHeroImage =
       heroImageFile instanceof File && heroImageFile.size > 0
-        ? await uploadSiteAsset(heroImageFile, "resorts")
+        ? await uploadSiteAsset(heroImageFile, "resorts", "banner")
         : String(formData.get("heroImageUrl") ?? "").trim();
     const uploadedGalleryImages = (
       await Promise.all(
         galleryFiles.map(async (item) => {
           if (!(item instanceof File) || item.size === 0) return "";
-          return uploadSiteAsset(item, "resorts");
+          return uploadSiteAsset(item, "resorts", "card");
         })
       )
     ).filter(Boolean);
@@ -163,6 +163,9 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
     await saveResort(input);
     revalidateResortPaths();
     revalidatePath(`/resorts/${input.slug}`);
+    if (input.id) {
+      revalidatePath(`/admin/resorts/${input.id}/edit`);
+    }
     return { message: `${input.name} saved.` };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save property." };

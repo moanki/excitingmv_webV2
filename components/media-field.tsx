@@ -52,6 +52,9 @@ export function MediaField({
   function onFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     setSelectedFileName(file?.name ?? "");
+    if (file) {
+      setSelectedUrl("");
+    }
   }
 
   function onDrop(event: DragEvent<HTMLLabelElement>) {
@@ -66,6 +69,7 @@ export function MediaField({
     transfer.items.add(file);
     fileInputRef.current.files = transfer.files;
     setSelectedFileName(file.name);
+    setSelectedUrl("");
   }
 
   return (
@@ -170,7 +174,13 @@ export function MediaField({
                   type="button"
                   key={item.url}
                   className={selectedUrl === item.url ? "media-library-item is-active" : "media-library-item"}
-                  onClick={() => setSelectedUrl(item.url)}
+                  onClick={() => {
+                    setSelectedUrl(item.url);
+                    setSelectedFileName("");
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = "";
+                    }
+                  }}
                 >
                   <div className="media-library-preview">
                     {item.type === "video" ? (
