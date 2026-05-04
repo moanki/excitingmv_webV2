@@ -4,15 +4,32 @@ import { revalidatePath } from "next/cache";
 
 import { createAdminUser, deleteAdminUser } from "@/lib/services/admin-user-service";
 
-export async function createAdminUserAction(formData: FormData) {
-  await createAdminUser({
-    email: String(formData.get("email") ?? "").trim(),
-    password: String(formData.get("password") ?? ""),
-    fullName: String(formData.get("fullName") ?? "").trim(),
-    roleId: String(formData.get("roleId") ?? "")
-  });
+export type UserAccessActionState = { message?: string; error?: string } | undefined;
 
-  revalidatePath("/admin/user-access");
+export async function createAdminUserAction(
+  _: UserAccessActionState,
+  formData: FormData
+): Promise<UserAccessActionState> {
+  try {
+    const email = String(formData.get("email") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+
+    if (!email || !password) {
+      return { error: "Email and password are required." };
+    }
+
+    await createAdminUser({
+      email,
+      password,
+      fullName: String(formData.get("fullName") ?? "").trim(),
+      roleId: String(formData.get("roleId") ?? "")
+    });
+
+    revalidatePath("/admin/user-access");
+    return { message: `${email} created.` };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to create admin user." };
+  }
 }
 
 export async function deleteAdminUserAction(formData: FormData) {

@@ -1,4 +1,5 @@
-import { createAdminUserAction, deleteAdminUserAction } from "@/app/admin/user-access/actions";
+import { deleteAdminUserAction } from "@/app/admin/user-access/actions";
+import { CreateAdminUserForm } from "@/app/admin/user-access/create-admin-user-form";
 import { listAdminUsers, listRoles } from "@/lib/services/admin-user-service";
 
 export default async function AdminUserAccessPage() {
@@ -19,37 +20,7 @@ export default async function AdminUserAccessPage() {
           <h3 className="admin-form-section__title">Create Admin User</h3>
           <p className="admin-form-section__help">Add a new internal user and assign the correct workspace role.</p>
         </div>
-        <form action={createAdminUserAction} className="stack">
-          <div className="form-grid">
-            <label className="field">
-              <span className="field__label">Full Name</span>
-              <input className="admin-input" name="fullName" />
-            </label>
-            <label className="field">
-              <span className="field__label">Email</span>
-              <input className="admin-input" name="email" type="email" />
-            </label>
-            <label className="field">
-              <span className="field__label">Password</span>
-              <input className="admin-input" name="password" type="password" />
-            </label>
-            <label className="field">
-              <span className="field__label">Role</span>
-              <select className="admin-select" name="roleId">
-                {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className="admin-form-actions">
-            <button className="admin-btn admin-btn--primary" type="submit">
-              Create Admin User
-            </button>
-          </div>
-        </form>
+        <CreateAdminUserForm roles={roles} />
       </article>
 
       <div className="admin-table-shell">

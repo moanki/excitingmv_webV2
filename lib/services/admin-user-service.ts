@@ -16,6 +16,40 @@ export type AdminUserRecord = {
   roles: string[];
 };
 
+const defaultRoles: Array<Omit<AdminRoleRecord, "id">> = [
+  {
+    name: "super_admin",
+    description: "Full access across the platform."
+  },
+  {
+    name: "admin",
+    description: "Operational content and partner management access."
+  },
+  {
+    name: "content_manager",
+    description: "Content, resort, and import workflow access."
+  }
+];
+
+async function ensureDefaultRoles() {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("roles")
+    .upsert(defaultRoles, { onConflict: "name" })
+    .select("id,name,description")
+    .order("name");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return ((data ?? []) as { id: string; name: string; description: string | null }[]).map((role) => ({
+    id: role.id,
+    name: role.name,
+    description: role.description ?? ""
+  }));
+}
+
 export async function listRoles() {
   try {
     const supabase = createSupabaseAdminClient();
@@ -25,29 +59,17 @@ export async function listRoles() {
       throw new Error(error.message);
     }
 
-    return ((data ?? []) as { id: string; name: string; description: string | null }[]).map((role) => ({
+    if (!data?.length) {
+      return ensureDefaultRoles();
+    }
+
+    return (data as { id: string; name: string; description: string | null }[]).map((role) => ({
       id: role.id,
       name: role.name,
       description: role.description ?? ""
     }));
   } catch {
-    return [
-      {
-        id: "super-admin",
-        name: "super_admin",
-        description: "Full access across the platform."
-      },
-      {
-        id: "admin",
-        name: "admin",
-        description: "Operational content and partner management access."
-      },
-      {
-        id: "content-manager",
-        name: "content_manager",
-        description: "Content, resort, and import workflow access."
-      }
-    ];
+    return [];
   }
 }
 
@@ -89,6 +111,15 @@ export async function createAdminUser(input: {
   roleId: string;
 }) {
   const supabase = createSupabaseAdminClient();
+  const roles = await listRoles();
+  const roleId = roles.some((role) => role.id === input.roleId)
+    ? input.roleId
+    : roles.find((role) => role.name === "admin")?.id;
+
+  if (!roleId) {
+    throw new Error("No admin roles are available. Open Roles once to initialize defaults, then try again.");
+  }
+
   const created = await supabase.auth.admin.createUser({
     email: input.email,
     password: input.password,
@@ -101,17 +132,27 @@ export async function createAdminUser(input: {
 
   const userId = created.data.user.id;
 
-  await supabase.from("profiles").upsert({
+  const profile = await supabase.from("profiles").upsert({
     id: userId,
     email: input.email,
     full_name: input.fullName
   });
 
+  if (profile.error) {
+    await supabase.auth.admin.deleteUser(userId);
+    throw new Error(profile.error.message);
+  }
+
   await supabase.from("user_roles").delete().eq("user_id", userId);
-  await supabase.from("user_roles").insert({
+  const assignedRole = await supabase.from("user_roles").insert({
     user_id: userId,
-    role_id: input.roleId
+    role_id: roleId
   });
+
+  if (assignedRole.error) {
+    await supabase.auth.admin.deleteUser(userId);
+    throw new Error(assignedRole.error.message);
+  }
 }
 
 export async function deleteAdminUser(userId: string) {
