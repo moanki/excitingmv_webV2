@@ -1,10 +1,13 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import type { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { FileText, Image as ImageIcon, Search, Trash2, Upload, Video } from "lucide-react";
 
-import { deleteMediaLibraryAssetAction, uploadMediaLibraryAssetAction } from "@/app/admin/media/actions";
+import { deleteMediaLibraryAssetAction } from "@/app/admin/media/actions";
 import type { MediaLibraryItem } from "@/components/media-field";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 function StatusMessage({ message, error }: { message?: string; error?: string }) {
   if (error) {
@@ -31,7 +34,12 @@ function typeLabel(type: MediaLibraryItem["type"]) {
 }
 
 export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
-  const [state, action, pending] = useActionState(uploadMediaLibraryAssetAction, undefined);
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadState, setUploadState] = useState<{ pending: boolean; message?: string; error?: string }>({
+    pending: false
+  });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | MediaLibraryItem["type"]>("all");
 
@@ -49,6 +57,70 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
     });
   }, [filter, items, query]);
 
+  async function uploadSelectedFile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!selectedFile) {
+      setUploadState({ pending: false, error: "Choose an image, video, or file to upload." });
+      return;
+    }
+
+    setUploadState({ pending: true, message: "Uploading media..." });
+
+    try {
+      const response = await fetch("/api/admin/media", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          mode: "create-upload-url",
+          filename: selectedFile.name,
+          contentType: selectedFile.type || "application/octet-stream",
+          folder: "media-library"
+        })
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            ok?: boolean;
+            error?: string;
+            data?: {
+              bucket: string;
+              path: string;
+              token: string;
+              publicUrl: string;
+              contentType: string;
+            };
+          }
+        | null;
+
+      if (!response.ok || !payload?.ok || !payload.data) {
+        throw new Error(payload?.error || "Could not prepare the media upload.");
+      }
+
+      const supabase = createSupabaseBrowserClient();
+      const uploaded = await supabase.storage
+        .from(payload.data.bucket)
+        .uploadToSignedUrl(payload.data.path, payload.data.token, selectedFile, {
+          contentType: payload.data.contentType || selectedFile.type || undefined
+        });
+
+      if (uploaded.error) {
+        throw new Error(uploaded.error.message);
+      }
+
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      setUploadState({ pending: false, message: `${selectedFile.name} uploaded.` });
+      router.refresh();
+    } catch (error) {
+      setUploadState({
+        pending: false,
+        error: error instanceof Error ? error.message : "Failed to upload media."
+      });
+    }
+  }
+
   return (
     <div className="stack">
       <section>
@@ -59,7 +131,7 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
         </p>
       </section>
 
-      <form action={action} encType="multipart/form-data" className="admin-form-card media-manager-upload">
+      <form onSubmit={uploadSelectedFile} className="admin-form-card media-manager-upload">
         <div>
           <h3>Upload Media</h3>
           <p>New uploads appear in resort media pickers immediately after save.</p>
@@ -68,29 +140,22 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
           <label className="field field--full">
             <span className="field__label">Media File</span>
             <input
+              ref={fileInputRef}
               className="admin-input"
               type="file"
               name="mediaFile"
               accept="image/png,image/jpeg,image/webp,image/svg+xml,application/pdf,video/mp4,video/webm,video/quicktime"
+              onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
             />
-          </label>
-          <label className="field">
-            <span className="field__label">Optimization Profile</span>
-            <select className="admin-select" name="usage" defaultValue="full">
-              <option value="full">Full image</option>
-              <option value="banner">Banner / hero</option>
-              <option value="card">Card / gallery</option>
-              <option value="logo">Logo / badge</option>
-            </select>
           </label>
         </div>
         <div className="admin-form-actions admin-form-actions--start">
-          <button className="admin-btn admin-btn--primary" type="submit" disabled={pending}>
+          <button className="admin-btn admin-btn--primary" type="submit" disabled={uploadState.pending}>
             <Upload className="admin-icon" />
-            {pending ? "Uploading..." : "Upload To Library"}
+            {uploadState.pending ? "Uploading..." : "Upload To Library"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <StatusMessage message={uploadState.message} error={uploadState.error} />
       </form>
 
       <section className="admin-form-card media-manager-library">

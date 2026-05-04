@@ -2745,6 +2745,10 @@ select {
   color: var(--admin-accent);
 }
 
+.media-dropzone-error {
+  color: var(--admin-danger);
+}
+
 .media-selected-state {
   display: flex;
   justify-content: space-between;

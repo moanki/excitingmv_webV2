@@ -1,8 +1,10 @@
 "use client";
 
-import { useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent } from "react";
 import { Image as ImageIcon, Library, Upload, Video } from "lucide-react";
+
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 export type MediaLibraryItem = {
   name: string;
@@ -37,6 +39,9 @@ export function MediaField({
   const inputId = useId();
   const [selectedUrl, setSelectedUrl] = useState(value);
   const [selectedFileName, setSelectedFileName] = useState("");
+  const [uploadState, setUploadState] = useState<{ pending: boolean; error?: string; message?: string }>({
+    pending: false
+  });
   const [mode, setMode] = useState<"upload" | "library" | "url">(value ? "library" : "upload");
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -49,12 +54,89 @@ export function MediaField({
     return library.filter((item) => item.type !== "video");
   }, [accept, library]);
 
+  useEffect(() => {
+    const form = fileInputRef.current?.form;
+    if (!form) return;
+
+    function preventPendingUpload(event: SubmitEvent) {
+      if (!uploadState.pending) return;
+      event.preventDefault();
+      setUploadState({
+        pending: true,
+        error: "Please wait for the media upload to finish before saving."
+      });
+    }
+
+    form.addEventListener("submit", preventPendingUpload);
+    return () => form.removeEventListener("submit", preventPendingUpload);
+  }, [uploadState.pending]);
+
+  function clearNativeFileInput() {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }
+
+  async function uploadFileDirectly(file: File) {
+    setSelectedFileName(file.name);
+    setSelectedUrl("");
+    setUploadState({ pending: true, message: "Uploading media..." });
+    clearNativeFileInput();
+
+    try {
+      const response = await fetch("/api/admin/media", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          mode: "create-upload-url",
+          filename: file.name,
+          contentType: file.type || "application/octet-stream",
+          folder: "resorts"
+        })
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            ok?: boolean;
+            error?: string;
+            data?: {
+              bucket: string;
+              path: string;
+              token: string;
+              publicUrl: string;
+              contentType: string;
+            };
+          }
+        | null;
+
+      if (!response.ok || !payload?.ok || !payload.data) {
+        throw new Error(payload?.error || "Could not prepare the media upload.");
+      }
+
+      const supabase = createSupabaseBrowserClient();
+      const uploaded = await supabase.storage
+        .from(payload.data.bucket)
+        .uploadToSignedUrl(payload.data.path, payload.data.token, file, {
+          contentType: payload.data.contentType || file.type || undefined
+        });
+
+      if (uploaded.error) {
+        throw new Error(uploaded.error.message);
+      }
+
+      setSelectedUrl(payload.data.publicUrl);
+      setUploadState({ pending: false, message: `${file.name} uploaded and ready to save.` });
+    } catch (error) {
+      setUploadState({
+        pending: false,
+        error: error instanceof Error ? error.message : "Media upload failed."
+      });
+    }
+  }
+
   function onFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    setSelectedFileName(file?.name ?? "");
-    if (file) {
-      setSelectedUrl("");
-    }
+    if (!file) return;
+    void uploadFileDirectly(file);
   }
 
   function onDrop(event: DragEvent<HTMLLabelElement>) {
@@ -68,8 +150,7 @@ export function MediaField({
     const transfer = new DataTransfer();
     transfer.items.add(file);
     fileInputRef.current.files = transfer.files;
-    setSelectedFileName(file.name);
-    setSelectedUrl("");
+    void uploadFileDirectly(file);
   }
 
   return (
@@ -135,6 +216,9 @@ export function MediaField({
             <strong>Drag and drop a file here</strong>
             <span>or click to upload from your device</span>
             {selectedFileName ? <small>Selected file: {selectedFileName}</small> : null}
+            {uploadState.pending ? <small>Uploading directly to media library...</small> : null}
+            {uploadState.message ? <small>{uploadState.message}</small> : null}
+            {uploadState.error ? <small className="media-dropzone-error">{uploadState.error}</small> : null}
           </label>
 
           <input

@@ -198,6 +198,32 @@ export async function uploadSiteAsset(file: File, folder: string, usage: SiteAss
   return publicUrl.data.publicUrl;
 }
 
+export async function createSignedSiteAssetUpload(filename: string, contentType: string, folder: string) {
+  const supabase = await ensureBucket();
+  const safeFolder = normalizeFolderPath(folder);
+  const extension = fileExtension({ name: filename, type: contentType } as File);
+  const assetId = `${Date.now()}-${crypto.randomUUID()}`;
+  const path = `${safeFolder}/${assetId}.${extension}`;
+  const signed = await supabase.storage.from(SITE_ASSET_BUCKET).createSignedUploadUrl(path, {
+    upsert: true
+  });
+
+  if (signed.error || !signed.data) {
+    throw new Error(signed.error?.message ?? "Failed to prepare media upload.");
+  }
+
+  const publicUrl = supabase.storage.from(SITE_ASSET_BUCKET).getPublicUrl(path);
+
+  return {
+    bucket: SITE_ASSET_BUCKET,
+    path,
+    token: signed.data.token,
+    signedUrl: signed.data.signedUrl,
+    publicUrl: publicUrl.data.publicUrl,
+    contentType
+  };
+}
+
 function fileType(path: string) {
   const lower = path.toLowerCase();
   if (/\.(mp4|webm|mov)$/.test(lower)) return "video" as const;
