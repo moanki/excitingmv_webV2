@@ -20,6 +20,7 @@ type MediaFieldProps = {
   value?: string;
   library?: MediaLibraryItem[];
   helper?: string;
+  onChange?: (url: string) => void;
 };
 
 function fileKind(file: MediaLibraryItem) {
@@ -34,7 +35,8 @@ export function MediaField({
   accept,
   value = "",
   library = [],
-  helper
+  helper,
+  onChange
 }: MediaFieldProps) {
   const inputId = useId();
   const [selectedUrl, setSelectedUrl] = useState(value);
@@ -71,6 +73,11 @@ export function MediaField({
     return () => form.removeEventListener("submit", preventPendingUpload);
   }, [uploadState.pending]);
 
+  function updateSelectedUrl(url: string) {
+    setSelectedUrl(url);
+    onChange?.(url);
+  }
+
   function clearNativeFileInput() {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -79,7 +86,7 @@ export function MediaField({
 
   async function uploadFileDirectly(file: File) {
     setSelectedFileName(file.name);
-    setSelectedUrl("");
+    updateSelectedUrl("");
     setUploadState({ pending: true, message: "Uploading media..." });
     clearNativeFileInput();
 
@@ -123,7 +130,7 @@ export function MediaField({
         throw new Error(uploaded.error.message);
       }
 
-      setSelectedUrl(payload.data.publicUrl);
+      updateSelectedUrl(payload.data.publicUrl);
       setUploadState({ pending: false, message: `${file.name} uploaded and ready to save.` });
     } catch (error) {
       setUploadState({
@@ -194,7 +201,7 @@ export function MediaField({
             <strong>Current selection</strong>
             <p>{selectedUrl}</p>
           </div>
-          <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setSelectedUrl("")}>
+          <button type="button" className="admin-btn admin-btn--ghost" onClick={() => updateSelectedUrl("")}>
             Clear
           </button>
         </div>
@@ -239,7 +246,7 @@ export function MediaField({
           <input
             className="admin-input"
             value={selectedUrl}
-            onChange={(event) => setSelectedUrl(event.target.value)}
+            onChange={(event) => updateSelectedUrl(event.target.value)}
             placeholder="https://..."
           />
         </label>
@@ -259,7 +266,7 @@ export function MediaField({
                   key={item.url}
                   className={selectedUrl === item.url ? "media-library-item is-active" : "media-library-item"}
                   onClick={() => {
-                    setSelectedUrl(item.url);
+                    updateSelectedUrl(item.url);
                     setSelectedFileName("");
                     if (fileInputRef.current) {
                       fileInputRef.current.value = "";

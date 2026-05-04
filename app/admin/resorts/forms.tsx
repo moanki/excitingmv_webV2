@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useMemo, useState, useTransition } from "react";
+import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Eye,
@@ -404,6 +405,7 @@ function RoomTypeEditor({
                       value={room.photoUrl}
                       library={mediaLibrary}
                       helper="This room photo appears on the public room card."
+                      onChange={(url) => updateRoom(index, { photoUrl: url })}
                     />
 
                     <div className="field field--full">
@@ -461,6 +463,7 @@ export function ResortEditor({
   mediaLibrary: MediaLibraryItem[];
   mode: ResortEditorMode;
 }) {
+  const router = useRouter();
   const [state, action, pending] = useActionState(saveResortAction, undefined);
   const [isGeneratingSeo, startSeoGeneration] = useTransition();
   const [rooms, setRooms] = useState<EditableRoom[]>(
@@ -501,6 +504,12 @@ export function ResortEditor({
       : status === "archived"
         ? "archived"
         : "draft";
+
+  useEffect(() => {
+    if (state?.message) {
+      router.refresh();
+    }
+  }, [router, state?.message]);
 
   function handleGenerateSeo() {
     startSeoGeneration(async () => {
