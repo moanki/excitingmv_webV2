@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Hotel, Info, LogIn, Map, UserPlus, UsersRound } from "lucide-react";
+import { Building2, Hotel, Info, LogIn, Map, Ship, UserPlus } from "lucide-react";
 
 import type { NavbarContent } from "@/lib/site-content";
 
@@ -11,7 +11,7 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
 
   useEffect(() => {
     function onScroll() {
-      setScrolled(window.scrollY > Math.max(window.innerHeight - 120, 120));
+      setScrolled(window.scrollY > 8);
     }
 
     onScroll();
@@ -21,16 +21,18 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
 
   const configuredItems = navbar.navItems.filter((item) => item.enabled && item.label && item.href);
   const navItems = [
-    { label: "Resorts", href: configuredItems.find((item) => item.label === "Resorts")?.href || "/resorts", external: false },
-    { label: "About Us", href: configuredItems.find((item) => item.label === "About Us")?.href || "/about", external: false },
+    { label: "Resort", href: configuredItems.find((item) => item.label === "Resort" || item.label === "Resorts")?.href || "/resorts", external: false },
+    { label: "Hotels", href: configuredItems.find((item) => item.label === "Hotels")?.href || "/resorts?collection=hotels", external: false },
+    { label: "Live Boards", href: configuredItems.find((item) => item.label === "Live Boards")?.href || "/resorts?collection=live-boards", external: false },
     { label: "Map", href: configuredItems.find((item) => item.label === "Map")?.href || "/#global-markets", external: false },
-    { label: "Display All", href: configuredItems.find((item) => item.href === "/travel-guide")?.href || "/travel-guide", external: false }
+    { label: "Info", href: configuredItems.find((item) => item.label === "Info" || item.href === "/travel-guide")?.href || "/travel-guide", external: false }
   ];
   const mobileItems = [
     { ...navItems[0], Icon: Hotel },
-    { ...navItems[1], Icon: UsersRound },
-    { ...navItems[2], Icon: Map },
-    { ...navItems[3], Icon: Info },
+    { ...navItems[1], Icon: Building2 },
+    { ...navItems[2], Icon: Ship },
+    { ...navItems[3], Icon: Map },
+    { ...navItems[4], Icon: Info },
     { label: "Portal", href: navbar.ctaHref || "/partner/login", external: false, Icon: LogIn }
   ];
   const navClassName = `site-nav${scrolled ? " is-scrolled" : ""}`;

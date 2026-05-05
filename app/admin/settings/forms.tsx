@@ -289,6 +289,43 @@ export function HeroSettingsForm({
           helper="Upload or reuse a hero image/video from the media library. Video files are detected automatically."
         />
         <input type="hidden" name="mediaPosterUrl" value={hero.mediaPosterUrl} />
+        <div className="stack">
+          <div>
+            <p className="eyebrow">Hero Floating Resort Logos</p>
+            <h3 className="settings-subtitle">Upload up to five white resort logos for the bottom of the hero banner.</h3>
+          </div>
+          {Array.from({ length: 5 }, (_, index) => {
+            const item = hero.featuredResortLogos?.[index] ?? {
+              name: `Resort ${index + 1}`,
+              imageUrl: "",
+              href: "",
+              enabled: true
+            };
+            return (
+              <div className="panel panel-soft" key={`hero-logo-${index}`}>
+                <div className="form-grid">
+                  <label className="field">
+                    Logo Label
+                    <input name={`heroLogo_${index}_name`} defaultValue={item.name} />
+                  </label>
+                </div>
+                <MediaField
+                  label={`Hero resort logo ${index + 1}`}
+                  inputName={`heroLogo_${index}_imageUrl`}
+                  fileName={`heroLogo_${index}_imageFile`}
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  value={item.imageUrl}
+                  library={mediaLibrary}
+                />
+                <ToggleField
+                  name={`heroLogo_${index}_enabled`}
+                  label="Show this logo on homepage hero"
+                  defaultChecked={item.enabled}
+                />
+              </div>
+            );
+          })}
+        </div>
         <div className="admin-form-actions">
           <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
             {pending ? "Saving..." : "Save Hero Draft"}
@@ -452,43 +489,6 @@ export function NavbarSettingsForm({
           value={navbar.blackLogoUrl}
           library={mediaLibrary}
         />
-        <div className="stack">
-          <div>
-            <p className="eyebrow">Featured Retreat Logos</p>
-            <h3 className="settings-subtitle">Optional white resort logos shown over the homepage hero.</h3>
-          </div>
-          {Array.from({ length: 5 }, (_, index) => {
-            const item = navbar.featuredResortLogos?.[index] ?? {
-              name: "",
-              imageUrl: "",
-              href: "",
-              enabled: false
-            };
-            return (
-              <div className="panel panel-soft" key={`featured-logo-${index}`}>
-                <div className="form-grid">
-                  <label className="field">
-                    Resort Name
-                    <input name={`featuredLogo_${index}_name`} defaultValue={item.name} />
-                  </label>
-                </div>
-                <MediaField
-                  label={`Featured resort logo ${index + 1}`}
-                  inputName={`featuredLogo_${index}_imageUrl`}
-                  fileName={`featuredLogo_${index}_imageFile`}
-                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                  value={item.imageUrl}
-                  library={mediaLibrary}
-                />
-                <ToggleField
-                  name={`featuredLogo_${index}_enabled`}
-                  label="Show this logo on homepage hero"
-                  defaultChecked={item.enabled}
-                />
-              </div>
-            );
-          })}
-        </div>
         <ToggleField name="ctaEnabled" label="Show navbar CTA button" defaultChecked={navbar.ctaEnabled} />
         <div className="stack">
           {navbar.navItems.map((item, index) => (

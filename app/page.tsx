@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MapPin, Star } from "lucide-react";
 
 import { GlobalMarketMap } from "@/components/global-market-map";
 import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
@@ -19,7 +19,6 @@ import {
   getHomepageStoryContent,
   getHomepageWhyUs,
   getMarketSettings,
-  getNavbarContent,
   type HomepageGuideItem,
   type HomepageStat,
   type MarketSettings,
@@ -79,6 +78,15 @@ function getMarketDisplayLabel(label: string) {
 
 function pickResortImage(index: number) {
   return featuredImages[index % featuredImages.length];
+}
+
+function formatAtoll(location?: string | null) {
+  if (!location) {
+    return "Maldives";
+  }
+
+  const parts = location.split(",").map((part) => part.trim()).filter(Boolean);
+  return parts.find((part) => /atoll/i.test(part)) || parts[0] || "Maldives";
 }
 
 function isVideoAsset(url: string, mediaType?: string) {
@@ -162,7 +170,7 @@ function FeaturedRetreats({
         image: resort.heroImageUrl || pickResortImage(index),
         type: resort.category || "Luxury Resort",
         title: resort.name,
-        atoll: resort.location || "Maldives",
+        atoll: formatAtoll(resort.location),
         cta: "View more"
       }))
     : [
@@ -208,8 +216,8 @@ function FeaturedRetreats({
               <div className="lux-retreat-card__shade" />
               <div className="lux-retreat-card__content">
                 <h3>{item.title}</h3>
-                <p>{item.atoll}</p>
-                <span>{item.type}</span>
+                <p><MapPin size={14} strokeWidth={1.8} />{item.atoll}</p>
+                <span><Star size={14} strokeWidth={1.8} />{item.type}</span>
                 <strong>{item.cta} <ArrowRight size={15} /></strong>
               </div>
             </Link>
@@ -267,7 +275,6 @@ export default async function HomePage() {
     { content: guide },
     { content: newsletter },
     { content: markets },
-    { content: navbar },
     resorts
   ] = await Promise.all([
     getHomepageHeroContent("published"),
@@ -281,7 +288,6 @@ export default async function HomePage() {
     getHomepageGuide("published"),
     getHomepageNewsletterContent("published"),
     getMarketSettings("published"),
-    getNavbarContent("published"),
     listHomepageFeaturedResorts(5)
   ]);
 
@@ -289,7 +295,7 @@ export default async function HomePage() {
   const marketList = activeMarkets.length ? activeMarkets : markets.options;
   const marketLabels = marketList.map((market) => market.label);
   const featuredResorts = resorts.slice(0, 5);
-  const configuredHeroLogos = (navbar.featuredResortLogos ?? []).filter((item) => item.enabled && (item.name || item.imageUrl));
+  const configuredHeroLogos = (hero.featuredResortLogos ?? []).filter((item) => item.enabled && (item.name || item.imageUrl));
   const heroLogos = configuredHeroLogos.length
     ? configuredHeroLogos
     : (featuredResorts.length ? featuredResorts.map((resort) => ({ name: resort.name, imageUrl: "" })) : defaultPartnerLogos.map((name) => ({ name, imageUrl: "" })));

@@ -162,6 +162,19 @@ export async function saveHeroDraftAction(_: ActionState, formData: FormData): P
   try {
     const heroMediaFile = uploadedFile(formData, "heroMediaFile");
     const heroPosterFile = uploadedFile(formData, "heroPosterFile");
+    const featuredResortLogos = await Promise.all(
+      [0, 1, 2, 3, 4].map(async (index) => {
+        const logoFile = uploadedFile(formData, `heroLogo_${index}_imageFile`);
+        return {
+          name: stringValue(formData, `heroLogo_${index}_name`),
+          imageUrl: logoFile
+            ? await uploadSiteAsset(logoFile, "homepage/hero/logos", "logo")
+            : stringValue(formData, `heroLogo_${index}_imageUrl`),
+          href: "",
+          enabled: booleanValue(formData, `heroLogo_${index}_enabled`)
+        };
+      })
+    );
     const mediaUrl = heroMediaFile
       ? await uploadSiteAsset(heroMediaFile, "homepage/hero", "hero")
       : stringValue(formData, "mediaUrl");
@@ -181,7 +194,8 @@ export async function saveHeroDraftAction(_: ActionState, formData: FormData): P
       mediaType,
       mediaPosterUrl: heroPosterFile
         ? await uploadSiteAsset(heroPosterFile, "homepage/hero", "hero")
-        : stringValue(formData, "mediaPosterUrl")
+        : stringValue(formData, "mediaPosterUrl"),
+      featuredResortLogos
     };
 
     return finalizeSettingSave({
@@ -489,20 +503,6 @@ export async function saveNavbarDraftAction(_: ActionState, formData: FormData):
     const primaryLogoFile = uploadedFile(formData, "primaryLogoFile");
     const whiteLogoFile = uploadedFile(formData, "whiteLogoFile");
     const blackLogoFile = uploadedFile(formData, "blackLogoFile");
-    const featuredResortLogos = await Promise.all(
-      [0, 1, 2, 3, 4].map(async (index) => {
-        const logoFile = uploadedFile(formData, `featuredLogo_${index}_imageFile`);
-        return {
-          name: stringValue(formData, `featuredLogo_${index}_name`),
-          imageUrl: logoFile
-            ? await uploadSiteAsset(logoFile, "site/featured-retreat-logos", "logo")
-            : stringValue(formData, `featuredLogo_${index}_imageUrl`),
-          href: "",
-          enabled: booleanValue(formData, `featuredLogo_${index}_enabled`)
-        };
-      })
-    );
-
     const navbar: NavbarContent = {
       brandKicker: stringValue(formData, "brandKicker"),
       brandLabel: stringValue(formData, "brandLabel"),
@@ -515,8 +515,7 @@ export async function saveNavbarDraftAction(_: ActionState, formData: FormData):
       blackLogoUrl: blackLogoFile
         ? await uploadSiteAsset(blackLogoFile, "site/logos", "logo")
         : stringValue(formData, "blackLogoUrl"),
-      featuredResortLogos,
-      navItems: [0, 1, 2, 3, 4, 5].map((index) => ({
+      navItems: [0, 1, 2, 3, 4].map((index) => ({
         label: stringValue(formData, `nav_${index}_label`),
         href: stringValue(formData, `nav_${index}_href`),
         enabled: booleanValue(formData, `nav_${index}_enabled`),

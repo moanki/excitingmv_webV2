@@ -11,6 +11,7 @@ export type HomepageHeroContent = {
   mediaUrl: string;
   mediaType: "image" | "video";
   mediaPosterUrl: string;
+  featuredResortLogos?: FooterBadge[];
 };
 
 export type HomepageFeatureCard = {
@@ -101,7 +102,6 @@ export type NavbarContent = {
   primaryLogoUrl: string;
   whiteLogoUrl: string;
   blackLogoUrl: string;
-  featuredResortLogos?: FooterBadge[];
   navItems: NavigationItem[];
   ctaLabel: string;
   ctaHref: string;
@@ -189,7 +189,14 @@ export const defaultHeroContent: HomepageHeroContent = {
   secondaryCtaHref: "",
   mediaUrl: "",
   mediaType: "image",
-  mediaPosterUrl: ""
+  mediaPosterUrl: "",
+  featuredResortLogos: [
+    { name: "Resort 1", imageUrl: "", href: "", enabled: true },
+    { name: "Resort 2", imageUrl: "", href: "", enabled: true },
+    { name: "Resort 3", imageUrl: "", href: "", enabled: true },
+    { name: "Resort 4", imageUrl: "", href: "", enabled: true },
+    { name: "Resort 5", imageUrl: "", href: "", enabled: true }
+  ]
 };
 
 export const defaultHomepageFeatures: HomepageFeatureCard[] = [
@@ -430,18 +437,12 @@ export const defaultNavbarContent: NavbarContent = {
   primaryLogoUrl: "https://dummyimage.com/420x120/0f172a/ffffff&text=Exciting+Maldives",
   whiteLogoUrl: "https://dummyimage.com/420x120/ffffff/0f172a&text=Exciting+Maldives",
   blackLogoUrl: "https://dummyimage.com/420x120/111111/ffffff&text=Exciting+Maldives",
-  featuredResortLogos: [
-    { name: "Soneva", imageUrl: "", href: "", enabled: true },
-    { name: "JOALI", imageUrl: "", href: "", enabled: true },
-    { name: "Patina", imageUrl: "", href: "", enabled: true },
-    { name: "Milaidhoo", imageUrl: "", href: "", enabled: true },
-    { name: "Baros", imageUrl: "", href: "", enabled: true }
-  ],
   navItems: [
-    { label: "Resorts", href: "/resorts", enabled: true, external: false },
-    { label: "About Us", href: "/about", enabled: true, external: false },
+    { label: "Resort", href: "/resorts", enabled: true, external: false },
+    { label: "Hotels", href: "/resorts?collection=hotels", enabled: true, external: false },
+    { label: "Live Boards", href: "/resorts?collection=live-boards", enabled: true, external: false },
     { label: "Map", href: "/#global-markets", enabled: true, external: false },
-    { label: "Display All", href: "/travel-guide", enabled: true, external: false }
+    { label: "Info", href: "/travel-guide", enabled: true, external: false }
   ],
   ctaLabel: "Login to Partner Portal",
   ctaHref: "/partner/login",
@@ -732,6 +733,37 @@ function normalizeMarketSettings(settings: unknown): MarketSettings {
   };
 }
 
+function normalizeNavbarContent(settings: unknown): NavbarContent {
+  const source = (settings ?? defaultNavbarContent) as Partial<NavbarContent>;
+  const sourceItems = Array.isArray(source.navItems) ? source.navItems : [];
+
+  return {
+    brandKicker: source.brandKicker ?? defaultNavbarContent.brandKicker,
+    brandLabel: source.brandLabel ?? defaultNavbarContent.brandLabel,
+    primaryLogoUrl: source.primaryLogoUrl ?? defaultNavbarContent.primaryLogoUrl,
+    whiteLogoUrl: source.whiteLogoUrl ?? defaultNavbarContent.whiteLogoUrl,
+    blackLogoUrl: source.blackLogoUrl ?? defaultNavbarContent.blackLogoUrl,
+    navItems: defaultNavbarContent.navItems.map((fallback) => {
+      const match = sourceItems.find(
+        (item) =>
+          item.label === fallback.label ||
+          (fallback.label === "Resort" && item.label === "Resorts") ||
+          (fallback.label === "Info" && (item.label === "Display All" || item.href === "/travel-guide"))
+      );
+
+      return {
+        label: fallback.label,
+        href: match?.href || fallback.href,
+        enabled: match?.enabled ?? fallback.enabled,
+        external: match?.external ?? fallback.external
+      };
+    }),
+    ctaLabel: source.ctaLabel ?? defaultNavbarContent.ctaLabel,
+    ctaHref: source.ctaHref ?? defaultNavbarContent.ctaHref,
+    ctaEnabled: source.ctaEnabled ?? defaultNavbarContent.ctaEnabled
+  };
+}
+
 export async function getHomepageHeroContent(mode: "draft" | "published" = "published") {
   return getSiteSettingMode("homepage.hero", defaultHeroContent, mode);
 }
@@ -781,7 +813,11 @@ export async function getHomepageAwardsContent(mode: "draft" | "published" = "pu
 }
 
 export async function getNavbarContent(mode: "draft" | "published" = "published") {
-  return getSiteSettingMode("site.navbar", defaultNavbarContent, mode);
+  const entry = await getSiteSettingMode("site.navbar", defaultNavbarContent, mode);
+  return {
+    ...entry,
+    content: normalizeNavbarContent(entry.content)
+  };
 }
 
 export async function getFooterContent(mode: "draft" | "published" = "published") {

@@ -8,15 +8,7 @@ export default async function AdminResortsPage() {
 
   return (
     <section className="stack">
-      <div className="admin-page-header">
-        <div className="admin-page-header__content">
-          <p className="eyebrow">Resort Manager</p>
-          <h1 className="section-title">Manage resort content, rooms, media, and publishing.</h1>
-          <p className="admin-page-lede">
-            This workspace is for browsing and managing resorts only. Open a focused add or edit workspace when you
-            need to change resort details.
-          </p>
-        </div>
+      <div className="admin-page-header admin-page-header--actions-only">
         <div className="admin-page-header__actions">
           <SeedResortsButton />
           <Link href="/admin/resorts/new" className="admin-btn admin-btn--primary">
