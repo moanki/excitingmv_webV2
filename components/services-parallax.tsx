@@ -48,7 +48,7 @@ export function ServicesParallax({ services, images, title, description }: Servi
           <div
             key={service.title}
             className={`services-editorial__image ${activeIndex === index ? "is-active" : ""}`}
-            style={{ backgroundImage: `url(${images[index % images.length]})` }}
+            style={{ backgroundImage: `url(${service.imageUrl || images[index % images.length]})` }}
           />
         ))}
       </div>

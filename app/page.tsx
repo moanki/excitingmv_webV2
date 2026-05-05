@@ -15,10 +15,13 @@ import {
   getHomepageHeroContent,
   getHomepageNewsletterContent,
   getHomepageServices,
+  getHomepageStats,
   getHomepageStoryContent,
   getHomepageWhyUs,
   getMarketSettings,
+  getNavbarContent,
   type HomepageGuideItem,
+  type HomepageStat,
   type MarketSettings,
 } from "@/lib/site-content";
 
@@ -80,6 +83,19 @@ function pickResortImage(index: number) {
 
 function isVideoAsset(url: string, mediaType?: string) {
   return mediaType === "video" || /\.(mp4|webm|mov)(\?|#|$)/i.test(url);
+}
+
+function getStat(stats: HomepageStat[], label: string, fallback: string) {
+  return stats.find((item) => item.label.toLowerCase().includes(label.toLowerCase()))?.value || fallback;
+}
+
+function getHeroStats(stats: HomepageStat[]) {
+  return [
+    { value: getStat(stats, "resort", "198+"), label: "Resorts" },
+    { value: getStat(stats, "experience", "20+"), label: "Years Experience" },
+    { value: getStat(stats, "support", "24/7"), label: "Local Support" },
+    { value: getStat(stats, "partner", "Global"), label: "Travel Partners" }
+  ];
 }
 
 function MarketEditorial({ markets }: { markets: MarketSettings }) {
@@ -191,9 +207,9 @@ function FeaturedRetreats({
               />
               <div className="lux-retreat-card__shade" />
               <div className="lux-retreat-card__content">
-                <span>{item.type}</span>
                 <h3>{item.title}</h3>
                 <p>{item.atoll}</p>
+                <span>{item.type}</span>
                 <strong>{item.cta} <ArrowRight size={15} /></strong>
               </div>
             </Link>
@@ -205,7 +221,7 @@ function FeaturedRetreats({
 }
 
 function TravelGuideMagazine({ guide }: { guide: HomepageGuideItem[] }) {
-  const articles = guide.filter((item) => item.title);
+  const articles = guide.filter((item) => item.title && item.published).slice(0, 5);
 
   return (
     <section className="lux-section lux-section--white">
@@ -221,14 +237,14 @@ function TravelGuideMagazine({ guide }: { guide: HomepageGuideItem[] }) {
           </Link>
         </div>
         <div className="lux-guide-carousel" aria-label="Maldives travel guide insights">
-          {[...articles, ...articles].map((item, index) => (
+          {articles.map((item, index) => (
             <article className="lux-guide-card" key={`${item.title}-${index}`}>
               <div className="lux-guide-card__image" style={{ backgroundImage: `url(${item.imageUrl || pickResortImage(index + 1)})` }} />
               <div className="lux-guide-card__content">
                 <span>{item.category}</span>
                 <h3>{item.title}</h3>
-                <p>{item.description}</p>
-                <Link href="/travel-guide">Read insight <ArrowRight size={15} /></Link>
+                <p>{item.summary || item.description}</p>
+                <Link href={`/travel-guide/${item.slug}`}>Read insight <ArrowRight size={15} /></Link>
               </div>
             </article>
           ))}
@@ -242,6 +258,7 @@ export default async function HomePage() {
   const [
     { content: hero },
     { content: homepageHighlights },
+    { content: stats },
     { content: ceo },
     { content: story },
     { content: services },
@@ -250,10 +267,12 @@ export default async function HomePage() {
     { content: guide },
     { content: newsletter },
     { content: markets },
+    { content: navbar },
     resorts
   ] = await Promise.all([
     getHomepageHeroContent("published"),
     getHomepageFeatures("published"),
+    getHomepageStats("published"),
     getHomepageCeoContent("published"),
     getHomepageStoryContent("published"),
     getHomepageServices("published"),
@@ -262,6 +281,7 @@ export default async function HomePage() {
     getHomepageGuide("published"),
     getHomepageNewsletterContent("published"),
     getMarketSettings("published"),
+    getNavbarContent("published"),
     listHomepageFeaturedResorts(5)
   ]);
 
@@ -269,7 +289,10 @@ export default async function HomePage() {
   const marketList = activeMarkets.length ? activeMarkets : markets.options;
   const marketLabels = marketList.map((market) => market.label);
   const featuredResorts = resorts.slice(0, 5);
-  const heroLogos = featuredResorts.length ? featuredResorts.map((resort) => resort.name) : defaultPartnerLogos;
+  const configuredHeroLogos = (navbar.featuredResortLogos ?? []).filter((item) => item.enabled && (item.name || item.imageUrl));
+  const heroLogos = configuredHeroLogos.length
+    ? configuredHeroLogos
+    : (featuredResorts.length ? featuredResorts.map((resort) => ({ name: resort.name, imageUrl: "" })) : defaultPartnerLogos.map((name) => ({ name, imageUrl: "" })));
   const featuredRetreatHeading = homepageHighlights[0];
   const heroImage = hero.mediaUrl || heroFallback;
 
@@ -311,8 +334,10 @@ export default async function HomePage() {
         </div>
         <div className="lux-hero__retreat-logos" aria-label="Featured retreats">
           <div>
-            {heroLogos.slice(0, 5).map((label, index) => (
-              <span key={`${label}-${index}`}>{label}</span>
+            {heroLogos.slice(0, 5).map((logo, index) => (
+              <span key={`${logo.name}-${index}`}>
+                {logo.imageUrl ? <img src={logo.imageUrl} alt={logo.name || "Featured resort"} /> : logo.name}
+              </span>
             ))}
           </div>
         </div>
@@ -367,6 +392,17 @@ export default async function HomePage() {
       <section className="lux-section lux-section--white market-editorial-section" id="global-markets">
         <div className="lux-container">
           <MarketEditorial markets={{ ...markets, options: marketList }} />
+        </div>
+      </section>
+
+      <section className="lux-stat-strip" aria-label="Exciting Maldives expertise stats">
+        <div className="lux-container lux-stat-strip__grid">
+          {getHeroStats(stats).map((item) => (
+            <div className="lux-stat-strip__item" key={`${item.value}-${item.label}`}>
+              <strong>{item.value}</strong>
+              <span>{item.label}</span>
+            </div>
+          ))}
         </div>
       </section>
 

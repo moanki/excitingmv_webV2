@@ -45,6 +45,8 @@ type ActionState = { message?: string; error?: string } | undefined;
 function revalidateSiteContent() {
   revalidatePath("/");
   revalidatePath("/", "layout");
+  revalidatePath("/travel-guide");
+  revalidatePath("/travel-guide/[slug]", "page");
   revalidatePath("/admin/settings");
 }
 
@@ -67,6 +69,15 @@ function uploadedFile(formData: FormData, name: string) {
 
 function shouldPublish(formData: FormData) {
   return stringValue(formData, "intent") === "publish";
+}
+
+function countValue(formData: FormData, name: string, fallback: number) {
+  const value = Number(stringValue(formData, name));
+  return Number.isFinite(value) && value >= 0 ? value : fallback;
+}
+
+function indexesFromCount(formData: FormData, name: string, fallback: number) {
+  return Array.from({ length: countValue(formData, name, fallback) }, (_, index) => index);
 }
 
 async function finalizeSettingSave<T>({
@@ -131,7 +142,7 @@ async function parseHomepageAwards(formData: FormData): Promise<HomepageAwardsCo
     title: stringValue(formData, "title"),
     summary: stringValue(formData, "summary"),
     items: await Promise.all(
-      [0, 1, 2, 3].map(async (index) => {
+      indexesFromCount(formData, "award_count", 4).map(async (index) => {
         const imageFile = uploadedFile(formData, `award_${index}_imageFile`);
 
         return {
@@ -164,8 +175,8 @@ export async function saveHeroDraftAction(_: ActionState, formData: FormData): P
       description: stringValue(formData, "description"),
       primaryCtaLabel: stringValue(formData, "primaryCtaLabel"),
       primaryCtaHref: stringValue(formData, "primaryCtaHref"),
-      secondaryCtaLabel: stringValue(formData, "secondaryCtaLabel"),
-      secondaryCtaHref: stringValue(formData, "secondaryCtaHref"),
+      secondaryCtaLabel: "",
+      secondaryCtaHref: "",
       mediaUrl,
       mediaType,
       mediaPosterUrl: heroPosterFile
@@ -312,13 +323,23 @@ export async function publishStoryAction() {
 
 export async function saveServicesDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    const services: HomepageServiceItem[] = [0, 1, 2, 3, 4, 5].map((index) => ({
-      title: stringValue(formData, `service_${index}_title`),
-      description: stringValue(formData, `service_${index}_description`),
-      icon: stringValue(formData, `service_${index}_icon`),
-      displayOrder: Number(stringValue(formData, `service_${index}_displayOrder`)) || index + 1,
-      enabled: booleanValue(formData, `service_${index}_enabled`)
-    }));
+    const services: HomepageServiceItem[] = await Promise.all(
+      indexesFromCount(formData, "service_count", 6).map(async (index) => {
+        const imageFile = uploadedFile(formData, `service_${index}_imageFile`);
+
+        return {
+          title: stringValue(formData, `service_${index}_title`),
+          description: stringValue(formData, `service_${index}_description`),
+          icon: stringValue(formData, `service_${index}_icon`),
+          imageUrl: imageFile
+            ? await uploadSiteAsset(imageFile, "homepage/services", "card")
+            : stringValue(formData, `service_${index}_imageUrl`),
+          imageAlt: stringValue(formData, `service_${index}_imageAlt`),
+          displayOrder: Number(stringValue(formData, `service_${index}_displayOrder`)) || index + 1,
+          enabled: booleanValue(formData, `service_${index}_enabled`)
+        };
+      })
+    );
     return finalizeSettingSave({
       formData,
       key: "homepage.services",
@@ -339,10 +360,10 @@ export async function publishServicesAction() {
 
 export async function saveWhyUsDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    const items: HomepageWhyUsItem[] = [0, 1, 2].map((index) => ({
+    const items: HomepageWhyUsItem[] = indexesFromCount(formData, "why_count", 3).map((index) => ({
       title: stringValue(formData, `item_${index}_title`),
       description: stringValue(formData, `item_${index}_description`)
-    }));
+    })).filter((item) => item.title || item.description);
     return finalizeSettingSave({
       formData,
       key: "homepage.whyus",
@@ -364,16 +385,34 @@ export async function publishWhyUsAction() {
 export async function saveGuideDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
     const guide: HomepageGuideItem[] = await Promise.all(
-      [0, 1, 2, 3].map(async (index) => {
+      indexesFromCount(formData, "guide_count", 4).map(async (index) => {
         const imageFile = uploadedFile(formData, `guide_${index}_imageFile`);
 
         return {
+          slug: stringValue(formData, `guide_${index}_slug`),
           category: stringValue(formData, `guide_${index}_category`),
           title: stringValue(formData, `guide_${index}_title`),
-          description: stringValue(formData, `guide_${index}_description`),
+          featuredImageAlt: stringValue(formData, `guide_${index}_featuredImageAlt`),
+          summary: stringValue(formData, `guide_${index}_summary`),
+          description: stringValue(formData, `guide_${index}_summary`),
           imageUrl: imageFile
             ? await uploadSiteAsset(imageFile, "homepage/guide", "card")
-            : stringValue(formData, `guide_${index}_imageUrl`)
+            : stringValue(formData, `guide_${index}_imageUrl`),
+          mainContent: stringValue(formData, `guide_${index}_mainContent`),
+          tips: stringValue(formData, `guide_${index}_tips`).split("\n").map((item) => item.trim()).filter(Boolean),
+          sections: [0, 1, 2].map((sectionIndex) => ({
+            heading: stringValue(formData, `guide_${index}_section_${sectionIndex}_heading`),
+            body: stringValue(formData, `guide_${index}_section_${sectionIndex}_body`)
+          })).filter((section) => section.heading || section.body),
+          faq: [0, 1, 2].map((faqIndex) => ({
+            question: stringValue(formData, `guide_${index}_faq_${faqIndex}_question`),
+            answer: stringValue(formData, `guide_${index}_faq_${faqIndex}_answer`)
+          })).filter((item) => item.question || item.answer),
+          seoTitle: stringValue(formData, `guide_${index}_seoTitle`),
+          seoDescription: stringValue(formData, `guide_${index}_seoDescription`),
+          relatedSlugs: stringValue(formData, `guide_${index}_relatedSlugs`).split("\n").map((item) => item.trim()).filter(Boolean),
+          published: booleanValue(formData, `guide_${index}_published`),
+          lastUpdated: stringValue(formData, `guide_${index}_lastUpdated`)
         };
       })
     );
@@ -450,6 +489,19 @@ export async function saveNavbarDraftAction(_: ActionState, formData: FormData):
     const primaryLogoFile = uploadedFile(formData, "primaryLogoFile");
     const whiteLogoFile = uploadedFile(formData, "whiteLogoFile");
     const blackLogoFile = uploadedFile(formData, "blackLogoFile");
+    const featuredResortLogos = await Promise.all(
+      [0, 1, 2, 3, 4].map(async (index) => {
+        const logoFile = uploadedFile(formData, `featuredLogo_${index}_imageFile`);
+        return {
+          name: stringValue(formData, `featuredLogo_${index}_name`),
+          imageUrl: logoFile
+            ? await uploadSiteAsset(logoFile, "site/featured-retreat-logos", "logo")
+            : stringValue(formData, `featuredLogo_${index}_imageUrl`),
+          href: "",
+          enabled: booleanValue(formData, `featuredLogo_${index}_enabled`)
+        };
+      })
+    );
 
     const navbar: NavbarContent = {
       brandKicker: stringValue(formData, "brandKicker"),
@@ -463,6 +515,7 @@ export async function saveNavbarDraftAction(_: ActionState, formData: FormData):
       blackLogoUrl: blackLogoFile
         ? await uploadSiteAsset(blackLogoFile, "site/logos", "logo")
         : stringValue(formData, "blackLogoUrl"),
+      featuredResortLogos,
       navItems: [0, 1, 2, 3, 4, 5].map((index) => ({
         label: stringValue(formData, `nav_${index}_label`),
         href: stringValue(formData, `nav_${index}_href`),
@@ -590,7 +643,7 @@ export async function saveMarketDraftAction(_: ActionState, formData: FormData):
       sectionTitle: stringValue(formData, "sectionTitle"),
       heading: stringValue(formData, "heading"),
       description: stringValue(formData, "description"),
-      options: [0, 1, 2, 3, 4, 5, 6, 7].map((index) => ({
+      options: indexesFromCount(formData, "market_count", 8).map((index) => ({
         id: stringValue(formData, `market_${index}_id`) || `market-${index + 1}`,
         label: stringValue(formData, `market_${index}_label`),
         latitude: Number(stringValue(formData, `market_${index}_latitude`)) || 0,

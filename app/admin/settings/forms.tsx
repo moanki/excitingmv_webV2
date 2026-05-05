@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 import {
@@ -82,6 +82,43 @@ function ToggleField({
       <span>{label}</span>
     </label>
   );
+}
+
+function slugify(value: string, fallback: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || fallback;
+}
+
+function blankService(index: number): HomepageServiceItem {
+  return {
+    title: "",
+    description: "",
+    icon: "briefcase-business",
+    imageUrl: "",
+    imageAlt: "",
+    displayOrder: index + 1,
+    enabled: true
+  };
+}
+
+function blankGuide(index: number): HomepageGuideItem {
+  return {
+    slug: `guide-${index + 1}`,
+    category: "",
+    title: "",
+    featuredImageAlt: "",
+    summary: "",
+    description: "",
+    imageUrl: "",
+    mainContent: "",
+    tips: [],
+    sections: [],
+    faq: [],
+    seoTitle: "",
+    seoDescription: "",
+    relatedSlugs: [],
+    published: true,
+    lastUpdated: new Date().toISOString().slice(0, 10)
+  };
 }
 
 function FooterBadgeFields({
@@ -217,10 +254,7 @@ export function HeroSettingsForm({
       </div>
       <form action={action} className="stack">
         <div className="form-grid">
-          <label className="field">
-            Eyebrow
-            <input name="eyebrow" defaultValue={hero.eyebrow} />
-          </label>
+          <input type="hidden" name="eyebrow" value={hero.eyebrow} />
           <label className="field">
             Primary CTA Label
             <input name="primaryCtaLabel" defaultValue={hero.primaryCtaLabel} />
@@ -228,14 +262,6 @@ export function HeroSettingsForm({
           <label className="field">
             Primary CTA Link
             <input name="primaryCtaHref" defaultValue={hero.primaryCtaHref} />
-          </label>
-          <label className="field">
-            Secondary CTA Label
-            <input name="secondaryCtaLabel" defaultValue={hero.secondaryCtaLabel} />
-          </label>
-          <label className="field">
-            Secondary CTA Link
-            <input name="secondaryCtaHref" defaultValue={hero.secondaryCtaHref} />
           </label>
           <label className="field">
             Hero Media Type
@@ -291,7 +317,7 @@ export function FeaturesSettingsForm({
       <div className="section-heading">
         <div>
           <p className="eyebrow">Featured Retreats</p>
-          <h2>Edit the homepage Featured Retreats heading.</h2>
+          <h2>Edit the homepage Featured Retreats section heading.</h2>
         </div>
         <form action={publishFeaturesAction}>
           <button className="button-muted" type="submit">
@@ -301,9 +327,9 @@ export function FeaturesSettingsForm({
       </div>
       <form action={action} className="stack">
         <div className="stack">
-          {features.map((feature, index) => (
+          {features.slice(0, 1).map((feature, index) => (
             <div className="panel panel-soft" key={`${feature.title}-${index}`}>
-              <p className="eyebrow">{index === 0 ? "Section heading" : `Reserved content slot ${index + 1}`}</p>
+              <p className="eyebrow">Section heading</p>
               <div className="form-grid">
                 <label className="field" style={index === 0 ? { display: "none" } : undefined}>
                   Eyebrow
@@ -335,6 +361,17 @@ export function FeaturesSettingsForm({
               )}
             </div>
           ))}
+          {features.slice(1, 3).map((feature, offset) => {
+            const index = offset + 1;
+            return (
+              <div key={`hidden-feature-${index}`} hidden>
+                <input name={`feature_${index}_eyebrow`} value={feature.eyebrow} readOnly />
+                <input name={`feature_${index}_title`} value={feature.title} readOnly />
+                <input name={`feature_${index}_description`} value={feature.description} readOnly />
+                <input name={`feature_${index}_imageUrl`} value={feature.imageUrl} readOnly />
+              </div>
+            );
+          })}
         </div>
         <div className="admin-form-actions">
           <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
@@ -415,6 +452,43 @@ export function NavbarSettingsForm({
           value={navbar.blackLogoUrl}
           library={mediaLibrary}
         />
+        <div className="stack">
+          <div>
+            <p className="eyebrow">Featured Retreat Logos</p>
+            <h3 className="settings-subtitle">Optional white resort logos shown over the homepage hero.</h3>
+          </div>
+          {Array.from({ length: 5 }, (_, index) => {
+            const item = navbar.featuredResortLogos?.[index] ?? {
+              name: "",
+              imageUrl: "",
+              href: "",
+              enabled: false
+            };
+            return (
+              <div className="panel panel-soft" key={`featured-logo-${index}`}>
+                <div className="form-grid">
+                  <label className="field">
+                    Resort Name
+                    <input name={`featuredLogo_${index}_name`} defaultValue={item.name} />
+                  </label>
+                </div>
+                <MediaField
+                  label={`Featured resort logo ${index + 1}`}
+                  inputName={`featuredLogo_${index}_imageUrl`}
+                  fileName={`featuredLogo_${index}_imageFile`}
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  value={item.imageUrl}
+                  library={mediaLibrary}
+                />
+                <ToggleField
+                  name={`featuredLogo_${index}_enabled`}
+                  label="Show this logo on homepage hero"
+                  defaultChecked={item.enabled}
+                />
+              </div>
+            );
+          })}
+        </div>
         <ToggleField name="ctaEnabled" label="Show navbar CTA button" defaultChecked={navbar.ctaEnabled} />
         <div className="stack">
           {navbar.navItems.map((item, index) => (
@@ -644,20 +718,7 @@ export function NotificationSettingsForm({
 
 export function MarketSettingsForm({ markets }: { markets: MarketSettings }) {
   const [state, action, pending] = useActionState(saveMarketDraftAction, undefined);
-  const marketRows = Array.from({ length: 8 }, (_, index) => {
-    const market = markets.options[index];
-    return (
-      market ?? {
-        id: `market-${index + 1}`,
-        label: "",
-        latitude: 0,
-        longitude: 0,
-        region: "",
-        displayOrder: index + 1,
-        enabled: false
-      }
-    );
-  });
+  const [marketRows, setMarketRows] = useState(markets.options.length ? markets.options : []);
 
   return (
     <div className="panel">
@@ -687,9 +748,23 @@ export function MarketSettingsForm({ markets }: { markets: MarketSettings }) {
             <textarea name="description" defaultValue={markets.description} />
           </label>
         </div>
+        <input type="hidden" name="market_count" value={marketRows.length} />
         <div className="stack">
           {marketRows.map((market, index) => (
-            <div className="panel panel-soft" key={`${market.label}-${index}`}>
+            <details className="panel panel-soft admin-collapsible" key={`${market.id}-${index}`}>
+              <summary>
+                <span>{market.label || `Market ${index + 1}`}</span>
+                <button
+                  type="button"
+                  className="button-muted"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setMarketRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index));
+                  }}
+                >
+                  Delete
+                </button>
+              </summary>
               <div className="form-grid">
                 <input type="hidden" name={`market_${index}_id`} defaultValue={market.id} />
                 <label className="field">
@@ -718,9 +793,29 @@ export function MarketSettingsForm({ markets }: { markets: MarketSettings }) {
                 label="Show market on homepage map"
                 defaultChecked={market.enabled}
               />
-            </div>
+            </details>
           ))}
         </div>
+        <button
+          className="button-muted"
+          type="button"
+          onClick={() =>
+            setMarketRows((rows) => [
+              ...rows,
+              {
+                id: `market-${Date.now()}`,
+                label: "",
+                latitude: 0,
+                longitude: 0,
+                region: "",
+                displayOrder: rows.length + 1,
+                enabled: true
+              }
+            ])
+          }
+        >
+          Add Market
+        </button>
         <div className="admin-form-actions">
           <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
             {pending ? "Saving..." : "Save Market Draft"}
@@ -906,8 +1001,15 @@ export function HomepageStoryForm({
   );
 }
 
-export function HomepageServicesForm({ services }: { services: HomepageServiceItem[] }) {
+export function HomepageServicesForm({
+  services,
+  mediaLibrary
+}: {
+  services: HomepageServiceItem[];
+  mediaLibrary: MediaLibraryItem[];
+}) {
   const [state, action, pending] = useActionState(saveServicesDraftAction, undefined);
+  const [serviceRows, setServiceRows] = useState(services.length ? services : [blankService(0)]);
 
   return (
     <div className="panel">
@@ -923,8 +1025,22 @@ export function HomepageServicesForm({ services }: { services: HomepageServiceIt
         </form>
       </div>
       <form action={action} className="stack">
-        {services.map((item, index) => (
-          <div className="panel panel-soft" key={`${item.title}-${index}`}>
+        <input type="hidden" name="service_count" value={serviceRows.length} />
+        {serviceRows.map((item, index) => (
+          <details className="panel panel-soft admin-collapsible" key={`${item.title}-${index}`} open={!item.title}>
+            <summary>
+              <span>{item.title || `Service ${index + 1}`}</span>
+              <button
+                type="button"
+                className="button-muted"
+                onClick={(event) => {
+                  event.preventDefault();
+                  setServiceRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index));
+                }}
+              >
+                Delete
+              </button>
+            </summary>
             <div className="form-grid">
               <label className="field">
                 Service Title
@@ -949,14 +1065,33 @@ export function HomepageServicesForm({ services }: { services: HomepageServiceIt
                 Short Description
                 <textarea name={`service_${index}_description`} defaultValue={item.description} />
               </label>
+              <label className="field" style={{ gridColumn: "1 / -1" }}>
+                Image Alt Text
+                <input name={`service_${index}_imageAlt`} defaultValue={item.imageAlt} />
+              </label>
             </div>
+            <MediaField
+              label="Service photo"
+              inputName={`service_${index}_imageUrl`}
+              fileName={`service_${index}_imageFile`}
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              value={item.imageUrl}
+              library={mediaLibrary}
+            />
             <ToggleField
               name={`service_${index}_enabled`}
               label="Show service"
               defaultChecked={item.enabled}
             />
-          </div>
+          </details>
         ))}
+        <button
+          className="button-muted"
+          type="button"
+          onClick={() => setServiceRows((rows) => [...rows, blankService(rows.length)])}
+        >
+          Add Service
+        </button>
         <div className="admin-form-actions">
           <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
             {pending ? "Saving..." : "Save Services Draft"}
@@ -973,6 +1108,7 @@ export function HomepageServicesForm({ services }: { services: HomepageServiceIt
 
 export function HomepageWhyUsForm({ items }: { items: HomepageWhyUsItem[] }) {
   const [state, action, pending] = useActionState(saveWhyUsDraftAction, undefined);
+  const [rows, setRows] = useState(items.length ? items : [{ title: "", description: "" }]);
 
   return (
     <div className="panel">
@@ -988,8 +1124,19 @@ export function HomepageWhyUsForm({ items }: { items: HomepageWhyUsItem[] }) {
         </form>
       </div>
       <form action={action} className="stack">
-        {items.map((item, index) => (
+        <input type="hidden" name="why_count" value={rows.length} />
+        {rows.map((item, index) => (
           <div className="panel panel-soft" key={`${item.title}-${index}`}>
+            <div className="section-heading compact">
+              <p className="eyebrow">Value Proposition {index + 1}</p>
+              <button
+                type="button"
+                className="button-muted"
+                onClick={() => setRows((current) => current.filter((_, rowIndex) => rowIndex !== index))}
+              >
+                Delete
+              </button>
+            </div>
             <div className="form-grid">
               <label className="field">
                 Title
@@ -1002,6 +1149,13 @@ export function HomepageWhyUsForm({ items }: { items: HomepageWhyUsItem[] }) {
             </div>
           </div>
         ))}
+        <button
+          className="button-muted"
+          type="button"
+          onClick={() => setRows((current) => [...current, { title: "", description: "" }])}
+        >
+          Add Value Proposition
+        </button>
         <div className="admin-form-actions">
           <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
             {pending ? "Saving..." : "Save Why Us Draft"}
@@ -1024,13 +1178,14 @@ export function HomepageGuideForm({
   mediaLibrary: MediaLibraryItem[];
 }) {
   const [state, action, pending] = useActionState(saveGuideDraftAction, undefined);
+  const [guideRows, setGuideRows] = useState(items.length ? items : [blankGuide(0)]);
 
   return (
     <div className="panel">
       <div className="section-heading">
         <div>
           <p className="eyebrow">Travel Guide</p>
-          <h2>Manage the homepage travel guide cards.</h2>
+          <h2>Manage tourist and partner guide articles.</h2>
         </div>
         <form action={publishGuideAction}>
           <button className="button-muted" type="submit">
@@ -1039,32 +1194,131 @@ export function HomepageGuideForm({
         </form>
       </div>
       <form action={action} className="stack">
-        {items.map((item, index) => (
-          <div className="panel panel-soft" key={`${item.title}-${index}`}>
+        <input type="hidden" name="guide_count" value={guideRows.length} />
+        {guideRows.map((item, index) => (
+          <details className="panel panel-soft admin-collapsible" key={`${item.slug}-${index}`} open={!item.title}>
+            <summary>
+              <span>{item.title || `Travel Guide ${index + 1}`}</span>
+              <button
+                type="button"
+                className="button-muted"
+                onClick={(event) => {
+                  event.preventDefault();
+                  setGuideRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index));
+                }}
+              >
+                Delete
+              </button>
+            </summary>
             <div className="form-grid">
               <label className="field">
                 Category
                 <input name={`guide_${index}_category`} defaultValue={item.category} />
               </label>
+              <label className="field">
+                Slug / URL
+                <input
+                  name={`guide_${index}_slug`}
+                  defaultValue={item.slug || slugify(item.title, `guide-${index + 1}`)}
+                />
+              </label>
+              <label className="field">
+                Last Updated Date
+                <input name={`guide_${index}_lastUpdated`} type="date" defaultValue={item.lastUpdated} />
+              </label>
               <label className="field" style={{ gridColumn: "1 / -1" }}>
-                Title
+                Article Title
                 <input name={`guide_${index}_title`} defaultValue={item.title} />
               </label>
               <label className="field" style={{ gridColumn: "1 / -1" }}>
-                Description
-                <textarea name={`guide_${index}_description`} defaultValue={item.description} />
+                Summary
+                <textarea name={`guide_${index}_summary`} defaultValue={item.summary || item.description} />
+              </label>
+              <label className="field" style={{ gridColumn: "1 / -1" }}>
+                Main Blog Content
+                <textarea name={`guide_${index}_mainContent`} defaultValue={item.mainContent} />
+              </label>
+              <label className="field" style={{ gridColumn: "1 / -1" }}>
+                Tips / Highlight Blocks
+                <textarea name={`guide_${index}_tips`} defaultValue={item.tips.join("\n")} />
               </label>
             </div>
             <MediaField
-              label={`Guide card ${index + 1} image`}
+              label="Featured image"
               inputName={`guide_${index}_imageUrl`}
               fileName={`guide_${index}_imageFile`}
               accept="image/png,image/jpeg,image/webp,image/svg+xml"
               value={item.imageUrl}
               library={mediaLibrary}
             />
-          </div>
+            <label className="field">
+              Featured Image Alt Text
+              <input name={`guide_${index}_featuredImageAlt`} defaultValue={item.featuredImageAlt} />
+            </label>
+            <div className="stack">
+              <p className="eyebrow">Additional Sections</p>
+              {[0, 1, 2].map((sectionIndex) => {
+                const section = item.sections[sectionIndex] ?? { heading: "", body: "" };
+                return (
+                  <div className="panel panel-nested" key={`section-${sectionIndex}`}>
+                    <div className="form-grid">
+                      <label className="field">
+                        Heading
+                        <input name={`guide_${index}_section_${sectionIndex}_heading`} defaultValue={section.heading} />
+                      </label>
+                      <label className="field" style={{ gridColumn: "1 / -1" }}>
+                        Body
+                        <textarea name={`guide_${index}_section_${sectionIndex}_body`} defaultValue={section.body} />
+                      </label>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="stack">
+              <p className="eyebrow">FAQ</p>
+              {[0, 1, 2].map((faqIndex) => {
+                const faq = item.faq[faqIndex] ?? { question: "", answer: "" };
+                return (
+                  <div className="panel panel-nested" key={`faq-${faqIndex}`}>
+                    <div className="form-grid">
+                      <label className="field">
+                        Question
+                        <input name={`guide_${index}_faq_${faqIndex}_question`} defaultValue={faq.question} />
+                      </label>
+                      <label className="field" style={{ gridColumn: "1 / -1" }}>
+                        Answer
+                        <textarea name={`guide_${index}_faq_${faqIndex}_answer`} defaultValue={faq.answer} />
+                      </label>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="form-grid">
+              <label className="field">
+                SEO Title
+                <input name={`guide_${index}_seoTitle`} defaultValue={item.seoTitle} />
+              </label>
+              <label className="field" style={{ gridColumn: "1 / -1" }}>
+                SEO Description
+                <textarea name={`guide_${index}_seoDescription`} defaultValue={item.seoDescription} />
+              </label>
+              <label className="field" style={{ gridColumn: "1 / -1" }}>
+                Related Travel Guides
+                <textarea name={`guide_${index}_relatedSlugs`} defaultValue={item.relatedSlugs.join("\n")} />
+              </label>
+            </div>
+            <ToggleField name={`guide_${index}_published`} label="Published" defaultChecked={item.published} />
+          </details>
         ))}
+        <button
+          className="button-muted"
+          type="button"
+          onClick={() => setGuideRows((rows) => [...rows, blankGuide(rows.length)])}
+        >
+          Add Travel Guide
+        </button>
         <div className="admin-form-actions">
           <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
             {pending ? "Saving..." : "Save Guide Draft"}
@@ -1146,6 +1400,9 @@ export function HomepageAwardsForm({
   mediaLibrary: MediaLibraryItem[];
 }) {
   const [state, action, pending] = useActionState(saveAwardsDraftAction, undefined);
+  const [awardRows, setAwardRows] = useState(
+    awards.items.length ? awards.items : [{ name: "", imageUrl: "", href: "", enabled: true }]
+  );
 
   return (
     <div className="panel">
@@ -1171,7 +1428,53 @@ export function HomepageAwardsForm({
             <textarea name="summary" defaultValue={awards.summary} />
           </label>
         </div>
-        <FooterBadgeFields prefix="award" label="Award Logos" items={awards.items} mediaLibrary={mediaLibrary} />
+        <input type="hidden" name="award_count" value={awardRows.length} />
+        <div className="stack">
+          {awardRows.map((award, index) => (
+            <div className="panel panel-soft" key={`${award.name}-${index}`}>
+              <div className="section-heading compact">
+                <p className="eyebrow">Award {index + 1}</p>
+                <button
+                  type="button"
+                  className="button-muted"
+                  onClick={() => setAwardRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}
+                >
+                  Delete
+                </button>
+              </div>
+              <div className="form-grid">
+                <label className="field">
+                  Name
+                  <input name={`award_${index}_name`} defaultValue={award.name} />
+                </label>
+                <label className="field">
+                  Optional Link
+                  <input name={`award_${index}_href`} defaultValue={award.href} />
+                </label>
+              </div>
+              <MediaField
+                label="Award logo"
+                inputName={`award_${index}_imageUrl`}
+                fileName={`award_${index}_imageFile`}
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                value={award.imageUrl}
+                library={mediaLibrary}
+              />
+              <ToggleField
+                name={`award_${index}_enabled`}
+                label="Show this award"
+                defaultChecked={award.enabled}
+              />
+            </div>
+          ))}
+        </div>
+        <button
+          className="button-muted"
+          type="button"
+          onClick={() => setAwardRows((rows) => [...rows, { name: "", imageUrl: "", href: "", enabled: true }])}
+        >
+          Add Award
+        </button>
         <div className="admin-form-actions">
           <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
             {pending ? "Saving..." : "Save Awards Draft"}

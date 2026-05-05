@@ -45,6 +45,8 @@ export type HomepageServiceItem = {
   title: string;
   description: string;
   icon: string;
+  imageUrl: string;
+  imageAlt: string;
   displayOrder: number;
   enabled: boolean;
 };
@@ -55,10 +57,22 @@ export type HomepageWhyUsItem = {
 };
 
 export type HomepageGuideItem = {
+  slug: string;
   category: string;
   title: string;
+  featuredImageAlt: string;
+  summary: string;
   description: string;
   imageUrl: string;
+  mainContent: string;
+  tips: string[];
+  sections: Array<{ heading: string; body: string }>;
+  faq: Array<{ question: string; answer: string }>;
+  seoTitle: string;
+  seoDescription: string;
+  relatedSlugs: string[];
+  published: boolean;
+  lastUpdated: string;
 };
 
 export type HomepageNewsletterContent = {
@@ -87,6 +101,7 @@ export type NavbarContent = {
   primaryLogoUrl: string;
   whiteLogoUrl: string;
   blackLogoUrl: string;
+  featuredResortLogos?: FooterBadge[];
   navItems: NavigationItem[];
   ctaLabel: string;
   ctaHref: string;
@@ -232,6 +247,8 @@ export const defaultHomepageServices: HomepageServiceItem[] = [
     title: "Luxury Resort Contracting",
     description: "Commercially fluent resort partnerships, preferred rates, and product positioning for premium agencies.",
     icon: "briefcase-business",
+    imageUrl: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1600&q=90",
+    imageAlt: "Luxury Maldives overwater resort arrival",
     displayOrder: 1,
     enabled: true
   },
@@ -239,6 +256,8 @@ export const defaultHomepageServices: HomepageServiceItem[] = [
     title: "Bespoke Itinerary Planning",
     description: "Tailored island combinations, transfer logic, and guest flow planned with destination-level precision.",
     icon: "route",
+    imageUrl: "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1600&q=90",
+    imageAlt: "Maldives island itinerary planning scenery",
     displayOrder: 2,
     enabled: true
   },
@@ -246,6 +265,8 @@ export const defaultHomepageServices: HomepageServiceItem[] = [
     title: "VIP Arrival & Transfer Coordination",
     description: "Seamless airport handling, lounge support, seaplane and speedboat coordination for high-value guests.",
     icon: "plane",
+    imageUrl: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1600&q=90",
+    imageAlt: "Premium Maldives transfer and arrival experience",
     displayOrder: 3,
     enabled: true
   },
@@ -253,6 +274,8 @@ export const defaultHomepageServices: HomepageServiceItem[] = [
     title: "Dedicated On-Island Partner Support",
     description: "Responsive in-destination support for sales teams, operations teams, and live guest requirements.",
     icon: "headphones",
+    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=90",
+    imageAlt: "On-island Maldives partner support",
     displayOrder: 4,
     enabled: true
   },
@@ -260,6 +283,8 @@ export const defaultHomepageServices: HomepageServiceItem[] = [
     title: "Group & Incentive Handling",
     description: "Premium group logistics, buyouts, incentives, and event support shaped around the right island product.",
     icon: "users-round",
+    imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=90",
+    imageAlt: "Curated Maldives group and incentive travel",
     displayOrder: 5,
     enabled: true
   },
@@ -267,6 +292,8 @@ export const defaultHomepageServices: HomepageServiceItem[] = [
     title: "Trade Rate & Offer Management",
     description: "Clean access to market-ready offers, tactical campaigns, and partner-facing commercial updates.",
     icon: "badge-percent",
+    imageUrl: "https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1600&q=90",
+    imageAlt: "Maldives trade offers and resort product updates",
     displayOrder: 6,
     enabled: true
   }
@@ -293,27 +320,75 @@ export const defaultHomepageWhyUs: HomepageWhyUsItem[] = [
 export const defaultHomepageGuide: HomepageGuideItem[] = [
   {
     category: "Destination Insight",
+    slug: "choosing-the-right-atoll",
     title: "Choosing the Right Atoll for the Right Client",
+    featuredImageAlt: "Aerial Maldives atoll and turquoise lagoon",
+    summary: "A partner-facing guide to matching geography, transfer logic, and experience style.",
     description: "A partner-facing guide to matching geography, transfer logic, and experience style.",
-    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=80",
+    mainContent: "Choosing the right atoll is less about distance on a map and more about arrival style, resort density, marine life, privacy, and the client profile. Use the atoll as a selling frame when explaining why one island fits better than another.",
+    tips: ["Match seaplane access to clients who value the arrival moment.", "Use speedboat islands for shorter stays and late arrivals."],
+    sections: [{ heading: "How to Position Atolls", body: "North and South Male work well for convenient access, while outer atolls often suit clients seeking a more remote island narrative." }],
+    faq: [{ question: "Does the atoll matter for first-time visitors?", answer: "Yes. It shapes transfers, marine life, resort style, and the feeling of remoteness." }],
+    seoTitle: "Choosing the Right Maldives Atoll",
+    seoDescription: "A practical Maldives atoll guide for tourists and travel partners.",
+    relatedSlugs: ["seaplane-versus-speedboat-access"],
+    published: true,
+    lastUpdated: "2026-05-01"
   },
   {
     category: "Sales Narrative",
+    slug: "seaplane-versus-speedboat-access",
     title: "How to Position Seaplane Resorts Versus Speedboat Access",
+    featuredImageAlt: "Maldives seaplane arrival over lagoon",
+    summary: "Help clients understand convenience versus iconic Maldives arrival moments.",
     description: "Help clients understand convenience versus iconic Maldives arrival moments.",
-    imageUrl: "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1400&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1400&q=80",
+    mainContent: "Seaplanes create one of the Maldives' most memorable arrival rituals, while speedboat resorts are easier for late arrivals, short stays, and guests who prioritize fast logistics.",
+    tips: ["Explain seaplane daylight operating windows early.", "Recommend speedboat access for one-night stopovers or late international arrivals."],
+    sections: [{ heading: "Selling the Transfer", body: "The transfer should be positioned as part of the experience, not only as transport." }],
+    faq: [{ question: "Are seaplanes always better?", answer: "No. They are iconic, but speedboats can be more practical depending on timing and guest priorities." }],
+    seoTitle: "Maldives Seaplane vs Speedboat Resorts",
+    seoDescription: "How to choose between seaplane and speedboat transfers in the Maldives.",
+    relatedSlugs: ["choosing-the-right-atoll"],
+    published: true,
+    lastUpdated: "2026-05-01"
   },
   {
     category: "Planning",
+    slug: "seasonality-demand-and-booking-patterns",
     title: "Seasonality, Demand Windows, and Luxury Booking Patterns",
+    featuredImageAlt: "Sunny Maldives beach and lagoon",
+    summary: "A practical guide for premium agencies planning around travel windows and lead time.",
     description: "A practical guide for premium agencies planning around travel windows and lead time.",
-    imageUrl: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1400&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1400&q=80",
+    mainContent: "Luxury demand in the Maldives moves around festive travel, school holidays, honeymoon periods, and tactical offer windows. Partners should plan lead times around room category scarcity and transfer availability.",
+    tips: ["Treat festive inventory as early-booking territory.", "Use shoulder months for value-led luxury conversations."],
+    sections: [{ heading: "Planning Rhythm", body: "The best booking strategy balances weather expectations, offer windows, and the client tolerance for flexible travel dates." }],
+    faq: [{ question: "When should luxury clients book?", answer: "For peak dates, months ahead. For flexible travel, tactical offer windows can be strong." }],
+    seoTitle: "Maldives Seasonality and Luxury Booking Guide",
+    seoDescription: "Understand Maldives seasonality, demand windows, and luxury booking patterns.",
+    relatedSlugs: ["choosing-the-right-atoll"],
+    published: true,
+    lastUpdated: "2026-05-01"
   },
   {
     category: "Product",
+    slug: "room-types-that-matter",
     title: "Room Types That Actually Matter in the Decision Process",
+    featuredImageAlt: "Maldives overwater villas and lagoon",
+    summary: "A quick read on how to frame villas, family units, and signature inventory.",
     description: "A quick read on how to frame villas, family units, and signature inventory.",
-    imageUrl: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1400&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1400&q=80",
+    mainContent: "Room selection should consider sunrise or sunset orientation, reef access, family layout, privacy, pool size, and distance from resort facilities. The right villa type often determines guest satisfaction more than the resort name alone.",
+    tips: ["Clarify villa orientation before confirming honeymoon stays.", "For families, prioritize layout and proximity over only view category."],
+    sections: [{ heading: "Villa Fit", body: "A villa should match guest habits: swimming, dining, privacy, children, mobility, and preferred resort rhythm." }],
+    faq: [{ question: "Are overwater villas always best?", answer: "Not always. Beach villas may suit families, privacy seekers, and guests who prefer direct sand access." }],
+    seoTitle: "Maldives Room Types Guide",
+    seoDescription: "How to select Maldives villas and room types for different guest profiles.",
+    relatedSlugs: ["seaplane-versus-speedboat-access"],
+    published: true,
+    lastUpdated: "2026-05-01"
   }
 ];
 
@@ -355,11 +430,18 @@ export const defaultNavbarContent: NavbarContent = {
   primaryLogoUrl: "https://dummyimage.com/420x120/0f172a/ffffff&text=Exciting+Maldives",
   whiteLogoUrl: "https://dummyimage.com/420x120/ffffff/0f172a&text=Exciting+Maldives",
   blackLogoUrl: "https://dummyimage.com/420x120/111111/ffffff&text=Exciting+Maldives",
+  featuredResortLogos: [
+    { name: "Soneva", imageUrl: "", href: "", enabled: true },
+    { name: "JOALI", imageUrl: "", href: "", enabled: true },
+    { name: "Patina", imageUrl: "", href: "", enabled: true },
+    { name: "Milaidhoo", imageUrl: "", href: "", enabled: true },
+    { name: "Baros", imageUrl: "", href: "", enabled: true }
+  ],
   navItems: [
     { label: "Resorts", href: "/resorts", enabled: true, external: false },
     { label: "About Us", href: "/about", enabled: true, external: false },
     { label: "Map", href: "/#global-markets", enabled: true, external: false },
-    { label: "Info", href: "/travel-guide", enabled: true, external: false }
+    { label: "Display All", href: "/travel-guide", enabled: true, external: false }
   ],
   ctaLabel: "Login to Partner Portal",
   ctaHref: "/partner/login",
@@ -568,11 +650,58 @@ function normalizeHomepageServices(items: unknown): HomepageServiceItem[] {
         title: value.title ?? fallback.title,
         description: value.description ?? fallback.description,
         icon: value.icon ?? fallback.icon,
+        imageUrl: value.imageUrl ?? fallback.imageUrl,
+        imageAlt: value.imageAlt ?? fallback.imageAlt,
         displayOrder: numericValue(value.displayOrder, index + 1),
         enabled: value.enabled ?? true
       };
     })
     .sort((a, b) => a.displayOrder - b.displayOrder);
+}
+
+function slugify(value: string, fallback: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || fallback;
+}
+
+function stringArray(value: unknown, fallback: string[] = []) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item ?? "")).filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    return value.split("\n").map((item) => item.trim()).filter(Boolean);
+  }
+
+  return fallback;
+}
+
+function normalizeHomepageGuide(items: unknown): HomepageGuideItem[] {
+  const source = Array.isArray(items) ? items : defaultHomepageGuide;
+  return source.map((item, index) => {
+    const value = item as Partial<HomepageGuideItem>;
+    const fallback = defaultHomepageGuide[index] ?? defaultHomepageGuide[0];
+    const title = value.title || fallback.title;
+    const summary = value.summary || value.description || fallback.summary;
+
+    return {
+      slug: value.slug || slugify(title, `guide-${index + 1}`),
+      category: value.category || fallback.category,
+      title,
+      featuredImageAlt: value.featuredImageAlt || value.title || fallback.featuredImageAlt,
+      summary,
+      description: value.description || summary,
+      imageUrl: value.imageUrl || fallback.imageUrl,
+      mainContent: value.mainContent || fallback.mainContent,
+      tips: stringArray(value.tips, fallback.tips),
+      sections: Array.isArray(value.sections) ? value.sections : fallback.sections,
+      faq: Array.isArray(value.faq) ? value.faq : fallback.faq,
+      seoTitle: value.seoTitle || value.title || fallback.seoTitle,
+      seoDescription: value.seoDescription || summary || fallback.seoDescription,
+      relatedSlugs: stringArray(value.relatedSlugs, fallback.relatedSlugs),
+      published: value.published ?? true,
+      lastUpdated: value.lastUpdated || fallback.lastUpdated
+    };
+  });
 }
 
 function normalizeMarketSettings(settings: unknown): MarketSettings {
@@ -636,7 +765,11 @@ export async function getHomepageWhyUs(mode: "draft" | "published" = "published"
 }
 
 export async function getHomepageGuide(mode: "draft" | "published" = "published") {
-  return getSiteSettingMode("homepage.guide", defaultHomepageGuide, mode);
+  const entry = await getSiteSettingMode("homepage.guide", defaultHomepageGuide, mode);
+  return {
+    ...entry,
+    content: normalizeHomepageGuide(entry.content)
+  };
 }
 
 export async function getHomepageNewsletterContent(mode: "draft" | "published" = "published") {

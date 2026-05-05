@@ -44,7 +44,8 @@ export function MediaField({
   const [uploadState, setUploadState] = useState<{ pending: boolean; error?: string; message?: string }>({
     pending: false
   });
-  const [mode, setMode] = useState<"upload" | "library" | "url">(value ? "library" : "upload");
+  const [mode, setMode] = useState<"upload" | "library" | "url">("upload");
+  const [expanded, setExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -167,33 +168,16 @@ export function MediaField({
           <span className="media-field-label">{label}</span>
           {helper ? <p className="media-field-helper">{helper}</p> : null}
         </div>
+        <button
+          type="button"
+          className="admin-btn admin-btn--ghost"
+          onClick={() => setExpanded((current) => !current)}
+        >
+          {expanded ? "Hide media tools" : selectedUrl ? "Change media" : "Upload or select"}
+        </button>
       </div>
 
       <input type="hidden" name={inputName} value={selectedUrl} />
-
-      <div className="media-field-modes">
-        <button
-          type="button"
-          className={mode === "upload" ? "media-mode is-active" : "media-mode"}
-          onClick={() => setMode("upload")}
-        >
-          Upload
-        </button>
-        <button
-          type="button"
-          className={mode === "library" ? "media-mode is-active" : "media-mode"}
-          onClick={() => setMode("library")}
-        >
-          Media Library
-        </button>
-        <button
-          type="button"
-          className={mode === "url" ? "media-mode is-active" : "media-mode"}
-          onClick={() => setMode("url")}
-        >
-          Direct URL
-        </button>
-      </div>
 
       {selectedUrl ? (
         <div className="media-selected-state">
@@ -207,7 +191,33 @@ export function MediaField({
         </div>
       ) : null}
 
-      {mode === "upload" ? (
+      {expanded ? (
+        <div className="media-field-modes">
+          <button
+            type="button"
+            className={mode === "upload" ? "media-mode is-active" : "media-mode"}
+            onClick={() => setMode("upload")}
+          >
+            Upload
+          </button>
+          <button
+            type="button"
+            className={mode === "library" ? "media-mode is-active" : "media-mode"}
+            onClick={() => setMode("library")}
+          >
+            Media Library
+          </button>
+          <button
+            type="button"
+            className={mode === "url" ? "media-mode is-active" : "media-mode"}
+            onClick={() => setMode("url")}
+          >
+            Direct URL
+          </button>
+        </div>
+      ) : null}
+
+      {expanded && mode === "upload" ? (
         <>
           <label
             htmlFor={inputId}
@@ -240,7 +250,7 @@ export function MediaField({
         </>
       ) : null}
 
-      {mode === "url" ? (
+      {expanded && mode === "url" ? (
         <label className="field">
           <span className="field__label">Direct URL</span>
           <input
@@ -252,7 +262,7 @@ export function MediaField({
         </label>
       ) : null}
 
-      {mode === "library" ? (
+      {expanded && mode === "library" ? (
         <div className="media-library">
           <div className="media-library-header">
             <Library className="admin-icon" />

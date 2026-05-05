@@ -11,7 +11,7 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
 
   useEffect(() => {
     function onScroll() {
-      setScrolled(window.scrollY > 40);
+      setScrolled(window.scrollY > Math.max(window.innerHeight - 120, 120));
     }
 
     onScroll();
@@ -24,7 +24,7 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     { label: "Resorts", href: configuredItems.find((item) => item.label === "Resorts")?.href || "/resorts", external: false },
     { label: "About Us", href: configuredItems.find((item) => item.label === "About Us")?.href || "/about", external: false },
     { label: "Map", href: configuredItems.find((item) => item.label === "Map")?.href || "/#global-markets", external: false },
-    { label: "Info", href: configuredItems.find((item) => item.label === "Info")?.href || "/travel-guide", external: false }
+    { label: "Display All", href: configuredItems.find((item) => item.href === "/travel-guide")?.href || "/travel-guide", external: false }
   ];
   const mobileItems = [
     { ...navItems[0], Icon: Hotel },

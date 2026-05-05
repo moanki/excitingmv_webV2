@@ -1,29 +1,25 @@
+import { TravelGuideDirectory } from "@/components/travel-guide-directory";
 import { getHomepageGuide } from "@/lib/site-content";
 
 export default async function TravelGuidePage() {
   const { content: guide } = await getHomepageGuide("published");
+  const publishedGuides = guide.filter((item) => item.published && item.title);
 
   return (
-    <main className="shell section">
-      <section className="panel stack">
-        <div className="stack">
-          <p className="eyebrow">Travel Guide</p>
-          <h1 className="section-title">Destination planning guidance for premium Maldives itineraries.</h1>
-          <p className="muted">
-            This keeps the public navigation and footer links valid while surfacing the same destination
-            insights managed from the admin homepage settings.
+    <main className="guide-directory">
+      <section className="guide-directory__hero">
+        <div className="lux-container">
+          <p className="lux-eyebrow">Maldives Travel Guide</p>
+          <h1>Practical Maldives information for tourists and travel partners.</h1>
+          <p>
+            Search destination guidance on arrivals, transfers, money, packing, culture, resort fit, and planning
+            details that shape better Maldives itineraries.
           </p>
         </div>
-
-        <div className="grid">
-          {guide.map((item) => (
-            <article key={item.title} className="card">
-              <p className="eyebrow">{item.category}</p>
-              <h2>{item.title}</h2>
-              <p className="muted">{item.description}</p>
-              {item.imageUrl ? <img src={item.imageUrl} alt={item.title} style={{ borderRadius: "16px" }} /> : null}
-            </article>
-          ))}
+      </section>
+      <section className="guide-directory__body">
+        <div className="lux-container">
+          <TravelGuideDirectory guides={publishedGuides} />
         </div>
       </section>
     </main>
