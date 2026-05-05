@@ -6950,3 +6950,211 @@ select {
     grid-template-columns: 2.4rem minmax(0, 1fr);
   }
 }
+
+/* Final homepage overrides for the 2026 public homepage polish. */
+.lux-section--white {
+  background: #fff;
+}
+
+.lux-section--sand,
+.lux-contact-section {
+  background: #f8f5f0;
+}
+
+.lux-hero__overlay {
+  background:
+    linear-gradient(90deg, rgba(7, 19, 31, 0.58) 0%, rgba(7, 19, 31, 0.28) 48%, rgba(7, 19, 31, 0.08) 100%),
+    linear-gradient(180deg, rgba(7, 19, 31, 0.06) 0%, rgba(7, 19, 31, 0.48) 100%);
+}
+
+.lux-hero__inner {
+  grid-template-columns: minmax(0, 0.92fr);
+  align-items: center;
+  padding-bottom: 10rem;
+}
+
+.lux-hero h1 {
+  margin-top: 0;
+  font-size: clamp(2.15rem, 4vw, 4.35rem);
+  line-height: 1;
+  max-width: 15ch;
+}
+
+.lux-hero__retreat-logos {
+  position: absolute;
+  right: 0;
+  bottom: 1.3rem;
+  left: 0;
+  z-index: 3;
+  padding: 1.15rem 0;
+}
+
+.lux-hero__retreat-logos > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem clamp(1.25rem, 4vw, 3rem);
+  align-items: center;
+  justify-content: center;
+  width: min(calc(100% - 3rem), var(--container));
+  margin: 0 auto;
+}
+
+.lux-hero__retreat-logos span {
+  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--font-serif), serif;
+  font-size: clamp(0.95rem, 1.55vw, 1.35rem);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+
+.lux-retreat-carousel,
+.lux-guide-carousel {
+  display: grid;
+  width: 100%;
+  gap: 1rem;
+  animation: none;
+}
+
+.lux-retreat-carousel {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.lux-retreat-card {
+  min-height: 250px;
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 18px 48px rgba(7, 19, 31, 0.1);
+}
+
+.lux-retreat-card__content {
+  padding: 1rem;
+}
+
+.lux-retreat-card h3 {
+  font-size: clamp(1rem, 1.2vw, 1.18rem);
+  line-height: 1.16;
+}
+
+.lux-guide-carousel {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.lux-guide-card {
+  min-height: 345px;
+}
+
+.lux-guide-card__image {
+  min-height: 165px;
+}
+
+.lux-guide-card h3 {
+  font-size: clamp(1.08rem, 1.45vw, 1.35rem);
+}
+
+.market-editorial__visual {
+  align-self: stretch;
+}
+
+.market-editorial__map {
+  min-height: 100%;
+  background: #f8f5f0;
+  box-shadow: 0 24px 70px rgba(7, 19, 31, 0.09);
+}
+
+.market-editorial__map .market-map {
+  min-height: 100%;
+  background: #f8f5f0;
+}
+
+.market-editorial__map .market-map__fallback {
+  display: none;
+}
+
+.market-map__world {
+  position: absolute;
+  inset: 8% 4%;
+  z-index: 1;
+  width: 92%;
+  height: 84%;
+  pointer-events: none;
+}
+
+.market-map__world path {
+  fill: rgba(19, 32, 43, 0.12);
+  stroke: rgba(19, 32, 43, 0.28);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.market-editorial__map .market-map__canvas {
+  z-index: 2;
+  opacity: 0.62;
+}
+
+.market-editorial__map .market-map-marker strong {
+  color: rgba(7, 19, 31, 0.78);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.72);
+}
+
+.why-trust {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(300px, 0.78fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: stretch;
+}
+
+.why-trust__content {
+  display: flex;
+  flex-direction: column;
+}
+
+.why-trust__intro {
+  max-width: 620px;
+  margin-bottom: 2rem;
+}
+
+.why-trust__image {
+  min-height: 100%;
+  height: 100%;
+  margin-bottom: 0;
+}
+
+.why-trust__reasons {
+  max-width: none;
+}
+
+@media (max-width: 1100px) {
+  .why-trust {
+    grid-template-columns: 1fr;
+  }
+
+  .why-trust__image {
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 900px) {
+  .lux-hero__inner {
+    padding-bottom: 9rem;
+  }
+
+  .lux-hero h1 {
+    font-size: clamp(2.1rem, 10vw, 3.45rem);
+    max-width: 12ch;
+  }
+
+  .lux-retreat-carousel,
+  .lux-guide-carousel {
+    grid-template-columns: 1fr;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .market-editorial__visual,
+  .market-editorial__map,
+  .market-editorial__map .market-map,
+  .market-editorial__map .market-map__canvas {
+    min-height: 360px;
+  }
+}

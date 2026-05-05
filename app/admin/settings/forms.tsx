@@ -260,17 +260,9 @@ export function HeroSettingsForm({
           accept="image/png,image/jpeg,image/webp,image/svg+xml,video/mp4,video/webm,video/quicktime"
           value={hero.mediaUrl}
           library={mediaLibrary}
-          helper="Upload, drag in, or reuse an asset from the media library."
+          helper="Upload or reuse a hero image/video from the media library. Video files are detected automatically."
         />
-        <MediaField
-          label="Video poster"
-          inputName="mediaPosterUrl"
-          fileName="heroPosterFile"
-          accept="image/png,image/jpeg,image/webp,image/svg+xml"
-          value={hero.mediaPosterUrl}
-          library={mediaLibrary}
-          helper="Optional cover image used before the hero video plays."
-        />
+        <input type="hidden" name="mediaPosterUrl" value={hero.mediaPosterUrl} />
         <div className="admin-form-actions">
           <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
             {pending ? "Saving..." : "Save Hero Draft"}
@@ -298,12 +290,12 @@ export function FeaturesSettingsForm({
     <div className="panel">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Feature Cards</p>
-          <h2>Edit the operational story on the homepage.</h2>
+          <p className="eyebrow">Featured Retreats</p>
+          <h2>Edit the homepage Featured Retreats heading.</h2>
         </div>
         <form action={publishFeaturesAction}>
           <button className="button-muted" type="submit">
-            Publish Features
+            Publish Featured Retreats Heading
           </button>
         </form>
       </div>
@@ -311,41 +303,45 @@ export function FeaturesSettingsForm({
         <div className="stack">
           {features.map((feature, index) => (
             <div className="panel panel-soft" key={`${feature.title}-${index}`}>
-              <p className="eyebrow">Card {index + 1}</p>
+              <p className="eyebrow">{index === 0 ? "Section heading" : `Reserved content slot ${index + 1}`}</p>
               <div className="form-grid">
-                <label className="field">
+                <label className="field" style={index === 0 ? { display: "none" } : undefined}>
                   Eyebrow
                   <input name={`feature_${index}_eyebrow`} defaultValue={feature.eyebrow} />
                 </label>
                 <label className="field">
-                  Title
+                  {index === 0 ? "Featured Retreats Title" : "Title"}
                   <input name={`feature_${index}_title`} defaultValue={feature.title} />
                 </label>
                 <label className="field" style={{ gridColumn: "1 / -1" }}>
-                  Description
+                  {index === 0 ? "Featured Retreats Subtitle" : "Description"}
                   <textarea
                     name={`feature_${index}_description`}
                     defaultValue={feature.description}
                   />
                 </label>
               </div>
-              <MediaField
-                label={`Feature card ${index + 1} image`}
-                inputName={`feature_${index}_imageUrl`}
-                fileName={`feature_${index}_imageFile`}
-                accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                value={feature.imageUrl}
-                library={mediaLibrary}
-              />
+              {index === 0 ? (
+                <input type="hidden" name={`feature_${index}_imageUrl`} value={feature.imageUrl} />
+              ) : (
+                <MediaField
+                  label={`Reserved image ${index + 1}`}
+                  inputName={`feature_${index}_imageUrl`}
+                  fileName={`feature_${index}_imageFile`}
+                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                  value={feature.imageUrl}
+                  library={mediaLibrary}
+                />
+              )}
             </div>
           ))}
         </div>
         <div className="admin-form-actions">
           <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
-            {pending ? "Saving..." : "Save Feature Draft"}
+            {pending ? "Saving..." : "Save Heading Draft"}
           </button>
           <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
-            {pending ? "Publishing..." : "Save & Publish Features"}
+            {pending ? "Publishing..." : "Save & Publish Heading"}
           </button>
         </div>
         <StatusMessage message={state?.message} error={state?.error} />
@@ -681,6 +677,14 @@ export function MarketSettingsForm({ markets }: { markets: MarketSettings }) {
           <label className="field" style={{ gridColumn: "1 / -1" }}>
             Section Title
             <input name="sectionTitle" defaultValue={markets.sectionTitle} />
+          </label>
+          <label className="field" style={{ gridColumn: "1 / -1" }}>
+            Homepage Heading
+            <input name="heading" defaultValue={markets.heading} />
+          </label>
+          <label className="field" style={{ gridColumn: "1 / -1" }}>
+            Homepage Subtitle
+            <textarea name="description" defaultValue={markets.description} />
           </label>
         </div>
         <div className="stack">

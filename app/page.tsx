@@ -15,13 +15,11 @@ import {
   getHomepageHeroContent,
   getHomepageNewsletterContent,
   getHomepageServices,
-  getHomepageStats,
   getHomepageStoryContent,
   getHomepageWhyUs,
   getMarketSettings,
   type HomepageGuideItem,
-  type HomepageStat,
-  type MarketOption,
+  type MarketSettings,
 } from "@/lib/site-content";
 
 const featuredImages = [
@@ -80,31 +78,19 @@ function pickResortImage(index: number) {
   return featuredImages[index % featuredImages.length];
 }
 
-function getStat(stats: HomepageStat[], label: string, fallback: string) {
-  return stats.find((item) => item.label.toLowerCase().includes(label.toLowerCase()))?.value || fallback;
+function isVideoAsset(url: string, mediaType?: string) {
+  return mediaType === "video" || /\.(mp4|webm|mov)(\?|#|$)/i.test(url);
 }
 
-function getHeroStats(stats: HomepageStat[]) {
-  return [
-    { value: getStat(stats, "resort", "198+"), label: "Resorts" },
-    { value: getStat(stats, "experience", "20+"), label: "Years Experience" },
-    { value: getStat(stats, "support", "24/7"), label: "Local Support" },
-    { value: getStat(stats, "partner", "Global"), label: "Travel Partners" }
-  ];
-}
-
-function MarketEditorial({ markets }: { markets: MarketOption[] }) {
-  const displayMarkets = markets.slice(0, 5);
+function MarketEditorial({ markets }: { markets: MarketSettings }) {
+  const displayMarkets = markets.options.slice(0, 5);
 
   return (
     <div className="market-editorial">
       <div className="market-editorial__copy">
-        <p className="lux-eyebrow">Global Markets</p>
-        <h2>Connected to the markets shaping premium Maldives demand</h2>
-        <p>
-          A focused DMC presence for travel designers and agencies across the regions driving premium Maldives
-          bookings, trade offers, and repeat luxury demand.
-        </p>
+        <p className="lux-eyebrow">{markets.sectionTitle || "Global Markets"}</p>
+        <h2>{markets.heading}</h2>
+        <p>{markets.description}</p>
         <div className="market-editorial__rows">
           {displayMarkets.map((market, index) => (
             <div className="market-editorial__row" key={market.id}>
@@ -118,7 +104,7 @@ function MarketEditorial({ markets }: { markets: MarketOption[] }) {
 
       <div className="market-editorial__visual">
         <div className="market-editorial__map">
-          <GlobalMarketMap markets={markets} />
+          <GlobalMarketMap markets={markets.options} />
         </div>
       </div>
     </div>
@@ -145,43 +131,51 @@ function SectionHeading({
   );
 }
 
-function FeaturedRetreats({ resorts }: { resorts: ResortSummary[] }) {
+function FeaturedRetreats({
+  resorts,
+  title,
+  description
+}: {
+  resorts: ResortSummary[];
+  title?: string;
+  description?: string;
+}) {
   const displayItems = resorts.length
     ? resorts.map((resort, index) => ({
         href: `/resorts/${resort.slug}`,
         image: resort.heroImageUrl || pickResortImage(index),
-        eyebrow: resort.category || "Luxury Resort",
+        type: resort.category || "Luxury Resort",
         title: resort.name,
-        meta: `${resort.location || "Maldives"}${resort.transferType ? ` · ${resort.transferType}` : ""}`,
-        cta: "View partner profile"
+        atoll: resort.location || "Maldives",
+        cta: "View more"
       }))
     : [
         {
           href: "/resorts",
           image: pickResortImage(0),
-          eyebrow: "Resort Portfolio",
+          type: "Resort Portfolio",
           title: "Curated private-island retreats",
-          meta: "Maldives luxury collection",
-          cta: "Explore the collection"
+          atoll: "Maldives luxury collection",
+          cta: "View more"
         },
         {
           href: "/resorts",
           image: pickResortImage(3),
-          eyebrow: "Trade Intelligence",
+          type: "Trade Intelligence",
           title: "Partner-ready island positioning",
-          meta: "Rates, offers, access, and fit",
-          cta: "Explore the collection"
+          atoll: "Rates, offers, access, and fit",
+          cta: "View more"
         }
       ];
 
   return (
-    <section className="lux-section lux-section--ivory">
+    <section className="lux-section lux-section--white">
       <div className="lux-container">
         <div className="lux-heading-row">
           <SectionHeading
             eyebrow="Featured Retreats"
-            title="A luxury resort portfolio shaped for trade conversations"
-            description="Image-led island intelligence for advisors, operators, and contracting teams."
+            title={title || "A luxury resort portfolio shaped for trade conversations"}
+            description={description || "Image-led island intelligence for advisors, operators, and contracting teams."}
           />
           <Link href="/resorts" className="lux-text-link">
             View all resorts <ArrowRight size={16} />
@@ -189,7 +183,7 @@ function FeaturedRetreats({ resorts }: { resorts: ResortSummary[] }) {
         </div>
 
         <div className="lux-retreat-carousel" aria-label="Featured resort portfolio">
-          {[...displayItems, ...displayItems].map((item, index) => (
+          {displayItems.map((item, index) => (
             <Link href={item.href} key={`${item.href}-${item.title}-${index}`} className="lux-retreat-card">
               <div
                 className="lux-retreat-card__image"
@@ -197,9 +191,9 @@ function FeaturedRetreats({ resorts }: { resorts: ResortSummary[] }) {
               />
               <div className="lux-retreat-card__shade" />
               <div className="lux-retreat-card__content">
-                <span>{item.eyebrow}</span>
+                <span>{item.type}</span>
                 <h3>{item.title}</h3>
-                <p>{item.meta}</p>
+                <p>{item.atoll}</p>
                 <strong>{item.cta} <ArrowRight size={15} /></strong>
               </div>
             </Link>
@@ -210,28 +204,11 @@ function FeaturedRetreats({ resorts }: { resorts: ResortSummary[] }) {
   );
 }
 
-function TrustStats({ stats }: { stats: HomepageStat[] }) {
-  const displayStats = stats.length ? stats : getHeroStats([]);
-
-  return (
-    <section className="lux-trust-band" aria-label="Exciting Maldives partner credibility">
-      <div className="lux-container lux-trust-band__grid">
-        {displayStats.map((item) => (
-          <div className="lux-trust-card" key={`${item.value}-${item.label}`}>
-            <strong>{item.value}</strong>
-            <span>{item.label}</span>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function TravelGuideMagazine({ guide }: { guide: HomepageGuideItem[] }) {
   const articles = guide.filter((item) => item.title);
 
   return (
-    <section className="lux-section lux-section--ivory">
+    <section className="lux-section lux-section--white">
       <div className="lux-container">
         <div className="lux-heading-row">
           <SectionHeading
@@ -265,7 +242,6 @@ export default async function HomePage() {
   const [
     { content: hero },
     { content: homepageHighlights },
-    { content: stats },
     { content: ceo },
     { content: story },
     { content: services },
@@ -278,7 +254,6 @@ export default async function HomePage() {
   ] = await Promise.all([
     getHomepageHeroContent("published"),
     getHomepageFeatures("published"),
-    getHomepageStats("published"),
     getHomepageCeoContent("published"),
     getHomepageStoryContent("published"),
     getHomepageServices("published"),
@@ -293,16 +268,16 @@ export default async function HomePage() {
   const activeMarkets = markets.options.filter((market) => market.enabled);
   const marketList = activeMarkets.length ? activeMarkets : markets.options;
   const marketLabels = marketList.map((market) => market.label);
-  const partnerLogos = defaultPartnerLogos;
   const featuredResorts = resorts.slice(0, 5);
-  const heroStats = getHeroStats(stats);
+  const heroLogos = featuredResorts.length ? featuredResorts.map((resort) => resort.name) : defaultPartnerLogos;
+  const featuredRetreatHeading = homepageHighlights[0];
   const heroImage = hero.mediaUrl || heroFallback;
 
   return (
     <main className="home-page lux-home">
       <section className="lux-hero">
         <div className="lux-hero__media">
-          {hero.mediaUrl && hero.mediaType === "video" ? (
+          {hero.mediaUrl && isVideoAsset(hero.mediaUrl, hero.mediaType) ? (
             <video
               className="lux-hero__asset"
               src={hero.mediaUrl}
@@ -319,7 +294,6 @@ export default async function HomePage() {
         <div className="lux-hero__overlay" />
         <div className="lux-container lux-hero__inner">
           <div className="lux-hero__copy">
-            <p className="lux-eyebrow">{hero.eyebrow || "Premium Maldives DMC Platform"}</p>
             <h1>{hero.title || "A Premium Maldives B2B Travel Ecosystem"}</h1>
             <p>
               {hero.description ||
@@ -334,25 +308,21 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="lux-hero__stats">
-            {heroStats.map((item) => (
-              <div className="lux-hero-stat" key={item.label}>
-                <strong>{item.value}</strong>
-                <span>{item.label}</span>
-              </div>
-            ))}
-          </div>
         </div>
-        <div className="lux-hero__ticker" aria-hidden="true">
+        <div className="lux-hero__retreat-logos" aria-label="Featured retreats">
           <div>
-            {[...partnerLogos, ...partnerLogos].map((label, index) => (
+            {heroLogos.slice(0, 5).map((label, index) => (
               <span key={`${label}-${index}`}>{label}</span>
             ))}
           </div>
         </div>
       </section>
 
-      <FeaturedRetreats resorts={featuredResorts} />
+      <FeaturedRetreats
+        resorts={featuredResorts}
+        title={featuredRetreatHeading?.title}
+        description={featuredRetreatHeading?.description}
+      />
 
       <section className="lux-section lux-section--sand">
         <div className="lux-container lux-editorial-split lux-editorial-split--ceo">
@@ -378,7 +348,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="lux-section lux-section--ivory">
+      <section className="lux-section lux-section--white">
         <div className="lux-container lux-story-split">
           <div className="lux-story-copy">
             <p className="lux-eyebrow">{story.sectionLabel}</p>
@@ -394,9 +364,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="lux-section lux-section--ivory market-editorial-section" id="global-markets">
+      <section className="lux-section lux-section--white market-editorial-section" id="global-markets">
         <div className="lux-container">
-          <MarketEditorial markets={marketList} />
+          <MarketEditorial markets={{ ...markets, options: marketList }} />
         </div>
       </section>
 
@@ -408,18 +378,16 @@ export default async function HomePage() {
           description="Commercial support, island logistics, and product clarity in one partner rhythm."
         />
       </section>
-      <TrustStats stats={stats} />
-      <section className="lux-section lux-section--ivory why-trust-section">
+      <section className="lux-section lux-section--white why-trust-section">
         <WhyUsParallax
           items={whyUs}
           images={whyImages}
           title="Why Travel Designers Choose Us"
           description="Local precision, commercial fluency, and resort relationships that protect high-value bookings."
-          proofStats={stats}
         />
       </section>
 
-      <section className="lux-section lux-section--sand">
+      <section className="lux-section lux-section--white">
         <div className="lux-container lux-awards-container">
           <SectionHeading
             eyebrow="Prestigious Awards"

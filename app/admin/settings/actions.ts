@@ -151,6 +151,13 @@ export async function saveHeroDraftAction(_: ActionState, formData: FormData): P
   try {
     const heroMediaFile = uploadedFile(formData, "heroMediaFile");
     const heroPosterFile = uploadedFile(formData, "heroPosterFile");
+    const mediaUrl = heroMediaFile
+      ? await uploadSiteAsset(heroMediaFile, "homepage/hero", "hero")
+      : stringValue(formData, "mediaUrl");
+    const mediaType =
+      stringValue(formData, "mediaType") === "video" || /\.(mp4|webm|mov)(\?|#|$)/i.test(mediaUrl)
+        ? "video"
+        : "image";
     const hero: HomepageHeroContent = {
       eyebrow: stringValue(formData, "eyebrow"),
       title: stringValue(formData, "title"),
@@ -159,10 +166,8 @@ export async function saveHeroDraftAction(_: ActionState, formData: FormData): P
       primaryCtaHref: stringValue(formData, "primaryCtaHref"),
       secondaryCtaLabel: stringValue(formData, "secondaryCtaLabel"),
       secondaryCtaHref: stringValue(formData, "secondaryCtaHref"),
-      mediaUrl: heroMediaFile
-        ? await uploadSiteAsset(heroMediaFile, "homepage/hero", "hero")
-        : stringValue(formData, "mediaUrl"),
-      mediaType: stringValue(formData, "mediaType") === "video" ? "video" : "image",
+      mediaUrl,
+      mediaType,
       mediaPosterUrl: heroPosterFile
         ? await uploadSiteAsset(heroPosterFile, "homepage/hero", "hero")
         : stringValue(formData, "mediaPosterUrl")
@@ -583,6 +588,8 @@ export async function saveMarketDraftAction(_: ActionState, formData: FormData):
   try {
     const markets: MarketSettings = {
       sectionTitle: stringValue(formData, "sectionTitle"),
+      heading: stringValue(formData, "heading"),
+      description: stringValue(formData, "description"),
       options: [0, 1, 2, 3, 4, 5, 6, 7].map((index) => ({
         id: stringValue(formData, `market_${index}_id`) || `market-${index + 1}`,
         label: stringValue(formData, `market_${index}_label`),

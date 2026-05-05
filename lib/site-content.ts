@@ -152,6 +152,8 @@ export type MarketOption = {
 
 export type MarketSettings = {
   sectionTitle: string;
+  heading: string;
+  description: string;
   options: MarketOption[];
 };
 
@@ -470,6 +472,9 @@ export const defaultNotificationSettings: NotificationSettings = {
 
 export const defaultMarketSettings: MarketSettings = {
   sectionTitle: "Global Markets",
+  heading: "Connected to the markets shaping premium Maldives demand",
+  description:
+    "A focused DMC presence for travel designers and agencies across the regions driving premium Maldives bookings, trade offers, and repeat luxury demand.",
   options: [
     {
       id: "europe",
@@ -576,6 +581,8 @@ function normalizeMarketSettings(settings: unknown): MarketSettings {
 
   return {
     sectionTitle: source.sectionTitle || defaultMarketSettings.sectionTitle,
+    heading: source.heading || defaultMarketSettings.heading,
+    description: source.description || defaultMarketSettings.description,
     options: options
       .map((item, index) => {
         const value = item as Partial<MarketOption>;
