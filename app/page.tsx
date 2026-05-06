@@ -329,9 +329,6 @@ export default async function HomePage() {
                 "Curated resorts, protected trade resources, and local destination expertise for global travel partners."}
             </p>
             <div className="lux-hero__actions">
-              <Link href="/resorts" className="lux-button lux-button--gold">
-                Explore Resorts <ArrowRight size={16} />
-              </Link>
               <Link href="/partner/register" className="lux-button lux-button--glass">
                 Become a Partner
               </Link>
@@ -340,7 +337,7 @@ export default async function HomePage() {
         </div>
         <div className="lux-hero__retreat-logos" aria-label="Featured retreats">
           <div>
-            {heroLogos.slice(0, 5).map((logo, index) => (
+            {[...heroLogos.slice(0, 5), ...heroLogos.slice(0, 5)].map((logo, index) => (
               <span key={`${logo.name}-${index}`}>
                 {logo.imageUrl ? <img src={logo.imageUrl} alt={logo.name || "Featured resort"} /> : logo.name}
               </span>

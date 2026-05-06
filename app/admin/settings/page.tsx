@@ -1,57 +1,51 @@
 import Link from "next/link";
+import { Bell, Globe2, Home, Menu, MessageCircle, PanelBottom } from "lucide-react";
 
 const settingsSections = [
   {
-    title: "Homepage Content",
-    description: "Hero, stats, CEO message, story, services, awards, travel guide, and newsletter.",
-    href: "/admin/settings/homepage"
+    title: "Homepage",
+    href: "/admin/settings/homepage",
+    icon: Home
   },
   {
-    title: "Navbar & Logos",
-    description: "Primary logo, white logo, black logo, navigation items, and CTA.",
-    href: "/admin/settings/navbar"
+    title: "Navbar",
+    href: "/admin/settings/navbar",
+    icon: Menu
   },
   {
-    title: "Footer & Contact",
-    description: "Address, contact details, footer groups, memberships, awards, and resource links.",
-    href: "/admin/settings/footer"
+    title: "Footer",
+    href: "/admin/settings/footer",
+    icon: PanelBottom
   },
   {
     title: "WhatsApp",
-    description: "Floating WhatsApp CTA label, number, link, and message.",
-    href: "/admin/settings/whatsapp"
+    href: "/admin/settings/whatsapp",
+    icon: MessageCircle
   },
   {
-    title: "Notification Emails",
-    description: "Partner request and newsletter notification recipients.",
-    href: "/admin/settings/notifications"
+    title: "Notifications",
+    href: "/admin/settings/notifications",
+    icon: Bell
   },
   {
-    title: "Primary Markets",
-    description: "Dropdown options used across homepage forms and lead capture flows.",
-    href: "/admin/settings/markets"
+    title: "Markets",
+    href: "/admin/settings/markets",
+    icon: Globe2
   }
 ];
 
 export default function AdminSettingsIndexPage() {
   return (
-    <div className="stack">
-      <section>
-        <p className="eyebrow">Site Settings</p>
-        <h1 className="section-title">Manage each front-end area from its own admin screen.</h1>
-        <p className="muted">
-          Homepage sections, logos, footer details, WhatsApp, markets, and notification routing are now split into separate screens.
-        </p>
-      </section>
-
-      <div className="dashboard-grid">
-        {settingsSections.map((section) => (
-          <Link key={section.href} href={section.href} className="stat-card">
-            <p className="eyebrow">{section.title}</p>
-            <p>{section.description}</p>
+    <div className="dashboard-grid admin-settings-icon-grid">
+      {settingsSections.map((section) => {
+        const Icon = section.icon;
+        return (
+          <Link key={section.href} href={section.href} className="stat-card admin-settings-icon-card" aria-label={section.title}>
+            <Icon className="admin-settings-icon" />
+            <span>{section.title}</span>
           </Link>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }

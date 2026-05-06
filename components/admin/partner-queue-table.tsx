@@ -74,45 +74,55 @@ export function PartnerQueueTable({ partners }: Props) {
   return (
     <div className="stack">
       <div className="admin-toolbar">
-        <label className="admin-search">
+        <label className="admin-search admin-search--large">
           <span className="sr-only">Search partners</span>
           <input
             className="admin-input"
             type="search"
-            placeholder="Search partners..."
+            placeholder="Search Requests"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
         </label>
-        <div className="admin-filter-pills">
-          {[
-            ["all", "All"],
-            ["pending", "Pending"],
-            ["approved", "Approved"],
-            ["rejected", "Rejected"]
-          ].map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              className={filter === value ? "admin-filter-pill is-active" : "admin-filter-pill"}
-              onClick={() => setFilter(value as typeof filter)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+      </div>
+
+      <div className="admin-filter-pills admin-filter-pills--below">
+        {[
+          ["all", "All"],
+          ["pending", "Pending"],
+          ["approved", "Approved"],
+          ["rejected", "Rejected"]
+        ].map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            className={filter === value ? "admin-filter-pill is-active" : "admin-filter-pill"}
+            onClick={() => setFilter(value as typeof filter)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className="admin-page-actions admin-page-actions--compact">
+        <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={toggleAllVisible}>
+          {allVisibleSelected ? "Clear Visible" : "Select All Partners"}
+        </button>
+        <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={() => download(selectedIds)} disabled={!selectedIds.length}>
+          Download Selected
+        </button>
+        <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={() => download()}>
+          Download All
+        </button>
       </div>
 
       {selectedIds.length ? (
         <div className="admin-bulk-bar">
           <strong>Selected: {selectedIds.length}</strong>
-          <div className="admin-bulk-actions">
-            <button type="button" className="admin-btn admin-btn--secondary" onClick={() => download(selectedIds)}>
-              Download Selected
-            </button>
+          <div className="admin-filter-pills">
             <button
               type="button"
-              className="admin-btn admin-btn--primary"
+              className="admin-btn admin-btn--primary admin-btn--small"
               disabled={Boolean(pendingAction)}
               onClick={() => updateStatus(selectedIds, "approved")}
             >
@@ -120,7 +130,7 @@ export function PartnerQueueTable({ partners }: Props) {
             </button>
             <button
               type="button"
-              className="admin-btn admin-btn--danger"
+              className="admin-btn admin-btn--danger admin-btn--small"
               disabled={Boolean(pendingAction)}
               onClick={() => updateStatus(selectedIds, "rejected")}
             >
@@ -129,15 +139,6 @@ export function PartnerQueueTable({ partners }: Props) {
           </div>
         </div>
       ) : null}
-
-      <div className="admin-page-actions">
-        <button type="button" className="admin-btn admin-btn--secondary" onClick={toggleAllVisible}>
-          {allVisibleSelected ? "Clear Visible" : "Select All Partners"}
-        </button>
-        <button type="button" className="admin-btn admin-btn--secondary" onClick={() => download()}>
-          Download All
-        </button>
-      </div>
 
       <div className="admin-table-shell">
         <table className="table">

@@ -11,7 +11,7 @@ type GlobalMarketMapProps = {
   markets: MarketOption[];
 };
 
-const mapStyle = "https://tiles.openfreemap.org/styles/positron";
+const mapStyle = "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json";
 
 export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
   const [selectedMarket, setSelectedMarket] = useState<MarketOption | null>(null);

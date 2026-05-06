@@ -18,12 +18,19 @@ type Props = {
 
 export function NewsletterLeadsTable({ submissions }: Props) {
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [pendingAction, setPendingAction] = useState("");
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return submissions.filter((submission) => {
+      const normalizedStatus = (submission.status || "new").toLowerCase();
+      const matchesFilter =
+        filter === "all" ||
+        (filter === "pending" && ["new", "pending"].includes(normalizedStatus)) ||
+        (filter === "approved" && ["general", "approved"].includes(normalizedStatus)) ||
+        (filter === "rejected" && normalizedStatus === "rejected");
       const haystack = [
         submission.email,
         submission.fullName,
@@ -34,9 +41,9 @@ export function NewsletterLeadsTable({ submissions }: Props) {
         .join(" ")
         .toLowerCase();
 
-      return !normalized || haystack.includes(normalized);
+      return matchesFilter && (!normalized || haystack.includes(normalized));
     });
-  }, [query, submissions]);
+  }, [filter, query, submissions]);
 
   const allVisibleSelected = filtered.length > 0 && filtered.every((submission) => selectedIds.includes(submission.id));
 
@@ -79,28 +86,58 @@ export function NewsletterLeadsTable({ submissions }: Props) {
   return (
     <div className="stack">
       <div className="admin-toolbar">
-        <label className="admin-search">
+        <label className="admin-search admin-search--large">
           <span className="sr-only">Search newsletter leads</span>
           <input
             className="admin-input"
             type="search"
-            placeholder="Search leads..."
+            placeholder="Search Subscription"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
         </label>
       </div>
 
+      <div className="admin-filter-pills admin-filter-pills--below">
+        {[
+          ["all", "All"],
+          ["pending", "Pending"],
+          ["approved", "Approved"],
+          ["rejected", "Rejected"]
+        ].map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            className={filter === value ? "admin-filter-pill is-active" : "admin-filter-pill"}
+            onClick={() => setFilter(value as typeof filter)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className="admin-page-actions admin-page-actions--compact">
+        <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={toggleAllVisible}>
+          {allVisibleSelected ? "Clear Visible" : "Select All Partners"}
+        </button>
+        <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={() => download(selectedIds)} disabled={!selectedIds.length}>
+          Download Selected
+        </button>
+        <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={() => download()}>
+          Download All
+        </button>
+        <button type="button" className="admin-btn admin-btn--primary admin-btn--small" onClick={() => acknowledge(filtered.map((item) => item.id))} disabled={!filtered.length || Boolean(pendingAction)}>
+          Acknowledge All
+        </button>
+      </div>
+
       {selectedIds.length ? (
         <div className="admin-bulk-bar">
           <strong>Selected: {selectedIds.length}</strong>
           <div className="admin-bulk-actions">
-            <button type="button" className="admin-btn admin-btn--secondary" onClick={() => download(selectedIds)}>
-              Download Selected
-            </button>
             <button
               type="button"
-              className="admin-btn admin-btn--primary"
+              className="admin-btn admin-btn--primary admin-btn--small"
               disabled={Boolean(pendingAction)}
               onClick={() => acknowledge(selectedIds)}
             >
@@ -112,15 +149,6 @@ export function NewsletterLeadsTable({ submissions }: Props) {
           </div>
         </div>
       ) : null}
-
-      <div className="admin-page-actions">
-        <button type="button" className="admin-btn admin-btn--secondary" onClick={toggleAllVisible}>
-          {allVisibleSelected ? "Clear Visible" : "Select All"}
-        </button>
-        <button type="button" className="admin-btn admin-btn--secondary" onClick={() => download()}>
-          Download All
-        </button>
-      </div>
 
       <div className="admin-table-shell">
         <table className="table">

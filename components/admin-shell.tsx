@@ -140,7 +140,7 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   },
   "/admin/resorts": {
     title: "Resort Manager",
-    description: "Maintain listings, editorial data, and publish readiness."
+    description: ""
   },
   "/admin/resorts/new": {
     title: "Add New Resort",
@@ -148,7 +148,7 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   },
   "/admin/media": {
     title: "Media Library",
-    description: "Manage reusable images, videos, and files for content workflows."
+    description: ""
   },
   "/admin/resources": {
     title: "Resource Library",
@@ -180,7 +180,7 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   },
   "/admin/settings": {
     title: "Site Settings",
-    description: "Adjust the live site configuration from a structured control center."
+    description: ""
   },
   "/admin/user-access": {
     title: "User Access",
@@ -224,7 +224,7 @@ function getCurrentPageMeta(pathname: string) {
   return matchedEntry?.[1] ?? pageMeta["/admin"];
 }
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export function AdminShell({ children, logoUrl }: { children: React.ReactNode; logoUrl?: string }) {
   const pathname = usePathname();
   const current = getCurrentPageMeta(pathname);
 
@@ -232,10 +232,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     <div className="admin-shell">
       <aside className="admin-sidebar">
         <div className="admin-brand-block">
-          <p className="admin-kicker">Exciting Maldives</p>
+          {logoUrl ? <img src={logoUrl} alt="Exciting Maldives" className="admin-brand-logo" /> : null}
           <div>
             <h1>Admin Center</h1>
-            <p>Operations workspace</p>
           </div>
         </div>
 

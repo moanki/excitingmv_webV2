@@ -255,14 +255,8 @@ export function HeroSettingsForm({
       <form action={action} className="stack">
         <div className="form-grid">
           <input type="hidden" name="eyebrow" value={hero.eyebrow} />
-          <label className="field">
-            Primary CTA Label
-            <input name="primaryCtaLabel" defaultValue={hero.primaryCtaLabel} />
-          </label>
-          <label className="field">
-            Primary CTA Link
-            <input name="primaryCtaHref" defaultValue={hero.primaryCtaHref} />
-          </label>
+          <input type="hidden" name="primaryCtaLabel" value="" />
+          <input type="hidden" name="primaryCtaHref" value="" />
           <label className="field">
             Hero Media Type
             <select name="mediaType" defaultValue={hero.mediaType}>
@@ -1347,7 +1341,6 @@ export function HomepageNewsletterContentForm({
       <div className="section-heading">
         <div>
           <p className="eyebrow">Homepage Newsletter</p>
-          <h2>Manage the newsletter heading, intro, and image.</h2>
         </div>
         <form action={publishNewsletterContentAction}>
           <button className="button-muted" type="submit">

@@ -7671,7 +7671,7 @@ select {
 .admin-shell,
 .admin-main,
 .admin-canvas {
-  background: #f8f5f0;
+  background: #ffffff;
 }
 
 .admin-canvas {
@@ -7697,7 +7697,7 @@ select {
 .admin-empty-panel,
 .media-manager-card {
   border: 0 !important;
-  background: #ffffff !important;
+  background: #f8f5f0 !important;
   box-shadow: none !important;
 }
 
@@ -7712,9 +7712,9 @@ select {
 }
 
 .admin-body .stat-card {
-  min-height: 112px;
-  padding: 0.95rem 1rem;
-  border-radius: 16px;
+  min-height: 96px;
+  padding: 0.85rem 0.95rem;
+  border-radius: 14px;
 }
 
 .admin-body .stat-card strong {
@@ -7723,7 +7723,7 @@ select {
 
 .dashboard-grid,
 .dashboard-grid-quad {
-  gap: 0.85rem;
+  gap: 0.75rem;
 }
 
 .admin-overview-grid {
@@ -7731,7 +7731,7 @@ select {
 }
 
 .admin-table-shell .table th {
-  background: #ffffff;
+  background: #f8f5f0;
 }
 
 .admin-table-shell .table td,
@@ -7758,6 +7758,88 @@ select {
   margin-bottom: 0;
 }
 
+.admin-brand-block {
+  align-items: center;
+}
+
+.admin-brand-logo {
+  display: block;
+  width: min(190px, 100%);
+  max-height: 78px;
+  object-fit: contain;
+}
+
+.admin-brand-block h1 {
+  margin-top: 0.55rem;
+}
+
+.admin-search--large {
+  width: 100%;
+  min-width: 100%;
+  min-height: 56px;
+  border: 0;
+  border-radius: 999px;
+  background: #f8f5f0;
+}
+
+.admin-search--large input,
+.admin-search--large .admin-input {
+  min-height: 56px;
+  font-size: 1rem;
+}
+
+.admin-filter-pills--below {
+  margin-top: -0.25rem;
+}
+
+.admin-page-actions--compact {
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+
+.admin-btn--small {
+  min-height: 34px;
+  padding: 0 0.8rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+}
+
+.admin-table-shell td,
+.admin-table-shell th {
+  vertical-align: middle;
+}
+
+.admin-table-shell td > strong,
+.admin-table-subtle {
+  display: block;
+}
+
+.admin-settings-icon-grid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.admin-settings-icon-card {
+  place-items: center;
+  min-height: 120px !important;
+  color: var(--admin-text);
+  text-align: center;
+  text-decoration: none;
+}
+
+.admin-settings-icon {
+  width: 30px;
+  height: 30px;
+  color: var(--admin-accent);
+}
+
+.admin-settings-icon-card span {
+  color: var(--admin-text);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .admin-chat-list {
   display: grid;
   gap: 0.9rem;
@@ -7765,7 +7847,15 @@ select {
 
 .admin-chat-summary {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(180px, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+}
+
+.admin-chat-summary__main {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.8fr) minmax(180px, 1fr);
   gap: 1rem;
   align-items: center;
   width: 100%;
@@ -7777,12 +7867,12 @@ select {
   cursor: pointer;
 }
 
-.admin-chat-summary span {
+.admin-chat-summary__main span {
   display: grid;
   gap: 0.2rem;
 }
 
-.admin-chat-summary small {
+.admin-chat-summary__main small {
   color: var(--admin-muted);
 }
 
@@ -7792,6 +7882,97 @@ select {
 
 .admin-chat-actions {
   margin-top: 1rem;
+}
+
+.admin-chat-composer--inline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: end;
+  margin-top: 0.9rem;
+}
+
+.admin-chat-reply-field textarea {
+  min-height: 76px;
+}
+
+.admin-chat-icon-actions {
+  display: flex;
+  gap: 0.4rem;
+  padding-bottom: 0.1rem;
+}
+
+.admin-icon-only {
+  width: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.admin-chat-history-modal {
+  background: #ffffff !important;
+}
+
+.admin-chat-thread--readonly {
+  margin-top: 1rem;
+  max-height: min(62vh, 620px);
+  overflow: auto;
+}
+
+.admin-body .admin-modal-backdrop {
+  background: rgba(10, 15, 20, 0.36);
+}
+
+.lux-hero__retreat-logos {
+  overflow: hidden;
+}
+
+.lux-hero__retreat-logos div {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  width: max-content;
+  min-width: 200%;
+  animation: hero-logo-loop 26s linear infinite;
+}
+
+.lux-hero__retreat-logos span {
+  min-width: clamp(130px, 12vw, 190px);
+  text-align: center;
+}
+
+.lux-hero__retreat-logos img {
+  max-width: clamp(128px, 13vw, 190px);
+  max-height: 62px;
+}
+
+.lux-retreat-card__content {
+  border: 0;
+  background: linear-gradient(180deg, rgba(7, 19, 31, 0), rgba(7, 19, 31, 0.28));
+  backdrop-filter: blur(2px);
+}
+
+.lux-retreat-card__shade {
+  background: linear-gradient(180deg, rgba(7, 19, 31, 0), rgba(7, 19, 31, 0.26));
+}
+
+.lux-stat-strip {
+  padding: 3.1rem 0;
+}
+
+.lux-stat-strip__item {
+  min-height: 112px;
+  align-content: center;
+}
+
+@keyframes hero-logo-loop {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
 
 .chat-message a,
@@ -7804,6 +7985,11 @@ select {
 
 @media (max-width: 760px) {
   .admin-chat-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-chat-summary__main,
+  .admin-chat-composer--inline {
     grid-template-columns: 1fr;
   }
 }
