@@ -15,13 +15,24 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const json = (await request.json().catch(() => null)) as { body?: string } | null;
-  const body = String(json?.body ?? "").trim();
+  const contentType = request.headers.get("content-type") ?? "";
+  let body = "";
+  let attachment: File | null = null;
 
-  if (!body) {
-    return NextResponse.json({ ok: false, error: "Message body is required." }, { status: 400 });
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await request.formData();
+    body = String(formData.get("body") ?? "").trim();
+    const file = formData.get("attachment");
+    attachment = file instanceof File ? file : null;
+  } else {
+    const json = (await request.json().catch(() => null)) as { body?: string } | null;
+    body = String(json?.body ?? "").trim();
   }
 
-  await addChatReply(id, body, "guest");
+  if (!body && !attachment) {
+    return NextResponse.json({ ok: false, error: "Message or attachment is required." }, { status: 400 });
+  }
+
+  await addChatReply(id, body || "Attachment uploaded.", "guest", attachment);
   return NextResponse.json({ ok: true });
 }

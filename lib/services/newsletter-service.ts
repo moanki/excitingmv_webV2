@@ -182,3 +182,21 @@ export async function listNewsletterSubmissions() {
     return [];
   }
 }
+
+export async function updateNewsletterSubmissionStatus(ids: string[], status: string) {
+  const cleanIds = ids.filter(Boolean);
+
+  if (!cleanIds.length) {
+    return;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("newsletter_submissions")
+    .update({ status })
+    .in("id", cleanIds);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}

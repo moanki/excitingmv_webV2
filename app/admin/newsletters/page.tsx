@@ -6,12 +6,6 @@ export default async function AdminNewslettersPage() {
 
   return (
     <section className="stack">
-      <div className="admin-page-header">
-        <div className="admin-page-header__content">
-          <h1 className="section-title">Newsletter Leads</h1>
-        </div>
-      </div>
-
       {submissions.length ? (
         <NewsletterLeadsTable submissions={submissions} />
       ) : (

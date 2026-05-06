@@ -19,6 +19,7 @@ type Props = {
 export function NewsletterLeadsTable({ submissions }: Props) {
   const [query, setQuery] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [pendingAction, setPendingAction] = useState("");
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -57,6 +58,24 @@ export function NewsletterLeadsTable({ submissions }: Props) {
     window.location.href = `/api/admin/newsletters/export${suffix}`;
   }
 
+  async function acknowledge(ids: string[]) {
+    if (!ids.length) {
+      return;
+    }
+
+    setPendingAction(ids.join(","));
+    const response = await fetch("/api/admin/newsletters/status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids, status: "general" })
+    });
+    setPendingAction("");
+
+    if (response.ok) {
+      window.location.reload();
+    }
+  }
+
   return (
     <div className="stack">
       <div className="admin-toolbar">
@@ -78,6 +97,14 @@ export function NewsletterLeadsTable({ submissions }: Props) {
           <div className="admin-bulk-actions">
             <button type="button" className="admin-btn admin-btn--secondary" onClick={() => download(selectedIds)}>
               Download Selected
+            </button>
+            <button
+              type="button"
+              className="admin-btn admin-btn--primary"
+              disabled={Boolean(pendingAction)}
+              onClick={() => acknowledge(selectedIds)}
+            >
+              Acknowledge Selected
             </button>
             <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setSelectedIds([])}>
               Clear Selection
@@ -132,13 +159,23 @@ export function NewsletterLeadsTable({ submissions }: Props) {
                   <span className={`admin-status-badge is-neutral`}>{submission.status || "new"}</span>
                 </td>
                 <td>
-                  <button
-                    type="button"
-                    className="admin-btn admin-btn--secondary"
-                    onClick={() => download([submission.id])}
-                  >
-                    Download CSV
-                  </button>
+                  <div className="admin-row-actions">
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn--primary"
+                      disabled={Boolean(pendingAction) || submission.status === "general"}
+                      onClick={() => acknowledge([submission.id])}
+                    >
+                      Acknowledge
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn--secondary"
+                      onClick={() => download([submission.id])}
+                    >
+                      Download CSV
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

@@ -7665,3 +7665,145 @@ select {
     min-height: 260px;
   }
 }
+
+/* Admin clean ivory workspace */
+.admin-body,
+.admin-shell,
+.admin-main,
+.admin-canvas {
+  background: #f8f5f0;
+}
+
+.admin-canvas {
+  display: grid;
+  gap: 1.25rem;
+  padding: clamp(1rem, 2vw, 1.75rem);
+}
+
+.admin-body .stack {
+  gap: 1.15rem;
+}
+
+.admin-body .panel,
+.admin-body .panel-soft,
+.admin-body .panel-nested,
+.admin-body .card,
+.admin-body .stat-card,
+.admin-form-card,
+.admin-table-shell,
+.admin-toolbar,
+.admin-bulk-bar,
+.empty-state,
+.admin-empty-panel,
+.media-manager-card {
+  border: 0 !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.admin-body .panel,
+.admin-form-card,
+.admin-table-shell,
+.admin-toolbar,
+.admin-bulk-bar,
+.empty-state,
+.admin-empty-panel {
+  border-radius: 18px;
+}
+
+.admin-body .stat-card {
+  min-height: 112px;
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+}
+
+.admin-body .stat-card strong {
+  font-size: clamp(1.55rem, 2.2vw, 2rem);
+}
+
+.dashboard-grid,
+.dashboard-grid-quad {
+  gap: 0.85rem;
+}
+
+.admin-overview-grid {
+  gap: 1rem;
+}
+
+.admin-table-shell .table th {
+  background: #ffffff;
+}
+
+.admin-table-shell .table td,
+.admin-table-shell .table th {
+  border-bottom-color: rgba(19, 32, 43, 0.07);
+}
+
+.admin-btn,
+.button,
+.button-muted,
+.admin-icon-button,
+.admin-filter-pill,
+.resort-filter-pills button {
+  border: 0 !important;
+  outline: 0;
+}
+
+.admin-btn--close-chat {
+  background: #fdecea !important;
+  color: #b42318 !important;
+}
+
+.admin-page-header {
+  margin-bottom: 0;
+}
+
+.admin-chat-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.admin-chat-summary {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-chat-summary span {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.admin-chat-summary small {
+  color: var(--admin-muted);
+}
+
+.admin-chat-summary em {
+  font-style: normal;
+}
+
+.admin-chat-actions {
+  margin-top: 1rem;
+}
+
+.chat-message a,
+.admin-chat-bubble a {
+  display: inline-flex;
+  margin-top: 0.45rem;
+  color: var(--admin-accent, #0f766e);
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .admin-chat-summary {
+    grid-template-columns: 1fr;
+  }
+}

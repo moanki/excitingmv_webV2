@@ -135,7 +135,7 @@ const pageMeta: Record<string, { title: string; description: string }> = {
     description: ""
   },
   "/admin/partners": {
-    title: "Partner Queue",
+    title: "Requests for Partner",
     description: ""
   },
   "/admin/resorts": {
@@ -167,12 +167,12 @@ const pageMeta: Record<string, { title: string; description: string }> = {
     description: ""
   },
   "/admin/newsletters": {
-    title: "Newsletter Leads",
+    title: "Newsletter Subscriptions",
     description: ""
   },
   "/admin/chat": {
     title: "Chat Inbox",
-    description: "Triage active conversations and respond with context."
+    description: ""
   },
   "/admin/imports": {
     title: "AI Import Center",

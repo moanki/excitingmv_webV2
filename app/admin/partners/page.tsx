@@ -6,12 +6,6 @@ export default async function AdminPartnersPage() {
 
   return (
     <section className="stack">
-      <div className="admin-page-header">
-        <div className="admin-page-header__content">
-          <h1 className="section-title">Partner Queue</h1>
-        </div>
-      </div>
-
       {partners.length ? (
         <PartnerQueueTable partners={partners} />
       ) : (

@@ -123,14 +123,6 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
 
   return (
     <div className="stack">
-      <section>
-        <p className="eyebrow">Content / Media Library</p>
-        <h1 className="section-title">Manage reusable website media.</h1>
-        <p className="muted">
-          Upload resort banners, room photos, homepage assets, logos, badges, and documents from one place.
-        </p>
-      </section>
-
       <form onSubmit={uploadSelectedFile} className="admin-form-card media-manager-upload">
         <div>
           <h3>Upload Media</h3>

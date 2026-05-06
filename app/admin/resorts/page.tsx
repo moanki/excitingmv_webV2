@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { ResortManagerListView, SeedResortsButton } from "@/app/admin/resorts/forms";
+import { ResortManagerListView } from "@/app/admin/resorts/forms";
 import { getResortCounts, listAdminResorts } from "@/lib/services/resort-service";
 
 export default async function AdminResortsPage() {
@@ -10,7 +10,6 @@ export default async function AdminResortsPage() {
     <section className="stack">
       <div className="admin-page-header admin-page-header--actions-only">
         <div className="admin-page-header__actions">
-          <SeedResortsButton />
           <Link href="/admin/resorts/new" className="admin-btn admin-btn--primary">
             + Add New Resort
           </Link>

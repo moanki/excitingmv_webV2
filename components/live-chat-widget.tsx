@@ -6,6 +6,8 @@ type ChatMessage = {
   id: string;
   senderType: "guest" | "partner" | "admin";
   body: string;
+  attachmentUrl: string;
+  attachmentName: string;
   createdAt: string;
 };
 
@@ -15,6 +17,7 @@ type ChatConversation = {
   email: string;
   subject: string;
   status: string;
+  attachmentRequested: boolean;
   messages: ChatMessage[];
 };
 
@@ -91,13 +94,20 @@ export function LiveChatWidget() {
     }
 
     setPending(true);
-    const response = await fetch(`/api/chat/${conversationId}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        body: String(formData.get("body") ?? "")
-      })
-    });
+    const attachment = formData.get("attachment");
+    const hasAttachment = attachment instanceof File && attachment.size > 0;
+    const response = hasAttachment
+      ? await fetch(`/api/chat/${conversationId}`, {
+          method: "POST",
+          body: formData
+        })
+      : await fetch(`/api/chat/${conversationId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            body: String(formData.get("body") ?? "")
+          })
+        });
 
     if (response.ok) {
       const refresh = await fetch(`/api/chat/${conversationId}`);
@@ -147,6 +157,11 @@ export function LiveChatWidget() {
                   >
                     <p className="eyebrow">{message.senderType}</p>
                     <p>{message.body}</p>
+                    {message.attachmentUrl ? (
+                      <a href={message.attachmentUrl} target="_blank" rel="noreferrer">
+                        {message.attachmentName || "View attachment"}
+                      </a>
+                    ) : null}
                   </div>
                 ))}
               </div>
@@ -155,6 +170,16 @@ export function LiveChatWidget() {
                   Reply
                   <textarea name="body" placeholder="Type your message" />
                 </label>
+                {conversation.attachmentRequested ? (
+                  <label className="field">
+                    Attachment
+                    <input
+                      name="attachment"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml,application/pdf"
+                    />
+                  </label>
+                ) : null}
                 <button className="button" type="submit" disabled={pending}>
                   {pending ? "Sending..." : "Send Message"}
                 </button>

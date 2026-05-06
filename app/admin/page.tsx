@@ -39,12 +39,6 @@ export default async function AdminDashboardPage() {
 
   return (
     <section className="stack">
-      <div className="admin-page-header">
-        <div className="admin-page-header__content">
-          <h1 className="section-title">Admin Dashboard</h1>
-        </div>
-      </div>
-
       <div className="dashboard-grid dashboard-grid-quad">
         {stats.map((stat) => (
           <a key={stat.label} href={stat.href} className="stat-card stat-card-link">

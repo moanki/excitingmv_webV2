@@ -8,10 +8,7 @@ export default async function AdminResourcesPage() {
 
   return (
     <section className="stack">
-      <div className="admin-page-header">
-        <div className="admin-page-header__content">
-          <h1 className="section-title">Resource Library</h1>
-        </div>
+      <div className="admin-page-header admin-page-header--actions-only">
         <div className="admin-page-header__actions">
           <Link className="admin-btn admin-btn--primary" href="/admin/resources/new">
             + Add Resource
