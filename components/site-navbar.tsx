@@ -22,8 +22,8 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const configuredItems = navbar.navItems.filter((item) => item.enabled && item.label && item.href);
   const navItems = [
     { label: "Resort", href: configuredItems.find((item) => item.label === "Resort" || item.label === "Resorts")?.href || "/resorts", external: false },
-    { label: "Hotels", href: configuredItems.find((item) => item.label === "Hotels")?.href || "/resorts?collection=hotels", external: false },
-    { label: "Live Boards", href: configuredItems.find((item) => item.label === "Live Boards")?.href || "/resorts?collection=live-boards", external: false },
+    { label: "Hotels", href: configuredItems.find((item) => item.label === "Hotels")?.href || "/hotels", external: false },
+    { label: "Liveaboard", href: configuredItems.find((item) => item.label === "Liveaboard" || item.label === "Live Boards")?.href || "/liveaboards", external: false },
     { label: "Map", href: configuredItems.find((item) => item.label === "Map")?.href || "/#global-markets", external: false },
     { label: "Info", href: configuredItems.find((item) => item.label === "Info" || item.href === "/travel-guide")?.href || "/travel-guide", external: false }
   ];

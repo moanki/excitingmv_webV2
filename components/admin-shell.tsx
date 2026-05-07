@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { ComponentType } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,6 +16,7 @@ import {
   KeyRound,
   Settings2,
   Shield,
+  Ship,
   Sparkles,
   UserCog,
   LogOut
@@ -77,6 +79,18 @@ const navGroups: NavGroup[] = [
         label: "Resorts",
         description: "Property inventory and publishing",
         icon: LayoutTemplate
+      },
+      {
+        href: "/admin/liveaboards",
+        label: "Liveaboards",
+        description: "Cruise inventory and publishing",
+        icon: Ship
+      },
+      {
+        href: "/admin/hotels",
+        label: "Hotels",
+        description: "Hotel inventory and publishing",
+        icon: Building2
       },
       {
         href: "/admin/media",
@@ -145,6 +159,22 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   "/admin/resorts/new": {
     title: "Add New Resort",
     description: "Create a focused property workspace without the rest of the resort list in view."
+  },
+  "/admin/liveaboards": {
+    title: "Liveaboard Manager",
+    description: ""
+  },
+  "/admin/liveaboards/new": {
+    title: "Add New Liveaboard",
+    description: "Create a focused liveaboard workspace without the rest of the list in view."
+  },
+  "/admin/hotels": {
+    title: "Hotel Manager",
+    description: ""
+  },
+  "/admin/hotels/new": {
+    title: "Add New Hotel",
+    description: "Create a focused hotel workspace without the rest of the list in view."
   },
   "/admin/media": {
     title: "Media Library",
@@ -217,6 +247,20 @@ function getCurrentPageMeta(pathname: string) {
     };
   }
 
+  if (pathname.startsWith("/admin/liveaboards/") && pathname.endsWith("/edit")) {
+    return {
+      title: "Edit Liveaboard",
+      description: "Focused liveaboard editing workspace for one selected item."
+    };
+  }
+
+  if (pathname.startsWith("/admin/hotels/") && pathname.endsWith("/edit")) {
+    return {
+      title: "Edit Hotel",
+      description: "Focused hotel editing workspace for one selected property."
+    };
+  }
+
   const matchedEntry = Object.entries(pageMeta)
     .filter(([href]) => href !== "/admin" && pathname.startsWith(href))
     .sort((left, right) => right[0].length - left[0].length)[0];
@@ -224,9 +268,38 @@ function getCurrentPageMeta(pathname: string) {
   return matchedEntry?.[1] ?? pageMeta["/admin"];
 }
 
-export function AdminShell({ children, logoUrl }: { children: React.ReactNode; logoUrl?: string }) {
+export function AdminShell({
+  children,
+  logoUrl,
+  initialUnreadChatCount = 0
+}: {
+  children: React.ReactNode;
+  logoUrl?: string;
+  initialUnreadChatCount?: number;
+}) {
   const pathname = usePathname();
   const current = getCurrentPageMeta(pathname);
+  const [unreadChatCount, setUnreadChatCount] = useState(initialUnreadChatCount);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshUnreadCount() {
+      const response = await fetch("/api/admin/chat/unread", { cache: "no-store" });
+      const payload = (await response.json().catch(() => null)) as { count?: number } | null;
+
+      if (!cancelled && response.ok) {
+        setUnreadChatCount(Number(payload?.count ?? 0));
+      }
+    }
+
+    void refreshUnreadCount();
+    const timer = window.setInterval(refreshUnreadCount, 5000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, []);
 
   return (
     <div className="admin-shell">
@@ -256,7 +329,11 @@ export function AdminShell({ children, logoUrl }: { children: React.ReactNode; l
                         <Icon className="admin-icon" />
                       </span>
                       <span className="admin-nav-copy">
-                        <strong>{item.label}</strong>
+                        <strong>
+                          {item.href === "/admin/chat" && unreadChatCount > 0
+                            ? `${item.label} (${unreadChatCount})`
+                            : item.label}
+                        </strong>
                         <small>{item.description}</small>
                       </span>
                     </Link>
@@ -285,6 +362,7 @@ export function AdminShell({ children, logoUrl }: { children: React.ReactNode; l
           <div className="admin-topbar-actions">
             <button type="button" className="admin-icon-button" aria-label="Notifications">
               <Bell className="admin-icon" />
+              {unreadChatCount > 0 ? <span className="admin-notification-count">{unreadChatCount}</span> : null}
             </button>
             <div className="admin-user-chip">
               <span>SA</span>

@@ -13,6 +13,7 @@ import {
 import { SITE_ASSET_BUCKET } from "@/lib/storage/site-assets";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { aiImportRequestSchema } from "@/lib/validations";
+import type { PropertyType } from "@/lib/services/resort-service";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -25,13 +26,20 @@ function slugFilename(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function normalizePropertyType(value: unknown): PropertyType {
+  return value === "liveaboard" || value === "hotel" ? value : "resort";
+}
+
 export async function POST(request: Request) {
   const contentType = request.headers.get("content-type") ?? "";
 
   if (contentType.includes("multipart/form-data")) {
     const formData = await request.formData();
     const upload = formData.get("factSheetFile");
-    const result = await importUploadedFactSheet(upload instanceof File ? upload : new File([], ""));
+    const result = await importUploadedFactSheet(
+      upload instanceof File ? upload : new File([], ""),
+      normalizePropertyType(formData.get("propertyType"))
+    );
 
     if (!result.ok) {
       return NextResponse.json(
@@ -89,7 +97,8 @@ export async function POST(request: Request) {
 
     const result = await importStoredFactSheet({
       sourceUrl: String(json.sourceUrl),
-      filename: String(json.filename)
+      filename: String(json.filename),
+      propertyType: normalizePropertyType(json.propertyType)
     });
 
     if (!result.ok) {
@@ -157,7 +166,8 @@ export async function POST(request: Request) {
     const result = await processDriveImportSource({
       batchId: String(json.batchId),
       sourceUrl: String(json.sourceUrl),
-      sourceIndex: Number(json.sourceIndex)
+      sourceIndex: Number(json.sourceIndex),
+      propertyType: normalizePropertyType(json.propertyType)
     });
 
     if (!result.ok) {

@@ -22,6 +22,7 @@ type ChatConversation = {
 };
 
 const CHAT_STORAGE_KEY = "em_chat_conversation_id";
+const CHAT_CLOSE_PENDING_KEY = "em_chat_close_pending";
 
 export function LiveChatWidget() {
   const [open, setOpen] = useState(false);
@@ -33,6 +34,13 @@ export function LiveChatWidget() {
   useEffect(() => {
     const existing = window.localStorage.getItem(CHAT_STORAGE_KEY);
     if (existing) {
+      if (window.localStorage.getItem(CHAT_CLOSE_PENDING_KEY) === "1") {
+        void fetch(`/api/chat/${existing}`, { method: "PATCH" }).finally(() => {
+          window.localStorage.removeItem(CHAT_STORAGE_KEY);
+          window.localStorage.removeItem(CHAT_CLOSE_PENDING_KEY);
+        });
+        return;
+      }
       setConversationId(existing);
     }
   }, []);
@@ -84,8 +92,22 @@ export function LiveChatWidget() {
     }
 
     window.localStorage.setItem(CHAT_STORAGE_KEY, json.conversationId);
+    window.localStorage.removeItem(CHAT_CLOSE_PENDING_KEY);
     setConversationId(json.conversationId as string);
     setPending(false);
+  }
+
+  function toggleChat() {
+    setOpen((value) => {
+      const nextOpen = !value;
+      if (!nextOpen && conversationId) {
+        window.localStorage.setItem(CHAT_CLOSE_PENDING_KEY, "1");
+      }
+      if (nextOpen) {
+        window.localStorage.removeItem(CHAT_CLOSE_PENDING_KEY);
+      }
+      return nextOpen;
+    });
   }
 
   async function sendReply(formData: FormData) {
@@ -127,7 +149,7 @@ export function LiveChatWidget() {
         <button
           className="chat-toggle"
           type="button"
-          onClick={() => setOpen((value) => !value)}
+          onClick={toggleChat}
           aria-label={open ? "Close chat" : "Chat with a live agent"}
         >
           {open ? (

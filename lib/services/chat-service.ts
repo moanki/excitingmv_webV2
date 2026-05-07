@@ -10,6 +10,7 @@ export type ChatConversationRecord = {
   subject: string;
   status: string;
   attachmentRequested: boolean;
+  unreadAdminCount: number;
   createdAt: string;
   updatedAt: string;
   messages: ChatMessageRecord[];
@@ -31,6 +32,7 @@ type ConversationRow = {
   subject: string | null;
   status: string;
   attachment_requested?: boolean | null;
+  unread_admin_count?: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -44,6 +46,17 @@ type MessageRow = {
   attachment_name?: string | null;
   created_at: string;
 };
+
+function isMissingUnreadColumnError(error: unknown) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message?: unknown }).message ?? "")
+        : "";
+
+  return message.includes("unread_admin_count") || message.includes("last_read_by_admin_at");
+}
 
 function mapMessage(row: MessageRow): ChatMessageRecord {
   return {
@@ -96,6 +109,7 @@ export async function listChatConversations() {
       subject: conversation.subject ?? "",
       status: conversation.status,
       attachmentRequested: Boolean(conversation.attachment_requested),
+      unreadAdminCount: Number(conversation.unread_admin_count ?? 0),
       createdAt: conversation.created_at,
       updatedAt: conversation.updated_at,
       messages: messageMap.get(conversation.id) ?? []
@@ -112,16 +126,32 @@ export async function createConversation(input: {
   body: string;
 }) {
   const supabase = createSupabaseAdminClient();
-  const { data: conversation, error: conversationError } = await supabase
+  let { data: conversation, error: conversationError } = await supabase
     .from("chat_conversations")
     .insert({
       guest_name: input.guestName,
       email: input.email,
       subject: input.subject,
-      status: "open"
+      status: "open",
+      unread_admin_count: 1
     })
     .select("id")
     .single();
+
+  if (conversationError && isMissingUnreadColumnError(conversationError)) {
+    const fallback = await supabase
+      .from("chat_conversations")
+      .insert({
+        guest_name: input.guestName,
+        email: input.email,
+        subject: input.subject,
+        status: "open"
+      })
+      .select("id")
+      .single();
+    conversation = fallback.data;
+    conversationError = fallback.error;
+  }
 
   if (conversationError || !conversation) {
     throw new Error(conversationError?.message ?? "Failed to create chat conversation.");
@@ -176,19 +206,73 @@ export async function addChatReply(
     throw new Error(error.message);
   }
 
-  const conversationUpdate: Record<string, string | boolean> = {
+  const conversationUpdate: Record<string, string | boolean | number> = {
     updated_at: new Date().toISOString()
   };
 
   if (senderType === "guest") {
     conversationUpdate.status = "open";
+    const { data: conversation } = await supabase
+      .from("chat_conversations")
+      .select("unread_admin_count")
+      .eq("id", conversationId)
+      .maybeSingle();
+    conversationUpdate.unread_admin_count = Number(
+      (conversation as { unread_admin_count?: number | null } | null)?.unread_admin_count ?? 0
+    ) + 1;
   }
 
   if (senderType === "guest" && attachmentUrl) {
     conversationUpdate.attachment_requested = false;
   }
 
-  await supabase.from("chat_conversations").update(conversationUpdate).eq("id", conversationId);
+  const { error: updateError } = await supabase.from("chat_conversations").update(conversationUpdate).eq("id", conversationId);
+
+  if (updateError && isMissingUnreadColumnError(updateError)) {
+    const { unread_admin_count: _unreadAdminCount, last_read_by_admin_at: _lastReadByAdminAt, ...legacyUpdate } =
+      conversationUpdate;
+    await supabase.from("chat_conversations").update(legacyUpdate).eq("id", conversationId);
+  }
+}
+
+export async function getUnreadChatCount() {
+  try {
+    const supabase = createSupabaseAdminClient();
+    const { data, error } = await supabase
+      .from("chat_conversations")
+      .select("unread_admin_count")
+      .gt("unread_admin_count", 0);
+
+    if (error) {
+      throw error;
+    }
+
+    return ((data ?? []) as Array<{ unread_admin_count?: number | null }>).reduce(
+      (total, row) => total + Number(row.unread_admin_count ?? 0),
+      0
+    );
+  } catch {
+    return 0;
+  }
+}
+
+export async function markChatConversationRead(conversationId: string) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase
+    .from("chat_conversations")
+    .update({
+      unread_admin_count: 0,
+      last_read_by_admin_at: new Date().toISOString()
+    })
+    .eq("id", conversationId);
+
+  if (error && isMissingUnreadColumnError(error)) {
+    return;
+  }
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 export async function getConversation(conversationId: string) {

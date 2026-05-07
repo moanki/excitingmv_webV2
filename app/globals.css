@@ -7933,17 +7933,17 @@ select {
   justify-content: flex-start;
   width: max-content;
   min-width: 200%;
-  animation: hero-logo-loop 26s linear infinite;
+  animation: hero-logo-loop 44s linear infinite;
 }
 
 .lux-hero__retreat-logos span {
-  min-width: clamp(130px, 12vw, 190px);
+  min-width: clamp(112px, 10vw, 160px);
   text-align: center;
 }
 
 .lux-hero__retreat-logos img {
-  max-width: clamp(128px, 13vw, 190px);
-  max-height: 62px;
+  max-width: clamp(150px, 15vw, 230px);
+  max-height: 76px;
 }
 
 .lux-retreat-card__content {
@@ -8746,6 +8746,53 @@ select {
 
 .admin-chat-icon-actions {
   align-items: center;
+}
+
+.admin-notification-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.admin-icon-button {
+  position: relative;
+}
+
+.admin-chat-card.is-closed {
+  border-color: #fecaca !important;
+  background: #fef2f2 !important;
+  color: #7f1d1d;
+}
+
+.admin-chat-card.is-closed .admin-chat-summary__main small,
+.admin-chat-card.is-closed .admin-chat-summary__main span:last-child {
+  color: #991b1b;
+}
+
+.admin-chat-attachment-name {
+  grid-column: 1 / -1;
+  margin: -0.35rem 0 0;
+}
+
+.admin-page-actions--compact,
+.admin-filter-pills--below {
+  margin-top: -0.35rem;
+}
+
+.admin-page-actions--compact .admin-btn,
+.admin-filter-pills--below .admin-filter-pill {
+  min-height: 34px;
+  padding: 0 0.8rem;
+  font-size: 0.85rem;
 }
 
 .admin-alert {

@@ -4,6 +4,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { sampleResorts } from "@/lib/sample-data";
 import type { PublishStatus, ResortRoomSummary, ResortSummary } from "@/lib/types";
 
+export type PropertyType = "resort" | "liveaboard" | "hotel";
+
 export type ResortRoomRecord = {
   id?: string;
   name: string;
@@ -20,6 +22,7 @@ export type ResortRoomRecord = {
 
 export type ResortRecord = {
   id: string;
+  propertyType: PropertyType;
   slug: string;
   name: string;
   location: string;
@@ -44,6 +47,7 @@ export type ResortRecord = {
 
 type ResortRow = {
   id: string;
+  property_type?: PropertyType | null;
   slug: string;
   name: string;
   atoll: string | null;
@@ -94,6 +98,25 @@ function isMissingFeaturedHomepageColumnError(error: unknown) {
   return message.includes("is_featured_homepage");
 }
 
+function isMissingPropertyTypeColumnError(error: unknown) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message?: unknown }).message ?? "")
+        : "";
+
+  return message.includes("property_type");
+}
+
+function normalizePropertyType(value?: string | null): PropertyType {
+  return value === "liveaboard" || value === "hotel" ? value : "resort";
+}
+
+function propertyBasePath(propertyType: PropertyType) {
+  return propertyType === "liveaboard" ? "/liveaboards" : propertyType === "hotel" ? "/hotels" : "/resorts";
+}
+
 function toStringArray(value: unknown) {
   return Array.isArray(value) ? value.map((item) => String(item)).filter(Boolean) : [];
 }
@@ -108,6 +131,7 @@ function mapResortRow(row: ResortRow): ResortRecord {
 
   return {
     id: row.id,
+    propertyType: normalizePropertyType(row.property_type),
     slug: row.slug,
     name: row.name,
     location: row.atoll ?? "",
@@ -240,15 +264,20 @@ async function attachResortRelations(resorts: ResortRecord[]) {
   }));
 }
 
-export async function listAdminResorts(): Promise<ResortRecord[]> {
+export async function listAdminResorts(propertyType: PropertyType = "resort"): Promise<ResortRecord[]> {
   try {
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase
+    const query = supabase
       .from("resorts")
       .select("*")
+      .eq("property_type", propertyType)
       .order("updated_at", { ascending: false });
+    const { data, error } = await query;
 
     if (error) {
+      if (isMissingPropertyTypeColumnError(error)) {
+        return propertyType === "resort" ? listAdminResortsWithoutPropertyType() : [];
+      }
       throw error;
     }
 
@@ -260,6 +289,17 @@ export async function listAdminResorts(): Promise<ResortRecord[]> {
   } catch {
     return [];
   }
+}
+
+async function listAdminResortsWithoutPropertyType(): Promise<ResortRecord[]> {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.from("resorts").select("*").order("updated_at", { ascending: false });
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  return attachResortRelations((data as ResortRow[]).map(mapResort));
 }
 
 export async function getAdminResortById(id: string): Promise<ResortRecord | null> {
@@ -282,21 +322,26 @@ export async function getAdminResortById(id: string): Promise<ResortRecord | nul
   }
 }
 
-async function listPublishedResortRows() {
+async function listPublishedResortRows(propertyType: PropertyType = "resort") {
   const supabase = createSupabaseAdminClient();
   const firstAttempt = await supabase
     .from("resorts")
-    .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status,is_featured_homepage")
+    .select("id,property_type,slug,name,atoll,category,transfer_type,description,seo_summary,status,is_featured_homepage")
     .eq("status", "published")
+    .eq("property_type", propertyType)
     .order("updated_at", { ascending: false });
 
   if (!firstAttempt.error) {
     return (firstAttempt.data ?? []) as Array<
       Pick<
         ResortRow,
-        "id" | "slug" | "name" | "atoll" | "category" | "transfer_type" | "description" | "seo_summary" | "status" | "is_featured_homepage"
+        "id" | "property_type" | "slug" | "name" | "atoll" | "category" | "transfer_type" | "description" | "seo_summary" | "status" | "is_featured_homepage"
       >
     >;
+  }
+
+  if (isMissingPropertyTypeColumnError(firstAttempt.error)) {
+    return propertyType === "resort" ? listPublishedResortRowsWithoutPropertyType() : [];
   }
 
   if (!isMissingFeaturedHomepageColumnError(firstAttempt.error)) {
@@ -307,9 +352,13 @@ async function listPublishedResortRows() {
     .from("resorts")
     .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status")
     .eq("status", "published")
+    .eq("property_type", propertyType)
     .order("updated_at", { ascending: false });
 
   if (fallbackAttempt.error) {
+    if (isMissingPropertyTypeColumnError(fallbackAttempt.error)) {
+      return propertyType === "resort" ? listPublishedResortRowsWithoutPropertyType() : [];
+    }
     throw fallbackAttempt.error;
   }
 
@@ -321,10 +370,31 @@ async function listPublishedResortRows() {
   }));
 }
 
+async function listPublishedResortRowsWithoutPropertyType() {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("resorts")
+    .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status")
+    .eq("status", "published")
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return ((data ?? []) as Array<
+    Pick<ResortRow, "id" | "slug" | "name" | "atoll" | "category" | "transfer_type" | "description" | "seo_summary" | "status">
+  >).map((row) => ({
+    ...row,
+    property_type: "resort" as PropertyType,
+    is_featured_homepage: false
+  }));
+}
+
 const getCachedPublishedResorts = unstable_cache(
   async (): Promise<ResortSummary[]> => {
     try {
-      const resortRows = await listPublishedResortRows();
+      const resortRows = await listPublishedResortRows("resort");
 
       if (!resortRows.length) {
         return [];
@@ -361,6 +431,32 @@ export async function listPublishedResorts(): Promise<ResortSummary[]> {
   return getCachedPublishedResorts();
 }
 
+export async function listPublishedProperties(propertyType: PropertyType): Promise<ResortSummary[]> {
+  if (propertyType === "resort") {
+    return listPublishedResorts();
+  }
+
+  try {
+    const rows = await listPublishedResortRows(propertyType);
+    const heroMedia = await fetchResortHeroMedia(rows.map((row) => row.id));
+
+    return rows.map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      location: row.atoll ?? "",
+      category: row.category ?? "",
+      transferType: row.transfer_type ?? "",
+      summary: row.seo_summary ?? row.description ?? "",
+      heroImageUrl: heroMedia.get(row.id) ?? "",
+      status: row.status,
+      isFeaturedHomepage: Boolean(row.is_featured_homepage)
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export async function listHomepageFeaturedResorts(limit = 5): Promise<ResortSummary[]> {
   const resorts = await listPublishedResorts();
   const featured = resorts
@@ -374,7 +470,7 @@ export async function listHomepageFeaturedResorts(limit = 5): Promise<ResortSumm
   return resorts.slice(0, limit);
 }
 
-export async function getResortBySlug(slug: string): Promise<ResortRecord | null> {
+export async function getResortBySlug(slug: string, propertyType: PropertyType = "resort"): Promise<ResortRecord | null> {
   try {
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase
@@ -382,9 +478,13 @@ export async function getResortBySlug(slug: string): Promise<ResortRecord | null
       .select("*")
       .eq("slug", slug)
       .eq("status", "published")
+      .eq("property_type", propertyType)
       .maybeSingle();
 
     if (error) {
+      if (isMissingPropertyTypeColumnError(error) && propertyType === "resort") {
+        return getResortBySlugWithoutPropertyType(slug);
+      }
       throw error;
     }
 
@@ -397,6 +497,23 @@ export async function getResortBySlug(slug: string): Promise<ResortRecord | null
   } catch {
     return null;
   }
+}
+
+async function getResortBySlugWithoutPropertyType(slug: string): Promise<ResortRecord | null> {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("resorts")
+    .select("*")
+    .eq("slug", slug)
+    .eq("status", "published")
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const [resort] = await attachResortRelations([mapResort(data as ResortRow)]);
+  return resort ?? null;
 }
 
 export async function listSimilarPublishedResorts(slug: string, category: string, limit = 3): Promise<ResortSummary[]> {
@@ -414,6 +531,7 @@ export async function listSimilarPublishedResorts(slug: string, category: string
 
 export async function saveResort(input: {
   id?: string;
+  propertyType?: PropertyType;
   slug: string;
   name: string;
   location: string;
@@ -433,8 +551,10 @@ export async function saveResort(input: {
 }) {
   const supabase = createSupabaseAdminClient();
   const now = new Date().toISOString();
+  const propertyType = normalizePropertyType(input.propertyType);
   const basePayload = {
     id: input.id,
+    property_type: propertyType,
     slug: input.slug,
     name: input.name,
     atoll: input.location,
@@ -470,10 +590,26 @@ export async function saveResort(input: {
   data = firstAttempt.data;
   error = firstAttempt.error;
 
-  if (error && isMissingFeaturedHomepageColumnError(error)) {
+  if (error && isMissingPropertyTypeColumnError(error)) {
+    const { property_type: _propertyType, ...legacyPayload } = basePayload;
     const fallbackAttempt = await supabase
       .from("resorts")
-      .upsert(basePayload)
+      .upsert({
+        ...legacyPayload,
+        is_featured_homepage: input.status === "published" ? input.isFeaturedHomepage : false
+      })
+      .select("id")
+      .single();
+
+    data = fallbackAttempt.data;
+    error = fallbackAttempt.error;
+  }
+
+  if (error && isMissingFeaturedHomepageColumnError(error)) {
+    const { property_type: _propertyType, ...legacyPayload } = basePayload;
+    const fallbackAttempt = await supabase
+      .from("resorts")
+      .upsert(legacyPayload)
       .select("id")
       .single();
 
@@ -559,8 +695,8 @@ export async function saveResort(input: {
 
   revalidateTag("resorts-public");
   revalidatePath("/");
-  revalidatePath("/resorts");
-  revalidatePath(`/resorts/${input.slug}`);
+  revalidatePath(propertyBasePath(propertyType));
+  revalidatePath(`${propertyBasePath(propertyType)}/${input.slug}`);
 }
 
 export async function deleteResort(id: string) {
@@ -615,8 +751,8 @@ export async function seedSampleResorts() {
   }
 }
 
-export async function getResortCounts() {
-  const resorts = await listAdminResorts();
+export async function getResortCounts(propertyType: PropertyType = "resort") {
+  const resorts = await listAdminResorts(propertyType);
   return {
     total: resorts.length,
     published: resorts.filter((resort) => resort.status === "published").length,

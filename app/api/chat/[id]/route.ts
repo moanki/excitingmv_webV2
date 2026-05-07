@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { addChatReply, getConversation } from "@/lib/services/chat-service";
+import { addChatReply, getConversation, updateChatConversationStatus } from "@/lib/services/chat-service";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -34,5 +34,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   await addChatReply(id, body || "Attachment uploaded.", "guest", attachment);
+  return NextResponse.json({ ok: true });
+}
+
+export async function PATCH(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  await updateChatConversationStatus(id, "resolved");
   return NextResponse.json({ ok: true });
 }

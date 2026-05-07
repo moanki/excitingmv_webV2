@@ -22,10 +22,24 @@ import {
 } from "@/app/admin/resorts/actions";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 import type { PublishStatus, ResortPublishingMode } from "@/lib/types";
-import type { ResortRecord } from "@/lib/services/resort-service";
+import type { PropertyType, ResortRecord } from "@/lib/services/resort-service";
 
 type ResortEditorMode = "create" | "edit";
 type ResortFilter = "all" | "published" | "draft" | "featured";
+
+type PropertyLabels = {
+  singular: string;
+  plural: string;
+  publicBasePath: string;
+  adminBasePath: string;
+};
+
+const resortLabels: PropertyLabels = {
+  singular: "Resort",
+  plural: "Resorts",
+  publicBasePath: "/resorts",
+  adminBasePath: "/admin/resorts"
+};
 
 type EditableRoom = {
   name: string;
@@ -455,13 +469,17 @@ export function ResortEditor({
   title,
   description,
   mediaLibrary,
-  mode
+  mode,
+  propertyType = "resort",
+  labels = resortLabels
 }: {
   resort: Partial<ResortRecord> & { id?: string; name?: string };
   title: string;
   description: string;
   mediaLibrary: MediaLibraryItem[];
   mode: ResortEditorMode;
+  propertyType?: PropertyType;
+  labels?: PropertyLabels;
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(saveResortAction, undefined);
@@ -495,7 +513,7 @@ export function ResortEditor({
   const [seoStatus, setSeoStatus] = useState<{ message?: string; error?: string } | null>(null);
 
   const formId = resort.id ? `resort-editor-form-${resort.id}` : "resort-editor-form-new";
-  const previewHref = resort.slug ? `/resorts/${resort.slug}` : null;
+  const previewHref = resort.slug ? `${labels.publicBasePath}/${resort.slug}` : null;
   const currentPublishingMode =
     status === "published"
       ? isFeaturedHomepage
@@ -539,15 +557,15 @@ export function ResortEditor({
   return (
     <section className="resort-workspace stack">
       <div className="resort-workspace__topbar">
-        <Link href="/admin/resorts" className="admin-back-link">
+        <Link href={labels.adminBasePath} className="admin-back-link">
           <ArrowLeft className="admin-icon" />
-          Back to Resort Manager
+          Back to {labels.singular} Manager
         </Link>
         <div className="resort-workspace__topbar-actions">
           {previewHref ? (
             <Link className="admin-btn admin-btn--secondary" href={previewHref} target="_blank">
               <Eye className="admin-icon" />
-              Preview Resort
+              Preview {labels.singular}
             </Link>
           ) : null}
           <button className="admin-btn admin-btn--primary" type="submit" form={formId} disabled={pending}>
@@ -579,6 +597,7 @@ export function ResortEditor({
 
       <form id={formId} action={action} encType="multipart/form-data" className="stack admin-form-card resort-workspace__form">
         {resort.id ? <input type="hidden" name="id" value={resort.id} /> : null}
+        <input type="hidden" name="propertyType" value={propertyType} />
         <input type="hidden" name="roomCount" value={rooms.length} />
 
         <section className="admin-form-section" id="basics">
@@ -591,7 +610,7 @@ export function ResortEditor({
 
           <div className="form-grid">
             <label className="field">
-              <span className="field__label">Resort Name</span>
+              <span className="field__label">{labels.singular} Name</span>
               <input className="admin-input" name="name" value={name} onChange={(event) => setName(event.target.value)} />
             </label>
             <label className="field">
@@ -660,7 +679,7 @@ export function ResortEditor({
           <div className="admin-form-section__header">
             <h3 className="admin-form-section__title">Details</h3>
             <p className="admin-form-section__help">
-              Public-facing resort copy, highlights, and meal plan tags.
+              Public-facing {labels.singular.toLowerCase()} copy, highlights, and meal plan tags.
             </p>
           </div>
 
@@ -703,13 +722,13 @@ export function ResortEditor({
           <div className="admin-form-section__header">
             <h3 className="admin-form-section__title">Media</h3>
             <p className="admin-form-section__help">
-              Focus the public workflow on the resort banner image and room photos. Gallery fields are still available
+              Focus the public workflow on the {labels.singular.toLowerCase()} banner image and room photos. Gallery fields are still available
               but kept secondary.
             </p>
           </div>
 
           <MediaField
-            label="Resort banner image"
+            label={`${labels.singular} banner image`}
             inputName="heroImageUrl"
             fileName="heroImageFile"
             accept="image/png,image/jpeg,image/webp,image/svg+xml"
@@ -792,12 +811,12 @@ export function ResortEditor({
         </section>
 
         <div className="admin-form-actions resort-workspace__footer-actions">
-          <Link href="/admin/resorts" className="admin-btn admin-btn--ghost">
+          <Link href={labels.adminBasePath} className="admin-btn admin-btn--ghost">
             Cancel
           </Link>
           {resort.id ? (
             <button className="admin-btn admin-btn--danger" type="submit" form={`delete-resort-${resort.id}`}>
-              Delete Resort
+              Delete {labels.singular}
             </button>
           ) : null}
           <button
@@ -820,7 +839,7 @@ export function ResortEditor({
               : currentPublishingMode}
             disabled={pending}
           >
-            {pending ? "Saving..." : "Publish Resort"}
+            {pending ? "Saving..." : `Publish ${labels.singular}`}
           </button>
         </div>
 
@@ -830,13 +849,22 @@ export function ResortEditor({
       {resort.id ? (
         <form id={`delete-resort-${resort.id}`} action={deleteResortAction}>
           <input type="hidden" name="id" value={resort.id} />
+          <input type="hidden" name="propertyType" value={propertyType} />
         </form>
       ) : null}
     </section>
   );
 }
 
-export function ResortManagerListView({ resorts }: { resorts: ResortRecord[] }) {
+export function ResortManagerListView({
+  resorts,
+  propertyType = "resort",
+  labels = resortLabels
+}: {
+  resorts: ResortRecord[];
+  propertyType?: PropertyType;
+  labels?: PropertyLabels;
+}) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<ResortFilter>("all");
 
@@ -885,7 +913,7 @@ export function ResortManagerListView({ resorts }: { resorts: ResortRecord[] }) 
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search resorts..."
+            placeholder={`Search ${labels.plural.toLowerCase()}...`}
           />
         </label>
         <div className="resort-filter-pills" role="tablist" aria-label="Resort filters">
@@ -938,18 +966,19 @@ export function ResortManagerListView({ resorts }: { resorts: ResortRecord[] }) 
                 </div>
 
                 <div className="resort-manager-card__actions">
-                  <Link className="admin-btn admin-btn--primary" href={`/admin/resorts/${resort.id}/edit`}>
+                    <Link className="admin-btn admin-btn--primary" href={`${labels.adminBasePath}/${resort.id}/edit`}>
                     <Pencil className="admin-icon" />
                     Edit
                   </Link>
                   {resort.slug ? (
-                    <Link className="admin-btn admin-btn--secondary" href={`/resorts/${resort.slug}`} target="_blank">
+                    <Link className="admin-btn admin-btn--secondary" href={`${labels.publicBasePath}/${resort.slug}`} target="_blank">
                       <Eye className="admin-icon" />
                       Preview
                     </Link>
                   ) : null}
                   <form action={deleteResortAction}>
                     <input type="hidden" name="id" value={resort.id} />
+                    <input type="hidden" name="propertyType" value={propertyType} />
                     <button className="admin-btn admin-btn--danger" type="submit">
                       <Trash2 className="admin-icon" />
                       Delete

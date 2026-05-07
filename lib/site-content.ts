@@ -439,8 +439,8 @@ export const defaultNavbarContent: NavbarContent = {
   blackLogoUrl: "https://dummyimage.com/420x120/111111/ffffff&text=Exciting+Maldives",
   navItems: [
     { label: "Resort", href: "/resorts", enabled: true, external: false },
-    { label: "Hotels", href: "/resorts?collection=hotels", enabled: true, external: false },
-    { label: "Live Boards", href: "/resorts?collection=live-boards", enabled: true, external: false },
+    { label: "Hotels", href: "/hotels", enabled: true, external: false },
+    { label: "Liveaboard", href: "/liveaboards", enabled: true, external: false },
     { label: "Map", href: "/#global-markets", enabled: true, external: false },
     { label: "Info", href: "/travel-guide", enabled: true, external: false }
   ],

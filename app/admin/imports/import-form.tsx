@@ -20,6 +20,28 @@ type DriveImportProgress = {
   logs: ImportLogEntry[];
 };
 
+const categoryOptions = [
+  { value: "resort", label: "Resort" },
+  { value: "liveaboard", label: "Liveaboard" },
+  { value: "hotel", label: "Hotel" }
+] as const;
+
+function CategorySelector({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return (
+    <label className="field">
+      <span className="field__label">Import Category</span>
+      <select className="admin-select" name="propertyType" value={value} onChange={(event) => onChange(event.target.value)}>
+        {categoryOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+      <p className="field__help">Imported content is saved only under this selected content type.</p>
+    </label>
+  );
+}
+
 function formatCheckpointDate(value: string) {
   return new Intl.DateTimeFormat("en", {
     month: "short",
@@ -264,6 +286,7 @@ function ImportDrivePanel() {
   const [state, setState] = useState<ImportActionState>(undefined);
   const [pending, setPending] = useState(false);
   const [liveProgress, setLiveProgress] = useState<DriveImportProgress | null>(null);
+  const [propertyType, setPropertyType] = useState("resort");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -273,6 +296,7 @@ function ImportDrivePanel() {
 
     try {
       const formData = new FormData(event.currentTarget);
+      const selectedPropertyType = String(formData.get("propertyType") ?? "resort");
       const startResponse = await fetch("/api/admin/imports", {
         method: "POST",
         headers: {
@@ -280,7 +304,8 @@ function ImportDrivePanel() {
         },
         body: JSON.stringify({
           mode: "start",
-          googleDriveUrl: String(formData.get("googleDriveUrl") ?? "")
+          googleDriveUrl: String(formData.get("googleDriveUrl") ?? ""),
+          propertyType: selectedPropertyType
         })
       });
 
@@ -323,7 +348,8 @@ function ImportDrivePanel() {
             mode: "process",
             batchId: startPayload.data.batchId,
             sourceUrl: startPayload.data.sourceFiles[index],
-            sourceIndex: index
+            sourceIndex: index,
+            propertyType: selectedPropertyType
           })
         });
 
@@ -378,7 +404,8 @@ function ImportDrivePanel() {
           warningCount: progress.warningCount,
           errorCount: progress.errorCount,
           providerUsages: progress.providerUsages,
-          logs: progress.logs
+          logs: progress.logs,
+          propertyType: selectedPropertyType
         })
       });
 
@@ -421,6 +448,7 @@ function ImportDrivePanel() {
 
       <form onSubmit={handleSubmit} className="stack">
         <div className="form-grid">
+          <CategorySelector value={propertyType} onChange={setPropertyType} />
           <label className="field field--full">
             <span className="field__label">Google Drive URL</span>
             <input
@@ -461,6 +489,7 @@ function ImportDrivePanel() {
 function ImportUploadPanel() {
   const [state, setState] = useState<ImportActionState>(undefined);
   const [pending, setPending] = useState(false);
+  const [propertyType, setPropertyType] = useState("resort");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -470,6 +499,7 @@ function ImportUploadPanel() {
     try {
       const formData = new FormData(event.currentTarget);
       const upload = formData.get("factSheetFile");
+      const selectedPropertyType = String(formData.get("propertyType") ?? "resort");
 
       if (!(upload instanceof File) || upload.size === 0) {
         setState({
@@ -488,7 +518,8 @@ function ImportUploadPanel() {
         body: JSON.stringify({
           mode: "create-upload-url",
           filename: upload.name,
-          contentType: upload.type || "application/pdf"
+          contentType: upload.type || "application/pdf",
+          propertyType: selectedPropertyType
         })
       });
 
@@ -538,7 +569,8 @@ function ImportUploadPanel() {
         body: JSON.stringify({
           mode: "upload-url",
           sourceUrl: signedUploadPayload.data.publicUrl,
-          filename: upload.name
+          filename: upload.name,
+          propertyType: selectedPropertyType
         })
       });
 
@@ -581,6 +613,7 @@ function ImportUploadPanel() {
 
       <form onSubmit={handleSubmit} className="stack">
         <div className="form-grid">
+          <CategorySelector value={propertyType} onChange={setPropertyType} />
           <label className="field field--full">
             <span className="field__label">Fact Sheet PDF</span>
             <input className="admin-file-input" name="factSheetFile" type="file" accept="application/pdf,.pdf" required />

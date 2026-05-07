@@ -7,6 +7,7 @@ import {
   importUploadedFactSheet,
   type ImportExecutionResult
 } from "@/lib/services/import-service";
+import type { PropertyType } from "@/lib/services/resort-service";
 
 export type ImportActionState =
   | {
@@ -20,9 +21,14 @@ export type ImportActionState =
     }
   | undefined;
 
+function normalizePropertyType(value: FormDataEntryValue | null): PropertyType {
+  return value === "liveaboard" || value === "hotel" ? value : "resort";
+}
+
 export async function createImportBatchAction(_: ImportActionState, formData: FormData): Promise<ImportActionState> {
   const result = await createImportBatch({
-    googleDriveUrl: String(formData.get("googleDriveUrl") ?? "")
+    googleDriveUrl: String(formData.get("googleDriveUrl") ?? ""),
+    propertyType: normalizePropertyType(formData.get("propertyType"))
   });
 
   if (!result.ok) {
@@ -39,7 +45,10 @@ export async function createImportBatchAction(_: ImportActionState, formData: Fo
 
 export async function createImportUploadAction(_: ImportActionState, formData: FormData): Promise<ImportActionState> {
   const upload = formData.get("factSheetFile");
-  const result = await importUploadedFactSheet(upload instanceof File ? upload : new File([], ""));
+  const result = await importUploadedFactSheet(
+    upload instanceof File ? upload : new File([], ""),
+    normalizePropertyType(formData.get("propertyType"))
+  );
 
   if (!result.ok) {
     return { ok: false, error: result.error };

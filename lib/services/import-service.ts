@@ -3,7 +3,7 @@ import {
   type ImportedResort,
   type ImportedResortPayload
 } from "@/lib/services/resort-ai-service";
-import { listAdminResorts, saveResort } from "@/lib/services/resort-service";
+import { listAdminResorts, saveResort, type PropertyType } from "@/lib/services/resort-service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { PublishStatus, ServiceResult } from "@/lib/types";
 import { aiImportRequestSchema } from "@/lib/validations";
@@ -68,6 +68,7 @@ type ImportCheckpointPayload = {
   checkpointVersion: 2;
   sourceUrl: string;
   filename: string;
+  propertyType: PropertyType;
   notes: string;
   resorts: ImportedResort[];
 };
@@ -102,6 +103,7 @@ export type ImportCheckpointRecord = {
   sourceType: string;
   sourceUrl: string;
   filename: string;
+  propertyType: PropertyType;
   notes: string;
   reviewStatus: string;
   createdAt: string;
@@ -304,21 +306,32 @@ function compactStagingPayload(
   };
 }
 
-function buildCheckpointPayload(sourceUrl: string, filename: string, extracted: ImportedResortPayload): ImportCheckpointPayload {
+function normalizePropertyType(value?: string | null): PropertyType {
+  return value === "liveaboard" || value === "hotel" ? value : "resort";
+}
+
+function buildCheckpointPayload(
+  sourceUrl: string,
+  filename: string,
+  extracted: ImportedResortPayload,
+  propertyType: PropertyType = "resort"
+): ImportCheckpointPayload {
   return {
     checkpointVersion: 2,
     sourceUrl,
     filename,
+    propertyType,
     notes: extracted.notes,
     resorts: extracted.resorts
   };
 }
 
-function toSaveResortInput(resort: ImportedResort) {
+function toSaveResortInput(resort: ImportedResort, propertyType: PropertyType = "resort") {
   const publishing = publishingToStatus(resort.publishingMode);
 
   return {
     slug: slugify(resort.slug || resort.name),
+    propertyType,
     name: resort.name.trim(),
     location: resort.location.trim(),
     category: resort.category.trim(),
@@ -595,7 +608,11 @@ export async function startDriveImportBatch(
   try {
     const sourceUrl = parsed.data.googleDriveUrl;
     const sourceFiles = await resolveGoogleDriveSources(sourceUrl);
-    const batchId = await createImportBatchRecord(createBatchName(sourceUrl), "google_drive_pdf", sourceUrl);
+    const batchId = await createImportBatchRecord(
+      createBatchName(sourceUrl),
+      `google_drive_pdf:${parsed.data.propertyType}`,
+      sourceUrl
+    );
 
     return {
       ok: true,
@@ -617,9 +634,11 @@ export async function processDriveImportSource(input: {
   batchId: string;
   sourceUrl: string;
   sourceIndex: number;
+  propertyType?: PropertyType;
 }): Promise<ServiceResult<ImportExecutionDelta>> {
   try {
-    const existingResorts = await listAdminResorts();
+    const propertyType = normalizePropertyType(input.propertyType);
+    const existingResorts = await listAdminResorts(propertyType);
     const existingIndex = buildExistingResortIdentityIndex(existingResorts);
     const downloadedPdf = await downloadPdfSource(input.sourceUrl, input.sourceIndex);
     const logs: ImportLogEntry[] = [
@@ -678,9 +697,10 @@ export async function processDriveImportSource(input: {
           input.batchId,
           {
             sourceUrl: input.sourceUrl,
-            filename: downloadedPdf.filename
+            filename: downloadedPdf.filename,
+            propertyType
           },
-          buildCheckpointPayload(input.sourceUrl, downloadedPdf.filename, extracted)
+          buildCheckpointPayload(input.sourceUrl, downloadedPdf.filename, extracted, propertyType)
         );
 
         return {
@@ -712,9 +732,10 @@ export async function processDriveImportSource(input: {
           input.batchId,
           {
             sourceUrl: input.sourceUrl,
-            filename: downloadedPdf.filename
+            filename: downloadedPdf.filename,
+            propertyType
           },
-          buildCheckpointPayload(input.sourceUrl, downloadedPdf.filename, extracted)
+          buildCheckpointPayload(input.sourceUrl, downloadedPdf.filename, extracted, propertyType)
         );
 
         return {
@@ -731,7 +752,7 @@ export async function processDriveImportSource(input: {
         };
       }
 
-      await saveResort(toSaveResortInput(resort));
+      await saveResort(toSaveResortInput(resort, propertyType));
 
       logs.push({
         sourceUrl: input.sourceUrl,
@@ -747,9 +768,10 @@ export async function processDriveImportSource(input: {
         input.batchId,
         {
           sourceUrl: input.sourceUrl,
-          filename: downloadedPdf.filename
+          filename: downloadedPdf.filename,
+          propertyType
         },
-        buildCheckpointPayload(input.sourceUrl, downloadedPdf.filename, extracted)
+        buildCheckpointPayload(input.sourceUrl, downloadedPdf.filename, extracted, propertyType)
       );
 
       return {
@@ -890,7 +912,7 @@ export async function createImportBatch(
 
   try {
     const sourceFiles = await resolveGoogleDriveSources(sourceUrl);
-    const existingResorts = await listAdminResorts();
+    const existingResorts = await listAdminResorts(parsed.data.propertyType);
     const existingSlugs = new Set(existingResorts.map((resort) => slugify(resort.slug)));
     const existingNames = new Set(existingResorts.map((resort) => resort.name.trim().toLowerCase()));
 
@@ -977,6 +999,7 @@ export async function createImportBatch(
               bedType: room.bedType.trim(),
               amenities: room.amenities.filter(Boolean)
             })),
+          propertyType: parsed.data.propertyType,
           status: publishing.status,
           isFeaturedHomepage: publishing.isFeaturedHomepage
         });
@@ -1008,6 +1031,7 @@ export async function createImportBatch(
     await supabase.from("resort_staging").insert({
       batch_id: (batchData as ImportBatchRow).id,
       raw_payload: {
+        propertyType: parsed.data.propertyType,
         sourceUrl,
         resolvedFileCount: sourceFiles.length,
         resolvedFiles: sourceFiles.slice(0, MAX_STAGING_ITEMS),
@@ -1058,7 +1082,10 @@ export async function createImportBatch(
   }
 }
 
-export async function importUploadedFactSheet(file: File): Promise<ServiceResult<ImportExecutionResult>> {
+export async function importUploadedFactSheet(
+  file: File,
+  propertyType: PropertyType = "resort"
+): Promise<ServiceResult<ImportExecutionResult>> {
   if (!(file instanceof File) || file.size === 0) {
     return {
       ok: false,
@@ -1071,7 +1098,7 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
     .from("import_batches")
     .insert({
       batch_name: createUploadBatchName(file.name || "uploaded-fact-sheet.pdf"),
-      source_type: "uploaded_pdf",
+      source_type: `uploaded_pdf:${propertyType}`,
       file_path: file.name || "uploaded-fact-sheet.pdf",
       status: "processing"
     })
@@ -1088,7 +1115,7 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
   }
 
   try {
-    const existingResorts = await listAdminResorts();
+    const existingResorts = await listAdminResorts(propertyType);
     const existingIndex = buildExistingResortIdentityIndex(existingResorts);
     const downloadedPdf = await createDownloadedPdfFromUpload(file);
 
@@ -1170,7 +1197,7 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
             message: `Skipped existing resort: ${resort.name.trim()}.`
           });
         } else {
-          await saveResort(toSaveResortInput(resort));
+          await saveResort(toSaveResortInput(resort, propertyType));
 
           importedCount += 1;
           logs.push({
@@ -1201,9 +1228,10 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
         {
           source: "upload",
           filename: downloadedPdf.filename,
-          sourceUrl: downloadedPdf.sourceUrl
+          sourceUrl: downloadedPdf.sourceUrl,
+          propertyType
         },
-        buildCheckpointPayload(downloadedPdf.sourceUrl, downloadedPdf.filename, stagedPayloads[0].extracted)
+        buildCheckpointPayload(downloadedPdf.sourceUrl, downloadedPdf.filename, stagedPayloads[0].extracted, propertyType)
       );
     }
 
@@ -1250,6 +1278,7 @@ export async function importUploadedFactSheet(file: File): Promise<ServiceResult
 export async function importStoredFactSheet(input: {
   sourceUrl: string;
   filename: string;
+  propertyType?: PropertyType;
 }): Promise<ServiceResult<ImportExecutionResult>> {
   if (!input.sourceUrl.trim()) {
     return {
@@ -1258,12 +1287,13 @@ export async function importStoredFactSheet(input: {
     };
   }
 
+  const propertyType = normalizePropertyType(input.propertyType);
   const supabase = createSupabaseAdminClient();
   const { data: batchData, error: batchError } = await supabase
     .from("import_batches")
     .insert({
       batch_name: createUploadBatchName(input.filename || "uploaded-fact-sheet.pdf"),
-      source_type: "uploaded_pdf",
+      source_type: `uploaded_pdf:${propertyType}`,
       file_path: input.sourceUrl,
       status: "processing"
     })
@@ -1280,7 +1310,7 @@ export async function importStoredFactSheet(input: {
   }
 
   try {
-    const existingResorts = await listAdminResorts();
+    const existingResorts = await listAdminResorts(propertyType);
     const existingIndex = buildExistingResortIdentityIndex(existingResorts);
     const downloadedPdf = await downloadPdfSource(input.sourceUrl, 0);
     downloadedPdf.filename = input.filename?.trim() || downloadedPdf.filename;
@@ -1363,7 +1393,7 @@ export async function importStoredFactSheet(input: {
             message: `Skipped existing resort: ${resort.name.trim()}.`
           });
         } else {
-          await saveResort(toSaveResortInput(resort));
+          await saveResort(toSaveResortInput(resort, propertyType));
 
           importedCount += 1;
           logs.push({
@@ -1394,9 +1424,10 @@ export async function importStoredFactSheet(input: {
         {
           source: "stored-upload",
           filename: downloadedPdf.filename,
-          sourceUrl: downloadedPdf.sourceUrl
+          sourceUrl: downloadedPdf.sourceUrl,
+          propertyType
         },
-        buildCheckpointPayload(downloadedPdf.sourceUrl, downloadedPdf.filename, stagedPayloads[0].extracted)
+        buildCheckpointPayload(downloadedPdf.sourceUrl, downloadedPdf.filename, stagedPayloads[0].extracted, propertyType)
       );
     }
 
@@ -1458,6 +1489,13 @@ function mapCheckpointRow(row: ResortStagingRow): ImportCheckpointRecord {
     items?: Array<{ resorts?: Array<Record<string, unknown>> }>;
   };
   const resorts = Array.isArray(checkpointPayload.resorts) ? (checkpointPayload.resorts as ImportedResort[]) : [];
+  const propertyType = normalizePropertyType(
+    typeof checkpointPayload.propertyType === "string"
+      ? checkpointPayload.propertyType
+      : typeof raw.propertyType === "string"
+        ? raw.propertyType
+        : null
+  );
   const sourceUrl =
     typeof checkpointPayload.sourceUrl === "string"
       ? checkpointPayload.sourceUrl
@@ -1478,6 +1516,7 @@ function mapCheckpointRow(row: ResortStagingRow): ImportCheckpointRecord {
     sourceType: relation?.source_type ?? "unknown",
     sourceUrl,
     filename,
+    propertyType,
     notes: typeof checkpointPayload.notes === "string" ? checkpointPayload.notes : "",
     reviewStatus: row.review_status,
     createdAt: row.created_at,
@@ -1529,7 +1568,7 @@ export async function publishImportCheckpoint(input: {
       };
     }
 
-    const existingIndex = buildExistingResortIdentityIndex(await listAdminResorts());
+    const existingIndex = buildExistingResortIdentityIndex(await listAdminResorts(checkpoint.propertyType));
     if (isDuplicateImportedResort(resort, existingIndex)) {
       return {
         ok: false,
@@ -1537,7 +1576,7 @@ export async function publishImportCheckpoint(input: {
       };
     }
 
-    const saveInput = toSaveResortInput(resort);
+    const saveInput = toSaveResortInput(resort, checkpoint.propertyType);
     await saveResort(saveInput);
 
     const supabase = createSupabaseAdminClient();

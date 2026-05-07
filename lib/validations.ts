@@ -32,7 +32,8 @@ export const aiImportRequestSchema = z.object({
     .refine(
       (value) => value.includes("drive.google.com") || value.includes("docs.google.com"),
       "Enter a valid Google Drive or Google Docs URL."
-    )
+    ),
+  propertyType: z.enum(["resort", "liveaboard", "hotel"]).default("resort")
 });
 
 export const chatStartSchema = z.object({

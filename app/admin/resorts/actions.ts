@@ -3,19 +3,31 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 
 import { generateResortSeoCopy, type ResortSeoGenerationInput } from "@/lib/services/resort-ai-service";
-import { deleteResort, saveResort, seedSampleResorts } from "@/lib/services/resort-service";
+import { deleteResort, saveResort, seedSampleResorts, type PropertyType } from "@/lib/services/resort-service";
 import { uploadSiteAsset } from "@/lib/storage/site-assets";
 import type { PublishStatus } from "@/lib/types";
 import { resortSeoGenerationInputSchema } from "@/lib/validations";
 
 type ActionState = { message?: string; error?: string } | undefined;
 
-function revalidateResortPaths() {
+function normalizePropertyType(value: FormDataEntryValue | string | null): PropertyType {
+  return value === "liveaboard" || value === "hotel" ? value : "resort";
+}
+
+function adminPathForProperty(propertyType: PropertyType) {
+  return propertyType === "liveaboard" ? "/admin/liveaboards" : propertyType === "hotel" ? "/admin/hotels" : "/admin/resorts";
+}
+
+function publicPathForProperty(propertyType: PropertyType) {
+  return propertyType === "liveaboard" ? "/liveaboards" : propertyType === "hotel" ? "/hotels" : "/resorts";
+}
+
+function revalidateResortPaths(propertyType: PropertyType = "resort") {
   revalidatePath("/");
-  revalidatePath("/resorts");
+  revalidatePath(publicPathForProperty(propertyType));
   revalidatePath("/partner/resorts");
   revalidatePath("/admin");
-  revalidatePath("/admin/resorts");
+  revalidatePath(adminPathForProperty(propertyType));
   revalidateTag("resorts-public");
 }
 
@@ -110,6 +122,7 @@ async function parseRoomTypes(formData: FormData) {
 export async function saveResortAction(_: ActionState, formData: FormData) {
   try {
     const name = String(formData.get("name") ?? "").trim();
+    const propertyType = normalizePropertyType(formData.get("propertyType"));
     const explicitPublishingMode = String(formData.get("publishingMode") ?? "").trim();
     const publishing = explicitPublishingMode
       ? publishingState(explicitPublishingMode)
@@ -138,6 +151,7 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
     const roomTypes = await parseRoomTypes(formData);
     const input = {
       id: String(formData.get("id") ?? "").trim() || undefined,
+      propertyType,
       slug: slugify(String(formData.get("slug") ?? name)),
       name,
       location: String(formData.get("location") ?? "").trim(),
@@ -161,10 +175,10 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
     }
 
     await saveResort(input);
-    revalidateResortPaths();
-    revalidatePath(`/resorts/${input.slug}`);
+    revalidateResortPaths(propertyType);
+    revalidatePath(`${publicPathForProperty(propertyType)}/${input.slug}`);
     if (input.id) {
-      revalidatePath(`/admin/resorts/${input.id}/edit`);
+      revalidatePath(`${adminPathForProperty(propertyType)}/${input.id}/edit`);
     }
     return { message: `${input.name} saved.` };
   } catch (error) {
@@ -174,12 +188,13 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
 
 export async function deleteResortAction(formData: FormData) {
   const id = String(formData.get("id") ?? "");
+  const propertyType = normalizePropertyType(formData.get("propertyType"));
   if (!id) {
     return;
   }
 
   await deleteResort(id);
-  revalidateResortPaths();
+  revalidateResortPaths(propertyType);
 }
 
 export async function seedResortsAction() {
