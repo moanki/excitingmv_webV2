@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, Heart, Share2 } from "lucide-react";
 
 import { getResortBySlug, listPublishedProperties } from "@/lib/services/resort-service";
 
@@ -34,6 +36,11 @@ export default async function LiveaboardDetailPage({
           style={liveaboard.heroImageUrl ? { backgroundImage: `url(${liveaboard.heroImageUrl})` } : undefined}
         />
         <div className="resort-story-hero__overlay" />
+        <div className="mobile-detail-actions" aria-label="Liveaboard actions">
+          <Link href="/liveaboards" aria-label="Back to liveaboards"><ArrowLeft size={18} /></Link>
+          <button type="button" aria-label="Share liveaboard"><Share2 size={18} /></button>
+          <button type="button" aria-label="Save liveaboard"><Heart size={18} /></button>
+        </div>
         <div className="site-container resort-story-hero__inner">
           <div className="resort-story-hero__copy">
             <p className="section-kicker">{liveaboard.location || "Maldives"}</p>
@@ -45,6 +52,18 @@ export default async function LiveaboardDetailPage({
           </div>
         </div>
       </section>
+
+      {liveaboard.galleryMediaUrls.length ? (
+        <section className="site-section site-section--white mobile-detail-gallery" aria-label={`${liveaboard.name} gallery`}>
+          <div className="site-container">
+            <div className="mobile-gallery-grid">
+              {liveaboard.galleryMediaUrls.slice(0, 6).map((imageUrl) => (
+                <div key={imageUrl} style={{ backgroundImage: `url(${imageUrl})` }} />
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="site-section site-section--paper resort-story-facts">
         <div className="site-container stack">
@@ -70,6 +89,40 @@ export default async function LiveaboardDetailPage({
           </article>
         </div>
       </section>
+
+      {liveaboard.roomTypes.length ? (
+        <section className="site-section site-section--white">
+          <div className="site-container">
+            <div className="section-heading resort-story-section-heading">
+              <div>
+                <p className="eyebrow">Cabins</p>
+                <h2>Explore cabin types</h2>
+              </div>
+            </div>
+            <div className="resort-story-room-stack">
+              {liveaboard.roomTypes.map((room) => (
+                <article className="resort-story-room-card--property" key={room.id ?? room.name}>
+                  <div
+                    className="resort-story-room-card__media"
+                    style={room.photoUrl ? { backgroundImage: `url(${room.photoUrl})` } : undefined}
+                  />
+                  <div className="resort-story-room-card__body">
+                    <div className="resort-story-room-card__header">
+                      <p className="eyebrow">Cabin Type</p>
+                      <h3>{room.name}</h3>
+                    </div>
+                    <p>{room.description || room.seoDescription || "Cabin details coming soon."}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <div className="mobile-sticky-inquiry">
+        <a href="/#newsletter">Inquire Now</a>
+      </div>
     </main>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, Heart, Share2 } from "lucide-react";
 
 import {
   getResortBySlug,
@@ -75,6 +76,11 @@ export default async function ResortDetailPage({
           style={resort.heroImageUrl ? { backgroundImage: `url(${resort.heroImageUrl})` } : undefined}
         />
         <div className="resort-story-hero__overlay" />
+        <div className="mobile-detail-actions" aria-label="Resort actions">
+          <Link href="/resorts" aria-label="Back to resorts"><ArrowLeft size={18} /></Link>
+          <button type="button" aria-label="Share resort"><Share2 size={18} /></button>
+          <button type="button" aria-label="Save resort"><Heart size={18} /></button>
+        </div>
         <div className="site-container resort-story-hero__inner">
           <div className="resort-story-hero__copy">
             <p className="section-kicker">{resort.location || "Maldives"}</p>
@@ -91,6 +97,18 @@ export default async function ResortDetailPage({
           </div>
         </div>
       </section>
+
+      {resort.galleryMediaUrls.length ? (
+        <section className="site-section site-section--white mobile-detail-gallery" aria-label={`${resort.name} gallery`}>
+          <div className="site-container">
+            <div className="mobile-gallery-grid">
+              {resort.galleryMediaUrls.slice(0, 6).map((imageUrl) => (
+                <div key={imageUrl} style={{ backgroundImage: `url(${imageUrl})` }} />
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section className="site-section site-section--paper resort-story-facts">
         <div className="site-container stack">
@@ -298,6 +316,9 @@ export default async function ResortDetailPage({
           </div>
         </section>
       ) : null}
+      <div className="mobile-sticky-inquiry">
+        <a href="/#newsletter">Inquire Now</a>
+      </div>
     </main>
   );
 }

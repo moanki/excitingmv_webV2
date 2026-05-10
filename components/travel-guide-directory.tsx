@@ -20,16 +20,18 @@ export function TravelGuideDirectory({ guides }: { guides: HomepageGuideItem[] }
       return matchesCategory && (!normalizedQuery || searchable.includes(normalizedQuery));
     });
   }, [category, guides, query]);
+  const featuredGuide = filteredGuides[0];
+  const supportingGuides = featuredGuide ? filteredGuides.slice(1) : filteredGuides;
 
   return (
     <>
       <div className="guide-directory__tools">
         <label className="guide-directory__search">
-          <span>Search travel guides</span>
           <input
+            aria-label="Search travel guides"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search travel guides..."
+            placeholder="Search articles, tips and more..."
           />
         </label>
         <div className="guide-directory__filters" aria-label="Travel guide categories">
@@ -46,8 +48,20 @@ export function TravelGuideDirectory({ guides }: { guides: HomepageGuideItem[] }
         </div>
       </div>
 
+      {featuredGuide ? (
+        <Link href={`/travel-guide/${featuredGuide.slug}`} className="guide-directory__featured">
+          <div style={{ backgroundImage: `url(${featuredGuide.imageUrl})` }} />
+          <article>
+            <span>{featuredGuide.category}</span>
+            <h2>{featuredGuide.title}</h2>
+            <p>{featuredGuide.summary || featuredGuide.description}</p>
+            <strong>Read insight</strong>
+          </article>
+        </Link>
+      ) : null}
+
       <div className="guide-directory__grid">
-        {filteredGuides.map((guide) => (
+        {supportingGuides.map((guide) => (
           <Link href={`/travel-guide/${guide.slug}`} className="guide-directory__card" key={guide.slug}>
             <span>{guide.category}</span>
             <div style={{ backgroundImage: `url(${guide.imageUrl})` }} />

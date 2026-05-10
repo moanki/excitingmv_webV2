@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Building2, Hotel, Info, LogIn, Map, Ship, UserPlus } from "lucide-react";
+import { Building2, Hotel, Info, LogIn, Map, Menu, Ship, UserPlus, X } from "lucide-react";
 
 import { PartnerRegisterForm } from "@/components/partner-register-form";
 import type { NavbarContent } from "@/lib/site-content";
@@ -11,6 +11,7 @@ import type { NavbarContent } from "@/lib/site-content";
 export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const [scrolled, setScrolled] = useState(false);
   const [partnerModalOpen, setPartnerModalOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -22,6 +23,20 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    function onOpenPartnerModal() {
+      setPartnerModalOpen(true);
+      setMobileMenuOpen(false);
+    }
+
+    window.addEventListener("open-partner-modal", onOpenPartnerModal);
+    return () => window.removeEventListener("open-partner-modal", onOpenPartnerModal);
+  }, []);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   const configuredItems = navbar.navItems.filter((item) => item.enabled && item.label && item.href);
   const navItems = [
@@ -42,7 +57,7 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   ];
   const isHomepage = pathname === "/";
   const useLightNav = !isHomepage || scrolled;
-  const navClassName = `site-nav${useLightNav ? " is-scrolled is-light" : ""}`;
+  const navClassName = `site-nav${useLightNav ? " is-scrolled is-light" : ""}${mobileMenuOpen ? " is-mobile-open" : ""}`;
   const activeLogoUrl = useLightNav
     ? navbar.primaryLogoUrl || navbar.blackLogoUrl || navbar.whiteLogoUrl
     : navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl;
@@ -84,9 +99,41 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
           </button>
         </nav>
 
+        <span className="site-nav__mobile-spacer" aria-hidden="true" />
+
+        <button
+          type="button"
+          className="site-nav__mobile-menu-button"
+          aria-label={mobileMenuOpen ? "Close navigation" : "Open navigation"}
+          aria-expanded={mobileMenuOpen}
+          onClick={() => setMobileMenuOpen((isOpen) => !isOpen)}
+        >
+          {mobileMenuOpen ? <X size={21} /> : <Menu size={21} />}
+        </button>
+
         <button type="button" className="site-nav__mobile-portal" aria-label="Become a Partner" onClick={() => setPartnerModalOpen(true)}>
           <UserPlus size={18} />
         </button>
+      </div>
+
+      <div className="site-nav__mobile-drawer" hidden={!mobileMenuOpen}>
+        <nav aria-label="Mobile navigation">
+          {navItems.map((item) =>
+            item.external ? (
+              <a href={item.href} key={`${item.label}-${item.href}`} target="_blank" rel="noreferrer">
+                {item.label}
+              </a>
+            ) : (
+              <Link href={item.href} key={`${item.label}-${item.href}`}>
+                {item.label}
+              </Link>
+            )
+          )}
+          <Link href={partnerLoginHref}>Partner Login</Link>
+          <button type="button" onClick={() => setPartnerModalOpen(true)}>
+            Become a Partner
+          </button>
+        </nav>
       </div>
 
       <nav className="mobile-bottom-nav" aria-label="Mobile primary">

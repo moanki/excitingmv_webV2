@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft, Bookmark } from "lucide-react";
 
 import { getHomepageGuide } from "@/lib/site-content";
 
@@ -40,7 +41,14 @@ export default async function TravelGuideArticlePage({ params }: TravelGuideArti
 
   return (
     <main className="guide-article">
-      <section className="guide-article__hero">
+      <nav className="guide-article__mobile-nav" aria-label="Article navigation">
+        <Link href="/travel-guide" aria-label="Back to Travel Guide"><ArrowLeft size={18} /></Link>
+        <button type="button" aria-label="Bookmark article"><Bookmark size={18} /></button>
+      </nav>
+      <section
+        className="guide-article__hero"
+        style={guide.imageUrl ? { backgroundImage: `url(${guide.imageUrl})` } : undefined}
+      >
         <div className="guide-article__overlay" />
         <div className="lux-container">
           <p className="lux-eyebrow">{guide.category}</p>

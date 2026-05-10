@@ -3,6 +3,7 @@ import { ArrowRight, MapPin, Star } from "lucide-react";
 
 import { GlobalMarketMap } from "@/components/global-market-map";
 import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
+import { PartnerModalButton } from "@/components/partner-modal-button";
 import { ServicesParallax } from "@/components/services-parallax";
 import { WhyUsParallax } from "@/components/why-us-parallax";
 import { listHomepageFeaturedResorts } from "@/lib/services/resort-service";
@@ -329,11 +330,16 @@ export default async function HomePage() {
                 "Curated resorts, protected trade resources, and local destination expertise for global travel partners."}
             </p>
             <div className="lux-hero__actions">
-              <Link href="/partner/register" className="lux-button lux-button--glass">
+              <PartnerModalButton className="lux-button lux-button--glass">
                 Become a Partner
-              </Link>
+              </PartnerModalButton>
             </div>
           </div>
+        </div>
+        <div className="lux-hero__mobile-dots" aria-hidden="true">
+          <span />
+          <span />
+          <span />
         </div>
         <div className="lux-hero__retreat-logos" aria-label="Featured retreats">
           <div>
@@ -462,9 +468,9 @@ export default async function HomePage() {
               <span key={benefit}>{benefit}</span>
             ))}
           </div>
-          <Link href="/partner/register" className="lux-button lux-button--gold">
+          <PartnerModalButton className="lux-button lux-button--gold">
             Become a Travel Partner <ArrowRight size={16} />
-          </Link>
+          </PartnerModalButton>
         </div>
       </section>
 
