@@ -9927,3 +9927,229 @@ select {
     transform: scale(1.07) translateX(1.5%);
   }
 }
+
+/* App-like mobile shell: desktop remains controlled by the existing rules above. */
+@media (max-width: 900px) {
+  body:not(.admin-body) {
+    padding-bottom: calc(78px + env(safe-area-inset-bottom));
+    background: #fff;
+  }
+
+  .site-nav {
+    background: rgba(7, 19, 31, 0.62);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .site-nav.is-light,
+  .site-nav.is-scrolled {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(19, 32, 43, 0.08);
+  }
+
+  .site-nav__inner {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) 42px;
+    width: 100%;
+    min-height: 60px;
+    padding: 0 1rem;
+  }
+
+  .site-nav__brand {
+    grid-column: 2;
+    justify-self: center;
+  }
+
+  .site-nav__brand-logo {
+    height: 34px;
+    max-width: 150px;
+  }
+
+  .site-nav__brand-label {
+    color: #fff;
+    font-size: 1.05rem;
+  }
+
+  .site-nav.is-light .site-nav__brand-label,
+  .site-nav.is-scrolled .site-nav__brand-label {
+    color: #13202b;
+  }
+
+  .site-nav__links,
+  .site-nav__mobile-menu-button,
+  .site-nav__mobile-drawer,
+  .site-nav__mobile-spacer {
+    display: none !important;
+  }
+
+  .site-nav__mobile-portal {
+    display: inline-flex !important;
+    grid-column: 3;
+    align-items: center;
+    justify-content: center;
+    justify-self: end;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.92);
+    box-shadow: none;
+  }
+
+  .site-nav.is-light .site-nav__mobile-portal,
+  .site-nav.is-scrolled .site-nav__mobile-portal {
+    color: #13202b;
+  }
+
+  .mobile-bottom-nav {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 90;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0;
+    min-height: calc(64px + env(safe-area-inset-bottom));
+    padding: 0.45rem 0.55rem calc(0.45rem + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(19, 32, 43, 0.1);
+    border-radius: 0;
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 -12px 30px rgba(19, 32, 43, 0.08);
+    backdrop-filter: blur(18px);
+  }
+
+  .mobile-bottom-nav__item {
+    display: grid;
+    place-items: center;
+    gap: 0.16rem;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0.15rem 0.1rem;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: rgba(19, 32, 43, 0.72);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.64rem;
+    font-weight: 650;
+    letter-spacing: 0;
+  }
+
+  .mobile-bottom-nav__item svg {
+    color: currentColor;
+  }
+
+  .mobile-bottom-nav__item.is-active,
+  .mobile-bottom-nav__item:hover,
+  .mobile-bottom-nav__item:focus-visible {
+    background: rgba(184, 137, 49, 0.1);
+    color: #b88931;
+    outline: none;
+  }
+
+  .lux-hero {
+    min-height: 420px;
+    margin-top: 0;
+  }
+
+  .lux-hero__inner {
+    min-height: 420px;
+    padding: 5.25rem 1rem 5.6rem;
+  }
+
+  .lux-hero h1 {
+    max-width: 12ch;
+    font-size: clamp(2.15rem, 9vw, 3rem);
+    line-height: 0.98;
+  }
+
+  .lux-hero__copy > p:not(.lux-eyebrow) {
+    max-width: 23rem;
+    font-size: 0.92rem;
+  }
+
+  .lux-button--glass,
+  .lux-button--gold {
+    min-height: 46px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #d5ad61, #b88931);
+    color: #fff !important;
+    box-shadow: 0 10px 22px rgba(96, 67, 19, 0.18);
+  }
+
+  .lux-section {
+    padding: 2.5rem 0;
+  }
+
+  .lux-section--white,
+  .guide-directory,
+  .destination-page {
+    background: #fff;
+  }
+
+  .lux-section--sand,
+  .lux-contact-section {
+    background: #f8f5f0;
+  }
+
+  .lux-retreat-card,
+  .lux-guide-card,
+  .destination-card,
+  .resort-collection-card--luxury {
+    border: 1px solid rgba(19, 32, 43, 0.08);
+    box-shadow: 0 12px 28px rgba(19, 32, 43, 0.08);
+  }
+
+  .resort-index-page {
+    padding-top: 5.2rem;
+    background: #fff;
+  }
+
+  .resort-index-hero {
+    gap: 1rem;
+    padding: 0;
+  }
+
+  .resort-index-hero__meta {
+    display: none;
+  }
+
+  .resort-collection-grid--luxury {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .resort-collection-card--luxury {
+    overflow: hidden;
+    border-radius: 18px;
+    background: #fff;
+  }
+
+  .resort-collection-card--luxury .resort-collection-card__media {
+    min-height: 190px;
+  }
+
+  .resort-collection-card--luxury .resort-collection-card__content {
+    padding: 1rem;
+  }
+
+  .resort-collection-card--luxury h2 {
+    font-size: 1.2rem;
+    line-height: 1.12;
+  }
+
+  .resort-collection-card--luxury .site-button {
+    width: 100%;
+    min-height: 44px;
+    border-radius: 12px;
+  }
+
+  .chat-widget {
+    bottom: calc(5.4rem + env(safe-area-inset-bottom));
+  }
+}
