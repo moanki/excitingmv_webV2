@@ -2,12 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Building2, Hotel, Info, LogIn, Map, Ship, UserPlus } from "lucide-react";
 
+import { PartnerRegisterForm } from "@/components/partner-register-form";
 import type { NavbarContent } from "@/lib/site-content";
 
 export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const [scrolled, setScrolled] = useState(false);
+  const [partnerModalOpen, setPartnerModalOpen] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     function onScroll() {
@@ -27,16 +31,21 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     { label: "Map", href: configuredItems.find((item) => item.label === "Map")?.href || "/#global-markets", external: false },
     { label: "Info", href: configuredItems.find((item) => item.label === "Info" || item.href === "/travel-guide")?.href || "/travel-guide", external: false }
   ];
+  const partnerLoginHref = navbar.partnerLoginHref || navbar.ctaHref || "/partner/login";
   const mobileItems = [
     { ...navItems[0], Icon: Hotel },
     { ...navItems[1], Icon: Building2 },
     { ...navItems[2], Icon: Ship },
     { ...navItems[3], Icon: Map },
     { ...navItems[4], Icon: Info },
-    { label: "Portal", href: navbar.ctaHref || "/partner/login", external: false, Icon: LogIn }
+    { label: "Portal", href: partnerLoginHref, external: false, Icon: LogIn }
   ];
-  const navClassName = `site-nav${scrolled ? " is-scrolled" : ""}`;
-  const activeLogoUrl = scrolled ? navbar.primaryLogoUrl || navbar.whiteLogoUrl : navbar.whiteLogoUrl || navbar.primaryLogoUrl;
+  const isHomepage = pathname === "/";
+  const useLightNav = !isHomepage || scrolled;
+  const navClassName = `site-nav${useLightNav ? " is-scrolled is-light" : ""}`;
+  const activeLogoUrl = useLightNav
+    ? navbar.primaryLogoUrl || navbar.blackLogoUrl || navbar.whiteLogoUrl
+    : navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl;
 
   return (
     <header className={navClassName}>
@@ -66,18 +75,18 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
             )
           )}
           {navbar.ctaEnabled ? (
-            <Link href={navbar.ctaHref || "/partner/login"} className="site-nav__login">
+            <Link href={partnerLoginHref} className="site-nav__login">
               Partner Login
             </Link>
           ) : null}
-          <Link href="/partner/register" className="site-nav__cta">
+          <button type="button" className="site-nav__cta" onClick={() => setPartnerModalOpen(true)}>
             Become a Partner
-          </Link>
+          </button>
         </nav>
 
-        <Link href="/partner/register" className="site-nav__mobile-portal" aria-label="Become a Partner">
+        <button type="button" className="site-nav__mobile-portal" aria-label="Become a Partner" onClick={() => setPartnerModalOpen(true)}>
           <UserPlus size={18} />
-        </Link>
+        </button>
       </div>
 
       <nav className="mobile-bottom-nav" aria-label="Mobile primary">
@@ -88,6 +97,23 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
           </Link>
         ))}
       </nav>
+
+      {partnerModalOpen ? (
+        <div className="partner-modal-backdrop" role="dialog" aria-modal="true" aria-label="Become a Partner">
+          <div className="partner-modal-panel">
+            <div className="partner-modal-header">
+              <div>
+                <p className="eyebrow">Become a Partner</p>
+                <h2>Apply for partner access</h2>
+              </div>
+              <button type="button" className="partner-modal-close" onClick={() => setPartnerModalOpen(false)} aria-label="Close partner form">
+                ×
+              </button>
+            </div>
+            <PartnerRegisterForm />
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }

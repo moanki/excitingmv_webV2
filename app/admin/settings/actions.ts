@@ -521,6 +521,7 @@ export async function saveNavbarDraftAction(_: ActionState, formData: FormData):
         enabled: booleanValue(formData, `nav_${index}_enabled`),
         external: booleanValue(formData, `nav_${index}_external`)
       })),
+      partnerLoginHref: stringValue(formData, "partnerLoginHref"),
       ctaLabel: stringValue(formData, "ctaLabel"),
       ctaHref: stringValue(formData, "ctaHref"),
       ctaEnabled: booleanValue(formData, "ctaEnabled")

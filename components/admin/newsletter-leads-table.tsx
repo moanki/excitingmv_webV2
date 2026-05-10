@@ -118,7 +118,7 @@ export function NewsletterLeadsTable({ submissions }: Props) {
 
       <div className="admin-page-actions admin-page-actions--compact">
         <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={toggleAllVisible}>
-          {allVisibleSelected ? "Clear Visible" : "Select All Partners"}
+          {allVisibleSelected ? "Clear Visible" : "Select All Subscribers"}
         </button>
         <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={() => download(selectedIds)} disabled={!selectedIds.length}>
           Download Selected

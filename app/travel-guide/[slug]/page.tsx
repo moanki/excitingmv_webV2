@@ -40,7 +40,7 @@ export default async function TravelGuideArticlePage({ params }: TravelGuideArti
 
   return (
     <main className="guide-article">
-      <section className="guide-article__hero" style={{ backgroundImage: `url(${guide.imageUrl})` }}>
+      <section className="guide-article__hero">
         <div className="guide-article__overlay" />
         <div className="lux-container">
           <p className="lux-eyebrow">{guide.category}</p>
@@ -53,9 +53,12 @@ export default async function TravelGuideArticlePage({ params }: TravelGuideArti
       <article className="guide-article__body lux-container">
         {guide.tips.length ? (
           <aside className="guide-article__quick-info">
-            {guide.tips.map((tip) => (
-              <span key={tip}>{tip}</span>
-            ))}
+            <h2>Tips</h2>
+            <ul>
+              {guide.tips.map((tip) => (
+                <li key={tip}>{tip}</li>
+              ))}
+            </ul>
           </aside>
         ) : null}
 
@@ -73,7 +76,7 @@ export default async function TravelGuideArticlePage({ params }: TravelGuideArti
             <section className="guide-article__faq">
               <h2>FAQ</h2>
               {guide.faq.map((item) => (
-                <details key={item.question}>
+                <details key={item.question} open>
                   <summary>{item.question}</summary>
                   <p>{item.answer}</p>
                 </details>

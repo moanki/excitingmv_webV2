@@ -451,6 +451,10 @@ export function NavbarSettingsForm({
             <input name="brandLabel" defaultValue={navbar.brandLabel} />
           </label>
           <label className="field">
+            Partner Login URL
+            <input name="partnerLoginHref" defaultValue={navbar.partnerLoginHref || navbar.ctaHref} />
+          </label>
+          <label className="field">
             CTA Label
             <input name="ctaLabel" defaultValue={navbar.ctaLabel} />
           </label>

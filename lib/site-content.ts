@@ -103,6 +103,7 @@ export type NavbarContent = {
   whiteLogoUrl: string;
   blackLogoUrl: string;
   navItems: NavigationItem[];
+  partnerLoginHref: string;
   ctaLabel: string;
   ctaHref: string;
   ctaEnabled: boolean;
@@ -444,6 +445,7 @@ export const defaultNavbarContent: NavbarContent = {
     { label: "Map", href: "/#global-markets", enabled: true, external: false },
     { label: "Info", href: "/travel-guide", enabled: true, external: false }
   ],
+  partnerLoginHref: "/partner/login",
   ctaLabel: "Login to Partner Portal",
   ctaHref: "/partner/login",
   ctaEnabled: true
@@ -748,6 +750,7 @@ function normalizeNavbarContent(settings: unknown): NavbarContent {
         (item) =>
           item.label === fallback.label ||
           (fallback.label === "Resort" && item.label === "Resorts") ||
+          (fallback.label === "Liveaboard" && (item.label === "Live Boards" || item.label === "Liveaboards")) ||
           (fallback.label === "Info" && (item.label === "Display All" || item.href === "/travel-guide"))
       );
 
@@ -758,6 +761,7 @@ function normalizeNavbarContent(settings: unknown): NavbarContent {
         external: match?.external ?? fallback.external
       };
     }),
+    partnerLoginHref: source.partnerLoginHref ?? source.ctaHref ?? defaultNavbarContent.partnerLoginHref,
     ctaLabel: source.ctaLabel ?? defaultNavbarContent.ctaLabel,
     ctaHref: source.ctaHref ?? defaultNavbarContent.ctaHref,
     ctaEnabled: source.ctaEnabled ?? defaultNavbarContent.ctaEnabled

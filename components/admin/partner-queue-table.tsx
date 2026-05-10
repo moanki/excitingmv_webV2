@@ -75,10 +75,10 @@ export function PartnerQueueTable({ partners }: Props) {
     <div className="stack">
       <div className="admin-toolbar">
         <label className="admin-search admin-search--large">
-          <span className="sr-only">Search partners</span>
           <input
             className="admin-input"
             type="search"
+            aria-label="Search partners"
             placeholder="Search Requests"
             value={query}
             onChange={(event) => setQuery(event.target.value)}

@@ -17,6 +17,11 @@ end $$;
 
 create index if not exists resorts_property_type_idx on public.resorts(property_type);
 
+update public.resorts
+set property_type = 'liveaboard'
+where lower(name) = 'luxury liveaboard'
+  and property_type = 'resort';
+
 alter table public.chat_conversations
   add column if not exists unread_admin_count integer not null default 0,
   add column if not exists last_read_by_admin_at timestamptz;

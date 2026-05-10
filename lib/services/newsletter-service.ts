@@ -154,7 +154,6 @@ export async function createNewsletterSubmission(
       <p><strong>Email:</strong> ${input.email}</p>
       <p><strong>Country:</strong> ${input.countryOfOrigin}</p>
       <p><strong>Contact Number:</strong> ${input.contactNumber}</p>
-      <p><strong>Primary Market:</strong> ${input.primaryMarket}</p>
       <p><strong>Notes:</strong> ${input.additionalNotes ?? "-"}</p>
     `
   });

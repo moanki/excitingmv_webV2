@@ -169,6 +169,18 @@ select {
   transition: color 0.3s ease;
 }
 
+.site-nav__links button {
+  font: inherit;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.site-nav.is-light .site-nav__links a:not(.site-nav__cta),
+.site-nav.is-light .site-nav__links button:not(.site-nav__cta),
+.site-nav.is-light .site-nav__login {
+  color: rgba(19, 32, 43, 0.72) !important;
+}
+
 .site-nav.is-scrolled .site-nav__links a:not(.site-nav__cta) {
   color: rgba(15, 23, 42, 0.6);
 }
@@ -184,10 +196,12 @@ select {
   justify-content: center;
   min-height: 48px;
   padding: 0 2rem;
+  border: 0;
   border-radius: 999px;
   background: var(--brand-white);
   color: var(--brand-navy) !important;
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
 }
 
 .site-nav.is-scrolled .site-nav__cta {
@@ -4333,6 +4347,11 @@ select {
   display: none;
 }
 
+.site-nav__mobile-portal {
+  border: 0;
+  cursor: pointer;
+}
+
 .home-hero {
   min-height: 96dvh;
 }
@@ -6673,8 +6692,9 @@ select {
 .lux-hero__retreat-logos img {
   display: block;
   width: auto;
-  max-width: 140px;
-  height: 34px;
+  max-width: 190px;
+  height: auto;
+  max-height: 58px;
   object-fit: contain;
   filter: brightness(0) invert(1);
 }
@@ -6841,6 +6861,7 @@ select {
 
 .guide-article__hero {
   overflow: hidden;
+  background: #fff;
   background-position: center;
   background-size: cover;
 }
@@ -6849,6 +6870,17 @@ select {
   position: absolute;
   inset: 0;
   background: linear-gradient(90deg, rgba(7, 19, 31, 0.78), rgba(7, 19, 31, 0.28));
+}
+
+.guide-article__hero .guide-article__overlay {
+  display: none;
+}
+
+.guide-article__hero .lux-eyebrow,
+.guide-article__hero h1,
+.guide-article__hero p,
+.guide-article__hero span {
+  color: #13202b;
 }
 
 .guide-article__hero .lux-container {
@@ -6865,6 +6897,35 @@ select {
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 0.8rem;
   margin-bottom: 2rem;
+}
+
+.guide-article__quick-info {
+  display: block;
+  padding: 1.25rem 1.35rem;
+  border-radius: 18px;
+  background: #f8f5f0;
+}
+
+.guide-article__quick-info h2 {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-serif), serif;
+  color: #13202b;
+}
+
+.guide-article__quick-info ul {
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.guide-article__quick-info li {
+  margin: 0.45rem 0;
+  color: #13202b;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.guide-article {
+  background: #fff;
 }
 
 .guide-article__quick-info span {
@@ -7931,6 +7992,7 @@ select {
 .lux-hero__retreat-logos div {
   flex-wrap: nowrap;
   justify-content: flex-start;
+  gap: clamp(0.75rem, 2vw, 1.5rem);
   width: max-content;
   min-width: 200%;
   animation: hero-logo-loop 44s linear infinite;
@@ -8793,6 +8855,52 @@ select {
   min-height: 34px;
   padding: 0 0.8rem;
   font-size: 0.85rem;
+}
+
+.partner-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(7, 19, 31, 0.58);
+}
+
+.partner-modal-panel {
+  width: min(100%, 680px);
+  max-height: min(86vh, 760px);
+  overflow: auto;
+  border-radius: 22px;
+  background: #fff;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  box-shadow: 0 28px 90px rgba(7, 19, 31, 0.28);
+}
+
+.partner-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.partner-modal-header h2 {
+  margin: 0.2rem 0 0;
+  font-family: var(--font-serif), serif;
+  color: var(--brand-navy);
+}
+
+.partner-modal-close {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 999px;
+  background: #f8f5f0;
+  color: var(--brand-navy);
+  cursor: pointer;
+  font-size: 1.45rem;
+  line-height: 1;
 }
 
 .admin-alert {

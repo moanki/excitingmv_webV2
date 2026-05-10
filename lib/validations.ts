@@ -14,7 +14,7 @@ export const newsletterSubmissionSchema = z.object({
   countryOfOrigin: z.string().min(2),
   contactNumber: z.string().min(5),
   email: z.string().email(),
-  primaryMarket: z.string().min(2),
+  primaryMarket: z.string().optional().default(""),
   additionalNotes: z.string().max(2000).optional(),
   source: z.string().min(1).default("website")
 });

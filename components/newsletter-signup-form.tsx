@@ -18,7 +18,7 @@ export function NewsletterSignupForm({ markets }: { markets: string[] }) {
       countryOfOrigin: String(formData.get("countryOfOrigin") ?? ""),
       contactNumber: String(formData.get("contactNumber") ?? ""),
       email: String(formData.get("email") ?? ""),
-      primaryMarket: String(formData.get("primaryMarket") ?? ""),
+      primaryMarket: "",
       additionalNotes: String(formData.get("additionalNotes") ?? ""),
       source: "homepage"
     };
@@ -62,19 +62,6 @@ export function NewsletterSignupForm({ markets }: { markets: string[] }) {
         <label className="newsletter-field">
           <span>Email *</span>
           <input name="email" type="email" placeholder="name@agency.com" required />
-        </label>
-        <label className="newsletter-field">
-          <span>Market *</span>
-          <select name="primaryMarket" defaultValue="" required>
-            <option value="" disabled>
-              Select a market
-            </option>
-            {markets.map((market) => (
-              <option key={market} value={market}>
-                {market}
-              </option>
-            ))}
-          </select>
         </label>
         <label className="newsletter-field newsletter-field--full">
           <span>Notes</span>
