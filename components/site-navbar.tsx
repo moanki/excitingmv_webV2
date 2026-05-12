@@ -44,9 +44,9 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const mobileItems = [
     { label: "Home", href: "/", Icon: Home },
     { label: "Destinations", href: "/resorts", Icon: MapPin },
-    { label: "Guide", href: "/travel-guide", Icon: BookOpen },
-    { label: "Inquiries", href: "#inquiries", Icon: MessageCircle, action: "partner" },
-    { label: "Profile", href: partnerLoginHref, Icon: CircleUserRound }
+    { label: "Info", href: "/travel-guide", Icon: BookOpen },
+    { label: "Contact Us", href: "#inquiries", Icon: MessageCircle, action: "partner" },
+    { label: "Partner Login", href: partnerLoginHref, Icon: CircleUserRound }
   ];
   const isHomepage = pathname === "/";
   const useLightNav = !isHomepage || scrolled;

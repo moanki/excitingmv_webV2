@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, MapPin, Star } from "lucide-react";
+import { ArrowRight, Building2, Clock3, Globe2, Headphones, MapPin, Star } from "lucide-react";
 
 import { GlobalMarketMap } from "@/components/global-market-map";
 import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
@@ -105,6 +105,24 @@ function getHeroStats(stats: HomepageStat[]) {
     { value: getStat(stats, "support", "24/7"), label: "Local Support" },
     { value: getStat(stats, "partner", "Global"), label: "Travel Partners" }
   ];
+}
+
+function StatIcon({ label }: { label: string }) {
+  const normalized = label.toLowerCase();
+
+  if (normalized.includes("experience") || normalized.includes("year")) {
+    return <Clock3 size={18} strokeWidth={1.8} aria-hidden="true" />;
+  }
+
+  if (normalized.includes("support")) {
+    return <Headphones size={18} strokeWidth={1.8} aria-hidden="true" />;
+  }
+
+  if (normalized.includes("partner")) {
+    return <Globe2 size={18} strokeWidth={1.8} aria-hidden="true" />;
+  }
+
+  return <Building2 size={18} strokeWidth={1.8} aria-hidden="true" />;
 }
 
 function MarketEditorial({ markets }: { markets: MarketSettings }) {
@@ -373,7 +391,11 @@ export default async function HomePage() {
           <div className="lux-editorial-copy">
             <p className="lux-eyebrow">{ceo.sectionLabel}</p>
             <h2>&ldquo;{ceo.quote}&rdquo;</h2>
-            <p>{ceo.message}</p>
+            <p className="lux-mobile-clamp-source">{ceo.message}</p>
+            <details className="lux-mobile-readmore">
+              <summary>Read more</summary>
+              <p>{ceo.message}</p>
+            </details>
             <div className="lux-signature">
               <strong>{ceo.name}</strong>
               <span>{ceo.title}</span>
@@ -387,7 +409,11 @@ export default async function HomePage() {
           <div className="lux-story-copy">
             <p className="lux-eyebrow">{story.sectionLabel}</p>
             <h2>{story.title}</h2>
-            <p>{story.description}</p>
+            <p className="lux-mobile-clamp-source">{story.description}</p>
+            <details className="lux-mobile-readmore">
+              <summary>Read more</summary>
+              <p>{story.description}</p>
+            </details>
           </div>
           <div className="lux-story-image-panel">
             <div
@@ -408,6 +434,9 @@ export default async function HomePage() {
         <div className="lux-container lux-stat-strip__grid">
           {getHeroStats(stats).map((item) => (
             <div className="lux-stat-strip__item" key={`${item.value}-${item.label}`}>
+              <span className="lux-stat-strip__icon">
+                <StatIcon label={item.label} />
+              </span>
               <strong>{item.value}</strong>
               <span>{item.label}</span>
             </div>
