@@ -1548,7 +1548,7 @@ export async function listImportCheckpoints(limit = 20): Promise<ImportCheckpoin
 export async function publishImportCheckpoint(input: {
   checkpointId: string;
   resortIndex: number;
-}): Promise<ServiceResult<{ resortName: string; slug: string }>> {
+}): Promise<ServiceResult<{ resortName: string; slug: string; propertyType: PropertyType }>> {
   try {
     const checkpoints = await listImportCheckpoints(100);
     const checkpoint = checkpoints.find((item) => item.id === input.checkpointId);
@@ -1586,7 +1586,8 @@ export async function publishImportCheckpoint(input: {
       ok: true,
       data: {
         resortName: resort.name.trim(),
-        slug: saveInput.slug
+        slug: saveInput.slug,
+        propertyType: checkpoint.propertyType
       }
     };
   } catch (error) {

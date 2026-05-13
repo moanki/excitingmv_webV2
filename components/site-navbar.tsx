@@ -45,7 +45,7 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     { label: "Home", href: "/", Icon: Home },
     { label: "Destinations", href: "/resorts", Icon: MapPin },
     { label: "Info", href: "/travel-guide", Icon: BookOpen },
-    { label: "Contact Us", href: "#inquiries", Icon: MessageCircle, action: "partner" },
+    { label: "Contact Us", href: "/#newsletter", Icon: MessageCircle },
     { label: "Partner Login", href: partnerLoginHref, Icon: CircleUserRound }
   ];
   const isHomepage = pathname === "/";
@@ -104,15 +104,10 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
           const isActive =
             item.href === "/"
               ? pathname === "/"
-              : item.href !== "#inquiries" && pathname.startsWith(item.href);
+              : item.href !== "/#newsletter" && pathname.startsWith(item.href);
           const className = `mobile-bottom-nav__item${isActive ? " is-active" : ""}`;
 
-          return item.action === "partner" ? (
-            <button type="button" key={item.label} className={className} onClick={() => setPartnerModalOpen(true)}>
-              <Icon size={19} strokeWidth={1.9} />
-              <span>{item.label}</span>
-            </button>
-          ) : (
+          return (
             <Link href={item.href} key={item.label} className={className}>
               <Icon size={19} strokeWidth={1.9} />
               <span>{item.label}</span>

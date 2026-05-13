@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 import {
+  publishAdminLoginAction,
   publishAwardsAction,
   publishCeoAction,
   publishFeaturesAction,
@@ -19,6 +20,7 @@ import {
   publishStoryAction,
   publishWhatsAppAction,
   publishWhyUsAction,
+  saveAdminLoginDraftAction,
   saveAwardsDraftAction,
   saveCeoDraftAction,
   saveFeaturesDraftAction,
@@ -36,6 +38,7 @@ import {
   saveWhyUsDraftAction
 } from "@/app/admin/settings/actions";
 import type {
+  AdminLoginContent,
   FooterBadge,
   FooterContent,
   FooterLinkGroup,
@@ -65,6 +68,65 @@ function StatusMessage({ message, error }: { message?: string; error?: string })
   }
 
   return null;
+}
+
+export function AdminLoginSettingsForm({
+  settings,
+  mediaLibrary
+}: {
+  settings: AdminLoginContent;
+  mediaLibrary: MediaLibraryItem[];
+}) {
+  const [state, action, pending] = useActionState(saveAdminLoginDraftAction, undefined);
+
+  return (
+    <div className="panel">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">Admin Login Page</p>
+          <h2 className="settings-title">Login media and workspace branding.</h2>
+          <p className="admin-page-lede">
+            Choose the full-page login image and logo shown before users enter the admin center.
+          </p>
+        </div>
+        <form action={publishAdminLoginAction}>
+          <button className="button-muted" type="submit">
+            Publish Current Draft
+          </button>
+        </form>
+      </div>
+
+      <form action={action} className="stack">
+        <MediaField
+          label="Admin login page photo"
+          inputName="backgroundImageUrl"
+          fileName="backgroundImageFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          value={settings.backgroundImageUrl}
+          library={mediaLibrary}
+          helper="This image is used on the isolated full-page admin login screen."
+        />
+        <MediaField
+          label="Admin login logo"
+          inputName="logoImageUrl"
+          fileName="logoImageFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          value={settings.logoImageUrl}
+          library={mediaLibrary}
+          helper="Upload or select the logo used on the admin login panel."
+        />
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save Admin Login Draft"}
+          </button>
+          <button className="button-primary" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Publish Admin Login"}
+          </button>
+        </div>
+        <StatusMessage message={state?.message} error={state?.error} />
+      </form>
+    </div>
+  );
 }
 
 function ToggleField({

@@ -30,6 +30,17 @@ function normalizePropertyType(value: unknown): PropertyType {
   return value === "liveaboard" || value === "hotel" ? value : "resort";
 }
 
+function revalidatePropertyType(propertyType: PropertyType) {
+  revalidatePath("/admin/resorts");
+  revalidatePath("/admin/liveaboards");
+  revalidatePath("/admin/hotels");
+  revalidatePath("/resorts");
+  revalidatePath("/liveaboards");
+  revalidatePath("/hotels");
+  revalidatePath("/");
+  revalidateTag("resorts-public");
+}
+
 export async function POST(request: Request) {
   const contentType = request.headers.get("content-type") ?? "";
 
@@ -49,10 +60,7 @@ export async function POST(request: Request) {
     }
 
     revalidatePath("/admin/imports");
-    revalidatePath("/admin/resorts");
-    revalidatePath("/resorts");
-    revalidatePath("/");
-    revalidateTag("resorts-public");
+    revalidatePropertyType(normalizePropertyType(formData.get("propertyType")));
 
     return NextResponse.json({
       ok: true,
@@ -109,10 +117,7 @@ export async function POST(request: Request) {
     }
 
     revalidatePath("/admin/imports");
-    revalidatePath("/admin/resorts");
-    revalidatePath("/resorts");
-    revalidatePath("/");
-    revalidateTag("resorts-public");
+    revalidatePropertyType(normalizePropertyType(json.propertyType));
 
     return NextResponse.json({
       ok: true,
@@ -216,10 +221,7 @@ export async function POST(request: Request) {
     }
 
     revalidatePath("/admin/imports");
-    revalidatePath("/admin/resorts");
-    revalidatePath("/resorts");
-    revalidatePath("/");
-    revalidateTag("resorts-public");
+    revalidatePropertyType(normalizePropertyType(json.propertyType));
 
     return NextResponse.json({
       ok: true,
@@ -246,11 +248,7 @@ export async function POST(request: Request) {
     }
 
     revalidatePath("/admin/imports");
-    revalidatePath("/admin/resorts");
-    revalidatePath("/resorts");
-    revalidatePath(`/resorts/${result.data.slug}`);
-    revalidatePath("/");
-    revalidateTag("resorts-public");
+    revalidatePropertyType(normalizePropertyType(result.data.propertyType));
 
     return NextResponse.json({
       ok: true,

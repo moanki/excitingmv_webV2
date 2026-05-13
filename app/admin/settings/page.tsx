@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, Globe2, Home, Menu, MessageCircle, PanelBottom } from "lucide-react";
+import { Bell, Globe2, Home, LogIn, Menu, MessageCircle, PanelBottom } from "lucide-react";
 
 const settingsSections = [
   {
@@ -31,6 +31,11 @@ const settingsSections = [
     title: "Markets",
     href: "/admin/settings/markets",
     icon: Globe2
+  },
+  {
+    title: "Admin Login Page",
+    href: "/admin/settings/admin-login",
+    icon: LogIn
   }
 ];
 

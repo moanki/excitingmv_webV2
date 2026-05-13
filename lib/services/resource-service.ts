@@ -105,6 +105,10 @@ export async function saveResource(input: {
 }
 
 export async function deleteResource(id: string) {
+  if (!id || id.startsWith("sample-")) {
+    return;
+  }
+
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase.from("resources").delete().eq("id", id);
 

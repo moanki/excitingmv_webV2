@@ -4,6 +4,24 @@ import sharp from "sharp";
 export const SITE_ASSET_BUCKET = "site-assets";
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 type SiteAssetUsage = "hero" | "banner" | "portrait" | "card" | "badge" | "logo" | "full";
+const ALLOWED_MIME_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/svg+xml",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/plain",
+  "text/csv",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime"
+];
 
 const IMAGE_PROFILES: Record<SiteAssetUsage, { width: number; height?: number; fit: "cover" | "inside"; quality: number }> = {
   hero: { width: 2400, height: 1350, fit: "cover", quality: 84 },
@@ -32,7 +50,9 @@ const SITE_ASSET_PREFIXES = [
   "site/footer",
   "site/membership",
   "site/award",
+  "admin/login",
   "media-library",
+  "imports",
   "resorts"
 ];
 
@@ -114,16 +134,7 @@ async function ensureBucket() {
       .updateBucket(SITE_ASSET_BUCKET, {
         public: true,
         fileSizeLimit: `${MAX_FILE_SIZE}`,
-        allowedMimeTypes: [
-          "image/png",
-          "image/jpeg",
-          "image/webp",
-          "image/svg+xml",
-          "application/pdf",
-          "video/mp4",
-          "video/webm",
-          "video/quicktime"
-        ]
+        allowedMimeTypes: ALLOWED_MIME_TYPES
       })
       .catch(() => undefined);
     return supabase;
@@ -132,16 +143,7 @@ async function ensureBucket() {
   const created = await supabase.storage.createBucket(SITE_ASSET_BUCKET, {
     public: true,
     fileSizeLimit: `${MAX_FILE_SIZE}`,
-    allowedMimeTypes: [
-      "image/png",
-      "image/jpeg",
-      "image/webp",
-      "image/svg+xml",
-      "application/pdf",
-      "video/mp4",
-      "video/webm",
-      "video/quicktime"
-    ]
+    allowedMimeTypes: ALLOWED_MIME_TYPES
   });
 
   if (created.error) {

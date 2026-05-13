@@ -164,6 +164,30 @@ export async function deleteAdminUser(userId: string) {
   }
 }
 
+export async function updateAdminUserEmail(userId: string, email: string) {
+  const supabase = createSupabaseAdminClient();
+  const result = await supabase.auth.admin.updateUserById(userId, { email, email_confirm: true });
+
+  if (result.error) {
+    throw new Error(result.error.message);
+  }
+
+  const { error } = await supabase.from("profiles").update({ email }).eq("id", userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function resetAdminUserPassword(userId: string, password: string) {
+  const supabase = createSupabaseAdminClient();
+  const result = await supabase.auth.admin.updateUserById(userId, { password });
+
+  if (result.error) {
+    throw new Error(result.error.message);
+  }
+}
+
 export async function authenticateAdminUser(email: string, password: string) {
   const client = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false }

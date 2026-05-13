@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import {
+  defaultAdminLoginContent,
   defaultHomepageAwardsContent,
   defaultHomepageCeoContent,
   defaultFooterContent,
@@ -20,6 +21,7 @@ import {
   defaultWhatsAppSettings,
   publishSiteSetting,
   saveSiteSettingDraft,
+  type AdminLoginContent,
   type FooterBadge,
   type FooterContent,
   type FooterLinkGroup,
@@ -45,6 +47,7 @@ type ActionState = { message?: string; error?: string } | undefined;
 function revalidateSiteContent() {
   revalidatePath("/");
   revalidatePath("/", "layout");
+  revalidatePath("/admin/login");
   revalidatePath("/travel-guide");
   revalidatePath("/travel-guide/[slug]", "page");
   revalidatePath("/admin/settings");
@@ -105,6 +108,37 @@ async function finalizeSettingSave<T>({
 
   revalidateSiteContent();
   return { message: draftMessage };
+}
+
+export async function saveAdminLoginDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const backgroundFile = uploadedFile(formData, "backgroundImageFile");
+    const logoFile = uploadedFile(formData, "logoImageFile");
+    const settings: AdminLoginContent = {
+      backgroundImageUrl: backgroundFile
+        ? await uploadSiteAsset(backgroundFile, "admin/login", "hero")
+        : stringValue(formData, "backgroundImageUrl"),
+      logoImageUrl: logoFile
+        ? await uploadSiteAsset(logoFile, "admin/login", "logo")
+        : stringValue(formData, "logoImageUrl")
+    };
+
+    return finalizeSettingSave({
+      formData,
+      key: "admin.login",
+      fallback: defaultAdminLoginContent,
+      value: settings,
+      draftMessage: "Admin login page draft saved.",
+      publishedMessage: "Admin login page published."
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to save admin login page settings." };
+  }
+}
+
+export async function publishAdminLoginAction() {
+  await publishSiteSetting("admin.login", defaultAdminLoginContent);
+  revalidateSiteContent();
 }
 
 async function parseFooterBadges(formData: FormData, prefix: "membership" | "award"): Promise<FooterBadge[]> {

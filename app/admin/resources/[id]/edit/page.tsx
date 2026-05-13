@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 
 import { ResourceEditorForm } from "@/components/admin/resource-editor-form";
 import { listResources } from "@/lib/services/resource-service";
+import { listSiteAssets } from "@/lib/storage/site-assets";
 
 export default async function AdminResourceEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const resources = await listResources();
+  const [resources, mediaLibrary] = await Promise.all([listResources(), listSiteAssets()]);
   const resource = resources.find((item) => item.id === id);
 
   if (!resource) {
@@ -24,7 +25,7 @@ export default async function AdminResourceEditPage({ params }: { params: Promis
         </div>
       </div>
       <article className="panel">
-        <ResourceEditorForm resource={resource} />
+        <ResourceEditorForm resource={resource} mediaLibrary={mediaLibrary} />
       </article>
     </section>
   );

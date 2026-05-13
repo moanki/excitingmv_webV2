@@ -11003,6 +11003,112 @@ select {
   }
 
   .chat-widget {
-    bottom: calc(5.4rem + env(safe-area-inset-bottom));
+    display: block !important;
+    right: 0.9rem !important;
+    bottom: calc(5.8rem + env(safe-area-inset-bottom)) !important;
+    z-index: 120 !important;
+  }
+}
+
+.admin-auth-brand-logo {
+  display: block;
+  width: min(260px, 58vw);
+  height: auto;
+  object-fit: contain;
+}
+
+.admin-table-shell--top {
+  align-self: start;
+}
+
+.admin-link-button {
+  border: 0;
+  background: transparent;
+  color: #111827;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 500;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.admin-modal-panel--wide {
+  width: min(960px, calc(100vw - 2rem));
+}
+
+.admin-resource-preview {
+  overflow: hidden;
+  min-height: 420px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #f9fafb;
+}
+
+.admin-resource-preview img,
+.admin-resource-preview video,
+.admin-resource-preview iframe {
+  display: block;
+  width: 100%;
+  height: min(72vh, 640px);
+  border: 0;
+  object-fit: contain;
+}
+
+.admin-modal-success {
+  display: grid;
+  gap: 1rem;
+  justify-items: start;
+  padding: 0.5rem 0 0;
+}
+
+.admin-icon-button--danger {
+  color: #dc2626;
+}
+
+.lux-hero__retreat-logos div {
+  gap: clamp(1.35rem, 3.6vw, 3.5rem) !important;
+  animation-duration: 72s !important;
+}
+
+.lux-hero__retreat-logos span {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: clamp(150px, 13vw, 200px) !important;
+  min-width: clamp(150px, 13vw, 200px) !important;
+}
+
+.lux-hero__retreat-logos img {
+  width: clamp(118px, 10vw, 154px) !important;
+  height: clamp(42px, 4.4vw, 58px) !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: contain !important;
+}
+
+@media (max-width: 900px) {
+  .mobile-bottom-nav {
+    position: fixed !important;
+    top: auto !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    z-index: 90 !important;
+  }
+
+  .lux-hero__retreat-logos div {
+    gap: 1.6rem !important;
+    animation-duration: 68s !important;
+  }
+
+  .lux-hero__retreat-logos span {
+    width: 148px !important;
+    min-width: 148px !important;
+  }
+
+  .lux-hero__retreat-logos img {
+    width: 116px !important;
+    height: 40px !important;
   }
 }

@@ -10,7 +10,7 @@ export async function saveResourceAction(formData: FormData) {
     id: String(formData.get("id") ?? "").trim() || undefined,
     title: String(formData.get("title") ?? "").trim(),
     description: String(formData.get("description") ?? "").trim(),
-    filePath: String(formData.get("filePath") ?? "").trim(),
+    filePath: String(formData.get("filePath") || formData.get("filePathManual") || "").trim(),
     resourceType: String(formData.get("resourceType") ?? "").trim(),
     audienceType: String(formData.get("audienceType") ?? "all_partners") as ResourceAudience,
     status: String(formData.get("status") ?? "draft") as PublishStatus,

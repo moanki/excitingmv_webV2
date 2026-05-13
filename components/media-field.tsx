@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent } from "react";
-import { Image as ImageIcon, Library, Upload, Video } from "lucide-react";
+import { FileText, Image as ImageIcon, Library, Upload, Video } from "lucide-react";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
@@ -25,6 +25,7 @@ type MediaFieldProps = {
 
 function fileKind(file: MediaLibraryItem) {
   if (file.type === "video") return <Video className="admin-icon" />;
+  if (file.type === "file") return <FileText className="admin-icon" />;
   return <ImageIcon className="admin-icon" />;
 }
 
@@ -50,6 +51,10 @@ export function MediaField({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const filteredLibrary = useMemo(() => {
+    if (accept.includes("application/") || accept.includes("text/")) {
+      return library;
+    }
+
     if (accept.includes("video")) {
       return library;
     }
@@ -99,7 +104,7 @@ export function MediaField({
           mode: "create-upload-url",
           filename: file.name,
           contentType: file.type || "application/octet-stream",
-          folder: "resorts"
+          folder: "media-library"
         })
       });
       const payload = (await response.json().catch(() => null)) as

@@ -138,6 +138,12 @@ const navGroups: NavGroup[] = [
         label: "Roles",
         description: "Permission model and role clarity",
         icon: Shield
+      },
+      {
+        href: "/admin/settings/admin-login",
+        label: "Admin Login Page",
+        description: "Sign-in media and logo",
+        icon: Image
       }
     ]
   }
@@ -210,6 +216,10 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   },
   "/admin/settings": {
     title: "Site Settings",
+    description: ""
+  },
+  "/admin/settings/admin-login": {
+    title: "Admin Login Page",
     description: ""
   },
   "/admin/user-access": {
@@ -300,6 +310,10 @@ export function AdminShell({
       window.clearInterval(timer);
     };
   }, []);
+
+  if (pathname.startsWith("/admin/login")) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="admin-shell">

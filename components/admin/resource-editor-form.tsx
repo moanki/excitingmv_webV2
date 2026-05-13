@@ -1,12 +1,14 @@
 import type { ResourceRecord } from "@/lib/services/resource-service";
 
 import { saveResourceAction } from "@/app/admin/resources/actions";
+import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 
 type Props = {
   resource?: ResourceRecord | null;
+  mediaLibrary?: MediaLibraryItem[];
 };
 
-export function ResourceEditorForm({ resource }: Props) {
+export function ResourceEditorForm({ resource, mediaLibrary = [] }: Props) {
   const isEditing = Boolean(resource);
 
   return (
@@ -34,10 +36,6 @@ export function ResourceEditorForm({ resource }: Props) {
             </select>
           </label>
           <label className="field">
-            <span className="field__label">File / URL</span>
-            <input className="admin-input" name="filePath" defaultValue={resource?.filePath ?? ""} />
-          </label>
-          <label className="field">
             <span className="field__label">Visibility</span>
             <select className="admin-select" name="audienceType" defaultValue={resource?.audienceType ?? "all_partners"}>
               <option value="all_partners">All Partners</option>
@@ -61,6 +59,15 @@ export function ResourceEditorForm({ resource }: Props) {
             <textarea className="admin-textarea" name="description" defaultValue={resource?.description ?? ""} />
           </label>
         </div>
+        <MediaField
+          label="Upload or select document"
+          inputName="filePath"
+          fileName="resourceFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/csv,video/mp4,video/webm,video/quicktime"
+          value={resource?.filePath ?? ""}
+          library={mediaLibrary}
+          helper="Upload documents, images, videos, or select an existing file from the media library."
+        />
       </section>
 
       <div className="admin-form-actions">

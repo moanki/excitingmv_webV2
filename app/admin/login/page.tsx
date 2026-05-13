@@ -5,6 +5,7 @@ import { Globe2, MapPin, ShieldCheck } from "lucide-react";
 
 import { ADMIN_SESSION_COOKIE } from "@/lib/auth/bootstrap-admin";
 import { AdminLoginForm } from "@/app/admin/login/login-form";
+import { getAdminLoginContent } from "@/lib/site-content";
 
 export default async function AdminLoginPage({
   searchParams
@@ -17,19 +18,31 @@ export default async function AdminLoginPage({
     redirect("/admin");
   }
 
+  const { content: loginContent } = await getAdminLoginContent("published");
   const params = await searchParams;
   const next = params.next ?? "/admin";
 
   return (
     <main className="admin-auth-page">
-      <section className="admin-auth-hero">
+      <section
+        className="admin-auth-hero"
+        style={{
+          backgroundImage: `linear-gradient(180deg, rgba(9, 116, 139, 0.08), rgba(9, 116, 139, 0.18)), url(${loginContent.backgroundImageUrl})`
+        }}
+      >
         <div className="admin-auth-brand">
-          <div className="admin-auth-brand-mark" aria-hidden="true">
-            <span />
-          </div>
-          <h1>Exciting<br />Maldives</h1>
-          <p>The Maldives Experts</p>
-          <i aria-hidden="true" />
+          {loginContent.logoImageUrl ? (
+            <img className="admin-auth-brand-logo" src={loginContent.logoImageUrl} alt="Exciting Maldives" />
+          ) : (
+            <>
+              <div className="admin-auth-brand-mark" aria-hidden="true">
+                <span />
+              </div>
+              <h1>Exciting<br />Maldives</h1>
+              <p>The Maldives Experts</p>
+              <i aria-hidden="true" />
+            </>
+          )}
         </div>
 
         <div className="admin-auth-hero-note">

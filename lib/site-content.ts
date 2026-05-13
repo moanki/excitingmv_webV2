@@ -109,6 +109,11 @@ export type NavbarContent = {
   ctaEnabled: boolean;
 };
 
+export type AdminLoginContent = {
+  backgroundImageUrl: string;
+  logoImageUrl: string;
+};
+
 export type FooterLinkItem = {
   label: string;
   href: string;
@@ -451,6 +456,11 @@ export const defaultNavbarContent: NavbarContent = {
   ctaEnabled: true
 };
 
+export const defaultAdminLoginContent: AdminLoginContent = {
+  backgroundImageUrl: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=2200&q=85",
+  logoImageUrl: ""
+};
+
 export const defaultFooterContent: FooterContent = {
   companyLabel: "Exciting Maldives",
   description:
@@ -768,6 +778,15 @@ function normalizeNavbarContent(settings: unknown): NavbarContent {
   };
 }
 
+function normalizeAdminLoginContent(settings: unknown): AdminLoginContent {
+  const source = (settings ?? defaultAdminLoginContent) as Partial<AdminLoginContent>;
+
+  return {
+    backgroundImageUrl: source.backgroundImageUrl ?? defaultAdminLoginContent.backgroundImageUrl,
+    logoImageUrl: source.logoImageUrl ?? defaultAdminLoginContent.logoImageUrl
+  };
+}
+
 export async function getHomepageHeroContent(mode: "draft" | "published" = "published") {
   return getSiteSettingMode("homepage.hero", defaultHeroContent, mode);
 }
@@ -821,6 +840,14 @@ export async function getNavbarContent(mode: "draft" | "published" = "published"
   return {
     ...entry,
     content: normalizeNavbarContent(entry.content)
+  };
+}
+
+export async function getAdminLoginContent(mode: "draft" | "published" = "published") {
+  const entry = await getSiteSettingMode("admin.login", defaultAdminLoginContent, mode);
+  return {
+    ...entry,
+    content: normalizeAdminLoginContent(entry.content)
   };
 }
 

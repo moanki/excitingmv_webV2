@@ -1,8 +1,11 @@
 import Link from "next/link";
 
 import { ResourceEditorForm } from "@/components/admin/resource-editor-form";
+import { listSiteAssets } from "@/lib/storage/site-assets";
 
-export default function AdminResourceNewPage() {
+export default async function AdminResourceNewPage() {
+  const mediaLibrary = await listSiteAssets();
+
   return (
     <section className="stack">
       <div className="admin-page-header">
@@ -14,7 +17,7 @@ export default function AdminResourceNewPage() {
         </div>
       </div>
       <article className="panel">
-        <ResourceEditorForm />
+        <ResourceEditorForm mediaLibrary={mediaLibrary} />
       </article>
     </section>
   );
