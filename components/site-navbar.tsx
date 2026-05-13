@@ -56,48 +56,50 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     : navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl;
 
   return (
-    <header className={navClassName}>
-      <div className="site-nav__inner">
-        <Link href="/" className="site-nav__brand">
-          {activeLogoUrl ? (
-            <img
-              src={activeLogoUrl}
-              alt={navbar.brandLabel || "Exciting Maldives"}
-              className="site-nav__brand-logo"
-            />
-          ) : (
-            <span className="site-nav__brand-label">{navbar.brandLabel || "Exciting Maldives"}</span>
-          )}
-        </Link>
-
-        <nav className="site-nav__links" aria-label="Primary">
-          {navItems.map((item) =>
-            item.external ? (
-              <a href={item.href} key={`${item.label}-${item.href}`} target="_blank" rel="noreferrer">
-                {item.label}
-              </a>
+    <>
+      <header className={navClassName}>
+        <div className="site-nav__inner">
+          <Link href="/" className="site-nav__brand">
+            {activeLogoUrl ? (
+              <img
+                src={activeLogoUrl}
+                alt={navbar.brandLabel || "Exciting Maldives"}
+                className="site-nav__brand-logo"
+              />
             ) : (
-              <Link href={item.href} key={`${item.label}-${item.href}`}>
-                {item.label}
+              <span className="site-nav__brand-label">{navbar.brandLabel || "Exciting Maldives"}</span>
+            )}
+          </Link>
+
+          <nav className="site-nav__links" aria-label="Primary">
+            {navItems.map((item) =>
+              item.external ? (
+                <a href={item.href} key={`${item.label}-${item.href}`} target="_blank" rel="noreferrer">
+                  {item.label}
+                </a>
+              ) : (
+                <Link href={item.href} key={`${item.label}-${item.href}`}>
+                  {item.label}
+                </Link>
+              )
+            )}
+            {navbar.ctaEnabled ? (
+              <Link href={partnerLoginHref} className="site-nav__login">
+                Partner Login
               </Link>
-            )
-          )}
-          {navbar.ctaEnabled ? (
-            <Link href={partnerLoginHref} className="site-nav__login">
-              Partner Login
-            </Link>
-          ) : null}
-          <button type="button" className="site-nav__cta" onClick={() => setPartnerModalOpen(true)}>
-            Become a Partner
-          </button>
-        </nav>
+            ) : null}
+            <button type="button" className="site-nav__cta" onClick={() => setPartnerModalOpen(true)}>
+              Become a Partner
+            </button>
+          </nav>
 
-        <span className="site-nav__mobile-spacer" aria-hidden="true" />
+          <span className="site-nav__mobile-spacer" aria-hidden="true" />
 
-        <Link href={partnerLoginHref} className="site-nav__mobile-portal" aria-label="Partner notifications and access">
-          <Bell size={18} />
-        </Link>
-      </div>
+          <Link href={partnerLoginHref} className="site-nav__mobile-portal" aria-label="Partner notifications and access">
+            <Bell size={18} />
+          </Link>
+        </div>
+      </header>
 
       <nav className="mobile-bottom-nav" aria-label="Mobile primary">
         {mobileItems.map(({ Icon, ...item }) => {
@@ -132,6 +134,6 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
           </div>
         </div>
       ) : null}
-    </header>
+    </>
   );
 }
