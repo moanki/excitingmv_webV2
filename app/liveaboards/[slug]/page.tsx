@@ -5,7 +5,7 @@ import { ArrowLeft, Heart, Share2 } from "lucide-react";
 import { getResortBySlug, listPublishedProperties } from "@/lib/services/resort-service";
 
 export async function generateStaticParams() {
-  const liveaboards = await listPublishedProperties("liveaboard");
+  const liveaboards = await listPublishedProperties("liveaboards");
   return liveaboards.map((item) => ({ slug: item.slug }));
 }
 
@@ -15,7 +15,7 @@ export default async function LiveaboardDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const liveaboard = await getResortBySlug(slug, "liveaboard");
+  const liveaboard = await getResortBySlug(slug, "liveaboards");
 
   if (!liveaboard) {
     notFound();

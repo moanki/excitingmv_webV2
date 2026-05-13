@@ -18,7 +18,7 @@ export default async function NewAdminLiveaboardPage() {
       description="Create a liveaboard workspace with content, media, cabins, SEO, and publishing controls."
       mediaLibrary={mediaLibrary}
       mode="create"
-      propertyType="liveaboard"
+      propertyType="liveaboards"
       labels={labels}
     />
   );

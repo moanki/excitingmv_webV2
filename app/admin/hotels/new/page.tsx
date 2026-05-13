@@ -18,7 +18,7 @@ export default async function NewAdminHotelPage() {
       description="Create a hotel workspace with content, media, rooms, SEO, and publishing controls."
       mediaLibrary={mediaLibrary}
       mode="create"
-      propertyType="hotel"
+      propertyType="hotels"
       labels={labels}
     />
   );

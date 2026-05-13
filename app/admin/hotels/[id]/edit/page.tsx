@@ -19,7 +19,7 @@ export default async function EditAdminHotelPage({
   const { id } = await params;
   const [hotel, mediaLibrary] = await Promise.all([getAdminResortById(id), listSiteAssets()]);
 
-  if (!hotel || hotel.propertyType !== "hotel") {
+  if (!hotel || hotel.propertyType !== "hotels") {
     notFound();
   }
 
@@ -30,7 +30,7 @@ export default async function EditAdminHotelPage({
       description="Work on one selected hotel with dedicated sections for content, rooms, media, and publishing."
       mediaLibrary={mediaLibrary}
       mode="edit"
-      propertyType="hotel"
+      propertyType="hotels"
       labels={labels}
     />
   );

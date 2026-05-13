@@ -3,7 +3,7 @@ import {
   type ImportedResort,
   type ImportedResortPayload
 } from "@/lib/services/resort-ai-service";
-import { listAdminResorts, saveResort, type PropertyType } from "@/lib/services/resort-service";
+import { listAdminResorts, normalizePropertyType, saveResort, type PropertyType } from "@/lib/services/resort-service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { PublishStatus, ServiceResult } from "@/lib/types";
 import { aiImportRequestSchema } from "@/lib/validations";
@@ -304,10 +304,6 @@ function compactStagingPayload(
     truncated:
       sourceFiles.length > MAX_STAGING_ITEMS || stagedPayloads.length > MAX_STAGING_ITEMS
   };
-}
-
-function normalizePropertyType(value?: string | null): PropertyType {
-  return value === "liveaboard" || value === "hotel" ? value : "resort";
 }
 
 function buildCheckpointPayload(

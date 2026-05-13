@@ -5,7 +5,7 @@ import { ArrowLeft, Heart, Share2 } from "lucide-react";
 import { getResortBySlug, listPublishedProperties } from "@/lib/services/resort-service";
 
 export async function generateStaticParams() {
-  const hotels = await listPublishedProperties("hotel");
+  const hotels = await listPublishedProperties("hotels");
   return hotels.map((item) => ({ slug: item.slug }));
 }
 
@@ -15,7 +15,7 @@ export default async function HotelDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const hotel = await getResortBySlug(slug, "hotel");
+  const hotel = await getResortBySlug(slug, "hotels");
 
   if (!hotel) {
     notFound();

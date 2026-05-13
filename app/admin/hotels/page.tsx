@@ -11,7 +11,7 @@ const labels = {
 };
 
 export default async function AdminHotelsPage() {
-  const [hotels, counts] = await Promise.all([listAdminResorts("hotel"), getResortCounts("hotel")]);
+  const [hotels, counts] = await Promise.all([listAdminResorts("hotels"), getResortCounts("hotels")]);
 
   return (
     <section className="stack">
@@ -42,7 +42,7 @@ export default async function AdminHotelsPage() {
         </article>
       </div>
 
-      <ResortManagerListView resorts={hotels} propertyType="hotel" labels={labels} />
+      <ResortManagerListView resorts={hotels} propertyType="hotels" labels={labels} />
     </section>
   );
 }

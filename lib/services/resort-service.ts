@@ -4,7 +4,9 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { sampleResorts } from "@/lib/sample-data";
 import type { PublishStatus, ResortRoomSummary, ResortSummary } from "@/lib/types";
 
-export type PropertyType = "resort" | "liveaboard" | "hotel";
+export type PropertyType = "resort" | "liveaboards" | "hotels";
+
+const PROPERTY_TABLE = "property";
 
 export type ResortRoomRecord = {
   id?: string;
@@ -109,12 +111,22 @@ function isMissingPropertyTypeColumnError(error: unknown) {
   return message.includes("property_type");
 }
 
-function normalizePropertyType(value?: string | null): PropertyType {
-  return value === "liveaboard" || value === "hotel" ? value : "resort";
+export function normalizePropertyType(value?: unknown): PropertyType {
+  const normalizedValue = typeof value === "string" ? value : "";
+
+  if (normalizedValue === "liveaboard" || normalizedValue === "liveaboards") {
+    return "liveaboards";
+  }
+
+  if (normalizedValue === "hotel" || normalizedValue === "hotels") {
+    return "hotels";
+  }
+
+  return "resort";
 }
 
 function propertyBasePath(propertyType: PropertyType) {
-  return propertyType === "liveaboard" ? "/liveaboards" : propertyType === "hotel" ? "/hotels" : "/resorts";
+  return propertyType === "liveaboards" ? "/liveaboards" : propertyType === "hotels" ? "/hotels" : "/resorts";
 }
 
 function toStringArray(value: unknown) {
@@ -268,7 +280,7 @@ export async function listAdminResorts(propertyType: PropertyType = "resort"): P
   try {
     const supabase = createSupabaseAdminClient();
     const query = supabase
-      .from("resorts")
+      .from(PROPERTY_TABLE)
       .select("*")
       .eq("property_type", propertyType)
       .order("updated_at", { ascending: false });
@@ -293,7 +305,7 @@ export async function listAdminResorts(propertyType: PropertyType = "resort"): P
 
 async function listAdminResortsWithoutPropertyType(): Promise<ResortRecord[]> {
   const supabase = createSupabaseAdminClient();
-  const { data, error } = await supabase.from("resorts").select("*").order("updated_at", { ascending: false });
+  const { data, error } = await supabase.from(PROPERTY_TABLE).select("*").order("updated_at", { ascending: false });
 
   if (error || !data?.length) {
     return [];
@@ -305,7 +317,7 @@ async function listAdminResortsWithoutPropertyType(): Promise<ResortRecord[]> {
 export async function getAdminResortById(id: string): Promise<ResortRecord | null> {
   try {
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase.from("resorts").select("*").eq("id", id).maybeSingle();
+    const { data, error } = await supabase.from(PROPERTY_TABLE).select("*").eq("id", id).maybeSingle();
 
     if (error) {
       throw error;
@@ -325,7 +337,7 @@ export async function getAdminResortById(id: string): Promise<ResortRecord | nul
 async function listPublishedResortRows(propertyType: PropertyType = "resort") {
   const supabase = createSupabaseAdminClient();
   const firstAttempt = await supabase
-    .from("resorts")
+    .from(PROPERTY_TABLE)
     .select("id,property_type,slug,name,atoll,category,transfer_type,description,seo_summary,status,is_featured_homepage")
     .eq("status", "published")
     .eq("property_type", propertyType)
@@ -349,7 +361,7 @@ async function listPublishedResortRows(propertyType: PropertyType = "resort") {
   }
 
   const fallbackAttempt = await supabase
-    .from("resorts")
+    .from(PROPERTY_TABLE)
     .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status")
     .eq("status", "published")
     .eq("property_type", propertyType)
@@ -373,7 +385,7 @@ async function listPublishedResortRows(propertyType: PropertyType = "resort") {
 async function listPublishedResortRowsWithoutPropertyType() {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
-    .from("resorts")
+    .from(PROPERTY_TABLE)
     .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status")
     .eq("status", "published")
     .order("updated_at", { ascending: false });
@@ -474,7 +486,7 @@ export async function getResortBySlug(slug: string, propertyType: PropertyType =
   try {
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase
-      .from("resorts")
+      .from(PROPERTY_TABLE)
       .select("*")
       .eq("slug", slug)
       .eq("status", "published")
@@ -502,7 +514,7 @@ export async function getResortBySlug(slug: string, propertyType: PropertyType =
 async function getResortBySlugWithoutPropertyType(slug: string): Promise<ResortRecord | null> {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
-    .from("resorts")
+    .from(PROPERTY_TABLE)
     .select("*")
     .eq("slug", slug)
     .eq("status", "published")
@@ -579,7 +591,7 @@ export async function saveResort(input: {
   let error: { message?: string } | null = null;
 
   const firstAttempt = await supabase
-    .from("resorts")
+    .from(PROPERTY_TABLE)
     .upsert({
       ...basePayload,
       is_featured_homepage: input.status === "published" ? input.isFeaturedHomepage : false
@@ -593,7 +605,7 @@ export async function saveResort(input: {
   if (error && isMissingPropertyTypeColumnError(error)) {
     const { property_type: _propertyType, ...legacyPayload } = basePayload;
     const fallbackAttempt = await supabase
-      .from("resorts")
+      .from(PROPERTY_TABLE)
       .upsert({
         ...legacyPayload,
         is_featured_homepage: input.status === "published" ? input.isFeaturedHomepage : false
@@ -608,7 +620,7 @@ export async function saveResort(input: {
   if (error && isMissingFeaturedHomepageColumnError(error)) {
     const { property_type: _propertyType, ...legacyPayload } = basePayload;
     const fallbackAttempt = await supabase
-      .from("resorts")
+      .from(PROPERTY_TABLE)
       .upsert(legacyPayload)
       .select("id")
       .single();
@@ -701,7 +713,7 @@ export async function saveResort(input: {
 
 export async function deleteResort(id: string) {
   const supabase = createSupabaseAdminClient();
-  const { error } = await supabase.from("resorts").delete().eq("id", id);
+  const { error } = await supabase.from(PROPERTY_TABLE).delete().eq("id", id);
 
   if (error) {
     throw new Error(error.message);
@@ -715,6 +727,7 @@ export async function deleteResort(id: string) {
 export async function seedSampleResorts() {
   const supabase = createSupabaseAdminClient();
   const payload = sampleResorts.map((resort, index) => ({
+    property_type: "resort" as PropertyType,
     slug: resort.slug,
     name: resort.name,
     atoll: resort.location,
@@ -731,7 +744,7 @@ export async function seedSampleResorts() {
     updated_at: new Date().toISOString()
   }));
 
-  const { error: firstError } = await supabase.from("resorts").upsert(
+  const { error: firstError } = await supabase.from(PROPERTY_TABLE).upsert(
     payload.map((resort, index) => ({
       ...resort,
       is_featured_homepage: index < 2 && resort.status === "published"
@@ -742,7 +755,7 @@ export async function seedSampleResorts() {
   let error = firstError;
 
   if (error && isMissingFeaturedHomepageColumnError(error)) {
-    const fallbackAttempt = await supabase.from("resorts").upsert(payload, { onConflict: "slug" });
+    const fallbackAttempt = await supabase.from(PROPERTY_TABLE).upsert(payload, { onConflict: "slug" });
     error = fallbackAttempt.error;
   }
 

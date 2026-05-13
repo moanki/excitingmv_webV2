@@ -19,7 +19,7 @@ export default async function EditAdminLiveaboardPage({
   const { id } = await params;
   const [liveaboard, mediaLibrary] = await Promise.all([getAdminResortById(id), listSiteAssets()]);
 
-  if (!liveaboard || liveaboard.propertyType !== "liveaboard") {
+  if (!liveaboard || liveaboard.propertyType !== "liveaboards") {
     notFound();
   }
 
@@ -30,7 +30,7 @@ export default async function EditAdminLiveaboardPage({
       description="Work on one selected liveaboard with dedicated sections for content, cabins, media, and publishing."
       mediaLibrary={mediaLibrary}
       mode="edit"
-      propertyType="liveaboard"
+      propertyType="liveaboards"
       labels={labels}
     />
   );

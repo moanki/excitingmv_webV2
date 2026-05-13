@@ -12,8 +12,8 @@ const labels = {
 
 export default async function AdminLiveaboardsPage() {
   const [liveaboards, counts] = await Promise.all([
-    listAdminResorts("liveaboard"),
-    getResortCounts("liveaboard")
+    listAdminResorts("liveaboards"),
+    getResortCounts("liveaboards")
   ]);
 
   return (
@@ -45,7 +45,7 @@ export default async function AdminLiveaboardsPage() {
         </article>
       </div>
 
-      <ResortManagerListView resorts={liveaboards} propertyType="liveaboard" labels={labels} />
+      <ResortManagerListView resorts={liveaboards} propertyType="liveaboards" labels={labels} />
     </section>
   );
 }

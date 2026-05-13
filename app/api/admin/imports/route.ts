@@ -13,7 +13,7 @@ import {
 import { SITE_ASSET_BUCKET } from "@/lib/storage/site-assets";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { aiImportRequestSchema } from "@/lib/validations";
-import type { PropertyType } from "@/lib/services/resort-service";
+import { normalizePropertyType, type PropertyType } from "@/lib/services/resort-service";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -24,10 +24,6 @@ function slugFilename(value: string) {
     .replace(/[^a-z0-9.]+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "");
-}
-
-function normalizePropertyType(value: unknown): PropertyType {
-  return value === "liveaboard" || value === "hotel" ? value : "resort";
 }
 
 function revalidatePropertyType(propertyType: PropertyType) {

@@ -3,23 +3,19 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 
 import { generateResortSeoCopy, type ResortSeoGenerationInput } from "@/lib/services/resort-ai-service";
-import { deleteResort, saveResort, seedSampleResorts, type PropertyType } from "@/lib/services/resort-service";
+import { deleteResort, normalizePropertyType, saveResort, seedSampleResorts, type PropertyType } from "@/lib/services/resort-service";
 import { uploadSiteAsset } from "@/lib/storage/site-assets";
 import type { PublishStatus } from "@/lib/types";
 import { resortSeoGenerationInputSchema } from "@/lib/validations";
 
 type ActionState = { message?: string; error?: string } | undefined;
 
-function normalizePropertyType(value: FormDataEntryValue | string | null): PropertyType {
-  return value === "liveaboard" || value === "hotel" ? value : "resort";
-}
-
 function adminPathForProperty(propertyType: PropertyType) {
-  return propertyType === "liveaboard" ? "/admin/liveaboards" : propertyType === "hotel" ? "/admin/hotels" : "/admin/resorts";
+  return propertyType === "liveaboards" ? "/admin/liveaboards" : propertyType === "hotels" ? "/admin/hotels" : "/admin/resorts";
 }
 
 function publicPathForProperty(propertyType: PropertyType) {
-  return propertyType === "liveaboard" ? "/liveaboards" : propertyType === "hotel" ? "/hotels" : "/resorts";
+  return propertyType === "liveaboards" ? "/liveaboards" : propertyType === "hotels" ? "/hotels" : "/resorts";
 }
 
 function revalidateResortPaths(propertyType: PropertyType = "resort") {

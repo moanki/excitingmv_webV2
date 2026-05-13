@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 
 import type { ResortSummary } from "@/lib/types";
 
-type DestinationKind = "resort" | "hotel" | "liveaboard";
+type DestinationKind = "resort" | "hotels" | "liveaboards";
 
 type DestinationIndexProps = {
   activeKind: DestinationKind;
@@ -23,7 +23,7 @@ const kindConfig = {
     emptyTitle: "No published resorts are available yet.",
     emptyBody: "Publish a resort from the admin portal and it will appear here once public cache refresh completes."
   },
-  hotel: {
+  hotels: {
     eyebrow: "Hotel Collection",
     label: "Hotels",
     singular: "Hotel",
@@ -32,7 +32,7 @@ const kindConfig = {
     emptyTitle: "No published hotels are available yet.",
     emptyBody: "Publish a hotel from the admin portal and it will appear here once public cache refresh completes."
   },
-  liveaboard: {
+  liveaboards: {
     eyebrow: "Liveaboard Collection",
     label: "Liveaboards",
     singular: "Liveaboard",

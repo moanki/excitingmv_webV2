@@ -33,7 +33,10 @@ export const aiImportRequestSchema = z.object({
       (value) => value.includes("drive.google.com") || value.includes("docs.google.com"),
       "Enter a valid Google Drive or Google Docs URL."
     ),
-  propertyType: z.enum(["resort", "liveaboard", "hotel"]).default("resort")
+  propertyType: z
+    .enum(["resort", "liveaboard", "liveaboards", "hotel", "hotels"])
+    .default("resort")
+    .transform((value) => (value === "liveaboard" ? "liveaboards" : value === "hotel" ? "hotels" : value))
 });
 
 export const chatStartSchema = z.object({

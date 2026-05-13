@@ -7,7 +7,7 @@ import {
   importUploadedFactSheet,
   type ImportExecutionResult
 } from "@/lib/services/import-service";
-import type { PropertyType } from "@/lib/services/resort-service";
+import { normalizePropertyType } from "@/lib/services/resort-service";
 
 export type ImportActionState =
   | {
@@ -20,10 +20,6 @@ export type ImportActionState =
       error: string;
     }
   | undefined;
-
-function normalizePropertyType(value: FormDataEntryValue | null): PropertyType {
-  return value === "liveaboard" || value === "hotel" ? value : "resort";
-}
 
 function revalidateImportTargets() {
   revalidatePath("/admin/resorts");

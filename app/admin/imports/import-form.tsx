@@ -22,8 +22,8 @@ type DriveImportProgress = {
 
 const categoryOptions = [
   { value: "resort", label: "Resort" },
-  { value: "liveaboard", label: "Liveaboard" },
-  { value: "hotel", label: "Hotel" }
+  { value: "liveaboards", label: "Liveaboard" },
+  { value: "hotels", label: "Hotel" }
 ] as const;
 
 function CategorySelector({ value, onChange }: { value: string; onChange: (value: string) => void }) {
