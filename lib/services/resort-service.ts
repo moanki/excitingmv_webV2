@@ -7,6 +7,8 @@ import type { PublishStatus, ResortRoomSummary, ResortSummary } from "@/lib/type
 export type PropertyType = "resort" | "liveaboards" | "hotels";
 
 const PROPERTY_TABLE = "property";
+const LEGACY_PROPERTY_TABLE = "resorts";
+const PROPERTY_TABLES = [PROPERTY_TABLE, LEGACY_PROPERTY_TABLE] as const;
 
 export type ResortRoomRecord = {
   id?: string;
@@ -111,6 +113,17 @@ function isMissingPropertyTypeColumnError(error: unknown) {
   return message.includes("property_type");
 }
 
+function isMissingPropertyTableError(error: unknown) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message?: unknown }).message ?? "")
+        : "";
+
+  return message.includes("Could not find the table") || message.includes(`relation "public.${PROPERTY_TABLE}" does not exist`);
+}
+
 export function normalizePropertyType(value?: unknown): PropertyType {
   const normalizedValue = typeof value === "string" ? value : "";
 
@@ -120,6 +133,34 @@ export function normalizePropertyType(value?: unknown): PropertyType {
 
   if (normalizedValue === "hotel" || normalizedValue === "hotels") {
     return "hotels";
+  }
+
+  return "resort";
+}
+
+function propertyTypeAliases(propertyType: PropertyType) {
+  if (propertyType === "liveaboards") {
+    return ["liveaboards", "liveaboard"];
+  }
+
+  if (propertyType === "hotels") {
+    return ["hotels", "hotel"];
+  }
+
+  return ["resort"];
+}
+
+function propertyTypeForTable(propertyType: PropertyType, tableName: string) {
+  if (tableName !== LEGACY_PROPERTY_TABLE) {
+    return propertyType;
+  }
+
+  if (propertyType === "liveaboards") {
+    return "liveaboard";
+  }
+
+  if (propertyType === "hotels") {
+    return "hotel";
   }
 
   return "resort";
@@ -279,33 +320,39 @@ async function attachResortRelations(resorts: ResortRecord[]) {
 export async function listAdminResorts(propertyType: PropertyType = "resort"): Promise<ResortRecord[]> {
   try {
     const supabase = createSupabaseAdminClient();
-    const query = supabase
-      .from(PROPERTY_TABLE)
-      .select("*")
-      .eq("property_type", propertyType)
-      .order("updated_at", { ascending: false });
-    const { data, error } = await query;
+    for (const tableName of PROPERTY_TABLES) {
+      const { data, error } = await supabase
+        .from(tableName)
+        .select("*")
+        .in("property_type", propertyTypeAliases(propertyType))
+        .order("updated_at", { ascending: false });
 
-    if (error) {
-      if (isMissingPropertyTypeColumnError(error)) {
-        return propertyType === "resort" ? listAdminResortsWithoutPropertyType() : [];
+      if (error) {
+        if (isMissingPropertyTableError(error)) {
+          continue;
+        }
+        if (isMissingPropertyTypeColumnError(error)) {
+          return propertyType === "resort" ? listAdminResortsWithoutPropertyType(tableName) : [];
+        }
+        throw error;
       }
-      throw error;
+
+      if (!data?.length) {
+        return [];
+      }
+
+      return attachResortRelations((data as ResortRow[]).map(mapResort));
     }
 
-    if (!data?.length) {
-      return [];
-    }
-
-    return attachResortRelations((data as ResortRow[]).map(mapResort));
+    return [];
   } catch {
     return [];
   }
 }
 
-async function listAdminResortsWithoutPropertyType(): Promise<ResortRecord[]> {
+async function listAdminResortsWithoutPropertyType(tableName = PROPERTY_TABLE): Promise<ResortRecord[]> {
   const supabase = createSupabaseAdminClient();
-  const { data, error } = await supabase.from(PROPERTY_TABLE).select("*").order("updated_at", { ascending: false });
+  const { data, error } = await supabase.from(tableName).select("*").order("updated_at", { ascending: false });
 
   if (error || !data?.length) {
     return [];
@@ -317,18 +364,25 @@ async function listAdminResortsWithoutPropertyType(): Promise<ResortRecord[]> {
 export async function getAdminResortById(id: string): Promise<ResortRecord | null> {
   try {
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase.from(PROPERTY_TABLE).select("*").eq("id", id).maybeSingle();
+    for (const tableName of PROPERTY_TABLES) {
+      const { data, error } = await supabase.from(tableName).select("*").eq("id", id).maybeSingle();
 
-    if (error) {
-      throw error;
+      if (error) {
+        if (isMissingPropertyTableError(error)) {
+          continue;
+        }
+        throw error;
+      }
+
+      if (!data) {
+        return null;
+      }
+
+      const [resort] = await attachResortRelations([mapResort(data as ResortRow)]);
+      return resort ?? null;
     }
 
-    if (!data) {
-      return null;
-    }
-
-    const [resort] = await attachResortRelations([mapResort(data as ResortRow)]);
-    return resort ?? null;
+    return null;
   } catch {
     return null;
   }
@@ -336,11 +390,26 @@ export async function getAdminResortById(id: string): Promise<ResortRecord | nul
 
 async function listPublishedResortRows(propertyType: PropertyType = "resort") {
   const supabase = createSupabaseAdminClient();
+  for (const tableName of PROPERTY_TABLES) {
+    const rows = await listPublishedResortRowsFromTable(supabase, tableName, propertyType);
+    if (rows) {
+      return rows;
+    }
+  }
+
+  return [];
+}
+
+async function listPublishedResortRowsFromTable(
+  supabase: ReturnType<typeof createSupabaseAdminClient>,
+  tableName: string,
+  propertyType: PropertyType = "resort"
+) {
   const firstAttempt = await supabase
-    .from(PROPERTY_TABLE)
+    .from(tableName)
     .select("id,property_type,slug,name,atoll,category,transfer_type,description,seo_summary,status,is_featured_homepage")
     .eq("status", "published")
-    .eq("property_type", propertyType)
+    .in("property_type", propertyTypeAliases(propertyType))
     .order("updated_at", { ascending: false });
 
   if (!firstAttempt.error) {
@@ -352,8 +421,12 @@ async function listPublishedResortRows(propertyType: PropertyType = "resort") {
     >;
   }
 
+  if (isMissingPropertyTableError(firstAttempt.error)) {
+    return null;
+  }
+
   if (isMissingPropertyTypeColumnError(firstAttempt.error)) {
-    return propertyType === "resort" ? listPublishedResortRowsWithoutPropertyType() : [];
+    return propertyType === "resort" ? listPublishedResortRowsWithoutPropertyType(tableName) : [];
   }
 
   if (!isMissingFeaturedHomepageColumnError(firstAttempt.error)) {
@@ -361,15 +434,18 @@ async function listPublishedResortRows(propertyType: PropertyType = "resort") {
   }
 
   const fallbackAttempt = await supabase
-    .from(PROPERTY_TABLE)
+    .from(tableName)
     .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status")
     .eq("status", "published")
-    .eq("property_type", propertyType)
+    .in("property_type", propertyTypeAliases(propertyType))
     .order("updated_at", { ascending: false });
 
   if (fallbackAttempt.error) {
+    if (isMissingPropertyTableError(fallbackAttempt.error)) {
+      return null;
+    }
     if (isMissingPropertyTypeColumnError(fallbackAttempt.error)) {
-      return propertyType === "resort" ? listPublishedResortRowsWithoutPropertyType() : [];
+      return propertyType === "resort" ? listPublishedResortRowsWithoutPropertyType(tableName) : [];
     }
     throw fallbackAttempt.error;
   }
@@ -382,10 +458,10 @@ async function listPublishedResortRows(propertyType: PropertyType = "resort") {
   }));
 }
 
-async function listPublishedResortRowsWithoutPropertyType() {
+async function listPublishedResortRowsWithoutPropertyType(tableName = PROPERTY_TABLE) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
-    .from(PROPERTY_TABLE)
+    .from(tableName)
     .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status")
     .eq("status", "published")
     .order("updated_at", { ascending: false });
@@ -485,36 +561,43 @@ export async function listHomepageFeaturedResorts(limit = 5): Promise<ResortSumm
 export async function getResortBySlug(slug: string, propertyType: PropertyType = "resort"): Promise<ResortRecord | null> {
   try {
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase
-      .from(PROPERTY_TABLE)
-      .select("*")
-      .eq("slug", slug)
-      .eq("status", "published")
-      .eq("property_type", propertyType)
-      .maybeSingle();
+    for (const tableName of PROPERTY_TABLES) {
+      const { data, error } = await supabase
+        .from(tableName)
+        .select("*")
+        .eq("slug", slug)
+        .eq("status", "published")
+        .in("property_type", propertyTypeAliases(propertyType))
+        .maybeSingle();
 
-    if (error) {
-      if (isMissingPropertyTypeColumnError(error) && propertyType === "resort") {
-        return getResortBySlugWithoutPropertyType(slug);
+      if (error) {
+        if (isMissingPropertyTableError(error)) {
+          continue;
+        }
+        if (isMissingPropertyTypeColumnError(error) && propertyType === "resort") {
+          return getResortBySlugWithoutPropertyType(slug, tableName);
+        }
+        throw error;
       }
-      throw error;
+
+      if (!data) {
+        return null;
+      }
+
+      const [resort] = await attachResortRelations([mapResort(data as ResortRow)]);
+      return resort ?? null;
     }
 
-    if (!data) {
-      return null;
-    }
-
-    const [resort] = await attachResortRelations([mapResort(data as ResortRow)]);
-    return resort ?? null;
+    return null;
   } catch {
     return null;
   }
 }
 
-async function getResortBySlugWithoutPropertyType(slug: string): Promise<ResortRecord | null> {
+async function getResortBySlugWithoutPropertyType(slug: string, tableName = PROPERTY_TABLE): Promise<ResortRecord | null> {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
-    .from(PROPERTY_TABLE)
+    .from(tableName)
     .select("*")
     .eq("slug", slug)
     .eq("status", "published")
@@ -590,43 +673,56 @@ export async function saveResort(input: {
     | null = null;
   let error: { message?: string } | null = null;
 
-  const firstAttempt = await supabase
-    .from(PROPERTY_TABLE)
-    .upsert({
+  for (const tableName of PROPERTY_TABLES) {
+    const tablePayload = {
       ...basePayload,
-      is_featured_homepage: input.status === "published" ? input.isFeaturedHomepage : false
-    })
-    .select("id")
-    .single();
+      property_type: propertyTypeForTable(propertyType, tableName)
+    };
 
-  data = firstAttempt.data;
-  error = firstAttempt.error;
-
-  if (error && isMissingPropertyTypeColumnError(error)) {
-    const { property_type: _propertyType, ...legacyPayload } = basePayload;
-    const fallbackAttempt = await supabase
-      .from(PROPERTY_TABLE)
+    const firstAttempt = await supabase
+      .from(tableName)
       .upsert({
-        ...legacyPayload,
+        ...tablePayload,
         is_featured_homepage: input.status === "published" ? input.isFeaturedHomepage : false
       })
       .select("id")
       .single();
 
-    data = fallbackAttempt.data;
-    error = fallbackAttempt.error;
-  }
+    data = firstAttempt.data;
+    error = firstAttempt.error;
 
-  if (error && isMissingFeaturedHomepageColumnError(error)) {
-    const { property_type: _propertyType, ...legacyPayload } = basePayload;
-    const fallbackAttempt = await supabase
-      .from(PROPERTY_TABLE)
-      .upsert(legacyPayload)
-      .select("id")
-      .single();
+    if (error && isMissingPropertyTableError(error)) {
+      continue;
+    }
 
-    data = fallbackAttempt.data;
-    error = fallbackAttempt.error;
+    if (error && isMissingPropertyTypeColumnError(error)) {
+      const { property_type: _propertyType, ...legacyPayload } = tablePayload;
+      const fallbackAttempt = await supabase
+        .from(tableName)
+        .upsert({
+          ...legacyPayload,
+          is_featured_homepage: input.status === "published" ? input.isFeaturedHomepage : false
+        })
+        .select("id")
+        .single();
+
+      data = fallbackAttempt.data;
+      error = fallbackAttempt.error;
+    }
+
+    if (error && isMissingFeaturedHomepageColumnError(error)) {
+      const { property_type: _propertyType, ...legacyPayload } = tablePayload;
+      const fallbackAttempt = await supabase
+        .from(tableName)
+        .upsert(legacyPayload)
+        .select("id")
+        .single();
+
+      data = fallbackAttempt.data;
+      error = fallbackAttempt.error;
+    }
+
+    break;
   }
 
   if (error || !data) {
@@ -713,7 +809,18 @@ export async function saveResort(input: {
 
 export async function deleteResort(id: string) {
   const supabase = createSupabaseAdminClient();
-  const { error } = await supabase.from(PROPERTY_TABLE).delete().eq("id", id);
+  let error: { message?: string } | null = null;
+
+  for (const tableName of PROPERTY_TABLES) {
+    const result = await supabase.from(tableName).delete().eq("id", id);
+    error = result.error;
+
+    if (error && isMissingPropertyTableError(error)) {
+      continue;
+    }
+
+    break;
+  }
 
   if (error) {
     throw new Error(error.message);
@@ -744,19 +851,33 @@ export async function seedSampleResorts() {
     updated_at: new Date().toISOString()
   }));
 
-  const { error: firstError } = await supabase.from(PROPERTY_TABLE).upsert(
-    payload.map((resort, index) => ({
+  let error: { message?: string } | null = null;
+
+  for (const tableName of PROPERTY_TABLES) {
+    const seedPayload = payload.map((resort) => ({
       ...resort,
-      is_featured_homepage: index < 2 && resort.status === "published"
-    })),
-    { onConflict: "slug" }
-  );
+      property_type: propertyTypeForTable("resort", tableName)
+    }));
+    const { error: firstError } = await supabase.from(tableName).upsert(
+      seedPayload.map((resort, index) => ({
+        ...resort,
+        is_featured_homepage: index < 2 && resort.status === "published"
+      })),
+      { onConflict: "slug" }
+    );
 
-  let error = firstError;
+    error = firstError;
 
-  if (error && isMissingFeaturedHomepageColumnError(error)) {
-    const fallbackAttempt = await supabase.from(PROPERTY_TABLE).upsert(payload, { onConflict: "slug" });
-    error = fallbackAttempt.error;
+    if (error && isMissingPropertyTableError(error)) {
+      continue;
+    }
+
+    if (error && isMissingFeaturedHomepageColumnError(error)) {
+      const fallbackAttempt = await supabase.from(tableName).upsert(seedPayload, { onConflict: "slug" });
+      error = fallbackAttempt.error;
+    }
+
+    break;
   }
 
   if (error) {
