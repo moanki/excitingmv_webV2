@@ -51,6 +51,7 @@ const SITE_ASSET_PREFIXES = [
   "site/membership",
   "site/award",
   "admin/login",
+  "chat-attachments",
   "media-library",
   "imports",
   "resorts"
@@ -90,8 +91,32 @@ function isOptimizableImage(file: File) {
   return ["image/png", "image/jpeg", "image/webp"].includes(file.type);
 }
 
+function isOptimizablePath(path: string, contentType?: string | null) {
+  const lower = path.toLowerCase();
+  return (
+    ["image/png", "image/jpeg", "image/webp"].includes(contentType ?? "") ||
+    /\.(png|jpe?g|webp)$/i.test(lower)
+  );
+}
+
 async function imageBuffer(file: File, usage: SiteAssetUsage) {
   const source = Buffer.from(await file.arrayBuffer());
+  const profile = IMAGE_PROFILES[usage] ?? IMAGE_PROFILES.full;
+
+  return sharp(source, { animated: false })
+    .rotate()
+    .resize({
+      width: profile.width,
+      height: profile.height,
+      fit: profile.fit,
+      withoutEnlargement: true,
+      background: { r: 255, g: 255, b: 255, alpha: 0 }
+    })
+    .webp({ quality: profile.quality, smartSubsample: true })
+    .toBuffer();
+}
+
+async function optimizedStorageBuffer(source: Buffer, usage: SiteAssetUsage = "full") {
   const profile = IMAGE_PROFILES[usage] ?? IMAGE_PROFILES.full;
 
   return sharp(source, { animated: false })
@@ -223,6 +248,109 @@ export async function createSignedSiteAssetUpload(filename: string, contentType:
     signedUrl: signed.data.signedUrl,
     publicUrl: publicUrl.data.publicUrl,
     contentType
+  };
+}
+
+async function listStoragePaths(prefix: string): Promise<Array<{ path: string; contentType: string | null; size: number | null }>> {
+  const supabase = await ensureBucket();
+  const output: Array<{ path: string; contentType: string | null; size: number | null }> = [];
+  const { data, error } = await supabase.storage.from(SITE_ASSET_BUCKET).list(prefix, {
+    limit: 1000,
+    sortBy: { column: "name", order: "asc" }
+  });
+
+  if (error || !data) {
+    return output;
+  }
+
+  for (const entry of data) {
+    const path = `${prefix}/${entry.name}`;
+    const isFolder = !entry.metadata && entry.id === null;
+
+    if (isFolder) {
+      output.push(...(await listStoragePaths(path)));
+      continue;
+    }
+
+    output.push({
+      path,
+      contentType: typeof entry.metadata?.mimetype === "string" ? entry.metadata.mimetype : null,
+      size: typeof entry.metadata?.size === "number" ? entry.metadata.size : null
+    });
+  }
+
+  return output;
+}
+
+export async function compressExistingSiteImages() {
+  const supabase = await ensureBucket();
+  const uniquePaths = new Map<string, { contentType: string | null; size: number | null }>();
+
+  for (const prefix of SITE_ASSET_PREFIXES) {
+    const paths = await listStoragePaths(prefix);
+    paths.forEach((item) => uniquePaths.set(item.path, { contentType: item.contentType, size: item.size }));
+  }
+
+  let scanned = 0;
+  let compressed = 0;
+  let skipped = 0;
+  let failed = 0;
+  let bytesBefore = 0;
+  let bytesAfter = 0;
+
+  for (const [path, meta] of uniquePaths) {
+    if (/(?:-(?:thumb|card|banner))\.webp$/i.test(path) || !isOptimizablePath(path, meta.contentType)) {
+      skipped += 1;
+      continue;
+    }
+
+    scanned += 1;
+
+    try {
+      const downloaded = await supabase.storage.from(SITE_ASSET_BUCKET).download(path);
+      if (downloaded.error || !downloaded.data) {
+        failed += 1;
+        continue;
+      }
+
+      const source = Buffer.from(await downloaded.data.arrayBuffer());
+      const optimized = await optimizedStorageBuffer(source, "full");
+
+      bytesBefore += source.byteLength;
+
+      if (optimized.byteLength >= source.byteLength) {
+        bytesAfter += source.byteLength;
+        skipped += 1;
+        continue;
+      }
+
+      const uploaded = await supabase.storage.from(SITE_ASSET_BUCKET).upload(path, optimized, {
+        cacheControl: "31536000",
+        contentType: "image/webp",
+        upsert: true
+      });
+
+      if (uploaded.error) {
+        failed += 1;
+        bytesAfter += source.byteLength;
+        continue;
+      }
+
+      compressed += 1;
+      bytesAfter += optimized.byteLength;
+    } catch {
+      failed += 1;
+    }
+  }
+
+  return {
+    scanned,
+    compressed,
+    skipped,
+    failed,
+    bytesBefore,
+    bytesAfter,
+    savedBytes: Math.max(0, bytesBefore - bytesAfter)
   };
 }
 

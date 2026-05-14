@@ -7,7 +7,6 @@ import { FileText, Image as ImageIcon, Search, Trash2, Upload, Video } from "luc
 
 import { deleteMediaLibraryAssetAction } from "@/app/admin/media/actions";
 import type { MediaLibraryItem } from "@/components/media-field";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 function StatusMessage({ message, error }: { message?: string; error?: string }) {
   if (error) {
@@ -40,6 +39,9 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
   const [uploadState, setUploadState] = useState<{ pending: boolean; message?: string; error?: string }>({
     pending: false
   });
+  const [compressionState, setCompressionState] = useState<{ pending: boolean; message?: string; error?: string }>({
+    pending: false
+  });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | MediaLibraryItem["type"]>("all");
 
@@ -68,55 +70,86 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
     setUploadState({ pending: true, message: "Uploading media..." });
 
     try {
+      const formData = new FormData();
+      formData.set("mode", "upload-media");
+      formData.set("folder", "media-library");
+      formData.set("mediaFile", selectedFile);
+
       const response = await fetch("/api/admin/media", {
         method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          mode: "create-upload-url",
-          filename: selectedFile.name,
-          contentType: selectedFile.type || "application/octet-stream",
-          folder: "media-library"
-        })
+        body: formData
       });
       const payload = (await response.json().catch(() => null)) as
         | {
             ok?: boolean;
             error?: string;
             data?: {
-              bucket: string;
-              path: string;
-              token: string;
               publicUrl: string;
-              contentType: string;
+              compressed?: boolean;
             };
           }
         | null;
 
       if (!response.ok || !payload?.ok || !payload.data) {
-        throw new Error(payload?.error || "Could not prepare the media upload.");
-      }
-
-      const supabase = createSupabaseBrowserClient();
-      const uploaded = await supabase.storage
-        .from(payload.data.bucket)
-        .uploadToSignedUrl(payload.data.path, payload.data.token, selectedFile, {
-          contentType: payload.data.contentType || selectedFile.type || undefined
-        });
-
-      if (uploaded.error) {
-        throw new Error(uploaded.error.message);
+        throw new Error(payload?.error || "Could not upload the selected media.");
       }
 
       setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-      setUploadState({ pending: false, message: `${selectedFile.name} uploaded.` });
+      setUploadState({
+        pending: false,
+        message: payload.data.compressed
+          ? `${selectedFile.name} uploaded and compressed.`
+          : `${selectedFile.name} uploaded.`
+      });
       router.refresh();
     } catch (error) {
       setUploadState({
         pending: false,
         error: error instanceof Error ? error.message : "Failed to upload media."
+      });
+    }
+  }
+
+  async function compressExistingImages() {
+    setCompressionState({ pending: true, message: "Compressing existing images..." });
+
+    try {
+      const response = await fetch("/api/admin/media", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ mode: "compress-existing-images" })
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            ok?: boolean;
+            error?: string;
+            data?: {
+              scanned: number;
+              compressed: number;
+              skipped: number;
+              failed: number;
+              savedBytes: number;
+            };
+          }
+        | null;
+
+      if (!response.ok || !payload?.ok || !payload.data) {
+        throw new Error(payload?.error || "Could not compress existing images.");
+      }
+
+      const savedMb = (payload.data.savedBytes / (1024 * 1024)).toFixed(2);
+      setCompressionState({
+        pending: false,
+        message: `Compressed ${payload.data.compressed} image${payload.data.compressed === 1 ? "" : "s"} and saved ${savedMb} MB. ${payload.data.failed ? `${payload.data.failed} failed.` : ""}`.trim()
+      });
+      router.refresh();
+    } catch (error) {
+      setCompressionState({
+        pending: false,
+        error: error instanceof Error ? error.message : "Failed to compress existing images."
       });
     }
   }
@@ -146,8 +179,17 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
             <Upload className="admin-icon" />
             {uploadState.pending ? "Uploading..." : "Upload To Library"}
           </button>
+          <button
+            className="admin-btn admin-btn--secondary"
+            type="button"
+            disabled={compressionState.pending}
+            onClick={compressExistingImages}
+          >
+            {compressionState.pending ? "Compressing..." : "Compress Current Images"}
+          </button>
         </div>
         <StatusMessage message={uploadState.message} error={uploadState.error} />
+        <StatusMessage message={compressionState.message} error={compressionState.error} />
       </form>
 
       <section className="admin-form-card media-manager-library">
