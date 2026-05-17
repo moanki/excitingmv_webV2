@@ -351,7 +351,7 @@ export async function listAdminResorts(propertyType: PropertyType = "resort"): P
       }
 
       if (!data?.length) {
-        return [];
+        continue;
       }
 
       return attachResortRelations((data as ResortRow[]).map(mapResort));
@@ -492,7 +492,7 @@ export async function getAdminResortById(id: string): Promise<ResortRecord | nul
       }
 
       if (!data) {
-        return null;
+        continue;
       }
 
       const [resort] = await attachResortRelations([mapResort(data as ResortRow)]);
@@ -509,7 +509,7 @@ async function listPublishedResortRows(propertyType: PropertyType = "resort") {
   const supabase = createSupabaseAdminClient();
   for (const tableName of PROPERTY_TABLES) {
     const rows = await listPublishedResortRowsFromTable(supabase, tableName, propertyType);
-    if (rows) {
+    if (rows?.length) {
       return rows;
     }
   }
@@ -698,7 +698,7 @@ export async function getResortBySlug(slug: string, propertyType: PropertyType =
       }
 
       if (!data) {
-        return null;
+        continue;
       }
 
       const [resort] = await attachResortRelations([mapResort(data as ResortRow)]);
