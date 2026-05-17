@@ -115,6 +115,17 @@ function isMissingPropertyTypeColumnError(error: unknown) {
   return message.includes("property_type");
 }
 
+function isMissingAdminListColumnError(error: unknown) {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message?: unknown }).message ?? "")
+        : "";
+
+  return message.includes("is_featured_homepage");
+}
+
 function isMissingPropertyTableError(error: unknown) {
   const message =
     error instanceof Error
@@ -369,13 +380,26 @@ export async function listAdminResortCards(propertyType: PropertyType = "resort"
           continue;
         }
         if (isMissingPropertyTypeColumnError(error)) {
-          return propertyType === "resort" ? listAdminResortCardsWithoutPropertyType(tableName, limit) : [];
+          if (propertyType === "resort") {
+            const fallbackResorts = await listAdminResortCardsWithoutPropertyType(tableName, limit);
+            if (fallbackResorts.length) {
+              return fallbackResorts;
+            }
+          }
+          continue;
+        }
+        if (isMissingAdminListColumnError(error)) {
+          const fallbackResorts = await listAdminResortCardsWithFallbackColumns(tableName, propertyType, limit);
+          if (fallbackResorts.length) {
+            return fallbackResorts;
+          }
+          continue;
         }
         throw error;
       }
 
       if (!data?.length) {
-        return [];
+        continue;
       }
 
       const resorts = (data as ResortRow[]).map(mapResort);
@@ -391,6 +415,32 @@ export async function listAdminResortCards(propertyType: PropertyType = "resort"
   } catch {
     return [];
   }
+}
+
+async function listAdminResortCardsWithFallbackColumns(
+  tableName: string,
+  propertyType: PropertyType,
+  limit = 60
+): Promise<ResortRecord[]> {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from(tableName)
+    .select(ADMIN_LIST_COLUMNS.replace("is_featured_homepage,", ""))
+    .in("property_type", propertyTypeAliases(propertyType))
+    .order("updated_at", { ascending: false })
+    .range(0, Math.max(limit - 1, 0));
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  const resorts = (data as unknown as ResortRow[]).map(mapResort);
+  const heroMedia = await fetchResortHeroMedia(resorts.map((resort) => resort.id));
+
+  return resorts.map((resort) => ({
+    ...resort,
+    heroImageUrl: heroMedia.get(resort.id) ?? ""
+  }));
 }
 
 async function listAdminResortCardsWithoutPropertyType(

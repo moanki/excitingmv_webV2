@@ -2,8 +2,6 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { ADMIN_SESSION_COOKIE } from "@/lib/auth/bootstrap-admin";
-import { env } from "@/lib/env";
-import { sendNotificationEmail } from "@/lib/services/email-service";
 
 export const runtime = "nodejs";
 
@@ -15,16 +13,19 @@ export async function POST(request: Request) {
   }
 
   const body = (await request.json().catch(() => ({}))) as { to?: unknown };
-  const recipient = typeof body.to === "string" && body.to.trim() ? body.to.trim() : env.NOTIFICATION_EMAIL;
+  const resendApiKey = process.env.RESEND_API_KEY;
+  const emailFrom = process.env.EMAIL_FROM;
+  const recipient =
+    typeof body.to === "string" && body.to.trim() ? body.to.trim() : process.env.NOTIFICATION_EMAIL;
 
-  if (!env.RESEND_API_KEY || !env.EMAIL_FROM || !recipient) {
+  if (!resendApiKey || !emailFrom || !recipient) {
     return NextResponse.json(
       {
         ok: false,
         error: "Missing email configuration.",
         configured: {
-          resendApiKey: Boolean(env.RESEND_API_KEY),
-          emailFrom: Boolean(env.EMAIL_FROM),
+          resendApiKey: Boolean(resendApiKey),
+          emailFrom: Boolean(emailFrom),
           recipient: Boolean(recipient)
         }
       },
@@ -32,26 +33,36 @@ export async function POST(request: Request) {
     );
   }
 
-  const result = await sendNotificationEmail({
-    to: recipient,
-    subject: "Exciting Maldives notification test",
-    html: `
-      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
-        <h1 style="font-size:20px">Email notifications are working</h1>
-        <p>This protected admin test confirms Resend accepted a notification email from the Exciting Maldives website.</p>
-      </div>
-    `
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: emailFrom,
+      to: [recipient],
+      subject: "Exciting Maldives notification test",
+      html: `
+        <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111827">
+          <h1 style="font-size:20px">Email notifications are working</h1>
+          <p>This protected admin test confirms Resend accepted a notification email from the Exciting Maldives website.</p>
+        </div>
+      `
+    })
   });
 
-  if (!result.ok) {
+  if (!response.ok) {
+    const details = await response.text().catch(() => "Unknown Resend error");
+
     return NextResponse.json(
       {
         ok: false,
-        error: result.error,
-        status: result.status,
-        details: result.details
+        error: "Email provider rejected the notification request.",
+        status: response.status,
+        details
       },
-      { status: result.status ?? 500 }
+      { status: response.status }
     );
   }
 
