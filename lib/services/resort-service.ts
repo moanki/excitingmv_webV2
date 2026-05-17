@@ -46,6 +46,7 @@ export type ResortRecord = {
   heroImageUrl: string;
   galleryMediaUrls: string[];
   roomTypes: ResortRoomRecord[];
+  roomCount?: number;
   publishedAt: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -248,6 +249,23 @@ async function fetchResortHeroMedia(resortIds: string[]) {
   return mediaMap;
 }
 
+async function fetchResortRoomCounts(resortIds: string[]) {
+  const countMap = new Map<string, number>();
+
+  if (!resortIds.length) {
+    return countMap;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data } = await supabase.from("rooms").select("resort_id").in("resort_id", resortIds);
+
+  ((data ?? []) as Array<Pick<RoomRow, "resort_id">>).forEach((row) => {
+    countMap.set(row.resort_id, (countMap.get(row.resort_id) ?? 0) + 1);
+  });
+
+  return countMap;
+}
+
 function getPrimaryImage(mediaRows: MediaRow[]) {
   const hero = mediaRows.find((row) => row.is_hero)?.file_path;
   return hero ?? mediaRows[0]?.file_path ?? "";
@@ -403,11 +421,16 @@ export async function listAdminResortCards(propertyType: PropertyType = "resort"
       }
 
       const resorts = (data as ResortRow[]).map(mapResort);
-      const heroMedia = await fetchResortHeroMedia(resorts.map((resort) => resort.id));
+      const resortIds = resorts.map((resort) => resort.id);
+      const [heroMedia, roomCounts] = await Promise.all([
+        fetchResortHeroMedia(resortIds),
+        fetchResortRoomCounts(resortIds)
+      ]);
 
       return resorts.map((resort) => ({
         ...resort,
-        heroImageUrl: heroMedia.get(resort.id) ?? ""
+        heroImageUrl: heroMedia.get(resort.id) ?? "",
+        roomCount: roomCounts.get(resort.id) ?? 0
       }));
     }
 
@@ -435,11 +458,16 @@ async function listAdminResortCardsWithFallbackColumns(
   }
 
   const resorts = (data as unknown as ResortRow[]).map(mapResort);
-  const heroMedia = await fetchResortHeroMedia(resorts.map((resort) => resort.id));
+  const resortIds = resorts.map((resort) => resort.id);
+  const [heroMedia, roomCounts] = await Promise.all([
+    fetchResortHeroMedia(resortIds),
+    fetchResortRoomCounts(resortIds)
+  ]);
 
   return resorts.map((resort) => ({
     ...resort,
-    heroImageUrl: heroMedia.get(resort.id) ?? ""
+    heroImageUrl: heroMedia.get(resort.id) ?? "",
+    roomCount: roomCounts.get(resort.id) ?? 0
   }));
 }
 
@@ -459,11 +487,16 @@ async function listAdminResortCardsWithoutPropertyType(
   }
 
   const resorts = (data as unknown as ResortRow[]).map(mapResort);
-  const heroMedia = await fetchResortHeroMedia(resorts.map((resort) => resort.id));
+  const resortIds = resorts.map((resort) => resort.id);
+  const [heroMedia, roomCounts] = await Promise.all([
+    fetchResortHeroMedia(resortIds),
+    fetchResortRoomCounts(resortIds)
+  ]);
 
   return resorts.map((resort) => ({
     ...resort,
-    heroImageUrl: heroMedia.get(resort.id) ?? ""
+    heroImageUrl: heroMedia.get(resort.id) ?? "",
+    roomCount: roomCounts.get(resort.id) ?? 0
   }));
 }
 

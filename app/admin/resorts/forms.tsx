@@ -972,7 +972,7 @@ export function ResortManagerListView({
                 </div>
 
                 <div className="resort-manager-card__meta">
-                  <span>{resort.roomTypes.length} room types</span>
+                  <span>{resort.roomCount ?? resort.roomTypes.length} room types</span>
                   <span>Updated {formatUpdatedLabel(resort.updatedAt)}</span>
                 </div>
 
