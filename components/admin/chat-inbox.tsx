@@ -26,37 +26,47 @@ function formatConversation(conversation: ChatConversationRecord) {
 export function ChatInbox({ conversations }: { conversations: ChatConversationRecord[] }) {
   const [items, setItems] = useState(conversations);
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | "open" | "unread" | "closed">("all");
   const [openId, setOpenId] = useState<string | null>(conversations[0]?.id ?? null);
   const [modalConversation, setModalConversation] = useState<ChatConversationRecord | null>(null);
   const [pendingAction, setPendingAction] = useState("");
   const [selectedAttachment, setSelectedAttachment] = useState<Record<string, string>>({});
+  const [error, setError] = useState("");
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     if (openId) {
       void markRead(openId);
+      void refreshConversation(openId);
     }
   }, [openId]);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return items.filter((conversation) => {
+      const isClosed = conversation.status === "closed";
+      const matchesFilter =
+        filter === "all" ||
+        (filter === "closed" && isClosed) ||
+        (filter === "open" && !isClosed) ||
+        (filter === "unread" && conversation.unreadAdminCount > 0);
       const haystack = [
         conversation.guestName,
         conversation.email,
         conversation.subject,
         conversation.status,
+        conversation.lastMessage,
         ...conversation.messages.map((message) => message.body)
       ]
         .join(" ")
         .toLowerCase();
 
-      return !normalized || haystack.includes(normalized);
+      return matchesFilter && (!normalized || haystack.includes(normalized));
     });
-  }, [items, query]);
+  }, [filter, items, query]);
 
   async function refreshConversation(id: string) {
-    const refresh = await fetch(`/api/chat/${id}`, { cache: "no-store" });
+    const refresh = await fetch(`/api/admin/chat/conversation?id=${encodeURIComponent(id)}`, { cache: "no-store" });
     const payload = (await refresh.json().catch(() => null)) as { data?: ChatConversationRecord } | null;
 
     if (refresh.ok && payload?.data) {
@@ -79,7 +89,12 @@ export function ChatInbox({ conversations }: { conversations: ChatConversationRe
   }
 
   async function runAction(id: string, action: "close" | "open" | "request_attachment") {
+    if (action === "close" && !window.confirm("Close this chat? The visitor will not be able to reply to this session again.")) {
+      return;
+    }
+
     setPendingAction(`${action}:${id}`);
+    setError("");
     const response = await fetch("/api/admin/chat/status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -89,6 +104,9 @@ export function ChatInbox({ conversations }: { conversations: ChatConversationRe
 
     if (response.ok) {
       await refreshConversation(id);
+    } else {
+      const payload = await response.json().catch(() => null);
+      setError(payload?.error ?? "Unable to update chat.");
     }
   }
 
@@ -106,6 +124,7 @@ export function ChatInbox({ conversations }: { conversations: ChatConversationRe
     }
 
     setPendingAction(`reply:${id}`);
+    setError("");
     const response = hasAttachment
       ? await fetch("/api/admin/chat/reply", {
           method: "POST",
@@ -122,7 +141,11 @@ export function ChatInbox({ conversations }: { conversations: ChatConversationRe
       form.reset();
       setSelectedAttachment((current) => ({ ...current, [id]: "" }));
       await refreshConversation(id);
+    } else {
+      const payload = await response.json().catch(() => null);
+      setError(payload?.error ?? "Unable to send reply.");
     }
+    setPendingAction("");
   }
 
   function submitOnEnter(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -155,12 +178,25 @@ export function ChatInbox({ conversations }: { conversations: ChatConversationRe
             onChange={(event) => setQuery(event.target.value)}
           />
         </label>
+        <div className="resort-filter-pills" role="tablist" aria-label="Chat filters">
+          {(["all", "open", "unread", "closed"] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={filter === option ? "is-active" : ""}
+              onClick={() => setFilter(option)}
+            >
+              {option[0].toUpperCase() + option.slice(1)}
+            </button>
+          ))}
+        </div>
       </div>
+      {error ? <p className="admin-alert admin-alert--error">{error}</p> : null}
 
       <div className="admin-chat-list">
         {filtered.map((conversation) => {
           const isOpen = openId === conversation.id;
-          const isClosed = conversation.status === "resolved";
+          const isClosed = conversation.status === "closed";
           return (
             <article className={`panel admin-chat-card${isClosed ? " is-closed" : ""}`} key={conversation.id}>
               <div className="admin-chat-summary">
@@ -169,7 +205,7 @@ export function ChatInbox({ conversations }: { conversations: ChatConversationRe
                   type="button"
                   onClick={() => {
                     if (isClosed) {
-                      setModalConversation(conversation);
+                      void refreshConversation(conversation.id).then((fresh) => setModalConversation(fresh ?? conversation));
                       return;
                     }
                     setOpenId(isOpen ? null : conversation.id);
@@ -182,9 +218,10 @@ export function ChatInbox({ conversations }: { conversations: ChatConversationRe
                     <small>{conversation.email}</small>
                   </span>
                   <span>{conversation.subject || "Live chat"}</span>
+                  <small>{conversation.lastMessage || "No messages yet"}</small>
                 </button>
                 <em className={`admin-status-badge ${isClosed ? "is-neutral" : "is-approved"}`}>
-                  {isClosed ? "closed" : conversation.unreadAdminCount > 0 ? `${conversation.unreadAdminCount} new` : "open"}
+                  {isClosed ? "closed" : conversation.unreadAdminCount > 0 ? `${conversation.unreadAdminCount} new` : conversation.status.replace("_", " ")}
                 </em>
                 <button
                   type="button"
@@ -199,13 +236,15 @@ export function ChatInbox({ conversations }: { conversations: ChatConversationRe
               {isOpen && !isClosed ? (
                 <Fragment>
                   <div className="admin-chat-thread">
+                    {isClosed ? <p className="admin-alert admin-alert--error">Chat closed by admin.</p> : null}
                     {conversation.messages.map((message) => (
                       <div
-                        className={message.senderType === "admin" ? "admin-chat-bubble is-admin" : "admin-chat-bubble"}
+                        className={`admin-chat-bubble ${message.senderType === "admin" ? "is-admin" : ""} ${message.senderType === "system" ? "is-system" : ""}`}
                         key={message.id}
                       >
                         <p className="eyebrow">{message.senderType}</p>
                         <p>{message.body}</p>
+                        <small>{new Date(message.createdAt).toLocaleString("en")}</small>
                         {message.attachmentUrl ? (
                           <a href={message.attachmentUrl} target="_blank" rel="noreferrer">
                             {message.attachmentName || "View attachment"}
@@ -225,10 +264,11 @@ export function ChatInbox({ conversations }: { conversations: ChatConversationRe
                         name="message"
                         placeholder="Reply to this conversation"
                         onKeyDown={submitOnEnter}
+                        disabled={isClosed}
                       />
                     </label>
                     <div className="admin-chat-icon-actions">
-                      <button className="admin-btn admin-btn--primary admin-icon-only" type="submit" disabled={Boolean(pendingAction)} aria-label="Send reply">
+                      <button className="admin-btn admin-btn--primary admin-icon-only" type="submit" disabled={Boolean(pendingAction) || isClosed} aria-label="Send reply">
                         <Send className="admin-icon" />
                       </button>
                       <button
@@ -283,6 +323,12 @@ export function ChatInbox({ conversations }: { conversations: ChatConversationRe
             </article>
           );
         })}
+        {!filtered.length ? (
+          <div className="admin-empty-panel">
+            <h3>No chats found</h3>
+            <p>Try another filter or wait for a new visitor message.</p>
+          </div>
+        ) : null}
       </div>
 
       {modalConversation ? (

@@ -40,15 +40,15 @@ export const aiImportRequestSchema = z.object({
 });
 
 export const chatStartSchema = z.object({
-  guestName: z.string().min(2),
-  email: z.string().email(),
-  subject: z.string().min(2),
-  body: z.string().min(2)
+  guestName: z.string().trim().min(2).max(120),
+  email: z.string().trim().email().max(180),
+  subject: z.string().trim().max(200).optional().default("Live chat"),
+  body: z.string().trim().min(1).max(4000)
 });
 
 export const chatReplySchema = z.object({
   conversationId: z.string().uuid(),
-  body: z.string().min(1)
+  body: z.string().trim().max(4000).optional().default("")
 });
 
 export const resortSeoGenerationInputSchema = z.object({

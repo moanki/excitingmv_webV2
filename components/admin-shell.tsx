@@ -290,16 +290,30 @@ export function AdminShell({
   const pathname = usePathname();
   const current = getCurrentPageMeta(pathname);
   const [unreadChatCount, setUnreadChatCount] = useState(initialUnreadChatCount);
+  const [chatToast, setChatToast] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    let latestMessageId = "";
 
     async function refreshUnreadCount() {
-      const response = await fetch("/api/admin/chat/unread", { cache: "no-store" });
-      const payload = (await response.json().catch(() => null)) as { count?: number } | null;
+      const response = await fetch("/api/admin/chat/unread-count", { cache: "no-store" });
+      const payload = (await response.json().catch(() => null)) as {
+        count?: number;
+        latestMessageId?: string | null;
+      } | null;
 
       if (!cancelled && response.ok) {
-        setUnreadChatCount(Number(payload?.count ?? 0));
+        const nextCount = Number(payload?.count ?? 0);
+        const nextLatest = payload?.latestMessageId ?? "";
+        setUnreadChatCount((previous) => {
+          if (nextCount > previous && nextLatest && nextLatest !== latestMessageId) {
+            setChatToast(true);
+            window.setTimeout(() => setChatToast(false), 5000);
+          }
+          return nextCount;
+        });
+        latestMessageId = nextLatest;
       }
     }
 
@@ -387,6 +401,11 @@ export function AdminShell({
             </div>
           </div>
         </header>
+        {chatToast ? (
+          <Link href="/admin/chat" className="admin-chat-toast" onClick={() => setChatToast(false)}>
+            You have a new message
+          </Link>
+        ) : null}
 
         <main className="admin-canvas">{children}</main>
       </div>
