@@ -4,6 +4,7 @@ import Link from "next/link";
 import { MapPin, Search, Star } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { optimizedImageUrl } from "@/lib/image-urls";
 import type { ResortSummary } from "@/lib/types";
 
 type DestinationKind = "resort" | "hotels" | "liveaboards";
@@ -125,7 +126,7 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
                   <Link
                     href={`${config.path}/${item.slug}`}
                     className="destination-card__media"
-                    style={item.heroImageUrl ? { backgroundImage: `url(${item.heroImageUrl})` } : undefined}
+                    style={item.heroImageUrl ? { backgroundImage: `url(${optimizedImageUrl(item.heroImageUrl, { width: 720, height: 420, quality: 74 })})` } : undefined}
                     aria-label={`View ${item.name}`}
                   >
                     <span>{config.singular}</span>

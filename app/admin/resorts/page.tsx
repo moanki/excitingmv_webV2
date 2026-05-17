@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 import { ResortManagerListView } from "@/app/admin/resorts/forms";
-import { getResortCounts, listAdminResorts } from "@/lib/services/resort-service";
+import { getResortCounts, listAdminResortCards } from "@/lib/services/resort-service";
 
 export default async function AdminResortsPage() {
-  const [resorts, counts] = await Promise.all([listAdminResorts(), getResortCounts()]);
+  const [resorts, counts] = await Promise.all([listAdminResortCards(), getResortCounts()]);
 
   return (
     <section className="stack">

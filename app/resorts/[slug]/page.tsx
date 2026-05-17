@@ -7,6 +7,7 @@ import {
   listPublishedResorts,
   listSimilarPublishedResorts
 } from "@/lib/services/resort-service";
+import { optimizedImageUrl } from "@/lib/image-urls";
 
 export async function generateStaticParams() {
   const resorts = await listPublishedResorts();
@@ -73,7 +74,11 @@ export default async function ResortDetailPage({
       <section className="resort-story-hero">
         <div
           className="resort-story-hero__media"
-          style={resort.heroImageUrl ? { backgroundImage: `url(${resort.heroImageUrl})` } : undefined}
+          style={
+            resort.heroImageUrl
+              ? { backgroundImage: `url(${optimizedImageUrl(resort.heroImageUrl, { width: 1800, height: 1100, quality: 82 })})` }
+              : undefined
+          }
         />
         <div className="resort-story-hero__overlay" />
         <div className="mobile-detail-actions" aria-label="Resort actions">
@@ -103,7 +108,10 @@ export default async function ResortDetailPage({
           <div className="site-container">
             <div className="mobile-gallery-grid">
               {resort.galleryMediaUrls.slice(0, 6).map((imageUrl) => (
-                <div key={imageUrl} style={{ backgroundImage: `url(${imageUrl})` }} />
+                <div
+                  key={imageUrl}
+                  style={{ backgroundImage: `url(${optimizedImageUrl(imageUrl, { width: 420, height: 320, quality: 74 })})` }}
+                />
               ))}
             </div>
           </div>
@@ -203,7 +211,11 @@ export default async function ResortDetailPage({
                   <article className="resort-story-room-card--property" key={room.id ?? `${room.name}-${room.sortOrder}`}>
                     <div
                       className="resort-story-room-card__media"
-                      style={room.photoUrl ? { backgroundImage: `url(${room.photoUrl})` } : undefined}
+                      style={
+                        room.photoUrl
+                          ? { backgroundImage: `url(${optimizedImageUrl(room.photoUrl, { width: 760, height: 520, quality: 76 })})` }
+                          : undefined
+                      }
                     />
                     <div className="resort-story-room-card__body">
                       <div className="resort-story-room-card__header">
@@ -292,7 +304,7 @@ export default async function ResortDetailPage({
                     style={
                       item.heroImageUrl
                         ? {
-                            backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.12), rgba(15, 23, 42, 0.72)), url(${item.heroImageUrl})`
+                            backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.12), rgba(15, 23, 42, 0.72)), url(${optimizedImageUrl(item.heroImageUrl, { width: 680, height: 480, quality: 74 })})`
                           }
                         : undefined
                     }

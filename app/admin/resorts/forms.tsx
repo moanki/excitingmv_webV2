@@ -21,6 +21,7 @@ import {
   seedResortsAction
 } from "@/app/admin/resorts/actions";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
+import { optimizedImageUrl } from "@/lib/image-urls";
 import type { PublishStatus, ResortPublishingMode } from "@/lib/types";
 import type { PropertyType, ResortRecord } from "@/lib/services/resort-service";
 
@@ -300,7 +301,13 @@ function RoomTypeEditor({
                 >
                   <div className="admin-room-card__thumb">
                     {room.photoUrl ? (
-                      <img src={room.photoUrl} alt={room.name || `Room type ${index + 1}`} />
+                      <img
+                        src={optimizedImageUrl(room.photoUrl, { width: 280, height: 216, quality: 70 })}
+                        alt={room.name || `Room type ${index + 1}`}
+                        width={140}
+                        height={108}
+                        loading="lazy"
+                      />
                     ) : (
                       <div className="admin-room-card__thumb-placeholder">Room Photo</div>
                     )}
@@ -822,11 +829,9 @@ export function ResortEditor({
           <button
             className="admin-btn admin-btn--secondary"
             type="submit"
-            name="publishingMode"
-            value="draft"
             disabled={pending}
           >
-            Save Draft
+            Save Changes
           </button>
           <button
             className="admin-btn admin-btn--primary"
@@ -936,7 +941,13 @@ export function ResortManagerListView({
             <article className="resort-manager-card" key={resort.id}>
               <div className="resort-manager-card__media">
                 {resort.heroImageUrl ? (
-                  <img src={resort.heroImageUrl} alt={resort.name} />
+                  <img
+                    src={optimizedImageUrl(resort.heroImageUrl, { width: 520, height: 320, quality: 72 })}
+                    alt={resort.name}
+                    width={520}
+                    height={320}
+                    loading="lazy"
+                  />
                 ) : (
                   <div className="resort-manager-card__media-placeholder">No banner image</div>
                 )}

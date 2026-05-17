@@ -361,14 +361,14 @@ function fileType(path: string) {
   return "file" as const;
 }
 
-export async function listSiteAssets() {
+export async function listSiteAssets({ limitPerPrefix = 24 }: { limitPerPrefix?: number } = {}) {
   try {
     const supabase = await ensureBucket();
     const items: { name: string; url: string; type: "image" | "video" | "file" }[] = [];
 
     for (const prefix of SITE_ASSET_PREFIXES) {
       const { data, error } = await supabase.storage.from(SITE_ASSET_BUCKET).list(prefix, {
-        limit: 100,
+        limit: limitPerPrefix,
         sortBy: { column: "created_at", order: "desc" }
       });
 

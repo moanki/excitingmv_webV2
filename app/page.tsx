@@ -6,6 +6,7 @@ import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
 import { PartnerModalButton } from "@/components/partner-modal-button";
 import { ServicesParallax } from "@/components/services-parallax";
 import { WhyUsParallax } from "@/components/why-us-parallax";
+import { optimizedImageUrl } from "@/lib/image-urls";
 import { listHomepageFeaturedResorts } from "@/lib/services/resort-service";
 import type { ResortSummary } from "@/lib/types";
 import {
@@ -230,7 +231,7 @@ function FeaturedRetreats({
             <Link href={item.href} key={`${item.href}-${item.title}-${index}`} className="lux-retreat-card">
               <div
                 className="lux-retreat-card__image"
-                style={{ backgroundImage: `url(${item.image})` }}
+                style={{ backgroundImage: `url(${optimizedImageUrl(item.image, { width: 620, height: 460, quality: 74 })})` }}
               />
               <div className="lux-retreat-card__shade" />
               <div className="lux-retreat-card__content">
@@ -266,7 +267,12 @@ function TravelGuideMagazine({ guide }: { guide: HomepageGuideItem[] }) {
         <div className="lux-guide-carousel" aria-label="Maldives travel guide insights">
           {articles.map((item, index) => (
             <article className="lux-guide-card" key={`${item.title}-${index}`}>
-              <div className="lux-guide-card__image" style={{ backgroundImage: `url(${item.imageUrl || pickResortImage(index + 1)})` }} />
+              <div
+                className="lux-guide-card__image"
+                style={{
+                  backgroundImage: `url(${optimizedImageUrl(item.imageUrl || pickResortImage(index + 1), { width: 520, height: 360, quality: 74 })})`
+                }}
+              />
               <div className="lux-guide-card__content">
                 <span>{item.category}</span>
                 <h3>{item.title}</h3>
@@ -336,7 +342,10 @@ export default async function HomePage() {
               playsInline
             />
           ) : (
-            <div className="lux-hero__asset" style={{ backgroundImage: `url(${heroImage})` }} />
+            <div
+              className="lux-hero__asset"
+              style={{ backgroundImage: `url(${optimizedImageUrl(heroImage, { width: 1800, height: 1100, quality: 84 })})` }}
+            />
           )}
         </div>
         <div className="lux-hero__overlay" />
@@ -363,7 +372,17 @@ export default async function HomePage() {
           <div>
             {[...heroLogos.slice(0, 5), ...heroLogos.slice(0, 5)].map((logo, index) => (
               <span key={`${logo.name}-${index}`}>
-                {logo.imageUrl ? <img src={logo.imageUrl} alt={logo.name || "Featured resort"} /> : logo.name}
+                {logo.imageUrl ? (
+                  <img
+                    src={optimizedImageUrl(logo.imageUrl, { width: 220, height: 120, quality: 78, resize: "contain" })}
+                    alt={logo.name || "Featured resort"}
+                    width={220}
+                    height={120}
+                    loading="lazy"
+                  />
+                ) : (
+                  logo.name
+                )}
               </span>
             ))}
           </div>
@@ -381,7 +400,7 @@ export default async function HomePage() {
           <div className="lux-portrait-card">
             <div
               className="lux-portrait-card__image"
-              style={{ backgroundImage: `url(${ceo.photoUrl || featuredImages[2]})` }}
+              style={{ backgroundImage: `url(${optimizedImageUrl(ceo.photoUrl || featuredImages[2], { width: 720, height: 560, quality: 76 })})` }}
             />
             <div className="lux-portrait-card__caption">
               <strong>{ceo.name}</strong>
@@ -418,7 +437,7 @@ export default async function HomePage() {
           <div className="lux-story-image-panel">
             <div
               className="lux-story-panel__image"
-              style={{ backgroundImage: `url(${story.imageUrl || featuredImages[1]})` }}
+              style={{ backgroundImage: `url(${optimizedImageUrl(story.imageUrl || featuredImages[1], { width: 760, height: 580, quality: 76 })})` }}
             />
           </div>
         </div>
@@ -474,7 +493,13 @@ export default async function HomePage() {
               .map((award) => (
                 <div className="lux-award-logo" key={award.name || award.imageUrl}>
                   {award.imageUrl ? (
-                    <img src={award.imageUrl} alt={award.name || "Award recognition"} />
+                    <img
+                      src={optimizedImageUrl(award.imageUrl, { width: 240, height: 140, quality: 78, resize: "contain" })}
+                      alt={award.name || "Award recognition"}
+                      width={240}
+                      height={140}
+                      loading="lazy"
+                    />
                   ) : (
                     <span>{award.name}</span>
                   )}
@@ -518,7 +543,7 @@ export default async function HomePage() {
             </div>
             <div
               className="lux-contact-image"
-              style={{ backgroundImage: `url(${newsletter.imageUrl || featuredImages[3]})` }}
+              style={{ backgroundImage: `url(${optimizedImageUrl(newsletter.imageUrl || featuredImages[3], { width: 760, height: 560, quality: 76 })})` }}
             />
           </div>
           <div className="lux-contact-card">

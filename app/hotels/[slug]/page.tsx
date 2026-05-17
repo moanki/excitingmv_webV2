@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, Heart, Share2 } from "lucide-react";
 
 import { getResortBySlug, listPublishedProperties } from "@/lib/services/resort-service";
+import { optimizedImageUrl } from "@/lib/image-urls";
 
 export async function generateStaticParams() {
   const hotels = await listPublishedProperties("hotels");
@@ -33,7 +34,11 @@ export default async function HotelDetailPage({
       <section className="resort-story-hero">
         <div
           className="resort-story-hero__media"
-          style={hotel.heroImageUrl ? { backgroundImage: `url(${hotel.heroImageUrl})` } : undefined}
+          style={
+            hotel.heroImageUrl
+              ? { backgroundImage: `url(${optimizedImageUrl(hotel.heroImageUrl, { width: 1800, height: 1100, quality: 82 })})` }
+              : undefined
+          }
         />
         <div className="resort-story-hero__overlay" />
         <div className="mobile-detail-actions" aria-label="Hotel actions">
@@ -73,7 +78,10 @@ export default async function HotelDetailPage({
           <div className="site-container">
             <div className="mobile-gallery-grid">
               {hotel.galleryMediaUrls.slice(0, 6).map((imageUrl) => (
-                <div key={imageUrl} style={{ backgroundImage: `url(${imageUrl})` }} />
+                <div
+                  key={imageUrl}
+                  style={{ backgroundImage: `url(${optimizedImageUrl(imageUrl, { width: 420, height: 320, quality: 74 })})` }}
+                />
               ))}
             </div>
           </div>
@@ -104,7 +112,11 @@ export default async function HotelDetailPage({
                 <article className="resort-story-room-card--property" key={room.id ?? room.name}>
                   <div
                     className="resort-story-room-card__media"
-                    style={room.photoUrl ? { backgroundImage: `url(${room.photoUrl})` } : undefined}
+                    style={
+                      room.photoUrl
+                        ? { backgroundImage: `url(${optimizedImageUrl(room.photoUrl, { width: 760, height: 520, quality: 76 })})` }
+                        : undefined
+                    }
                   />
                   <div className="resort-story-room-card__body">
                     <div className="resort-story-room-card__header">

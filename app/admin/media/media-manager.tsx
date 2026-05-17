@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Image as ImageIcon, Search, Trash2, Upload, Video } from "lucide-react";
 
 import { deleteMediaLibraryAssetAction } from "@/app/admin/media/actions";
 import type { MediaLibraryItem } from "@/components/media-field";
+import { optimizedImageUrl } from "@/lib/image-urls";
 
 function StatusMessage({ message, error }: { message?: string; error?: string }) {
   if (error) {
@@ -44,6 +45,7 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
   });
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | MediaLibraryItem["type"]>("all");
+  const [visibleCount, setVisibleCount] = useState(6);
 
   const visibleItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -58,6 +60,12 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
       return matchesType && matchesQuery;
     });
   }, [filter, items, query]);
+
+  useEffect(() => {
+    setVisibleCount(6);
+  }, [filter, query]);
+
+  const pagedItems = visibleItems.slice(0, visibleCount);
 
   async function uploadSelectedFile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -220,13 +228,19 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
 
         {visibleItems.length ? (
           <div className="media-manager-grid">
-            {visibleItems.map((item) => (
+            {pagedItems.map((item) => (
               <article className="media-manager-card" key={item.url}>
                 <a className="media-manager-preview" href={item.url} target="_blank" rel="noreferrer">
                   {item.type === "video" ? (
-                    <video src={item.url} muted playsInline />
+                    <video src={item.url} muted playsInline preload="metadata" />
                   ) : item.type === "image" ? (
-                    <img src={item.url} alt={item.name} />
+                    <img
+                      src={optimizedImageUrl(item.url, { width: 360, height: 270, quality: 72 })}
+                      alt={item.name}
+                      width={360}
+                      height={270}
+                      loading="lazy"
+                    />
                   ) : (
                     <div className="media-manager-file">{typeIcon(item.type)}</div>
                   )}
@@ -248,6 +262,15 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
                 </div>
               </article>
             ))}
+            {visibleCount < visibleItems.length ? (
+              <button
+                className="admin-btn admin-btn--secondary media-library-load-more"
+                type="button"
+                onClick={() => setVisibleCount((count) => count + 6)}
+              >
+                Load 6 More
+              </button>
+            ) : null}
           </div>
         ) : (
           <div className="admin-empty-panel">

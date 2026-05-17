@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { optimizedImageUrl } from "@/lib/image-urls";
 import type { HomepageGuideItem } from "@/lib/site-content";
 
 const categories = ["All", "Money", "Transport", "Arrival", "Packing", "Culture"];
@@ -50,7 +51,7 @@ export function TravelGuideDirectory({ guides }: { guides: HomepageGuideItem[] }
 
       {featuredGuide ? (
         <Link href={`/travel-guide/${featuredGuide.slug}`} className="guide-directory__featured">
-          <div style={{ backgroundImage: `url(${featuredGuide.imageUrl})` }} />
+          <div style={{ backgroundImage: `url(${optimizedImageUrl(featuredGuide.imageUrl, { width: 1200, height: 720, quality: 78 })})` }} />
           <article>
             <span>{featuredGuide.category}</span>
             <h2>{featuredGuide.title}</h2>
@@ -64,7 +65,7 @@ export function TravelGuideDirectory({ guides }: { guides: HomepageGuideItem[] }
         {supportingGuides.map((guide) => (
           <Link href={`/travel-guide/${guide.slug}`} className="guide-directory__card" key={guide.slug}>
             <span>{guide.category}</span>
-            <div style={{ backgroundImage: `url(${guide.imageUrl})` }} />
+            <div style={{ backgroundImage: `url(${optimizedImageUrl(guide.imageUrl, { width: 420, height: 280, quality: 72 })})` }} />
             <h2>{guide.title}</h2>
             <p>{guide.summary || guide.description}</p>
             <strong>Read insight</strong>

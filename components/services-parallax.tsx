@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { optimizedImageUrl } from "@/lib/image-urls";
 import type { HomepageServiceItem } from "@/lib/site-content";
 
 type ServicesParallaxProps = {
@@ -48,7 +49,9 @@ export function ServicesParallax({ services, images, title, description }: Servi
           <div
             key={service.title}
             className={`services-editorial__image ${activeIndex === index ? "is-active" : ""}`}
-            style={{ backgroundImage: `url(${service.imageUrl || images[index % images.length]})` }}
+            style={{
+              backgroundImage: `url(${optimizedImageUrl(service.imageUrl || images[index % images.length], { width: 900, height: 720, quality: 78 })})`
+            }}
           />
         ))}
       </div>

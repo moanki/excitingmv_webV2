@@ -9,6 +9,8 @@ export type PropertyType = "resort" | "liveaboards" | "hotels";
 const PROPERTY_TABLE = "property";
 const LEGACY_PROPERTY_TABLE = "resorts";
 const PROPERTY_TABLES = [PROPERTY_TABLE, LEGACY_PROPERTY_TABLE] as const;
+const ADMIN_LIST_COLUMNS =
+  "id,property_type,slug,name,atoll,category,transfer_type,description,seo_summary,status,is_featured_homepage,published_at,created_at,updated_at";
 
 export type ResortRoomRecord = {
   id?: string;
@@ -348,6 +350,71 @@ export async function listAdminResorts(propertyType: PropertyType = "resort"): P
   } catch {
     return [];
   }
+}
+
+export async function listAdminResortCards(propertyType: PropertyType = "resort", limit = 60): Promise<ResortRecord[]> {
+  try {
+    const supabase = createSupabaseAdminClient();
+
+    for (const tableName of PROPERTY_TABLES) {
+      const { data, error } = await supabase
+        .from(tableName)
+        .select(ADMIN_LIST_COLUMNS)
+        .in("property_type", propertyTypeAliases(propertyType))
+        .order("updated_at", { ascending: false })
+        .range(0, Math.max(limit - 1, 0));
+
+      if (error) {
+        if (isMissingPropertyTableError(error)) {
+          continue;
+        }
+        if (isMissingPropertyTypeColumnError(error)) {
+          return propertyType === "resort" ? listAdminResortCardsWithoutPropertyType(tableName, limit) : [];
+        }
+        throw error;
+      }
+
+      if (!data?.length) {
+        return [];
+      }
+
+      const resorts = (data as ResortRow[]).map(mapResort);
+      const heroMedia = await fetchResortHeroMedia(resorts.map((resort) => resort.id));
+
+      return resorts.map((resort) => ({
+        ...resort,
+        heroImageUrl: heroMedia.get(resort.id) ?? ""
+      }));
+    }
+
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+async function listAdminResortCardsWithoutPropertyType(
+  tableName = PROPERTY_TABLE,
+  limit = 60
+): Promise<ResortRecord[]> {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from(tableName)
+    .select(ADMIN_LIST_COLUMNS.replace("property_type,", ""))
+    .order("updated_at", { ascending: false })
+    .range(0, Math.max(limit - 1, 0));
+
+  if (error || !data?.length) {
+    return [];
+  }
+
+  const resorts = (data as unknown as ResortRow[]).map(mapResort);
+  const heroMedia = await fetchResortHeroMedia(resorts.map((resort) => resort.id));
+
+  return resorts.map((resort) => ({
+    ...resort,
+    heroImageUrl: heroMedia.get(resort.id) ?? ""
+  }));
 }
 
 async function listAdminResortsWithoutPropertyType(tableName = PROPERTY_TABLE): Promise<ResortRecord[]> {
@@ -886,7 +953,7 @@ export async function seedSampleResorts() {
 }
 
 export async function getResortCounts(propertyType: PropertyType = "resort") {
-  const resorts = await listAdminResorts(propertyType);
+  const resorts = await listAdminResortCards(propertyType, 1000);
   return {
     total: resorts.length,
     published: resorts.filter((resort) => resort.status === "published").length,

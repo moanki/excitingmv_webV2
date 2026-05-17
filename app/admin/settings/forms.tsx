@@ -733,6 +733,33 @@ export function NotificationSettingsForm({
   notifications: NotificationSettings;
 }) {
   const [state, action, pending] = useActionState(saveNotificationDraftAction, undefined);
+  const [testState, setTestState] = useState<{ pending: boolean; message?: string; error?: string }>({
+    pending: false
+  });
+
+  async function sendTestEmail() {
+    setTestState({ pending: true });
+
+    try {
+      const response = await fetch("/api/admin/email-test", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ to: notifications.businessContactEmail || notifications.partnerRequestEmail })
+      });
+      const payload = (await response.json().catch(() => null)) as { ok?: boolean; message?: string; error?: string } | null;
+
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.error || "Could not send the test email.");
+      }
+
+      setTestState({ pending: false, message: payload.message || "Test email queued." });
+    } catch (error) {
+      setTestState({
+        pending: false,
+        error: error instanceof Error ? error.message : "Could not send the test email."
+      });
+    }
+  }
 
   return (
     <div className="panel">
@@ -769,8 +796,12 @@ export function NotificationSettingsForm({
           <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
             {pending ? "Publishing..." : "Save & Publish Notifications"}
           </button>
+          <button className="button-muted" type="button" onClick={sendTestEmail} disabled={testState.pending}>
+            {testState.pending ? "Sending..." : "Send Test Email"}
+          </button>
         </div>
         <StatusMessage message={state?.message} error={state?.error} />
+        <StatusMessage message={testState.message} error={testState.error} />
       </form>
     </div>
   );

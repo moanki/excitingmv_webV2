@@ -2805,6 +2805,36 @@ select {
   gap: 0.85rem;
 }
 
+.media-library-scroll {
+  display: grid;
+  gap: 0.85rem;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107, 114, 128, 0.35) transparent;
+}
+
+.media-library-scroll::-webkit-scrollbar,
+.admin-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.media-library-scroll::-webkit-scrollbar-track,
+.admin-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.media-library-scroll::-webkit-scrollbar-thumb,
+.admin-sidebar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(107, 114, 128, 0.28);
+}
+
+.media-library-load-more {
+  justify-self: center;
+}
+
 .media-library-item {
   display: grid;
   gap: 0.75rem;
@@ -8110,6 +8140,9 @@ select {
   border-right: 1px solid var(--admin-border);
   background: var(--admin-sidebar);
   box-shadow: none;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107, 114, 128, 0.35) transparent;
 }
 
 .admin-brand-block {

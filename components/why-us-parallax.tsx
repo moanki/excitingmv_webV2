@@ -1,3 +1,4 @@
+import { optimizedImageUrl } from "@/lib/image-urls";
 import type { HomepageWhyUsItem } from "@/lib/site-content";
 
 type WhyUsParallaxProps = {
@@ -32,7 +33,11 @@ export function WhyUsParallax({ items, images, title, description }: WhyUsParall
         </div>
       </div>
 
-      <div className="why-trust__image" style={{ backgroundImage: `url(${images[0]})` }} aria-hidden="true" />
+      <div
+        className="why-trust__image"
+        style={{ backgroundImage: `url(${optimizedImageUrl(images[0], { width: 900, height: 720, quality: 78 })})` }}
+        aria-hidden="true"
+      />
     </div>
   );
 }

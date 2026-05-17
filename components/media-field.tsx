@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent } from "react";
 import { FileText, Image as ImageIcon, Library, Upload, Video } from "lucide-react";
 
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { optimizedImageUrl } from "@/lib/image-urls";
 
 export type MediaLibraryItem = {
   name: string;
@@ -47,6 +47,7 @@ export function MediaField({
   });
   const [mode, setMode] = useState<"upload" | "library" | "url">("upload");
   const [expanded, setExpanded] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(6);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -61,6 +62,12 @@ export function MediaField({
 
     return library.filter((item) => item.type !== "video");
   }, [accept, library]);
+
+  const visibleLibrary = useMemo(() => filteredLibrary.slice(0, visibleCount), [filteredLibrary, visibleCount]);
+
+  useEffect(() => {
+    setVisibleCount(6);
+  }, [mode, filteredLibrary.length]);
 
   useEffect(() => {
     const form = fileInputRef.current?.form;
@@ -97,43 +104,27 @@ export function MediaField({
     clearNativeFileInput();
 
     try {
+      const formData = new FormData();
+      formData.set("mode", "upload-media");
+      formData.set("folder", "media-library");
+      formData.set("mediaFile", file);
+
       const response = await fetch("/api/admin/media", {
         method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          mode: "create-upload-url",
-          filename: file.name,
-          contentType: file.type || "application/octet-stream",
-          folder: "media-library"
-        })
+        body: formData
       });
       const payload = (await response.json().catch(() => null)) as
         | {
             ok?: boolean;
             error?: string;
             data?: {
-              bucket: string;
-              path: string;
-              token: string;
               publicUrl: string;
-              contentType: string;
             };
           }
         | null;
 
       if (!response.ok || !payload?.ok || !payload.data) {
-        throw new Error(payload?.error || "Could not prepare the media upload.");
-      }
-
-      const supabase = createSupabaseBrowserClient();
-      const uploaded = await supabase.storage
-        .from(payload.data.bucket)
-        .uploadToSignedUrl(payload.data.path, payload.data.token, file, {
-          contentType: payload.data.contentType || file.type || undefined
-        });
-
-      if (uploaded.error) {
-        throw new Error(uploaded.error.message);
+        throw new Error(payload?.error || "Could not upload the selected media.");
       }
 
       updateSelectedUrl(payload.data.publicUrl);
@@ -274,33 +265,50 @@ export function MediaField({
             <span>Select from media library</span>
           </div>
           {filteredLibrary.length ? (
-            <div className="media-library-grid">
-              {filteredLibrary.map((item) => (
+            <div className="media-library-scroll">
+              <div className="media-library-grid">
+                {visibleLibrary.map((item) => (
+                  <button
+                    type="button"
+                    key={item.url}
+                    className={selectedUrl === item.url ? "media-library-item is-active" : "media-library-item"}
+                    onClick={() => {
+                      updateSelectedUrl(item.url);
+                      setSelectedFileName("");
+                      if (fileInputRef.current) {
+                        fileInputRef.current.value = "";
+                      }
+                    }}
+                  >
+                    <div className="media-library-preview">
+                      {item.type === "video" ? (
+                        <video preload="metadata" src={item.url} muted playsInline />
+                      ) : (
+                        <img
+                          src={optimizedImageUrl(item.url, { width: 260, height: 195, quality: 70 })}
+                          alt={item.name}
+                          width={260}
+                          height={195}
+                          loading="lazy"
+                        />
+                      )}
+                    </div>
+                    <div className="media-library-meta">
+                      {fileKind(item)}
+                      <span>{item.name}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              {visibleCount < filteredLibrary.length ? (
                 <button
                   type="button"
-                  key={item.url}
-                  className={selectedUrl === item.url ? "media-library-item is-active" : "media-library-item"}
-                  onClick={() => {
-                    updateSelectedUrl(item.url);
-                    setSelectedFileName("");
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = "";
-                    }
-                  }}
+                  className="admin-btn admin-btn--secondary media-library-load-more"
+                  onClick={() => setVisibleCount((count) => count + 6)}
                 >
-                  <div className="media-library-preview">
-                    {item.type === "video" ? (
-                      <video src={item.url} muted playsInline />
-                    ) : (
-                      <img src={item.url} alt={item.name} />
-                    )}
-                  </div>
-                  <div className="media-library-meta">
-                    {fileKind(item)}
-                    <span>{item.name}</span>
-                  </div>
+                  Load more media
                 </button>
-              ))}
+              ) : null}
             </div>
           ) : (
             <div className="empty-state">

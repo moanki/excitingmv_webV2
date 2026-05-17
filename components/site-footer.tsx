@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { optimizedImageUrl } from "@/lib/image-urls";
 import type { FooterContent, NavbarContent } from "@/lib/site-content";
 
 export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: NavbarContent }) {
@@ -16,9 +17,12 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
             <p className="section-kicker">Exciting Maldives</p>
             {footerLogoUrl ? (
               <img
-                src={footerLogoUrl}
+                src={optimizedImageUrl(footerLogoUrl, { width: 240, height: 160, quality: 78, resize: "contain" })}
                 alt={footer.companyLabel}
                 className="site-footer__logo-image"
+                width={240}
+                height={160}
+                loading="lazy"
               />
             ) : (
               <div className="site-footer__logo">{footer.companyLabel}</div>
@@ -63,7 +67,7 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
                     item.href ? (
                       <a href={item.href} key={item.name} className="site-footer__badge" target="_blank" rel="noreferrer">
                         {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.name} className="site-footer__badge-image" />
+                          <img src={optimizedImageUrl(item.imageUrl, { width: 180, height: 110, quality: 76, resize: "contain" })} alt={item.name} className="site-footer__badge-image" width={180} height={110} loading="lazy" />
                         ) : (
                           item.name
                         )}
@@ -71,7 +75,7 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
                     ) : (
                       <span key={item.name} className="site-footer__badge">
                         {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.name} className="site-footer__badge-image" />
+                          <img src={optimizedImageUrl(item.imageUrl, { width: 180, height: 110, quality: 76, resize: "contain" })} alt={item.name} className="site-footer__badge-image" width={180} height={110} loading="lazy" />
                         ) : (
                           item.name
                         )}
@@ -90,7 +94,7 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
                     item.href ? (
                       <a href={item.href} key={item.name} className="site-footer__badge" target="_blank" rel="noreferrer">
                         {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.name} className="site-footer__badge-image" />
+                          <img src={optimizedImageUrl(item.imageUrl, { width: 180, height: 110, quality: 76, resize: "contain" })} alt={item.name} className="site-footer__badge-image" width={180} height={110} loading="lazy" />
                         ) : (
                           item.name
                         )}
@@ -98,7 +102,7 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
                     ) : (
                       <span key={item.name} className="site-footer__badge">
                         {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.name} className="site-footer__badge-image" />
+                          <img src={optimizedImageUrl(item.imageUrl, { width: 180, height: 110, quality: 76, resize: "contain" })} alt={item.name} className="site-footer__badge-image" width={180} height={110} loading="lazy" />
                         ) : (
                           item.name
                         )}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { ResortManagerListView } from "@/app/admin/resorts/forms";
-import { getResortCounts, listAdminResorts } from "@/lib/services/resort-service";
+import { getResortCounts, listAdminResortCards } from "@/lib/services/resort-service";
 
 const labels = {
   singular: "Liveaboard",
@@ -12,7 +12,7 @@ const labels = {
 
 export default async function AdminLiveaboardsPage() {
   const [liveaboards, counts] = await Promise.all([
-    listAdminResorts("liveaboards"),
+    listAdminResortCards("liveaboards"),
     getResortCounts("liveaboards")
   ]);
 
