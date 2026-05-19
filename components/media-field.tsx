@@ -23,10 +23,41 @@ type MediaFieldProps = {
   onChange?: (url: string) => void;
 };
 
+const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
+
 function fileKind(file: MediaLibraryItem) {
   if (file.type === "video") return <Video className="admin-icon" />;
   if (file.type === "file") return <FileText className="admin-icon" />;
   return <ImageIcon className="admin-icon" />;
+}
+
+function fileExtension(file: File) {
+  return file.name.split(".").pop()?.toLowerCase() ?? "";
+}
+
+function validateMediaFieldFile(file: File, accept: string) {
+  const extension = fileExtension(file);
+
+  if (file.size > MAX_UPLOAD_SIZE) {
+    return "File is too large. Keep uploads under 50 MB.";
+  }
+
+  if (["heic", "heif"].includes(extension) || ["image/heic", "image/heif"].includes(file.type)) {
+    return "HEIC images are not supported yet. Please convert to JPG or PNG.";
+  }
+
+  const acceptParts = accept
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+  const extensionAccepted = acceptParts.some((item) => item.startsWith(".") && item.slice(1) === extension);
+  const typeAccepted = acceptParts.includes(file.type.toLowerCase());
+
+  if (!extensionAccepted && !typeAccepted) {
+    return "Unsupported file type for this field.";
+  }
+
+  return "";
 }
 
 export function MediaField({
@@ -100,7 +131,15 @@ export function MediaField({
   async function uploadFileDirectly(file: File) {
     setSelectedFileName(file.name);
     updateSelectedUrl("");
-    setUploadState({ pending: true, message: "Uploading media..." });
+    const validationError = validateMediaFieldFile(file, accept);
+    if (validationError) {
+      setUploadState({ pending: false, error: validationError });
+      clearNativeFileInput();
+      return;
+    }
+
+    const isOptimizable = ["image/png", "image/jpeg", "image/webp"].includes(file.type) || ["png", "jpg", "jpeg", "webp"].includes(fileExtension(file));
+    setUploadState({ pending: true, message: isOptimizable ? "Uploading and optimizing image..." : "Uploading media..." });
     clearNativeFileInput();
 
     try {

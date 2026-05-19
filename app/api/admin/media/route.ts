@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { compressExistingSiteImages, createSignedSiteAssetUpload, uploadSiteAsset } from "@/lib/storage/site-assets";
+import {
+  compressExistingSiteImages,
+  createSignedSiteAssetUpload,
+  SiteAssetUploadError,
+  uploadSiteAsset
+} from "@/lib/storage/site-assets";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -34,9 +39,20 @@ export async function POST(request: Request) {
         }
       });
     } catch (error) {
+      console.error("Admin media upload failed", {
+        filename: upload.name,
+        type: upload.type,
+        size: upload.size,
+        error
+      });
+
       return NextResponse.json(
-        { ok: false, error: error instanceof Error ? error.message : "Failed to upload media." },
-        { status: 500 }
+        {
+          ok: false,
+          error: error instanceof Error ? error.message : "Failed to upload media.",
+          code: error instanceof SiteAssetUploadError ? error.code : "upload_failed"
+        },
+        { status: error instanceof SiteAssetUploadError ? error.status : 500 }
       );
     }
   }
@@ -72,6 +88,7 @@ export async function POST(request: Request) {
     const data = await createSignedSiteAssetUpload(filename, contentType, folder);
     return NextResponse.json({ ok: true, data });
   } catch (error) {
+    console.error("Signed media upload preparation failed", { filename, contentType, folder, error });
     return NextResponse.json(
       { ok: false, error: error instanceof Error ? error.message : "Failed to prepare media upload." },
       { status: 500 }

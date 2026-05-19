@@ -2,9 +2,9 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import sharp from "sharp";
 
 export const SITE_ASSET_BUCKET = "site-assets";
-const MAX_FILE_SIZE = 50 * 1024 * 1024;
+export const MAX_SITE_ASSET_FILE_SIZE = 50 * 1024 * 1024;
 type SiteAssetUsage = "hero" | "banner" | "portrait" | "card" | "badge" | "logo" | "full";
-const ALLOWED_MIME_TYPES = [
+export const ALLOWED_SITE_ASSET_MIME_TYPES = [
   "image/png",
   "image/jpeg",
   "image/webp",
@@ -22,6 +22,44 @@ const ALLOWED_MIME_TYPES = [
   "video/webm",
   "video/quicktime"
 ];
+const HEIC_EXTENSIONS = ["heic", "heif"];
+const ALLOWED_EXTENSIONS = [
+  "png",
+  "jpg",
+  "jpeg",
+  "webp",
+  "svg",
+  "pdf",
+  "doc",
+  "docx",
+  "xls",
+  "xlsx",
+  "ppt",
+  "pptx",
+  "txt",
+  "csv",
+  "mp4",
+  "webm",
+  "mov"
+];
+
+export class SiteAssetUploadError extends Error {
+  status: number;
+  code: "missing_file" | "file_too_large" | "unsupported_file_type" | "image_processing_failed" | "storage_upload_failed";
+  details?: unknown;
+
+  constructor(
+    code: SiteAssetUploadError["code"],
+    message: string,
+    options: { status?: number; details?: unknown; cause?: unknown } = {}
+  ) {
+    super(message, { cause: options.cause });
+    this.name = "SiteAssetUploadError";
+    this.code = code;
+    this.status = options.status ?? 400;
+    this.details = options.details;
+  }
+}
 
 const IMAGE_PROFILES: Record<SiteAssetUsage, { width: number; height?: number; fit: "cover" | "inside"; quality: number }> = {
   hero: { width: 2400, height: 1350, fit: "cover", quality: 84 },
@@ -87,8 +125,39 @@ function fileExtension(file: File) {
   return "bin";
 }
 
+function fileNameExtension(name: string) {
+  return name.split(".").pop()?.toLowerCase() ?? "";
+}
+
+export function validateSiteAssetFile(file: File) {
+  if (!file || file.size === 0) {
+    throw new SiteAssetUploadError("missing_file", "Choose a file to upload.", { status: 400 });
+  }
+
+  if (file.size > MAX_SITE_ASSET_FILE_SIZE) {
+    throw new SiteAssetUploadError("file_too_large", "File is too large. Keep uploads under 50 MB.", { status: 413 });
+  }
+
+  const extension = fileNameExtension(file.name);
+  const type = file.type || "application/octet-stream";
+
+  if (HEIC_EXTENSIONS.includes(extension) || ["image/heic", "image/heif"].includes(type)) {
+    throw new SiteAssetUploadError("unsupported_file_type", "HEIC images are not supported yet. Please convert to JPG or PNG.", {
+      status: 415
+    });
+  }
+
+  if (!ALLOWED_SITE_ASSET_MIME_TYPES.includes(type) && !ALLOWED_EXTENSIONS.includes(extension)) {
+    throw new SiteAssetUploadError("unsupported_file_type", "Unsupported file type. Upload JPG, PNG, WebP, SVG, PDF, document, video, or CSV files.", {
+      status: 415,
+      details: { filename: file.name, type }
+    });
+  }
+}
+
 function isOptimizableImage(file: File) {
-  return ["image/png", "image/jpeg", "image/webp"].includes(file.type);
+  const extension = fileNameExtension(file.name);
+  return ["image/png", "image/jpeg", "image/webp"].includes(file.type) || ["png", "jpg", "jpeg", "webp"].includes(extension);
 }
 
 function isOptimizablePath(path: string, contentType?: string | null) {
@@ -103,23 +172,32 @@ async function imageBuffer(file: File, usage: SiteAssetUsage) {
   const source = Buffer.from(await file.arrayBuffer());
   const profile = IMAGE_PROFILES[usage] ?? IMAGE_PROFILES.full;
 
-  return sharp(source, { animated: false })
-    .rotate()
-    .resize({
-      width: profile.width,
-      height: profile.height,
-      fit: profile.fit,
-      withoutEnlargement: true,
-      background: { r: 255, g: 255, b: 255, alpha: 0 }
-    })
-    .webp({ quality: profile.quality, smartSubsample: true })
-    .toBuffer();
+  try {
+    return await sharp(source, { animated: false, limitInputPixels: 80_000_000 })
+      .rotate()
+      .resize({
+        width: profile.width,
+        height: profile.height,
+        fit: profile.fit,
+        withoutEnlargement: true,
+        background: { r: 255, g: 255, b: 255, alpha: 0 }
+      })
+      .webp({ quality: profile.quality, smartSubsample: true })
+      .toBuffer();
+  } catch (error) {
+    console.error("Image optimization failed", { filename: file.name, type: file.type, size: file.size, error });
+    throw new SiteAssetUploadError(
+      "image_processing_failed",
+      "This image could not be processed. Please try a JPG/PNG/WebP image with standard RGB color.",
+      { status: 422, cause: error }
+    );
+  }
 }
 
 async function optimizedStorageBuffer(source: Buffer, usage: SiteAssetUsage = "full") {
   const profile = IMAGE_PROFILES[usage] ?? IMAGE_PROFILES.full;
 
-  return sharp(source, { animated: false })
+  return sharp(source, { animated: false, limitInputPixels: 80_000_000 })
     .rotate()
     .resize({
       width: profile.width,
@@ -136,7 +214,7 @@ async function imageVariantBuffer(file: File, variant: keyof typeof VARIANT_PROF
   const source = Buffer.from(await file.arrayBuffer());
   const profile = VARIANT_PROFILES[variant];
 
-  return sharp(source, { animated: false })
+  return sharp(source, { animated: false, limitInputPixels: 80_000_000 })
     .rotate()
     .resize({
       width: profile.width,
@@ -158,8 +236,8 @@ async function ensureBucket() {
     await supabase.storage
       .updateBucket(SITE_ASSET_BUCKET, {
         public: true,
-        fileSizeLimit: `${MAX_FILE_SIZE}`,
-        allowedMimeTypes: ALLOWED_MIME_TYPES
+        fileSizeLimit: `${MAX_SITE_ASSET_FILE_SIZE}`,
+        allowedMimeTypes: ALLOWED_SITE_ASSET_MIME_TYPES
       })
       .catch(() => undefined);
     return supabase;
@@ -167,8 +245,8 @@ async function ensureBucket() {
 
   const created = await supabase.storage.createBucket(SITE_ASSET_BUCKET, {
     public: true,
-    fileSizeLimit: `${MAX_FILE_SIZE}`,
-    allowedMimeTypes: ALLOWED_MIME_TYPES
+    fileSizeLimit: `${MAX_SITE_ASSET_FILE_SIZE}`,
+    allowedMimeTypes: ALLOWED_SITE_ASSET_MIME_TYPES
   });
 
   if (created.error) {
@@ -179,13 +257,7 @@ async function ensureBucket() {
 }
 
 export async function uploadSiteAsset(file: File, folder: string, usage: SiteAssetUsage = "full") {
-  if (!file || file.size === 0) {
-    throw new Error("No file provided.");
-  }
-
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error("File is too large. Keep uploads under 50 MB.");
-  }
+  validateSiteAssetFile(file);
 
   const supabase = await ensureBucket();
   const safeFolder = normalizeFolderPath(folder);
@@ -203,22 +275,41 @@ export async function uploadSiteAsset(file: File, folder: string, usage: SiteAss
   });
 
   if (uploaded.error) {
-    throw new Error(uploaded.error.message);
+    console.error("Storage upload failed", { path, filename: file.name, error: uploaded.error });
+    throw new SiteAssetUploadError("storage_upload_failed", "Storage upload failed. Please try again.", {
+      status: 502,
+      details: uploaded.error,
+      cause: uploaded.error
+    });
   }
 
   if (shouldOptimize) {
-    await Promise.all(
+    const variantResults = await Promise.allSettled(
       Object.entries(VARIANT_PROFILES).map(async ([variant]) => {
         const variantPath = `${safeFolder}/${assetId}-${variant}.webp`;
         const variantBody = await imageVariantBuffer(file, variant);
 
-        await supabase.storage.from(SITE_ASSET_BUCKET).upload(variantPath, variantBody, {
+        const variantUpload = await supabase.storage.from(SITE_ASSET_BUCKET).upload(variantPath, variantBody, {
           cacheControl: "31536000",
           contentType: "image/webp",
           upsert: true
         });
+
+        if (variantUpload.error) {
+          throw variantUpload.error;
+        }
       })
     );
+
+    const failedVariants = variantResults.filter((result) => result.status === "rejected");
+    if (failedVariants.length) {
+      console.warn("Variant generation failed after main upload succeeded", {
+        path,
+        filename: file.name,
+        failedCount: failedVariants.length,
+        reasons: failedVariants.map((result) => (result as PromiseRejectedResult).reason)
+      });
+    }
   }
 
   const publicUrl = supabase.storage.from(SITE_ASSET_BUCKET).getPublicUrl(path);

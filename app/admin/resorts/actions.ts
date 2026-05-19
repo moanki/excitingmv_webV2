@@ -86,10 +86,19 @@ async function parseRoomTypes(formData: FormData) {
       .filter(Boolean);
     const roomPhotoFile = formData.get(`room_${index}_photoFile`);
     const existingPhoto = String(formData.get(`room_${index}_photoUrl`) ?? "").trim();
-    const photoUrl =
-      roomPhotoFile instanceof File && roomPhotoFile.size > 0
-        ? await uploadSiteAsset(roomPhotoFile, "resorts", "card")
-        : existingPhoto;
+    let photoUrl = existingPhoto;
+    if (roomPhotoFile instanceof File && roomPhotoFile.size > 0) {
+      try {
+        photoUrl = await uploadSiteAsset(roomPhotoFile, "resorts", "card");
+      } catch (error) {
+        console.error("Room photo upload failed", { filename: roomPhotoFile.name, roomName: name, error });
+        throw new Error(
+          `Room photo failed for ${name || `room ${index + 1}`}: ${
+            error instanceof Error ? error.message : "Image could not be uploaded."
+          }`
+        );
+      }
+    }
 
     if (!name && !description && !seoDescription && !photoUrl && !sizeLabel && !maxOccupancyValue && !bedType && !viewLabel && !amenities.length) {
       continue;
@@ -128,18 +137,41 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
         );
     const heroImageFile = formData.get("heroImageFile");
     const galleryFiles = formData.getAll("galleryMediaFiles");
-    const uploadedHeroImage =
-      heroImageFile instanceof File && heroImageFile.size > 0
-        ? await uploadSiteAsset(heroImageFile, "resorts", "banner")
-        : String(formData.get("heroImageUrl") ?? "").trim();
-    const uploadedGalleryImages = (
-      await Promise.all(
-        galleryFiles.map(async (item) => {
-          if (!(item instanceof File) || item.size === 0) return "";
-          return uploadSiteAsset(item, "resorts", "card");
-        })
-      )
-    ).filter(Boolean);
+    let uploadedHeroImage = String(formData.get("heroImageUrl") ?? "").trim();
+    if (heroImageFile instanceof File && heroImageFile.size > 0) {
+      try {
+        uploadedHeroImage = await uploadSiteAsset(heroImageFile, "resorts", "banner");
+      } catch (error) {
+        console.error("Hero image upload failed", { filename: heroImageFile.name, error });
+        return {
+          error: `Hero image failed: ${error instanceof Error ? error.message : "Image could not be uploaded."}`
+        };
+      }
+    }
+
+    const galleryUploadFiles = galleryFiles.filter((item): item is File => item instanceof File && item.size > 0);
+    const galleryUploadResults = await Promise.allSettled(
+      galleryUploadFiles.map(async (file) => ({
+        filename: file.name,
+        url: await uploadSiteAsset(file, "resorts", "card")
+      }))
+    );
+    const uploadedGalleryImages = galleryUploadResults
+      .filter((result): result is PromiseFulfilledResult<{ filename: string; url: string }> => result.status === "fulfilled")
+      .map((result) => result.value.url)
+      .filter(Boolean);
+    const failedGalleryImages = galleryUploadResults
+      .map((result, index) => ({ result, file: galleryUploadFiles[index] }))
+      .filter((item): item is { result: PromiseRejectedResult; file: File } => item.result.status === "rejected");
+
+    if (failedGalleryImages.length) {
+      console.warn("Some gallery images failed to upload", {
+        failed: failedGalleryImages.map((item) => ({
+          filename: item.file.name,
+          reason: item.result.reason
+        }))
+      });
+    }
     const galleryMediaUrls = String(formData.get("galleryMediaUrls") ?? "")
       .split(/\r?\n|,/)
       .map((item) => item.trim())
@@ -176,7 +208,13 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
     if (input.id) {
       revalidatePath(`${adminPathForProperty(propertyType)}/${input.id}/edit`);
     }
-    return { message: `${input.name} saved.` };
+    const galleryMessage =
+      galleryUploadFiles.length && failedGalleryImages.length
+        ? ` ${uploadedGalleryImages.length} gallery image${uploadedGalleryImages.length === 1 ? "" : "s"} uploaded. ${failedGalleryImages.length} failed: ${failedGalleryImages.map((item) => item.file.name).join(", ")}.`
+        : galleryUploadFiles.length
+          ? ` ${uploadedGalleryImages.length} gallery image${uploadedGalleryImages.length === 1 ? "" : "s"} uploaded.`
+          : "";
+    return { message: `${input.name} saved.${galleryMessage}` };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save property." };
   }

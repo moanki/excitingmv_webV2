@@ -9,6 +9,45 @@ import { deleteMediaLibraryAssetAction } from "@/app/admin/media/actions";
 import type { MediaLibraryItem } from "@/components/media-field";
 import { optimizedImageUrl } from "@/lib/image-urls";
 
+const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
+const ALLOWED_UPLOAD_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/svg+xml",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/plain",
+  "text/csv",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime"
+]);
+const ALLOWED_UPLOAD_EXTENSIONS = new Set([
+  "png",
+  "jpg",
+  "jpeg",
+  "webp",
+  "svg",
+  "pdf",
+  "doc",
+  "docx",
+  "xls",
+  "xlsx",
+  "ppt",
+  "pptx",
+  "txt",
+  "csv",
+  "mp4",
+  "webm",
+  "mov"
+]);
+
 function StatusMessage({ message, error }: { message?: string; error?: string }) {
   if (error) {
     return <p className="admin-alert admin-alert--error">{error}</p>;
@@ -31,6 +70,35 @@ function typeLabel(type: MediaLibraryItem["type"]) {
   if (type === "video") return "Video";
   if (type === "file") return "File";
   return "Image";
+}
+
+function formatBytes(bytes: number) {
+  if (!bytes) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
+  const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  return `${(bytes / 1024 ** index).toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+}
+
+function fileExtension(file: File) {
+  return file.name.split(".").pop()?.toLowerCase() ?? "";
+}
+
+function validateUploadFile(file: File) {
+  const extension = fileExtension(file);
+
+  if (file.size > MAX_UPLOAD_SIZE) {
+    return "File is too large. Keep uploads under 50 MB.";
+  }
+
+  if (["heic", "heif"].includes(extension) || ["image/heic", "image/heif"].includes(file.type)) {
+    return "HEIC images are not supported yet. Please convert to JPG or PNG.";
+  }
+
+  if (!ALLOWED_UPLOAD_TYPES.has(file.type || "application/octet-stream") && !ALLOWED_UPLOAD_EXTENSIONS.has(extension)) {
+    return "Unsupported file type. Upload JPG, PNG, WebP, SVG, PDF, document, video, or CSV files.";
+  }
+
+  return "";
 }
 
 export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
@@ -75,7 +143,17 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
       return;
     }
 
-    setUploadState({ pending: true, message: "Uploading media..." });
+    const validationError = validateUploadFile(selectedFile);
+    if (validationError) {
+      setUploadState({ pending: false, error: validationError });
+      return;
+    }
+
+    const isOptimizable = ["image/png", "image/jpeg", "image/webp"].includes(selectedFile.type) || ["png", "jpg", "jpeg", "webp"].includes(fileExtension(selectedFile));
+    setUploadState({
+      pending: true,
+      message: isOptimizable ? "Uploading and optimizing image..." : "Uploading media..."
+    });
 
     try {
       const formData = new FormData();
@@ -109,7 +187,7 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
       setUploadState({
         pending: false,
         message: payload.data.compressed
-          ? `${selectedFile.name} uploaded and compressed.`
+          ? `${selectedFile.name} uploaded and optimized.`
           : `${selectedFile.name} uploaded.`
       });
       router.refresh();
@@ -178,8 +256,26 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
               type="file"
               name="mediaFile"
               accept="image/png,image/jpeg,image/webp,image/svg+xml,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/csv,video/mp4,video/webm,video/quicktime"
-              onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
+              onChange={(event) => {
+                const file = event.target.files?.[0] ?? null;
+                setSelectedFile(file);
+                if (!file) {
+                  setUploadState({ pending: false });
+                  return;
+                }
+                const validationError = validateUploadFile(file);
+                setUploadState({
+                  pending: false,
+                  message: validationError ? undefined : `${file.name} selected (${formatBytes(file.size)}, ${file.type || "unknown type"}).`,
+                  error: validationError || undefined
+                });
+              }}
             />
+            {selectedFile ? (
+              <span className="field__help">
+                Selected: {selectedFile.name} · {formatBytes(selectedFile.size)} · {selectedFile.type || "unknown type"}
+              </span>
+            ) : null}
           </label>
         </div>
         <div className="admin-form-actions admin-form-actions--start">
