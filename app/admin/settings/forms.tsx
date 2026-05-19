@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 import {
+  publishAboutAction,
   publishAdminLoginAction,
   publishAwardsAction,
   publishCeoAction,
@@ -20,6 +21,7 @@ import {
   publishStoryAction,
   publishWhatsAppAction,
   publishWhyUsAction,
+  saveAboutDraftAction,
   saveAdminLoginDraftAction,
   saveAwardsDraftAction,
   saveCeoDraftAction,
@@ -38,6 +40,12 @@ import {
   saveWhyUsDraftAction
 } from "@/app/admin/settings/actions";
 import type {
+  AboutBentoCard,
+  AboutLogoItem,
+  AboutMarketCard,
+  AboutPageContent,
+  AboutStatCard,
+  AboutWhyPoint,
   AdminLoginContent,
   FooterBadge,
   FooterContent,
@@ -68,6 +76,418 @@ function StatusMessage({ message, error }: { message?: string; error?: string })
   }
 
   return null;
+}
+
+export function AboutSettingsForm({
+  about,
+  mediaLibrary
+}: {
+  about: AboutPageContent;
+  mediaLibrary: MediaLibraryItem[];
+}) {
+  const [state, action, pending] = useActionState(saveAboutDraftAction, undefined);
+  const [stats, setStats] = useState(about.hero.stats.length ? about.hero.stats : [blankAboutStat()]);
+  const [whatCards, setWhatCards] = useState(about.whatWeDo.cards.length ? about.whatWeDo.cards : [blankAboutBento(0)]);
+  const [markets, setMarkets] = useState(about.markets.cards.length ? about.markets.cards : [blankAboutMarket(0)]);
+  const [whyPoints, setWhyPoints] = useState(about.whyUs.points.length ? about.whyUs.points : [blankAboutWhy(0)]);
+  const [logos, setLogos] = useState(about.awards.logos.length ? about.awards.logos : [blankAboutLogo(0)]);
+
+  return (
+    <div className="panel">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">About Us</p>
+          <h2 className="settings-title">Premium B2B brand confidence page.</h2>
+          <p className="admin-page-lede">
+            Manage the About page hero, trust story, bento cards, market proof, awards, CTA, and SEO.
+          </p>
+        </div>
+        <form action={publishAboutAction}>
+          <button className="button-muted" type="submit">
+            Publish Current Draft
+          </button>
+        </form>
+      </div>
+
+      <form action={action} className="stack">
+        <details className="panel panel-soft admin-collapsible" open>
+          <summary>Hero</summary>
+          <div className="form-grid">
+            <label className="field">
+              Kicker
+              <input name="heroKicker" defaultValue={about.hero.kicker} />
+            </label>
+            <label className="field" style={{ gridColumn: "1 / -1" }}>
+              Headline
+              <input name="heroHeadline" defaultValue={about.hero.headline} />
+            </label>
+            <label className="field" style={{ gridColumn: "1 / -1" }}>
+              Body text
+              <textarea name="heroBody" defaultValue={about.hero.body} />
+            </label>
+            <label className="field">
+              Primary CTA label
+              <input name="heroPrimaryCtaLabel" defaultValue={about.hero.primaryCtaLabel} />
+            </label>
+            <label className="field">
+              Primary CTA link
+              <input name="heroPrimaryCtaHref" defaultValue={about.hero.primaryCtaHref} />
+            </label>
+            <label className="field">
+              Secondary CTA label
+              <input name="heroSecondaryCtaLabel" defaultValue={about.hero.secondaryCtaLabel} />
+            </label>
+            <label className="field">
+              Secondary CTA link
+              <input name="heroSecondaryCtaHref" defaultValue={about.hero.secondaryCtaHref} />
+            </label>
+          </div>
+          <MediaField
+            label="Hero image"
+            inputName="heroImageUrl"
+            fileName="aboutHeroImageFile"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            value={about.hero.imageUrl}
+            library={mediaLibrary}
+          />
+          <input type="hidden" name="about_stat_count" value={stats.length} />
+          <div className="stack">
+            <p className="eyebrow">Hero stat cards</p>
+            {stats.map((stat, index) => (
+              <div className="panel panel-nested" key={`about-stat-${index}`}>
+                <div className="form-grid">
+                  <label className="field">
+                    Value
+                    <input name={`about_stat_${index}_value`} defaultValue={stat.value} />
+                  </label>
+                  <label className="field">
+                    Label
+                    <input name={`about_stat_${index}_label`} defaultValue={stat.label} />
+                  </label>
+                </div>
+                <div className="admin-form-actions">
+                  <ToggleField name={`about_stat_${index}_enabled`} label="Show stat" defaultChecked={stat.enabled} />
+                  <button type="button" className="button-muted" onClick={() => setStats((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+            <button type="button" className="button-muted" onClick={() => setStats((rows) => [...rows, blankAboutStat()])}>
+              Add Stat
+            </button>
+          </div>
+        </details>
+
+        <details className="panel panel-soft admin-collapsible">
+          <summary>Our Story</summary>
+          <div className="form-grid">
+            <label className="field" style={{ gridColumn: "1 / -1" }}>
+              Section title
+              <input name="storyTitle" defaultValue={about.story.title} />
+            </label>
+            <label className="field" style={{ gridColumn: "1 / -1" }}>
+              Story text
+              <textarea name="storyBody" defaultValue={about.story.body} />
+            </label>
+            <label className="field" style={{ gridColumn: "1 / -1" }}>
+              Optional second paragraph
+              <textarea name="storySecondaryBody" defaultValue={about.story.secondaryBody} />
+            </label>
+            <label className="field" style={{ gridColumn: "1 / -1" }}>
+              Image alt text
+              <input name="storyImageAlt" defaultValue={about.story.imageAlt} />
+            </label>
+          </div>
+          <MediaField
+            label="Story image"
+            inputName="storyImageUrl"
+            fileName="aboutStoryImageFile"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            value={about.story.imageUrl}
+            library={mediaLibrary}
+          />
+        </details>
+
+        <details className="panel panel-soft admin-collapsible">
+          <summary>What We Do</summary>
+          <div className="form-grid">
+            <label className="field">
+              Section title
+              <input name="whatTitle" defaultValue={about.whatWeDo.title} />
+            </label>
+            <label className="field" style={{ gridColumn: "1 / -1" }}>
+              Section subtitle
+              <textarea name="whatSubtitle" defaultValue={about.whatWeDo.subtitle} />
+            </label>
+          </div>
+          <input type="hidden" name="about_what_count" value={whatCards.length} />
+          {whatCards.map((card, index) => (
+            <div className="panel panel-nested" key={`about-what-${index}`}>
+              <div className="section-heading compact">
+                <p className="eyebrow">{card.title || `Bento Card ${index + 1}`}</p>
+                <button type="button" className="button-muted" onClick={() => setWhatCards((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}>
+                  Delete
+                </button>
+              </div>
+              <div className="form-grid">
+                <label className="field">
+                  Icon
+                  <input name={`about_what_${index}_icon`} defaultValue={card.icon} />
+                </label>
+                <label className="field">
+                  Sort order
+                  <input name={`about_what_${index}_displayOrder`} defaultValue={card.displayOrder} inputMode="numeric" />
+                </label>
+                <label className="field" style={{ gridColumn: "1 / -1" }}>
+                  Title
+                  <input name={`about_what_${index}_title`} defaultValue={card.title} />
+                </label>
+                <label className="field" style={{ gridColumn: "1 / -1" }}>
+                  Description
+                  <textarea name={`about_what_${index}_description`} defaultValue={card.description} />
+                </label>
+              </div>
+              <ToggleField name={`about_what_${index}_enabled`} label="Show card" defaultChecked={card.enabled} />
+            </div>
+          ))}
+          <button type="button" className="button-muted" onClick={() => setWhatCards((rows) => [...rows, blankAboutBento(rows.length)])}>
+            Add Bento Card
+          </button>
+        </details>
+
+        <details className="panel panel-soft admin-collapsible">
+          <summary>Market Expertise</summary>
+          <div className="form-grid">
+            <label className="field">
+              Section title
+              <input name="marketsTitle" defaultValue={about.markets.title} />
+            </label>
+            <label className="field" style={{ gridColumn: "1 / -1" }}>
+              Section subtitle
+              <textarea name="marketsSubtitle" defaultValue={about.markets.subtitle} />
+            </label>
+          </div>
+          <input type="hidden" name="about_market_count" value={markets.length} />
+          {markets.map((market, index) => (
+            <div className="panel panel-nested" key={`about-market-${index}`}>
+              <div className="section-heading compact">
+                <p className="eyebrow">{market.region || `Market ${index + 1}`}</p>
+                <button type="button" className="button-muted" onClick={() => setMarkets((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}>
+                  Delete
+                </button>
+              </div>
+              <div className="form-grid">
+                <label className="field">
+                  Icon
+                  <input name={`about_market_${index}_icon`} defaultValue={market.icon} />
+                </label>
+                <label className="field">
+                  Sort order
+                  <input name={`about_market_${index}_displayOrder`} defaultValue={market.displayOrder} inputMode="numeric" />
+                </label>
+                <label className="field" style={{ gridColumn: "1 / -1" }}>
+                  Region name
+                  <input name={`about_market_${index}_region`} defaultValue={market.region} />
+                </label>
+                <label className="field" style={{ gridColumn: "1 / -1" }}>
+                  Description
+                  <textarea name={`about_market_${index}_description`} defaultValue={market.description} />
+                </label>
+              </div>
+              <ToggleField name={`about_market_${index}_enabled`} label="Show market" defaultChecked={market.enabled} />
+            </div>
+          ))}
+          <button type="button" className="button-muted" onClick={() => setMarkets((rows) => [...rows, blankAboutMarket(rows.length)])}>
+            Add Market
+          </button>
+        </details>
+
+        <details className="panel panel-soft admin-collapsible">
+          <summary>Why Us</summary>
+          <div className="form-grid">
+            <label className="field">
+              Section title
+              <input name="whyTitle" defaultValue={about.whyUs.title} />
+            </label>
+            <label className="field" style={{ gridColumn: "1 / -1" }}>
+              Section subtitle
+              <textarea name="whySubtitle" defaultValue={about.whyUs.subtitle} />
+            </label>
+          </div>
+          <input type="hidden" name="about_why_count" value={whyPoints.length} />
+          {whyPoints.map((point, index) => (
+            <div className="panel panel-nested" key={`about-why-${index}`}>
+              <div className="section-heading compact">
+                <p className="eyebrow">{point.title || `Point ${index + 1}`}</p>
+                <button type="button" className="button-muted" onClick={() => setWhyPoints((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}>
+                  Delete
+                </button>
+              </div>
+              <div className="form-grid">
+                <label className="field">
+                  Icon
+                  <input name={`about_why_${index}_icon`} defaultValue={point.icon} />
+                </label>
+                <label className="field">
+                  Sort order
+                  <input name={`about_why_${index}_displayOrder`} defaultValue={point.displayOrder} inputMode="numeric" />
+                </label>
+                <label className="field" style={{ gridColumn: "1 / -1" }}>
+                  Title
+                  <input name={`about_why_${index}_title`} defaultValue={point.title} />
+                </label>
+                <label className="field" style={{ gridColumn: "1 / -1" }}>
+                  Text
+                  <textarea name={`about_why_${index}_description`} defaultValue={point.description} />
+                </label>
+              </div>
+              <ToggleField name={`about_why_${index}_enabled`} label="Show point" defaultChecked={point.enabled} />
+            </div>
+          ))}
+          <button type="button" className="button-muted" onClick={() => setWhyPoints((rows) => [...rows, blankAboutWhy(rows.length)])}>
+            Add Value Proposition
+          </button>
+        </details>
+
+        <details className="panel panel-soft admin-collapsible">
+          <summary>Awards & Memberships</summary>
+          <div className="form-grid">
+            <label className="field">
+              Section title
+              <input name="awardsTitle" defaultValue={about.awards.title} />
+            </label>
+            <label className="field" style={{ gridColumn: "1 / -1" }}>
+              Section subtitle
+              <textarea name="awardsSubtitle" defaultValue={about.awards.subtitle} />
+            </label>
+          </div>
+          <input type="hidden" name="about_logo_count" value={logos.length} />
+          {logos.map((logo, index) => (
+            <div className="panel panel-nested" key={`about-logo-${index}`}>
+              <div className="section-heading compact">
+                <p className="eyebrow">{logo.name || `Logo ${index + 1}`}</p>
+                <button type="button" className="button-muted" onClick={() => setLogos((rows) => rows.filter((_, rowIndex) => rowIndex !== index))}>
+                  Delete
+                </button>
+              </div>
+              <div className="form-grid">
+                <label className="field">
+                  Logo title
+                  <input name={`about_logo_${index}_name`} defaultValue={logo.name} />
+                </label>
+                <label className="field">
+                  Optional link
+                  <input name={`about_logo_${index}_href`} defaultValue={logo.href} />
+                </label>
+                <label className="field">
+                  Sort order
+                  <input name={`about_logo_${index}_displayOrder`} defaultValue={logo.displayOrder} inputMode="numeric" />
+                </label>
+              </div>
+              <MediaField
+                label="Logo image"
+                inputName={`about_logo_${index}_imageUrl`}
+                fileName={`about_logo_${index}_imageFile`}
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                value={logo.imageUrl}
+                library={mediaLibrary}
+              />
+              <ToggleField name={`about_logo_${index}_enabled`} label="Show logo" defaultChecked={logo.enabled} />
+            </div>
+          ))}
+          <button type="button" className="button-muted" onClick={() => setLogos((rows) => [...rows, blankAboutLogo(rows.length)])}>
+            Add Logo
+          </button>
+        </details>
+
+        <details className="panel panel-soft admin-collapsible">
+          <summary>Final CTA and SEO</summary>
+          <div className="form-grid">
+            <label className="field" style={{ gridColumn: "1 / -1" }}>
+              CTA headline
+              <input name="ctaHeadline" defaultValue={about.cta.headline} />
+            </label>
+            <label className="field" style={{ gridColumn: "1 / -1" }}>
+              CTA body
+              <textarea name="ctaBody" defaultValue={about.cta.body} />
+            </label>
+            <label className="field">
+              Primary CTA label
+              <input name="ctaPrimaryLabel" defaultValue={about.cta.primaryCtaLabel} />
+            </label>
+            <label className="field">
+              Primary CTA link
+              <input name="ctaPrimaryHref" defaultValue={about.cta.primaryCtaHref} />
+            </label>
+            <label className="field">
+              Secondary CTA label
+              <input name="ctaSecondaryLabel" defaultValue={about.cta.secondaryCtaLabel} />
+            </label>
+            <label className="field">
+              Secondary CTA link
+              <input name="ctaSecondaryHref" defaultValue={about.cta.secondaryCtaHref} />
+            </label>
+            <label className="field">
+              Third CTA label
+              <input name="ctaTertiaryLabel" defaultValue={about.cta.tertiaryCtaLabel} />
+            </label>
+            <label className="field">
+              Third CTA link
+              <input name="ctaTertiaryHref" defaultValue={about.cta.tertiaryCtaHref} />
+            </label>
+            <label className="field">
+              Background color
+              <input name="ctaBackgroundColor" defaultValue={about.cta.backgroundColor} />
+            </label>
+          </div>
+          <MediaField
+            label="CTA background image"
+            inputName="ctaBackgroundImageUrl"
+            fileName="aboutCtaImageFile"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            value={about.cta.backgroundImageUrl}
+            library={mediaLibrary}
+          />
+          <div className="form-grid">
+            <label className="field">
+              SEO title
+              <input name="seoTitle" defaultValue={about.seo.title} />
+            </label>
+            <label className="field" style={{ gridColumn: "1 / -1" }}>
+              Meta description
+              <textarea name="seoDescription" defaultValue={about.seo.description} />
+            </label>
+            <label className="field">
+              Canonical URL
+              <input name="seoCanonicalUrl" defaultValue={about.seo.canonicalUrl} />
+            </label>
+          </div>
+          <MediaField
+            label="Open Graph image"
+            inputName="seoOgImageUrl"
+            fileName="aboutOgImageFile"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            value={about.seo.ogImageUrl}
+            library={mediaLibrary}
+          />
+        </details>
+
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
+            {pending ? "Saving..." : "Save About Draft"}
+          </button>
+          <a className="button-muted" href="/about" target="_blank" rel="noreferrer">
+            Preview
+          </a>
+          <button className="button-primary" type="submit" name="intent" value="publish" disabled={pending}>
+            {pending ? "Publishing..." : "Save & Publish About"}
+          </button>
+        </div>
+        <StatusMessage message={state?.message} error={state?.error} />
+      </form>
+    </div>
+  );
 }
 
 export function AdminLoginSettingsForm({
@@ -160,6 +580,26 @@ function blankService(index: number): HomepageServiceItem {
     displayOrder: index + 1,
     enabled: true
   };
+}
+
+function blankAboutStat(): AboutStatCard {
+  return { value: "", label: "", enabled: true };
+}
+
+function blankAboutBento(index: number): AboutBentoCard {
+  return { icon: "sparkles", title: "", description: "", displayOrder: index + 1, enabled: true };
+}
+
+function blankAboutMarket(index: number): AboutMarketCard {
+  return { icon: "map-pin", region: "", description: "", displayOrder: index + 1, enabled: true };
+}
+
+function blankAboutWhy(index: number): AboutWhyPoint {
+  return { icon: "check", title: "", description: "", displayOrder: index + 1, enabled: true };
+}
+
+function blankAboutLogo(index: number): AboutLogoItem {
+  return { name: "", imageUrl: "", href: "", enabled: true, displayOrder: index + 1 };
 }
 
 function blankGuide(index: number): HomepageGuideItem {

@@ -178,6 +178,99 @@ export type MarketSettings = {
   options: MarketOption[];
 };
 
+export type AboutStatCard = {
+  label: string;
+  value: string;
+  enabled: boolean;
+};
+
+export type AboutBentoCard = {
+  icon: string;
+  title: string;
+  description: string;
+  displayOrder: number;
+  enabled: boolean;
+};
+
+export type AboutMarketCard = {
+  icon: string;
+  region: string;
+  description: string;
+  displayOrder: number;
+  enabled: boolean;
+};
+
+export type AboutWhyPoint = {
+  icon: string;
+  title: string;
+  description: string;
+  displayOrder: number;
+  enabled: boolean;
+};
+
+export type AboutLogoItem = FooterBadge & {
+  displayOrder: number;
+};
+
+export type AboutPageContent = {
+  hero: {
+    kicker: string;
+    headline: string;
+    body: string;
+    imageUrl: string;
+    primaryCtaLabel: string;
+    primaryCtaHref: string;
+    secondaryCtaLabel: string;
+    secondaryCtaHref: string;
+    stats: AboutStatCard[];
+  };
+  story: {
+    title: string;
+    body: string;
+    secondaryBody: string;
+    imageUrl: string;
+    imageAlt: string;
+  };
+  whatWeDo: {
+    title: string;
+    subtitle: string;
+    cards: AboutBentoCard[];
+  };
+  markets: {
+    title: string;
+    subtitle: string;
+    cards: AboutMarketCard[];
+  };
+  whyUs: {
+    title: string;
+    subtitle: string;
+    points: AboutWhyPoint[];
+  };
+  awards: {
+    title: string;
+    subtitle: string;
+    logos: AboutLogoItem[];
+  };
+  cta: {
+    headline: string;
+    body: string;
+    primaryCtaLabel: string;
+    primaryCtaHref: string;
+    secondaryCtaLabel: string;
+    secondaryCtaHref: string;
+    tertiaryCtaLabel: string;
+    tertiaryCtaHref: string;
+    backgroundImageUrl: string;
+    backgroundColor: string;
+  };
+  seo: {
+    title: string;
+    description: string;
+    ogImageUrl: string;
+    canonicalUrl: string;
+  };
+};
+
 type SiteSettingEnvelope<T> = {
   draft: T;
   published: T;
@@ -610,6 +703,121 @@ export const defaultMarketSettings: MarketSettings = {
   ]
 };
 
+export const defaultAboutPageContent: AboutPageContent = {
+  hero: {
+    kicker: "About Exciting Maldives",
+    headline: "Your Trusted Maldives DMC Partner",
+    body:
+      "A premium Maldives DMC connecting global travel professionals with trusted resort partnerships, curated experiences, and destination expertise.",
+    imageUrl: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1800&q=86",
+    primaryCtaLabel: "Become a Partner",
+    primaryCtaHref: "#partner",
+    secondaryCtaLabel: "Contact Us",
+    secondaryCtaHref: "/contact",
+    stats: [
+      { value: "4x", label: "TTM Top Producer", enabled: true },
+      { value: "Strong", label: "Resort Partnerships", enabled: true },
+      { value: "Global", label: "Russia & CIS / Europe / Middle East / Asia Markets", enabled: true },
+      { value: "Local", label: "Maldives-Based Destination Expertise", enabled: true }
+    ]
+  },
+  story: {
+    title: "Our Story",
+    body:
+      "Exciting Maldives was built to support travel professionals with reliable local expertise, premium resort access, and carefully managed destination services across the Maldives.",
+    secondaryBody:
+      "We work closely with partners to simplify destination planning, strengthen resort connections, and deliver curated Maldives experiences with confidence and care.",
+    imageUrl: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1400&q=84",
+    imageAlt: "Maldives resort partnership and destination expertise"
+  },
+  whatWeDo: {
+    title: "What We Do",
+    subtitle:
+      "Supporting travel professionals with reliable Maldives expertise, resort access, and carefully curated destination services.",
+    cards: [
+      {
+        icon: "building-2",
+        title: "Resort Partnerships",
+        description: "Connecting travel professionals with trusted Maldives resort partners and premium accommodation options.",
+        displayOrder: 1,
+        enabled: true
+      },
+      {
+        icon: "briefcase-business",
+        title: "DMC Services",
+        description: "Providing destination support, coordination, planning assistance, and local expertise for Maldives travel programs.",
+        displayOrder: 2,
+        enabled: true
+      },
+      {
+        icon: "handshake",
+        title: "Travel Partnerships",
+        description: "Helping global travel agents, tour operators, and partners build stronger Maldives product offerings.",
+        displayOrder: 3,
+        enabled: true
+      },
+      {
+        icon: "sparkles",
+        title: "Curated Experiences",
+        description: "Designing memorable Maldives experiences, from marine adventures to wellness, dining, and special moments.",
+        displayOrder: 4,
+        enabled: true
+      }
+    ]
+  },
+  markets: {
+    title: "Connected to Key Maldives Travel Markets",
+    subtitle:
+      "We understand the markets shaping premium Maldives demand and support partners across important travel regions.",
+    cards: [
+      { icon: "map-pin", region: "Russia & CIS", description: "Core partner demand with strong premium Maldives repeat travel.", displayOrder: 1, enabled: true },
+      { icon: "landmark", region: "Europe", description: "Established luxury travel networks and curated resort requests.", displayOrder: 2, enabled: true },
+      { icon: "globe-2", region: "Middle East / GCC", description: "High-value short-lead travel, villa privacy, and family movement.", displayOrder: 3, enabled: true },
+      { icon: "plane", region: "Asia", description: "Growing premium demand across regional travel advisors and operators.", displayOrder: 4, enabled: true },
+      { icon: "waves", region: "Maldives", description: "Local destination presence with direct resort and logistics knowledge.", displayOrder: 5, enabled: true }
+    ]
+  },
+  whyUs: {
+    title: "Why Travel Professionals Work With Us",
+    subtitle: "Practical B2B support for teams that need confidence before, during, and after the booking.",
+    points: [
+      { icon: "check", title: "Trusted Maldives destination knowledge", description: "Local product clarity for matching the right island to the right guest profile.", displayOrder: 1, enabled: true },
+      { icon: "check", title: "Premium resort relationships", description: "Direct working relationships that support trade conversations and partner confidence.", displayOrder: 2, enabled: true },
+      { icon: "check", title: "Fast B2B communication", description: "Responsive support for availability, suitability, offers, and operational details.", displayOrder: 3, enabled: true },
+      { icon: "check", title: "Market-aware partnership approach", description: "Recommendations shaped by demand patterns across priority international markets.", displayOrder: 4, enabled: true }
+    ]
+  },
+  awards: {
+    title: "Recognized by the Maldives Travel Industry",
+    subtitle:
+      "Our partnerships, industry recognition, and destination expertise help us serve travel professionals with confidence.",
+    logos: [
+      { name: "TTM Top Producer", imageUrl: "https://dummyimage.com/280x140/ffffff/0f172a&text=TTM+Award", href: "", enabled: true, displayOrder: 1 },
+      { name: "Preferred DMC Network", imageUrl: "https://dummyimage.com/280x140/ffffff/0f172a&text=DMC+Network", href: "", enabled: true, displayOrder: 2 },
+      { name: "Luxury Trade Collective", imageUrl: "https://dummyimage.com/280x140/ffffff/0f172a&text=Luxury+Trade", href: "", enabled: true, displayOrder: 3 }
+    ]
+  },
+  cta: {
+    headline: "Let's Build Stronger Maldives Partnerships Together",
+    body:
+      "Connect with Exciting Maldives to explore resort partnerships, destination services, and curated Maldives travel opportunities for your clients.",
+    primaryCtaLabel: "Contact Us",
+    primaryCtaHref: "/contact",
+    secondaryCtaLabel: "Become a Partner",
+    secondaryCtaHref: "#partner",
+    tertiaryCtaLabel: "Explore Destinations",
+    tertiaryCtaHref: "/resorts",
+    backgroundImageUrl: "",
+    backgroundColor: "#07131f"
+  },
+  seo: {
+    title: "About Exciting Maldives",
+    description: "Meet Exciting Maldives, a premium B2B Maldives DMC for global travel professionals, resort partners, and curated destination services.",
+    ogImageUrl: "",
+    canonicalUrl: "/about"
+  }
+};
+
 async function getSiteSetting<T>(key: string, fallback: T): Promise<SiteSettingEnvelope<T>> {
   try {
     const supabase = createSupabaseAdminClient();
@@ -787,6 +995,120 @@ function normalizeAdminLoginContent(settings: unknown): AdminLoginContent {
   };
 }
 
+function normalizeAboutCards<T extends { displayOrder: number; enabled: boolean }>(
+  items: unknown,
+  fallback: T[],
+  mapper: (item: Partial<T>, fallback: T, index: number) => T
+) {
+  const source = Array.isArray(items) ? items : fallback;
+  return source
+    .map((item, index) => mapper(item as Partial<T>, fallback[index] ?? fallback[0], index))
+    .sort((a, b) => a.displayOrder - b.displayOrder);
+}
+
+function normalizeAboutPageContent(settings: unknown): AboutPageContent {
+  const source = (settings ?? defaultAboutPageContent) as Partial<AboutPageContent>;
+  const hero = source.hero ?? defaultAboutPageContent.hero;
+  const story = source.story ?? defaultAboutPageContent.story;
+  const whatWeDo = source.whatWeDo ?? defaultAboutPageContent.whatWeDo;
+  const markets = source.markets ?? defaultAboutPageContent.markets;
+  const whyUs = source.whyUs ?? defaultAboutPageContent.whyUs;
+  const awards = source.awards ?? defaultAboutPageContent.awards;
+  const cta = source.cta ?? defaultAboutPageContent.cta;
+  const seo = source.seo ?? defaultAboutPageContent.seo;
+
+  return {
+    hero: {
+      kicker: hero.kicker || defaultAboutPageContent.hero.kicker,
+      headline: hero.headline || defaultAboutPageContent.hero.headline,
+      body: hero.body || defaultAboutPageContent.hero.body,
+      imageUrl: hero.imageUrl || defaultAboutPageContent.hero.imageUrl,
+      primaryCtaLabel: hero.primaryCtaLabel || defaultAboutPageContent.hero.primaryCtaLabel,
+      primaryCtaHref: hero.primaryCtaHref || defaultAboutPageContent.hero.primaryCtaHref,
+      secondaryCtaLabel: hero.secondaryCtaLabel || defaultAboutPageContent.hero.secondaryCtaLabel,
+      secondaryCtaHref: hero.secondaryCtaHref || defaultAboutPageContent.hero.secondaryCtaHref,
+      stats: (Array.isArray(hero.stats) ? hero.stats : defaultAboutPageContent.hero.stats).map((item, index) => {
+        const fallback = defaultAboutPageContent.hero.stats[index] ?? defaultAboutPageContent.hero.stats[0];
+        const value = item as Partial<AboutStatCard>;
+        return {
+          value: value.value || fallback.value,
+          label: value.label || fallback.label,
+          enabled: value.enabled ?? true
+        };
+      })
+    },
+    story: {
+      title: story.title || defaultAboutPageContent.story.title,
+      body: story.body || defaultAboutPageContent.story.body,
+      secondaryBody: story.secondaryBody || defaultAboutPageContent.story.secondaryBody,
+      imageUrl: story.imageUrl || defaultAboutPageContent.story.imageUrl,
+      imageAlt: story.imageAlt || story.title || defaultAboutPageContent.story.imageAlt
+    },
+    whatWeDo: {
+      title: whatWeDo.title || defaultAboutPageContent.whatWeDo.title,
+      subtitle: whatWeDo.subtitle || defaultAboutPageContent.whatWeDo.subtitle,
+      cards: normalizeAboutCards<AboutBentoCard>(whatWeDo.cards, defaultAboutPageContent.whatWeDo.cards, (value, fallback, index) => ({
+        icon: value.icon || fallback.icon,
+        title: value.title || fallback.title,
+        description: value.description || fallback.description,
+        displayOrder: numericValue(value.displayOrder, index + 1),
+        enabled: value.enabled ?? true
+      }))
+    },
+    markets: {
+      title: markets.title || defaultAboutPageContent.markets.title,
+      subtitle: markets.subtitle || defaultAboutPageContent.markets.subtitle,
+      cards: normalizeAboutCards<AboutMarketCard>(markets.cards, defaultAboutPageContent.markets.cards, (value, fallback, index) => ({
+        icon: value.icon || fallback.icon,
+        region: value.region || fallback.region,
+        description: value.description || fallback.description,
+        displayOrder: numericValue(value.displayOrder, index + 1),
+        enabled: value.enabled ?? true
+      }))
+    },
+    whyUs: {
+      title: whyUs.title || defaultAboutPageContent.whyUs.title,
+      subtitle: whyUs.subtitle || defaultAboutPageContent.whyUs.subtitle,
+      points: normalizeAboutCards<AboutWhyPoint>(whyUs.points, defaultAboutPageContent.whyUs.points, (value, fallback, index) => ({
+        icon: value.icon || fallback.icon,
+        title: value.title || fallback.title,
+        description: value.description || fallback.description,
+        displayOrder: numericValue(value.displayOrder, index + 1),
+        enabled: value.enabled ?? true
+      }))
+    },
+    awards: {
+      title: awards.title || defaultAboutPageContent.awards.title,
+      subtitle: awards.subtitle || defaultAboutPageContent.awards.subtitle,
+      logos: normalizeAboutCards<AboutLogoItem>(awards.logos, defaultAboutPageContent.awards.logos, (value, fallback, index) => ({
+        name: value.name || fallback.name,
+        imageUrl: value.imageUrl || fallback.imageUrl,
+        href: value.href ?? fallback.href,
+        enabled: value.enabled ?? true,
+        displayOrder: numericValue(value.displayOrder, index + 1)
+      }))
+    },
+    cta: {
+      headline: cta.headline || defaultAboutPageContent.cta.headline,
+      body: cta.body || defaultAboutPageContent.cta.body,
+      primaryCtaLabel: cta.primaryCtaLabel || defaultAboutPageContent.cta.primaryCtaLabel,
+      primaryCtaHref: cta.primaryCtaHref || defaultAboutPageContent.cta.primaryCtaHref,
+      secondaryCtaLabel: cta.secondaryCtaLabel || defaultAboutPageContent.cta.secondaryCtaLabel,
+      secondaryCtaHref: cta.secondaryCtaHref || defaultAboutPageContent.cta.secondaryCtaHref,
+      tertiaryCtaLabel: cta.tertiaryCtaLabel || defaultAboutPageContent.cta.tertiaryCtaLabel,
+      tertiaryCtaHref: cta.tertiaryCtaHref || defaultAboutPageContent.cta.tertiaryCtaHref,
+      backgroundImageUrl: cta.backgroundImageUrl ?? defaultAboutPageContent.cta.backgroundImageUrl,
+      backgroundColor: cta.backgroundColor || defaultAboutPageContent.cta.backgroundColor
+    },
+    seo: {
+      title: seo.title || defaultAboutPageContent.seo.title,
+      description: seo.description || defaultAboutPageContent.seo.description,
+      ogImageUrl: seo.ogImageUrl || defaultAboutPageContent.seo.ogImageUrl,
+      canonicalUrl: seo.canonicalUrl || defaultAboutPageContent.seo.canonicalUrl
+    }
+  };
+}
+
 export async function getHomepageHeroContent(mode: "draft" | "published" = "published") {
   return getSiteSettingMode("homepage.hero", defaultHeroContent, mode);
 }
@@ -848,6 +1170,14 @@ export async function getAdminLoginContent(mode: "draft" | "published" = "publis
   return {
     ...entry,
     content: normalizeAdminLoginContent(entry.content)
+  };
+}
+
+export async function getAboutPageContent(mode: "draft" | "published" = "published") {
+  const entry = await getSiteSettingMode("site.about", defaultAboutPageContent, mode);
+  return {
+    ...entry,
+    content: normalizeAboutPageContent(entry.content)
   };
 }
 

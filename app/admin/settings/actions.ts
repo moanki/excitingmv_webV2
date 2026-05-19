@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import {
+  defaultAboutPageContent,
   defaultAdminLoginContent,
   defaultHomepageAwardsContent,
   defaultHomepageCeoContent,
@@ -21,6 +22,12 @@ import {
   defaultWhatsAppSettings,
   publishSiteSetting,
   saveSiteSettingDraft,
+  type AboutBentoCard,
+  type AboutLogoItem,
+  type AboutMarketCard,
+  type AboutPageContent,
+  type AboutStatCard,
+  type AboutWhyPoint,
   type AdminLoginContent,
   type FooterBadge,
   type FooterContent,
@@ -47,6 +54,7 @@ type ActionState = { message?: string; error?: string } | undefined;
 function revalidateSiteContent() {
   revalidatePath("/");
   revalidatePath("/", "layout");
+  revalidatePath("/about");
   revalidatePath("/admin/login");
   revalidatePath("/travel-guide");
   revalidatePath("/travel-guide/[slug]", "page");
@@ -138,6 +146,162 @@ export async function saveAdminLoginDraftAction(_: ActionState, formData: FormDa
 
 export async function publishAdminLoginAction() {
   await publishSiteSetting("admin.login", defaultAdminLoginContent);
+  revalidateSiteContent();
+}
+
+async function parseAboutStats(formData: FormData): Promise<AboutStatCard[]> {
+  return indexesFromCount(formData, "about_stat_count", 4)
+    .map((index) => ({
+      value: stringValue(formData, `about_stat_${index}_value`),
+      label: stringValue(formData, `about_stat_${index}_label`),
+      enabled: booleanValue(formData, `about_stat_${index}_enabled`)
+    }))
+    .filter((item) => item.value || item.label);
+}
+
+function parseAboutBentoCards(formData: FormData): AboutBentoCard[] {
+  return indexesFromCount(formData, "about_what_count", 4)
+    .map((index) => ({
+      icon: stringValue(formData, `about_what_${index}_icon`),
+      title: stringValue(formData, `about_what_${index}_title`),
+      description: stringValue(formData, `about_what_${index}_description`),
+      displayOrder: Number(stringValue(formData, `about_what_${index}_displayOrder`)) || index + 1,
+      enabled: booleanValue(formData, `about_what_${index}_enabled`)
+    }))
+    .filter((item) => item.title || item.description);
+}
+
+function parseAboutMarkets(formData: FormData): AboutMarketCard[] {
+  return indexesFromCount(formData, "about_market_count", 5)
+    .map((index) => ({
+      icon: stringValue(formData, `about_market_${index}_icon`),
+      region: stringValue(formData, `about_market_${index}_region`),
+      description: stringValue(formData, `about_market_${index}_description`),
+      displayOrder: Number(stringValue(formData, `about_market_${index}_displayOrder`)) || index + 1,
+      enabled: booleanValue(formData, `about_market_${index}_enabled`)
+    }))
+    .filter((item) => item.region || item.description);
+}
+
+function parseAboutWhyPoints(formData: FormData): AboutWhyPoint[] {
+  return indexesFromCount(formData, "about_why_count", 4)
+    .map((index) => ({
+      icon: stringValue(formData, `about_why_${index}_icon`),
+      title: stringValue(formData, `about_why_${index}_title`),
+      description: stringValue(formData, `about_why_${index}_description`),
+      displayOrder: Number(stringValue(formData, `about_why_${index}_displayOrder`)) || index + 1,
+      enabled: booleanValue(formData, `about_why_${index}_enabled`)
+    }))
+    .filter((item) => item.title || item.description);
+}
+
+async function parseAboutLogos(formData: FormData): Promise<AboutLogoItem[]> {
+  return Promise.all(
+    indexesFromCount(formData, "about_logo_count", 4).map(async (index) => {
+      const imageFile = uploadedFile(formData, `about_logo_${index}_imageFile`);
+
+      return {
+        name: stringValue(formData, `about_logo_${index}_name`),
+        imageUrl: imageFile
+          ? await uploadSiteAsset(imageFile, "about/logos", "logo")
+          : stringValue(formData, `about_logo_${index}_imageUrl`),
+        href: stringValue(formData, `about_logo_${index}_href`),
+        enabled: booleanValue(formData, `about_logo_${index}_enabled`),
+        displayOrder: Number(stringValue(formData, `about_logo_${index}_displayOrder`)) || index + 1
+      };
+    })
+  ).then((items) => items.filter((item) => item.name || item.imageUrl));
+}
+
+export async function saveAboutDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const heroFile = uploadedFile(formData, "aboutHeroImageFile");
+    const storyFile = uploadedFile(formData, "aboutStoryImageFile");
+    const ctaFile = uploadedFile(formData, "aboutCtaImageFile");
+    const ogFile = uploadedFile(formData, "aboutOgImageFile");
+
+    const about: AboutPageContent = {
+      hero: {
+        kicker: stringValue(formData, "heroKicker"),
+        headline: stringValue(formData, "heroHeadline"),
+        body: stringValue(formData, "heroBody"),
+        imageUrl: heroFile
+          ? await uploadSiteAsset(heroFile, "about/hero", "hero")
+          : stringValue(formData, "heroImageUrl"),
+        primaryCtaLabel: stringValue(formData, "heroPrimaryCtaLabel"),
+        primaryCtaHref: stringValue(formData, "heroPrimaryCtaHref"),
+        secondaryCtaLabel: stringValue(formData, "heroSecondaryCtaLabel"),
+        secondaryCtaHref: stringValue(formData, "heroSecondaryCtaHref"),
+        stats: await parseAboutStats(formData)
+      },
+      story: {
+        title: stringValue(formData, "storyTitle"),
+        body: stringValue(formData, "storyBody"),
+        secondaryBody: stringValue(formData, "storySecondaryBody"),
+        imageUrl: storyFile
+          ? await uploadSiteAsset(storyFile, "about/story", "card")
+          : stringValue(formData, "storyImageUrl"),
+        imageAlt: stringValue(formData, "storyImageAlt")
+      },
+      whatWeDo: {
+        title: stringValue(formData, "whatTitle"),
+        subtitle: stringValue(formData, "whatSubtitle"),
+        cards: parseAboutBentoCards(formData)
+      },
+      markets: {
+        title: stringValue(formData, "marketsTitle"),
+        subtitle: stringValue(formData, "marketsSubtitle"),
+        cards: parseAboutMarkets(formData)
+      },
+      whyUs: {
+        title: stringValue(formData, "whyTitle"),
+        subtitle: stringValue(formData, "whySubtitle"),
+        points: parseAboutWhyPoints(formData)
+      },
+      awards: {
+        title: stringValue(formData, "awardsTitle"),
+        subtitle: stringValue(formData, "awardsSubtitle"),
+        logos: await parseAboutLogos(formData)
+      },
+      cta: {
+        headline: stringValue(formData, "ctaHeadline"),
+        body: stringValue(formData, "ctaBody"),
+        primaryCtaLabel: stringValue(formData, "ctaPrimaryLabel"),
+        primaryCtaHref: stringValue(formData, "ctaPrimaryHref"),
+        secondaryCtaLabel: stringValue(formData, "ctaSecondaryLabel"),
+        secondaryCtaHref: stringValue(formData, "ctaSecondaryHref"),
+        tertiaryCtaLabel: stringValue(formData, "ctaTertiaryLabel"),
+        tertiaryCtaHref: stringValue(formData, "ctaTertiaryHref"),
+        backgroundImageUrl: ctaFile
+          ? await uploadSiteAsset(ctaFile, "about/cta", "banner")
+          : stringValue(formData, "ctaBackgroundImageUrl"),
+        backgroundColor: stringValue(formData, "ctaBackgroundColor")
+      },
+      seo: {
+        title: stringValue(formData, "seoTitle"),
+        description: stringValue(formData, "seoDescription"),
+        ogImageUrl: ogFile
+          ? await uploadSiteAsset(ogFile, "about/seo", "banner")
+          : stringValue(formData, "seoOgImageUrl"),
+        canonicalUrl: stringValue(formData, "seoCanonicalUrl")
+      }
+    };
+
+    return finalizeSettingSave({
+      formData,
+      key: "site.about",
+      fallback: defaultAboutPageContent,
+      value: about,
+      draftMessage: "About Us draft saved.",
+      publishedMessage: "About Us page published."
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to save About Us page." };
+  }
+}
+
+export async function publishAboutAction() {
+  await publishSiteSetting("site.about", defaultAboutPageContent);
   revalidateSiteContent();
 }
 
