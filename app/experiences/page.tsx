@@ -39,10 +39,10 @@ export default async function ExperiencesPage() {
         <div className="lux-container public-lux-hero__grid">
           <div className="public-lux-hero__copy">
             <p className="lux-eyebrow">Experiences</p>
-            <h1>Use-case led Maldives journeys for trade conversations.</h1>
+            <h1>Designed Around You</h1>
             <p>
-              Match each client profile to the right island rhythm, resort product, transfer logic, and
-              destination experience with a more confident B2B lens.
+              Thoughtfully crafted Maldives experiences that help partners match each client to the right
+              island rhythm, resort product, and destination moment.
             </p>
             <Link href="/resorts" className="lux-button lux-button--gold">Explore Resorts</Link>
           </div>
@@ -60,10 +60,9 @@ export default async function ExperiencesPage() {
 
       <section className="public-lux-section public-lux-section--sand">
         <div className="lux-container">
-          <div className="lux-section-heading">
+          <div className="public-lux-section-title">
             <p className="lux-eyebrow">Client Intent</p>
-            <h2>Position the Maldives by experience, not only by property name.</h2>
-            <p>Concise experience pathways help advisors and operators frame resort recommendations around the way clients actually travel.</p>
+            <h2>Curated experience pathways</h2>
           </div>
           <div className="public-lux-bento">
             {experienceThemes.map((theme, index) => {

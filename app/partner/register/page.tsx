@@ -16,7 +16,7 @@ export default function PartnerRegisterPage() {
         <div className="lux-container partner-register__grid">
           <div className="partner-register__copy">
             <p className="lux-eyebrow">Partner Inquiry</p>
-            <h1>Build stronger Maldives sales conversations with a local DMC partner.</h1>
+            <h1>Travel Partnership</h1>
             <p>
               Send us an inquiry. Our team will get back within 24 hours with the right next step for
               your agency, tour operation, or travel design business.

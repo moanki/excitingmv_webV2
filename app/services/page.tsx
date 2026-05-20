@@ -30,18 +30,34 @@ export default async function ServicesPage() {
 
   return (
     <main className="public-lux-page">
-      <section className="public-lux-hero public-lux-hero--dark">
-        <div className="public-lux-hero__background">
-          <img src={optimizedImageUrl(heroImage, { width: 1800, height: 1000, quality: 80 })} alt="" width={1800} height={1000} fetchPriority="high" />
+      <section className="public-lux-hero public-lux-hero--split">
+        <div className="lux-container public-lux-hero__grid">
+          <div className="public-lux-hero__copy">
+            <p className="lux-eyebrow">Our Premium Services</p>
+            <h1>Every Detail, Perfectly Handled</h1>
+            <p>
+              From seamless arrivals to trade-ready resort support, our premium services make Maldives
+              planning feel effortless, exclusive, and commercially clear.
+            </p>
+            <Link href="/partner/register" className="lux-button lux-button--gold">Plan Your Journey</Link>
+          </div>
+          <div className="public-lux-hero__image">
+            <img src={optimizedImageUrl(heroImage, { width: 980, height: 760, quality: 80 })} alt="Maldives premium DMC service" width={980} height={760} fetchPriority="high" />
+          </div>
         </div>
-        <div className="lux-container public-lux-hero__overlay-copy">
-          <p className="lux-eyebrow">DMC Services</p>
-          <h1>Operational support, contracting, and premium sales enablement.</h1>
-          <p>
-            Exciting Maldives supports travel partners with destination knowledge, luxury resort access,
-            and on-ground coordination designed for commercially active B2B teams.
-          </p>
-          <Link href="/partner/register" className="lux-button lux-button--gold">Start a Partnership</Link>
+      </section>
+
+      <section className="public-lux-strip">
+        <div className="lux-container public-lux-icon-strip">
+          {enabledServices.slice(0, 6).map((service, index) => {
+            const Icon = getIcon(service.icon);
+            return (
+              <a href={`#service-${index + 1}`} className="public-lux-icon-strip__item" key={service.title}>
+                <Icon size={27} />
+                <span>{service.title}</span>
+              </a>
+            );
+          })}
         </div>
       </section>
 
@@ -62,7 +78,7 @@ export default async function ServicesPage() {
             {enabledServices.map((service, index) => {
               const Icon = getIcon(service.icon);
               return (
-                <article className="services-index__row" key={service.title}>
+                <article className="services-index__row" id={`service-${index + 1}`} key={service.title}>
                   <span>{String(index + 1).padStart(2, "0")}</span>
                   <Icon size={20} />
                   <div>

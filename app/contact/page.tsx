@@ -12,7 +12,7 @@ export default async function ContactPage() {
         <div className="lux-container contact-lux__grid">
           <div className="contact-lux__copy">
             <p className="lux-eyebrow">Contact</p>
-            <h1>Talk to the Exciting Maldives team.</h1>
+            <h1>Contact Us</h1>
             <p>
               For resort partnerships, destination management support, partner access, or curated Maldives
               travel opportunities, send us a message and our team will respond with context.

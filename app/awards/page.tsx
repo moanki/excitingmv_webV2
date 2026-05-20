@@ -22,10 +22,6 @@ export default async function AwardsPage() {
         <div className="lux-container public-lux-hero__copy public-lux-hero__copy--center">
           <p className="lux-eyebrow">Awards & Memberships</p>
           <h1>{homepageAwards.title || "Recognized by the Maldives Travel Industry"}</h1>
-          <p>
-            Industry recognition, memberships, and trusted proof points that help global travel
-            professionals book with confidence.
-          </p>
         </div>
       </section>
 

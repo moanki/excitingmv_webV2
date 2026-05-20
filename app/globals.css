@@ -6574,14 +6574,12 @@ select {
 
 .public-lux-hero {
   position: relative;
-  padding: clamp(8rem, 14vw, 12rem) 0 clamp(4rem, 7vw, 7rem);
+  padding: clamp(7.2rem, 11vw, 9.5rem) 0 clamp(2.5rem, 5vw, 4.5rem);
   background: #fff;
 }
 
 .public-lux-hero--split {
-  background:
-    radial-gradient(circle at 85% 18%, rgba(200, 161, 90, 0.12), transparent 28%),
-    linear-gradient(180deg, #fff, #f8f5f0);
+  background: #fff;
 }
 
 .public-lux-hero__grid,
@@ -6611,23 +6609,23 @@ select {
 .public-lux-hero__overlay-copy h1,
 .partner-register__copy h1,
 .contact-lux__copy h1 {
-  font-size: clamp(3rem, 6vw, 6.2rem);
+  font-size: clamp(2.35rem, 4.4vw, 4.35rem);
 }
 
 .public-lux-hero__copy p:not(.lux-eyebrow),
 .public-lux-hero__overlay-copy p,
 .partner-register__copy p,
 .contact-lux__copy p {
-  max-width: 660px;
+  max-width: 520px;
   color: rgba(19, 32, 43, 0.66);
-  font-size: clamp(1rem, 1.25vw, 1.18rem);
-  line-height: 1.75;
+  font-size: 0.98rem;
+  line-height: 1.7;
 }
 
 .public-lux-hero__image {
   overflow: hidden;
-  border-radius: 30px;
-  box-shadow: var(--lux-shadow);
+  border-radius: 24px;
+  box-shadow: none;
 }
 
 .public-lux-hero__image img {
@@ -6675,11 +6673,9 @@ select {
 }
 
 .public-lux-hero--compact {
-  padding-top: clamp(9rem, 15vw, 13rem);
+  padding-top: clamp(7rem, 10vw, 9rem);
   text-align: center;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(200, 161, 90, 0.16), transparent 28%),
-    linear-gradient(180deg, #fff, #f8f5f0);
+  background: #fff;
 }
 
 .public-lux-hero__copy--center {
@@ -6692,12 +6688,93 @@ select {
 }
 
 .public-lux-section {
-  padding: clamp(4.5rem, 8vw, 8rem) 0;
+  padding: clamp(3.2rem, 5.5vw, 5.6rem) 0;
   background: #fff;
 }
 
 .public-lux-section--sand {
-  background: #f8f5f0;
+  background: #fff;
+}
+
+.public-lux-strip {
+  position: relative;
+  z-index: 2;
+  margin-top: -1rem;
+  background: #fff;
+}
+
+.public-lux-icon-strip {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(19, 32, 43, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 16px 48px rgba(19, 32, 43, 0.07);
+}
+
+.public-lux-icon-strip__item {
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+  min-height: 96px;
+  padding: 1rem 0.85rem;
+  border-right: 1px solid rgba(19, 32, 43, 0.08);
+  color: var(--lux-ink);
+  text-align: center;
+}
+
+.public-lux-icon-strip__item:last-child {
+  border-right: 0;
+}
+
+.public-lux-icon-strip__item svg {
+  color: #0f6570;
+}
+
+.public-lux-icon-strip__item strong {
+  font-family: var(--font-serif), serif;
+  font-size: 1.2rem;
+}
+
+.public-lux-icon-strip__item span {
+  color: rgba(19, 32, 43, 0.72);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.public-lux-section-title {
+  max-width: 720px;
+  margin: 0 auto 2.2rem;
+  text-align: center;
+}
+
+.public-lux-section-title h2 {
+  margin: 0.45rem 0 0;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(2rem, 3.4vw, 3.2rem);
+  font-weight: 500;
+  line-height: 1.06;
+}
+
+.public-lux-page .about-story__copy h2,
+.public-lux-page .about-markets__intro h2 {
+  font-size: clamp(1.9rem, 3.2vw, 3.2rem);
+  font-weight: 500;
+}
+
+.public-lux-page .about-story__image {
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.public-lux-page .about-market-row strong {
+  font-size: 1.05rem;
+}
+
+.public-lux-page .about-market-row span {
+  font-size: 0.86rem;
 }
 
 .public-lux-heading-row {
@@ -6712,15 +6789,19 @@ select {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
-  margin-top: 2.5rem;
+  margin-top: 1.5rem;
+}
+
+.public-lux-bento--compact {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .public-lux-card {
-  min-height: 250px;
-  padding: clamp(1.2rem, 2.2vw, 2rem);
+  min-height: 205px;
+  padding: clamp(1rem, 1.7vw, 1.35rem);
   border: 1px solid rgba(19, 32, 43, 0.09);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.74);
+  border-radius: 16px;
+  background: #fff;
   transition: transform 0.35s ease, box-shadow 0.35s ease;
 }
 
@@ -6734,15 +6815,17 @@ select {
 }
 
 .public-lux-card h3 {
-  margin: 1.25rem 0 0;
+  margin: 1rem 0 0;
   font-family: var(--font-serif), serif;
-  font-size: clamp(1.25rem, 1.75vw, 1.8rem);
+  font-size: clamp(1.08rem, 1.35vw, 1.35rem);
   line-height: 1.1;
 }
 
 .public-lux-card p {
+  margin: 0.65rem 0 0;
   color: rgba(19, 32, 43, 0.64);
-  line-height: 1.68;
+  font-size: 0.88rem;
+  line-height: 1.62;
 }
 
 .public-lux-retreat-grid {
@@ -6753,9 +6836,10 @@ select {
 
 .public-lux-retreat-card {
   overflow: hidden;
-  border-radius: 22px;
+  border: 1px solid rgba(19, 32, 43, 0.08);
+  border-radius: 16px;
   background: #fff;
-  box-shadow: 0 18px 50px rgba(19, 32, 43, 0.07);
+  box-shadow: none;
 }
 
 .public-lux-retreat-card img {
@@ -6797,8 +6881,8 @@ select {
   position: sticky;
   top: 110px;
   overflow: hidden;
-  border-radius: 28px;
-  box-shadow: var(--lux-shadow);
+  border-radius: 18px;
+  box-shadow: none;
 }
 
 .services-index__image img {
@@ -6808,7 +6892,7 @@ select {
 }
 
 .services-index__list h2 {
-  font-size: clamp(2.4rem, 4.2vw, 4.7rem);
+  font-size: clamp(2rem, 3.2vw, 3.4rem);
 }
 
 .services-index__row {
@@ -6852,8 +6936,9 @@ select {
   display: grid;
   gap: 0.7rem;
   padding: 1.5rem;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid rgba(19, 32, 43, 0.08);
+  border-radius: 16px;
+  background: #fff;
 }
 
 .awards-proof svg {
@@ -6876,9 +6961,7 @@ select {
 
 .partner-register-page,
 .contact-lux {
-  background:
-    radial-gradient(circle at 80% 10%, rgba(200, 161, 90, 0.14), transparent 26%),
-    linear-gradient(180deg, #fff, #f8f5f0);
+  background: #fff;
 }
 
 .partner-register,
@@ -6916,17 +6999,85 @@ select {
 
 .partner-register__form,
 .contact-lux__form {
-  padding: clamp(1.2rem, 3vw, 2rem);
+  padding: clamp(1.1rem, 2.5vw, 1.6rem);
   border: 1px solid rgba(19, 32, 43, 0.08);
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 24px 70px rgba(19, 32, 43, 0.08);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: none;
 }
 
 .partner-register__form h2,
 .contact-lux__form h2 {
   margin-bottom: 1.4rem;
-  font-size: clamp(2rem, 3vw, 3.1rem);
+  font-size: clamp(1.6rem, 2.2vw, 2.2rem);
+}
+
+.public-lux-proof-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid rgba(19, 32, 43, 0.08);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.public-lux-proof-row article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.45rem 0.8rem;
+  padding: 1.25rem;
+  border-right: 1px solid rgba(19, 32, 43, 0.08);
+}
+
+.public-lux-proof-row article:last-child {
+  border-right: 0;
+}
+
+.public-lux-proof-row svg {
+  grid-row: span 2;
+  color: var(--lux-gold);
+}
+
+.public-lux-proof-row strong {
+  font-size: 0.86rem;
+}
+
+.public-lux-proof-row span {
+  color: rgba(19, 32, 43, 0.62);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.public-lux-banner {
+  padding: clamp(2rem, 4vw, 3rem);
+  border-radius: 20px;
+  background:
+    linear-gradient(90deg, rgba(7, 19, 31, 0.88), rgba(7, 19, 31, 0.4)),
+    url("https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1800&q=82") center / cover;
+  color: #fff;
+}
+
+.public-lux-banner h2 {
+  max-width: 620px;
+  margin: 0.5rem 0 0;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  font-weight: 500;
+  line-height: 1.08;
+}
+
+.public-lux-banner p:not(.lux-eyebrow) {
+  max-width: 560px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.65;
+}
+
+.public-lux-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1.4rem;
 }
 
 @media (max-width: 980px) {
@@ -6940,8 +7091,15 @@ select {
   .public-lux-bento,
   .public-lux-retreat-grid,
   .about-logo-grid,
-  .awards-proof {
+  .awards-proof,
+  .public-lux-icon-strip,
+  .public-lux-proof-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .public-lux-icon-strip__item:nth-child(2n),
+  .public-lux-proof-row article:nth-child(2n) {
+    border-right: 0;
   }
 
   .services-index__image {
@@ -6976,8 +7134,16 @@ select {
   .public-lux-bento,
   .public-lux-retreat-grid,
   .about-logo-grid,
-  .awards-proof {
+  .awards-proof,
+  .public-lux-icon-strip,
+  .public-lux-proof-row {
     grid-template-columns: 1fr;
+  }
+
+  .public-lux-icon-strip__item,
+  .public-lux-proof-row article {
+    border-right: 0;
+    border-bottom: 1px solid rgba(19, 32, 43, 0.08);
   }
 
   .public-lux-card--wide {
