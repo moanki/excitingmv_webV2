@@ -6566,6 +6566,433 @@ select {
   color: var(--lux-navy);
 }
 
+.public-lux-page {
+  background: #fff;
+  color: var(--lux-ink);
+  overflow: hidden;
+}
+
+.public-lux-hero {
+  position: relative;
+  padding: clamp(8rem, 14vw, 12rem) 0 clamp(4rem, 7vw, 7rem);
+  background: #fff;
+}
+
+.public-lux-hero--split {
+  background:
+    radial-gradient(circle at 85% 18%, rgba(200, 161, 90, 0.12), transparent 28%),
+    linear-gradient(180deg, #fff, #f8f5f0);
+}
+
+.public-lux-hero__grid,
+.partner-register__grid,
+.contact-lux__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(360px, 0.82fr);
+  align-items: center;
+  gap: clamp(2rem, 6vw, 6rem);
+}
+
+.public-lux-hero__copy h1,
+.public-lux-hero__overlay-copy h1,
+.services-index__list h2,
+.partner-register__copy h1,
+.contact-lux__copy h1,
+.partner-register__form h2,
+.contact-lux__form h2 {
+  margin: 0.8rem 0 0;
+  font-family: var(--font-serif), serif;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.public-lux-hero__copy h1,
+.public-lux-hero__overlay-copy h1,
+.partner-register__copy h1,
+.contact-lux__copy h1 {
+  font-size: clamp(3rem, 6vw, 6.2rem);
+}
+
+.public-lux-hero__copy p:not(.lux-eyebrow),
+.public-lux-hero__overlay-copy p,
+.partner-register__copy p,
+.contact-lux__copy p {
+  max-width: 660px;
+  color: rgba(19, 32, 43, 0.66);
+  font-size: clamp(1rem, 1.25vw, 1.18rem);
+  line-height: 1.75;
+}
+
+.public-lux-hero__image {
+  overflow: hidden;
+  border-radius: 30px;
+  box-shadow: var(--lux-shadow);
+}
+
+.public-lux-hero__image img {
+  width: 100%;
+  aspect-ratio: 5 / 4;
+  object-fit: cover;
+}
+
+.public-lux-hero--dark {
+  min-height: 720px;
+  display: flex;
+  align-items: flex-end;
+  background: var(--lux-navy);
+  color: #fff;
+}
+
+.public-lux-hero__background {
+  position: absolute;
+  inset: 0;
+}
+
+.public-lux-hero__background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.public-lux-hero__background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 70% 25%, rgba(200, 161, 90, 0.2), transparent 28%),
+    linear-gradient(90deg, rgba(7, 19, 31, 0.9), rgba(7, 19, 31, 0.42)),
+    linear-gradient(180deg, rgba(7, 19, 31, 0.1), rgba(7, 19, 31, 0.86));
+}
+
+.public-lux-hero__overlay-copy {
+  position: relative;
+  max-width: 900px;
+}
+
+.public-lux-hero__overlay-copy p:not(.lux-eyebrow) {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.public-lux-hero--compact {
+  padding-top: clamp(9rem, 15vw, 13rem);
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(200, 161, 90, 0.16), transparent 28%),
+    linear-gradient(180deg, #fff, #f8f5f0);
+}
+
+.public-lux-hero__copy--center {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.public-lux-hero__copy--center p {
+  margin-inline: auto;
+}
+
+.public-lux-section {
+  padding: clamp(4.5rem, 8vw, 8rem) 0;
+  background: #fff;
+}
+
+.public-lux-section--sand {
+  background: #f8f5f0;
+}
+
+.public-lux-heading-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2.4rem;
+}
+
+.public-lux-bento {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+
+.public-lux-card {
+  min-height: 250px;
+  padding: clamp(1.2rem, 2.2vw, 2rem);
+  border: 1px solid rgba(19, 32, 43, 0.09);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.74);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.public-lux-card--wide {
+  grid-column: span 2;
+}
+
+.public-lux-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 48px rgba(19, 32, 43, 0.08);
+}
+
+.public-lux-card h3 {
+  margin: 1.25rem 0 0;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(1.25rem, 1.75vw, 1.8rem);
+  line-height: 1.1;
+}
+
+.public-lux-card p {
+  color: rgba(19, 32, 43, 0.64);
+  line-height: 1.68;
+}
+
+.public-lux-retreat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.public-lux-retreat-card {
+  overflow: hidden;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(19, 32, 43, 0.07);
+}
+
+.public-lux-retreat-card img {
+  width: 100%;
+  aspect-ratio: 5 / 3.4;
+  object-fit: cover;
+}
+
+.public-lux-retreat-card div {
+  padding: 1.1rem;
+}
+
+.public-lux-retreat-card span {
+  color: #9b742e;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.public-lux-retreat-card h3 {
+  margin: 0.45rem 0 0;
+  font-family: var(--font-serif), serif;
+  font-size: 1.25rem;
+}
+
+.public-lux-retreat-card p {
+  margin: 0.4rem 0 0;
+  color: rgba(19, 32, 43, 0.58);
+  font-size: 0.9rem;
+}
+
+.services-index {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.78fr) minmax(0, 1fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.services-index__image {
+  position: sticky;
+  top: 110px;
+  overflow: hidden;
+  border-radius: 28px;
+  box-shadow: var(--lux-shadow);
+}
+
+.services-index__image img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+
+.services-index__list h2 {
+  font-size: clamp(2.4rem, 4.2vw, 4.7rem);
+}
+
+.services-index__row {
+  display: grid;
+  grid-template-columns: 42px 32px minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.35rem 0;
+  border-bottom: 1px solid rgba(19, 32, 43, 0.1);
+}
+
+.services-index__row > span {
+  color: #9b742e;
+  font-family: var(--font-serif), serif;
+  font-size: 1.3rem;
+}
+
+.services-index__row svg {
+  color: var(--lux-gold);
+  margin-top: 0.2rem;
+}
+
+.services-index__row h3 {
+  margin: 0;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(1.2rem, 1.5vw, 1.55rem);
+}
+
+.services-index__row p {
+  margin: 0.45rem 0 0;
+  color: rgba(19, 32, 43, 0.62);
+  line-height: 1.65;
+}
+
+.awards-proof {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.awards-proof article {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1.5rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.awards-proof svg {
+  color: var(--lux-gold);
+}
+
+.awards-proof strong {
+  font-family: var(--font-serif), serif;
+  font-size: 1.35rem;
+}
+
+.awards-proof span {
+  color: rgba(19, 32, 43, 0.62);
+  line-height: 1.6;
+}
+
+.awards-logo-grid .about-logo-tile {
+  min-height: 150px;
+}
+
+.partner-register-page,
+.contact-lux {
+  background:
+    radial-gradient(circle at 80% 10%, rgba(200, 161, 90, 0.14), transparent 26%),
+    linear-gradient(180deg, #fff, #f8f5f0);
+}
+
+.partner-register,
+.contact-lux {
+  padding-top: clamp(8.5rem, 14vw, 12rem);
+}
+
+.partner-register__copy,
+.contact-lux__copy {
+  align-self: start;
+  padding-top: 2rem;
+}
+
+.partner-register__benefits,
+.contact-lux__details {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 2rem;
+}
+
+.partner-register__benefits span,
+.contact-lux__details a,
+.contact-lux__details span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: rgba(19, 32, 43, 0.72);
+}
+
+.partner-register__benefits svg,
+.contact-lux__details svg {
+  color: var(--lux-gold);
+  flex: 0 0 auto;
+}
+
+.partner-register__form,
+.contact-lux__form {
+  padding: clamp(1.2rem, 3vw, 2rem);
+  border: 1px solid rgba(19, 32, 43, 0.08);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 24px 70px rgba(19, 32, 43, 0.08);
+}
+
+.partner-register__form h2,
+.contact-lux__form h2 {
+  margin-bottom: 1.4rem;
+  font-size: clamp(2rem, 3vw, 3.1rem);
+}
+
+@media (max-width: 980px) {
+  .public-lux-hero__grid,
+  .partner-register__grid,
+  .contact-lux__grid,
+  .services-index {
+    grid-template-columns: 1fr;
+  }
+
+  .public-lux-bento,
+  .public-lux-retreat-grid,
+  .about-logo-grid,
+  .awards-proof {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .services-index__image {
+    position: relative;
+    top: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .public-lux-hero,
+  .partner-register,
+  .contact-lux {
+    padding-top: 7rem;
+  }
+
+  .public-lux-hero--dark {
+    min-height: 560px;
+  }
+
+  .public-lux-hero__copy h1,
+  .public-lux-hero__overlay-copy h1,
+  .partner-register__copy h1,
+  .contact-lux__copy h1 {
+    font-size: clamp(2.2rem, 11vw, 3.2rem);
+  }
+
+  .public-lux-heading-row {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .public-lux-bento,
+  .public-lux-retreat-grid,
+  .about-logo-grid,
+  .awards-proof {
+    grid-template-columns: 1fr;
+  }
+
+  .public-lux-card--wide {
+    grid-column: auto;
+  }
+
+  .services-index__row {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .services-index__row svg {
+    display: none;
+  }
+}
+
 @media (max-width: 980px) {
   .about-hero__inner,
   .about-story,
