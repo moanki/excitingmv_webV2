@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent } from "react";
 import { FileText, Image as ImageIcon, Library, Upload, Video } from "lucide-react";
 
+import { uploadAdminMediaFile } from "@/lib/admin-media-client-upload";
 import { optimizedImageUrl } from "@/lib/image-urls";
 
 export type MediaLibraryItem = {
@@ -143,30 +144,12 @@ export function MediaField({
     clearNativeFileInput();
 
     try {
-      const formData = new FormData();
-      formData.set("mode", "upload-media");
-      formData.set("folder", "media-library");
-      formData.set("mediaFile", file);
-
-      const response = await fetch("/api/admin/media", {
-        method: "POST",
-        body: formData
+      const result = await uploadAdminMediaFile(file, {
+        folder: "media-library",
+        onStatus: (_, message) => setUploadState({ pending: true, message })
       });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            ok?: boolean;
-            error?: string;
-            data?: {
-              publicUrl: string;
-            };
-          }
-        | null;
 
-      if (!response.ok || !payload?.ok || !payload.data) {
-        throw new Error(payload?.error || "Could not upload the selected media.");
-      }
-
-      updateSelectedUrl(payload.data.publicUrl);
+      updateSelectedUrl(result.publicUrl);
       setUploadState({ pending: false, message: `${file.name} uploaded and ready to save.` });
     } catch (error) {
       setUploadState({

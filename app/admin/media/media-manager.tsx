@@ -7,46 +7,13 @@ import { FileText, Image as ImageIcon, Search, Trash2, Upload, Video } from "luc
 
 import { deleteMediaLibraryAssetAction } from "@/app/admin/media/actions";
 import type { MediaLibraryItem } from "@/components/media-field";
+import {
+  formatUploadBytes,
+  isRasterAdminImage,
+  uploadAdminMediaFile,
+  validateAdminMediaFile
+} from "@/lib/admin-media-client-upload";
 import { optimizedImageUrl } from "@/lib/image-urls";
-
-const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
-const ALLOWED_UPLOAD_TYPES = new Set([
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/svg+xml",
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/vnd.ms-powerpoint",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  "text/plain",
-  "text/csv",
-  "video/mp4",
-  "video/webm",
-  "video/quicktime"
-]);
-const ALLOWED_UPLOAD_EXTENSIONS = new Set([
-  "png",
-  "jpg",
-  "jpeg",
-  "webp",
-  "svg",
-  "pdf",
-  "doc",
-  "docx",
-  "xls",
-  "xlsx",
-  "ppt",
-  "pptx",
-  "txt",
-  "csv",
-  "mp4",
-  "webm",
-  "mov"
-]);
 
 function StatusMessage({ message, error }: { message?: string; error?: string }) {
   if (error) {
@@ -73,32 +40,7 @@ function typeLabel(type: MediaLibraryItem["type"]) {
 }
 
 function formatBytes(bytes: number) {
-  if (!bytes) return "0 B";
-  const units = ["B", "KB", "MB", "GB"];
-  const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
-  return `${(bytes / 1024 ** index).toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
-}
-
-function fileExtension(file: File) {
-  return file.name.split(".").pop()?.toLowerCase() ?? "";
-}
-
-function validateUploadFile(file: File) {
-  const extension = fileExtension(file);
-
-  if (file.size > MAX_UPLOAD_SIZE) {
-    return "File is too large. Keep uploads under 50 MB.";
-  }
-
-  if (["heic", "heif"].includes(extension) || ["image/heic", "image/heif"].includes(file.type)) {
-    return "HEIC images are not supported yet. Please convert to JPG or PNG.";
-  }
-
-  if (!ALLOWED_UPLOAD_TYPES.has(file.type || "application/octet-stream") && !ALLOWED_UPLOAD_EXTENSIONS.has(extension)) {
-    return "Unsupported file type. Upload JPG, PNG, WebP, SVG, PDF, document, video, or CSV files.";
-  }
-
-  return "";
+  return formatUploadBytes(bytes);
 }
 
 export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
@@ -143,42 +85,23 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
       return;
     }
 
-    const validationError = validateUploadFile(selectedFile);
+    const validationError = validateAdminMediaFile(selectedFile);
     if (validationError) {
       setUploadState({ pending: false, error: validationError });
       return;
     }
 
-    const isOptimizable = ["image/png", "image/jpeg", "image/webp"].includes(selectedFile.type) || ["png", "jpg", "jpeg", "webp"].includes(fileExtension(selectedFile));
+    const isOptimizable = isRasterAdminImage(selectedFile);
     setUploadState({
       pending: true,
       message: isOptimizable ? "Uploading and optimizing image..." : "Uploading media..."
     });
 
     try {
-      const formData = new FormData();
-      formData.set("mode", "upload-media");
-      formData.set("folder", "media-library");
-      formData.set("mediaFile", selectedFile);
-
-      const response = await fetch("/api/admin/media", {
-        method: "POST",
-        body: formData
+      const result = await uploadAdminMediaFile(selectedFile, {
+        folder: "media-library",
+        onStatus: (_, message) => setUploadState({ pending: true, message })
       });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            ok?: boolean;
-            error?: string;
-            data?: {
-              publicUrl: string;
-              compressed?: boolean;
-            };
-          }
-        | null;
-
-      if (!response.ok || !payload?.ok || !payload.data) {
-        throw new Error(payload?.error || "Could not upload the selected media.");
-      }
 
       setSelectedFile(null);
       if (fileInputRef.current) {
@@ -186,7 +109,7 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
       }
       setUploadState({
         pending: false,
-        message: payload.data.compressed
+        message: result.compressed
           ? `${selectedFile.name} uploaded and optimized.`
           : `${selectedFile.name} uploaded.`
       });
@@ -263,10 +186,10 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
                   setUploadState({ pending: false });
                   return;
                 }
-                const validationError = validateUploadFile(file);
+                const validationError = validateAdminMediaFile(file);
                 setUploadState({
                   pending: false,
-                  message: validationError ? undefined : `${file.name} selected (${formatBytes(file.size)}, ${file.type || "unknown type"}).`,
+                  message: validationError ? undefined : `${file.name} selected (${formatUploadBytes(file.size)}, ${file.type || "unknown type"}).`,
                   error: validationError || undefined
                 });
               }}
