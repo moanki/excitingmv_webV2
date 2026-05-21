@@ -928,6 +928,7 @@ export function NavbarSettingsForm({
   mediaLibrary: MediaLibraryItem[];
 }) {
   const [state, action, pending] = useActionState(saveNavbarDraftAction, undefined);
+  const [publishState, publishAction, publishPending] = useActionState(publishNavbarAction, undefined);
 
   return (
     <div className="panel">
@@ -936,9 +937,9 @@ export function NavbarSettingsForm({
           <p className="eyebrow">Navbar & Logos</p>
           <h2>Publish the global navigation and brand treatment from admin.</h2>
         </div>
-        <form action={publishNavbarAction}>
-          <button className="button-muted" type="submit">
-            Publish Navbar
+        <form action={publishAction}>
+          <button className="button-muted" type="submit" disabled={publishPending}>
+            {publishPending ? "Publishing..." : "Publish Navbar"}
           </button>
         </form>
       </div>
@@ -1027,7 +1028,7 @@ export function NavbarSettingsForm({
             {pending ? "Publishing..." : "Save & Publish Navbar"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <StatusMessage message={state?.message || publishState?.message} error={state?.error || publishState?.error} />
       </form>
     </div>
   );

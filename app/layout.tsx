@@ -3,7 +3,6 @@ import { headers } from "next/headers";
 import { Inter, Playfair_Display } from "next/font/google";
 
 import "@/app/globals.css";
-import { LiveChatWidget } from "@/components/live-chat-widget";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNavbar } from "@/components/site-navbar";
 import { getFooterContent, getNavbarContent, getWhatsAppSettings } from "@/lib/site-content";
@@ -67,7 +66,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             </svg>
           </a>
         ) : null}
-        <LiveChatWidget />
+        <a href="/contact" className="support-float" aria-label="Contact support">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+            <path d="M12 19.5c4.142 0 7.5-3.134 7.5-7s-3.358-7-7.5-7-7.5 3.134-7.5 7c0 1.456.476 2.808 1.291 3.929L4.5 20l3.906-1.006A7.867 7.867 0 0 0 12 19.5Z" />
+            <path d="M8.75 12h.01M12 12h.01M15.25 12h.01" strokeLinecap="round" />
+          </svg>
+        </a>
       </body>
     </html>
   );

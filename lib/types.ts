@@ -1,7 +1,6 @@
 export type PartnerStatus = "pending" | "approved" | "rejected" | "suspended";
 export type PublishStatus = "draft" | "published" | "archived";
 export type ResourceAudience = "all_partners" | "selected_partners";
-export type ChatStatus = "open" | "resolved";
 
 export type ResortPublishingMode =
   | "draft"
@@ -47,13 +46,6 @@ export type ResourceSummary = {
   kind: string;
   audience: ResourceAudience;
   status: PublishStatus;
-};
-
-export type ChatMessageSummary = {
-  id: string;
-  sender: string;
-  body: string;
-  status: ChatStatus;
 };
 
 export type ServiceResult<T> =

@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type { ComponentType } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -11,7 +10,6 @@ import {
   Gauge,
   Image,
   LayoutTemplate,
-  LifeBuoy,
   Mail,
   KeyRound,
   Settings2,
@@ -62,12 +60,6 @@ const navGroups: NavGroup[] = [
         label: "Newsletter",
         description: "Leads and exports",
         icon: Mail
-      },
-      {
-        href: "/admin/chat",
-        label: "Chat Inbox",
-        description: "Unread conversations and replies",
-        icon: LifeBuoy
       }
     ]
   },
@@ -206,10 +198,6 @@ const pageMeta: Record<string, { title: string; description: string }> = {
     title: "Newsletter Subscriptions",
     description: ""
   },
-  "/admin/chat": {
-    title: "Chat Inbox",
-    description: ""
-  },
   "/admin/imports": {
     title: "AI Import Center",
     description: ""
@@ -280,50 +268,13 @@ function getCurrentPageMeta(pathname: string) {
 
 export function AdminShell({
   children,
-  logoUrl,
-  initialUnreadChatCount = 0
+  logoUrl
 }: {
   children: React.ReactNode;
   logoUrl?: string;
-  initialUnreadChatCount?: number;
 }) {
   const pathname = usePathname();
   const current = getCurrentPageMeta(pathname);
-  const [unreadChatCount, setUnreadChatCount] = useState(initialUnreadChatCount);
-  const [chatToast, setChatToast] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    let latestMessageId = "";
-
-    async function refreshUnreadCount() {
-      const response = await fetch("/api/admin/chat/unread-count", { cache: "no-store" });
-      const payload = (await response.json().catch(() => null)) as {
-        count?: number;
-        latestMessageId?: string | null;
-      } | null;
-
-      if (!cancelled && response.ok) {
-        const nextCount = Number(payload?.count ?? 0);
-        const nextLatest = payload?.latestMessageId ?? "";
-        setUnreadChatCount((previous) => {
-          if (nextCount > previous && nextLatest && nextLatest !== latestMessageId) {
-            setChatToast(true);
-            window.setTimeout(() => setChatToast(false), 5000);
-          }
-          return nextCount;
-        });
-        latestMessageId = nextLatest;
-      }
-    }
-
-    void refreshUnreadCount();
-    const timer = window.setInterval(refreshUnreadCount, 5000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, []);
 
   if (pathname.startsWith("/admin/login")) {
     return <>{children}</>;
@@ -357,11 +308,7 @@ export function AdminShell({
                         <Icon className="admin-icon" />
                       </span>
                       <span className="admin-nav-copy">
-                        <strong>
-                          {item.href === "/admin/chat" && unreadChatCount > 0
-                            ? `${item.label} (${unreadChatCount})`
-                            : item.label}
-                        </strong>
+                        <strong>{item.label}</strong>
                         <small>{item.description}</small>
                       </span>
                     </Link>
@@ -390,7 +337,6 @@ export function AdminShell({
           <div className="admin-topbar-actions">
             <button type="button" className="admin-icon-button" aria-label="Notifications">
               <Bell className="admin-icon" />
-              {unreadChatCount > 0 ? <span className="admin-notification-count">{unreadChatCount}</span> : null}
             </button>
             <div className="admin-user-chip">
               <span>SA</span>
@@ -401,12 +347,6 @@ export function AdminShell({
             </div>
           </div>
         </header>
-        {chatToast ? (
-          <Link href="/admin/chat" className="admin-chat-toast" onClick={() => setChatToast(false)}>
-            You have a new message
-          </Link>
-        ) : null}
-
         <main className="admin-canvas">{children}</main>
       </div>
     </div>

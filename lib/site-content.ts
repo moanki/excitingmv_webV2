@@ -956,6 +956,7 @@ function normalizeMarketSettings(settings: unknown): MarketSettings {
 function normalizeNavbarContent(settings: unknown): NavbarContent {
   const source = (settings ?? defaultNavbarContent) as Partial<NavbarContent>;
   const sourceItems = Array.isArray(source.navItems) ? source.navItems : [];
+  const navItems = sourceItems.length ? sourceItems : defaultNavbarContent.navItems;
 
   return {
     brandKicker: source.brandKicker ?? defaultNavbarContent.brandKicker,
@@ -963,20 +964,14 @@ function normalizeNavbarContent(settings: unknown): NavbarContent {
     primaryLogoUrl: source.primaryLogoUrl ?? defaultNavbarContent.primaryLogoUrl,
     whiteLogoUrl: source.whiteLogoUrl ?? defaultNavbarContent.whiteLogoUrl,
     blackLogoUrl: source.blackLogoUrl ?? defaultNavbarContent.blackLogoUrl,
-    navItems: defaultNavbarContent.navItems.map((fallback) => {
-      const match = sourceItems.find(
-        (item) =>
-          item.label === fallback.label ||
-          (fallback.label === "Resort" && item.label === "Resorts") ||
-          (fallback.label === "Liveaboard" && (item.label === "Live Boards" || item.label === "Liveaboards")) ||
-          (fallback.label === "Info" && (item.label === "Display All" || item.href === "/travel-guide"))
-      );
+    navItems: navItems.map((item, index) => {
+      const fallback = defaultNavbarContent.navItems[index] ?? defaultNavbarContent.navItems[0];
 
       return {
-        label: fallback.label,
-        href: match?.href || fallback.href,
-        enabled: match?.enabled ?? fallback.enabled,
-        external: match?.external ?? fallback.external
+        label: item.label ?? fallback.label,
+        href: item.href ?? fallback.href,
+        enabled: item.enabled ?? fallback.enabled,
+        external: item.external ?? fallback.external
       };
     }),
     partnerLoginHref: source.partnerLoginHref ?? source.ctaHref ?? defaultNavbarContent.partnerLoginHref,

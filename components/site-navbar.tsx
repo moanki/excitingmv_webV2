@@ -32,20 +32,13 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     return () => window.removeEventListener("open-partner-modal", onOpenPartnerModal);
   }, []);
 
-  const configuredItems = navbar.navItems.filter((item) => item.enabled && item.label && item.href);
-  const navItems = [
-    { label: "Resort", href: configuredItems.find((item) => item.label === "Resort" || item.label === "Resorts")?.href || "/resorts", external: false },
-    { label: "Hotels", href: configuredItems.find((item) => item.label === "Hotels")?.href || "/hotels", external: false },
-    { label: "Liveaboard", href: configuredItems.find((item) => item.label === "Liveaboard" || item.label === "Live Boards")?.href || "/liveaboards", external: false },
-    { label: "Map", href: configuredItems.find((item) => item.label === "Map")?.href || "/#global-markets", external: false },
-    { label: "Info", href: configuredItems.find((item) => item.label === "Info" || item.href === "/travel-guide")?.href || "/travel-guide", external: false }
-  ];
+  const navItems = navbar.navItems.filter((item) => item.enabled && item.label && item.href);
   const partnerLoginHref = navbar.partnerLoginHref || navbar.ctaHref || "/partner/login";
   const mobileItems = [
     { label: "Home", href: "/", Icon: Home },
     { label: "Destinations", href: "/resorts", Icon: MapPin },
     { label: "Info", href: "/travel-guide", Icon: BookOpen },
-    { label: "Contact Us", href: "/#newsletter", Icon: MessageCircle },
+    { label: "Contact Us", href: "/contact", Icon: MessageCircle },
     { label: "Partner Login", href: partnerLoginHref, Icon: CircleUserRound }
   ];
   const isHomepage = pathname === "/";

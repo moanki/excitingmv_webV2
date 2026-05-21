@@ -1,9 +1,4 @@
-import type {
-  ChatMessageSummary,
-  PartnerSummary,
-  ResourceSummary,
-  ResortSummary
-} from "@/lib/types";
+import type { PartnerSummary, ResourceSummary, ResortSummary } from "@/lib/types";
 
 export const homepageHighlights = [
   {
@@ -13,10 +8,10 @@ export const homepageHighlights = [
       "Approved partners access protected resort files, rates, and trade resources from one secure portal."
   },
   {
-    eyebrow: "Live Support",
-    title: "Realtime chat for sales and contracting questions.",
+    eyebrow: "Partner Support",
+    title: "Clear contact pathways for sales and contracting questions.",
     description:
-      "Supabase Realtime powers direct communication between partners and the internal sales team."
+      "Dedicated inquiry and contact flows route partner questions to the internal sales team."
   },
     {
       eyebrow: "Admin AI",
@@ -95,17 +90,3 @@ export const samplePartners: PartnerSummary[] = [
   }
 ];
 
-export const sampleMessages: ChatMessageSummary[] = [
-  {
-    id: "chat-1",
-    sender: "Aurora Travel House",
-    body: "Can you share the current seaplane supplement for Soneva Fushi?",
-    status: "open"
-  },
-  {
-    id: "chat-2",
-    sender: "Sales Team",
-    body: "We have updated the trade rate sheet and uploaded it to protected resources.",
-    status: "resolved"
-  }
-];

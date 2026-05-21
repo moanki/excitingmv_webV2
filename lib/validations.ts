@@ -39,18 +39,6 @@ export const aiImportRequestSchema = z.object({
     .transform((value) => (value === "liveaboard" ? "liveaboards" : value === "hotel" ? "hotels" : value))
 });
 
-export const chatStartSchema = z.object({
-  guestName: z.string().trim().min(2).max(120),
-  email: z.string().trim().email().max(180),
-  subject: z.string().trim().max(200).optional().default("Live chat"),
-  body: z.string().trim().min(1).max(4000)
-});
-
-export const chatReplySchema = z.object({
-  conversationId: z.string().uuid(),
-  body: z.string().trim().max(4000).optional().default("")
-});
-
 export const resortSeoGenerationInputSchema = z.object({
   name: z.string().min(2),
   location: z.string().optional().default(""),

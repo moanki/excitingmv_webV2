@@ -3,8 +3,7 @@ import Link from "next/link";
 const navItems = [
   { href: "/partner", label: "Dashboard" },
   { href: "/partner/resorts", label: "Resorts" },
-  { href: "/partner/resources", label: "Resources" },
-  { href: "/partner/chat", label: "Live Chat" }
+  { href: "/partner/resources", label: "Resources" }
 ];
 
 export default function PartnerLayout({ children }: Readonly<{ children: React.ReactNode }>) {

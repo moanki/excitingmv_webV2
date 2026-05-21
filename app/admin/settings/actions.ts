@@ -55,6 +55,14 @@ function revalidateSiteContent() {
   revalidatePath("/");
   revalidatePath("/", "layout");
   revalidatePath("/about");
+  revalidatePath("/awards");
+  revalidatePath("/contact");
+  revalidatePath("/experiences");
+  revalidatePath("/services");
+  revalidatePath("/partner/register");
+  revalidatePath("/resorts");
+  revalidatePath("/hotels");
+  revalidatePath("/liveaboards");
   revalidatePath("/admin/login");
   revalidatePath("/travel-guide");
   revalidatePath("/travel-guide/[slug]", "page");
@@ -738,9 +746,15 @@ export async function saveNavbarDraftAction(_: ActionState, formData: FormData):
   }
 }
 
-export async function publishNavbarAction() {
-  await publishSiteSetting("site.navbar", defaultNavbarContent);
-  revalidateSiteContent();
+export async function publishNavbarAction(_: ActionState, _formData: FormData): Promise<ActionState> {
+  try {
+    await publishSiteSetting("site.navbar", defaultNavbarContent);
+    revalidateSiteContent();
+    return { message: "Navbar published." };
+  } catch (error) {
+    console.error("Navbar publish failed", error);
+    return { error: error instanceof Error ? error.message : "Failed to publish navbar." };
+  }
 }
 
 export async function saveFooterDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {

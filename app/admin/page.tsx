@@ -1,5 +1,4 @@
 import { listAdminUsers } from "@/lib/services/admin-user-service";
-import { listChatConversations } from "@/lib/services/chat-service";
 import { listNewsletterSubmissions } from "@/lib/services/newsletter-service";
 import { listPartnerRequests } from "@/lib/services/partner-service";
 import { listResourcePermissions } from "@/lib/services/resource-permission-service";
@@ -7,11 +6,10 @@ import { listResources } from "@/lib/services/resource-service";
 import { getResortCounts } from "@/lib/services/resort-service";
 
 export default async function AdminDashboardPage() {
-  const [counts, partners, newsletters, chats, resources, users, permissions] = await Promise.all([
+  const [counts, partners, newsletters, resources, users, permissions] = await Promise.all([
     getResortCounts(),
     listPartnerRequests(),
     listNewsletterSubmissions(),
-    listChatConversations(),
     listResources(),
     listAdminUsers(),
     listResourcePermissions()
@@ -71,12 +69,6 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
           <div className="admin-activity-list">
-            <a href="/admin/chat" className="admin-activity-item">
-              <div>
-                <strong>Open conversations</strong>
-              </div>
-              <span>{chats.filter((conversation) => conversation.status === "open").length}</span>
-            </a>
             <a href="/admin/user-access" className="admin-activity-item">
               <div>
                 <strong>Admin users</strong>

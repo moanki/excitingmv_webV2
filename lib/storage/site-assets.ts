@@ -62,19 +62,19 @@ export class SiteAssetUploadError extends Error {
 }
 
 const IMAGE_PROFILES: Record<SiteAssetUsage, { width: number; height?: number; fit: "cover" | "inside"; quality: number }> = {
-  hero: { width: 2400, height: 1350, fit: "cover", quality: 84 },
-  banner: { width: 1800, height: 900, fit: "cover", quality: 84 },
-  portrait: { width: 1200, height: 1500, fit: "cover", quality: 84 },
-  card: { width: 1100, height: 825, fit: "cover", quality: 82 },
-  badge: { width: 520, height: 260, fit: "inside", quality: 90 },
-  logo: { width: 720, height: 260, fit: "inside", quality: 92 },
-  full: { width: 1800, fit: "inside", quality: 84 }
+  hero: { width: 2600, height: 1460, fit: "cover", quality: 92 },
+  banner: { width: 2200, height: 1238, fit: "cover", quality: 91 },
+  portrait: { width: 1400, height: 1750, fit: "cover", quality: 90 },
+  card: { width: 1400, height: 1050, fit: "cover", quality: 89 },
+  badge: { width: 720, height: 360, fit: "inside", quality: 96 },
+  logo: { width: 900, height: 320, fit: "inside", quality: 98 },
+  full: { width: 2400, fit: "inside", quality: 91 }
 };
 
 const VARIANT_PROFILES: Record<string, { width: number; height?: number; fit: "cover" | "inside"; quality: number }> = {
-  thumb: { width: 420, height: 280, fit: "cover", quality: 78 },
-  card: { width: 900, height: 675, fit: "cover", quality: 82 },
-  banner: { width: 1600, height: 900, fit: "cover", quality: 84 }
+  thumb: { width: 520, height: 360, fit: "cover", quality: 84 },
+  card: { width: 1100, height: 825, fit: "cover", quality: 88 },
+  banner: { width: 1800, height: 1012, fit: "cover", quality: 90 }
 };
 const SITE_ASSET_PREFIXES = [
   "homepage/hero",
@@ -89,7 +89,6 @@ const SITE_ASSET_PREFIXES = [
   "site/membership",
   "site/award",
   "admin/login",
-  "chat-attachments",
   "media-library",
   "imports",
   "resorts"
@@ -262,11 +261,30 @@ export async function uploadSiteAsset(file: File, folder: string, usage: SiteAss
   const supabase = await ensureBucket();
   const safeFolder = normalizeFolderPath(folder);
   const shouldOptimize = isOptimizableImage(file);
-  const extension = shouldOptimize ? "webp" : fileExtension(file);
   const assetId = `${Date.now()}-${crypto.randomUUID()}`;
+  let body: Buffer | File = file;
+  let contentType = file.type || undefined;
+  let extension = fileExtension(file);
+
+  if (shouldOptimize) {
+    try {
+      body = await imageBuffer(file, usage);
+      contentType = "image/webp";
+      extension = "webp";
+    } catch (error) {
+      console.warn("Image optimization failed; uploading original image instead", {
+        filename: file.name,
+        type: file.type,
+        size: file.size,
+        error
+      });
+      body = file;
+      contentType = file.type || undefined;
+      extension = fileExtension(file);
+    }
+  }
+
   const path = `${safeFolder}/${assetId}.${extension}`;
-  const body = shouldOptimize ? await imageBuffer(file, usage) : file;
-  const contentType = shouldOptimize ? "image/webp" : file.type || undefined;
 
   const uploaded = await supabase.storage.from(SITE_ASSET_BUCKET).upload(path, body, {
     cacheControl: "31536000",
@@ -283,7 +301,7 @@ export async function uploadSiteAsset(file: File, folder: string, usage: SiteAss
     });
   }
 
-  if (shouldOptimize) {
+  if (shouldOptimize && contentType === "image/webp") {
     const variantResults = await Promise.allSettled(
       Object.entries(VARIANT_PROFILES).map(async ([variant]) => {
         const variantPath = `${safeFolder}/${assetId}-${variant}.webp`;

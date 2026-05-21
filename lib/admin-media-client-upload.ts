@@ -115,8 +115,8 @@ async function loadImage(file: File) {
 
 async function compressRasterImage(file: File) {
   const image = await loadImage(file);
-  const maxWidth = 1800;
-  const maxHeight = 1800;
+  const maxWidth = 2400;
+  const maxHeight = 2400;
   const scale = Math.min(1, maxWidth / image.naturalWidth, maxHeight / image.naturalHeight);
   const width = Math.max(1, Math.round(image.naturalWidth * scale));
   const height = Math.max(1, Math.round(image.naturalHeight * scale));
@@ -131,14 +131,14 @@ async function compressRasterImage(file: File) {
 
   context.drawImage(image, 0, 0, width, height);
 
-  for (const quality of [0.82, 0.76, 0.68]) {
+  for (const quality of [0.92, 0.88, 0.84]) {
     const blob = await canvasToBlob(canvas, quality);
     if (blob && blob.size > 0 && (blob.size < file.size || blob.size <= API_UPLOAD_SOFT_LIMIT)) {
       return new File([blob], safeWebpName(file), { type: "image/webp", lastModified: Date.now() });
     }
   }
 
-  const fallbackBlob = await canvasToBlob(canvas, 0.62);
+  const fallbackBlob = await canvasToBlob(canvas, 0.8);
   if (!fallbackBlob || fallbackBlob.size === 0) {
     throw new Error("This image could not be optimized. Please try a standard JPG, PNG, or WebP image.");
   }
@@ -238,9 +238,20 @@ export async function uploadAdminMediaFile(
   let compressed = false;
 
   if (isRasterAdminImage(file)) {
-    options.onStatus?.("optimizing", "Optimizing image before upload...");
-    uploadFile = await compressRasterImage(file);
-    compressed = true;
+    try {
+      options.onStatus?.("optimizing", "Optimizing image before upload...");
+      uploadFile = await compressRasterImage(file);
+      compressed = true;
+    } catch (error) {
+      console.warn("Browser image optimization failed; falling back to direct original upload", {
+        filename: file.name,
+        type: file.type,
+        size: file.size,
+        error
+      });
+      uploadFile = file;
+      compressed = false;
+    }
   }
 
   if (uploadFile.size <= API_UPLOAD_SOFT_LIMIT) {

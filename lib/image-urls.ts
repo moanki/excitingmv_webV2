@@ -36,8 +36,10 @@ export function optimizedImageUrl(url: string | null | undefined, options: Image
       parsed.searchParams.set("height", String(options.height));
     }
 
+    const requestedQuality = options.quality ?? 90;
+    const minimumQuality = options.resize === "contain" ? 92 : 88;
     parsed.searchParams.set("resize", options.resize ?? "cover");
-    parsed.searchParams.set("quality", String(options.quality ?? 76));
+    parsed.searchParams.set("quality", String(Math.max(requestedQuality, minimumQuality)));
 
     return parsed.toString();
   } catch {
