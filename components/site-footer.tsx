@@ -109,7 +109,7 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
 
   const enabledMemberships = footer.memberships.filter((item) => item.enabled && item.name);
   const enabledAwards = footer.awards.filter((item) => item.enabled && item.name);
-  const footerLogoUrl = footer.companyLogoUrl || navbar.blackLogoUrl || navbar.primaryLogoUrl || navbar.whiteLogoUrl;
+  const footerLogoUrl = navbar.primaryLogoUrl || footer.companyLogoUrl || navbar.blackLogoUrl || navbar.whiteLogoUrl;
 
   return (
     <footer className="site-footer">

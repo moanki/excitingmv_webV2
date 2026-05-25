@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   Anchor,
   ArrowUpDown,
+  BadgeCheck,
   Car,
   ChevronDown,
   MapPin,
@@ -420,36 +421,124 @@ function FilterSelect({
   allLabel: string;
   onChange: (value: string) => void;
 }) {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const selectedLabel = value || allLabel;
+
+  useEffect(() => {
+    if (!open) return;
+
+    function onPointerDown(event: MouseEvent) {
+      if (!dropdownRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
   return (
-    <label className="portfolio-select">
-      <span>{label}</span>
-      <select value={value} onChange={(event) => onChange(event.target.value)} aria-label={label}>
-        <option value="">{allLabel}</option>
-        {options.map((option) => (
-          <option value={option} key={option}>
-            {option}
-          </option>
-        ))}
-      </select>
+    <div className={`portfolio-select ${open ? "is-open" : ""}`} ref={dropdownRef}>
+      <button type="button" onClick={() => setOpen((current) => !current)} aria-label={label} aria-expanded={open}>
+        <span>{selectedLabel}</span>
+      </button>
       <ChevronDown size={15} aria-hidden="true" />
-    </label>
+      {open ? (
+        <div className="portfolio-select__menu" role="listbox" aria-label={label}>
+          {[{ label: allLabel, value: "" }, ...options.map((option) => ({ label: option, value: option }))].map((option) => (
+            <button
+              type="button"
+              className={option.value === value ? "is-selected" : ""}
+              key={`${label}-${option.value || "all"}`}
+              role="option"
+              aria-selected={option.value === value}
+              onClick={() => {
+                onChange(option.value);
+                setOpen(false);
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
 function SortSelect({ sort, onSortChange }: { sort: SortOption; onSortChange: (sort: SortOption) => void }) {
+  const options: Array<{ label: string; value: SortOption }> = [
+    { label: "Recommended", value: "recommended" },
+    { label: "A-Z", value: "az" },
+    { label: "Location", value: "location" },
+    { label: "Category", value: "category" },
+    { label: "Recently Added", value: "recent" }
+  ];
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const selectedLabel = options.find((option) => option.value === sort)?.label ?? "Sort";
+
+  useEffect(() => {
+    if (!open) return;
+
+    function onPointerDown(event: MouseEvent) {
+      if (!dropdownRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
   return (
-    <label className="portfolio-select portfolio-select--sort">
-      <span>Sort</span>
+    <div className={`portfolio-select portfolio-select--sort ${open ? "is-open" : ""}`} ref={dropdownRef}>
       <ArrowUpDown size={14} aria-hidden="true" />
-      <select value={sort} onChange={(event) => onSortChange(event.target.value as SortOption)} aria-label="Sort">
-        <option value="recommended">Recommended</option>
-        <option value="az">A-Z</option>
-        <option value="location">Location</option>
-        <option value="category">Category</option>
-        <option value="recent">Recently Added</option>
-      </select>
+      <button type="button" onClick={() => setOpen((current) => !current)} aria-label="Sort" aria-expanded={open}>
+        <span>{selectedLabel}</span>
+      </button>
       <ChevronDown size={15} aria-hidden="true" />
-    </label>
+      {open ? (
+        <div className="portfolio-select__menu" role="listbox" aria-label="Sort">
+          {options.map((option) => (
+            <button
+              type="button"
+              className={option.value === sort ? "is-selected" : ""}
+              key={option.value}
+              role="option"
+              aria-selected={option.value === sort}
+              onClick={() => {
+                onSortChange(option.value);
+                setOpen(false);
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -648,7 +737,10 @@ function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem
           height={700}
         />
         <span className="portfolio-card__overlay" aria-hidden="true" />
-        <span className="portfolio-card__badge">{item.category}</span>
+        <span className="portfolio-card__badge">
+          <BadgeCheck size={12} aria-hidden="true" />
+          {item.category}
+        </span>
         <span className="portfolio-card__text">
           <span className="portfolio-card__title">{item.name}</span>
           <span className="portfolio-card__meta">
