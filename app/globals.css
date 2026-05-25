@@ -14777,11 +14777,11 @@ select {
   font-weight: 500;
 }
 
-.services-editorial__link span {
+.services-editorial__link svg {
   transition: transform 180ms ease;
 }
 
-.services-editorial__link:hover span {
+.services-editorial__link:hover svg {
   transform: translateX(4px);
 }
 
@@ -14825,16 +14825,15 @@ select {
   box-shadow: 0 18px 44px rgba(43, 33, 28, 0.12);
 }
 
-.services-editorial__badge span {
+.services-editorial__badge svg {
+  flex: 0 0 auto;
   color: #ad7b50;
-  font-family: var(--font-serif), serif;
-  font-size: 1.55rem;
-  line-height: 1;
+  stroke-width: 1.7;
 }
 
 .services-editorial__strip {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   border-top: 1px solid rgba(43, 33, 28, 0.14);
   background: #fbf7ef;
 }
