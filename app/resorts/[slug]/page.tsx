@@ -172,7 +172,7 @@ export default async function ResortDetailPage({
                   <strong>{formatInlineList(resort.mealPlans, "Available on request")}</strong>
                 </li>
                 <li>
-                  <span>Highlights</span>
+                  <span>Our Selection</span>
                   <strong>
                     {resort.highlights.filter(Boolean).length
                       ? resort.highlights.filter(Boolean).slice(0, 4).join(" • ")

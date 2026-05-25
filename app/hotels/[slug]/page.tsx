@@ -24,9 +24,14 @@ export default async function HotelDetailPage({
 
   const facts = [
     { label: "Location", value: hotel.location || "Maldives" },
+    { label: "Transfer", value: hotel.transferType || "Available on request" },
     { label: "Rooms", value: hotel.roomTypes.length ? `${hotel.roomTypes.length}` : "To be confirmed" },
     { label: "Meal Plans", value: hotel.mealPlans.filter(Boolean).join(" / ") || "Available on request" },
-    { label: "Category", value: hotel.category || "Hotel" }
+    { label: "Category", value: hotel.category || "Hotel" },
+    {
+      label: "Our Selection",
+      value: hotel.highlights.filter(Boolean).slice(0, 4).join(" • ") || "Curated hotel stay"
+    }
   ];
 
   return (

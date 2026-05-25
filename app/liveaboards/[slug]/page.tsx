@@ -26,7 +26,11 @@ export default async function LiveaboardDetailPage({
     { label: "Route / Atoll", value: liveaboard.location || "Maldives" },
     { label: "Category", value: liveaboard.category || "Liveaboard" },
     { label: "Transfer", value: liveaboard.transferType || "Available on request" },
-    { label: "Cabins", value: liveaboard.roomTypes.length ? `${liveaboard.roomTypes.length}` : "To be confirmed" }
+    { label: "Cabins", value: liveaboard.roomTypes.length ? `${liveaboard.roomTypes.length}` : "To be confirmed" },
+    {
+      label: "Our Selection",
+      value: liveaboard.highlights.filter(Boolean).slice(0, 4).join(" • ") || "Marine-focused voyage"
+    }
   ];
 
   return (
