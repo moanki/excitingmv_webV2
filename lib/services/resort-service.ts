@@ -557,7 +557,7 @@ async function listPublishedResortRowsFromTable(
 ) {
   const firstAttempt = await supabase
     .from(tableName)
-    .select("id,property_type,slug,name,atoll,category,transfer_type,description,seo_summary,status,is_featured_homepage")
+    .select("id,property_type,slug,name,atoll,category,transfer_type,description,highlights,meal_plans,seo_summary,status,is_featured_homepage,created_at,updated_at")
     .eq("status", "published")
     .in("property_type", propertyTypeAliases(propertyType))
     .order("updated_at", { ascending: false });
@@ -566,7 +566,21 @@ async function listPublishedResortRowsFromTable(
     return (firstAttempt.data ?? []) as Array<
       Pick<
         ResortRow,
-        "id" | "property_type" | "slug" | "name" | "atoll" | "category" | "transfer_type" | "description" | "seo_summary" | "status" | "is_featured_homepage"
+        | "id"
+        | "property_type"
+        | "slug"
+        | "name"
+        | "atoll"
+        | "category"
+        | "transfer_type"
+        | "description"
+        | "highlights"
+        | "meal_plans"
+        | "seo_summary"
+        | "status"
+        | "is_featured_homepage"
+        | "created_at"
+        | "updated_at"
       >
     >;
   }
@@ -585,7 +599,7 @@ async function listPublishedResortRowsFromTable(
 
   const fallbackAttempt = await supabase
     .from(tableName)
-    .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status")
+    .select("id,slug,name,atoll,category,transfer_type,description,highlights,meal_plans,seo_summary,status,created_at,updated_at")
     .eq("status", "published")
     .in("property_type", propertyTypeAliases(propertyType))
     .order("updated_at", { ascending: false });
@@ -601,7 +615,22 @@ async function listPublishedResortRowsFromTable(
   }
 
   return ((fallbackAttempt.data ?? []) as Array<
-    Pick<ResortRow, "id" | "slug" | "name" | "atoll" | "category" | "transfer_type" | "description" | "seo_summary" | "status">
+    Pick<
+      ResortRow,
+      | "id"
+      | "slug"
+      | "name"
+      | "atoll"
+      | "category"
+      | "transfer_type"
+      | "description"
+      | "highlights"
+      | "meal_plans"
+      | "seo_summary"
+      | "status"
+      | "created_at"
+      | "updated_at"
+    >
   >).map((row) => ({
     ...row,
     is_featured_homepage: false
@@ -612,7 +641,7 @@ async function listPublishedResortRowsWithoutPropertyType(tableName = PROPERTY_T
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from(tableName)
-    .select("id,slug,name,atoll,category,transfer_type,description,seo_summary,status")
+    .select("id,slug,name,atoll,category,transfer_type,description,highlights,meal_plans,seo_summary,status,created_at,updated_at")
     .eq("status", "published")
     .order("updated_at", { ascending: false });
 
@@ -621,7 +650,22 @@ async function listPublishedResortRowsWithoutPropertyType(tableName = PROPERTY_T
   }
 
   return ((data ?? []) as Array<
-    Pick<ResortRow, "id" | "slug" | "name" | "atoll" | "category" | "transfer_type" | "description" | "seo_summary" | "status">
+    Pick<
+      ResortRow,
+      | "id"
+      | "slug"
+      | "name"
+      | "atoll"
+      | "category"
+      | "transfer_type"
+      | "description"
+      | "highlights"
+      | "meal_plans"
+      | "seo_summary"
+      | "status"
+      | "created_at"
+      | "updated_at"
+    >
   >).map((row) => ({
     ...row,
     property_type: "resort" as PropertyType,
@@ -650,7 +694,11 @@ const getCachedPublishedResorts = unstable_cache(
           summary: row.seo_summary ?? row.description ?? "",
           heroImageUrl: heroMedia.get(row.id) ?? "",
           status: row.status,
-          isFeaturedHomepage: Boolean(row.is_featured_homepage)
+          isFeaturedHomepage: Boolean(row.is_featured_homepage),
+          highlights: toStringArray(row.highlights),
+          mealPlans: toStringArray(row.meal_plans),
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
         }))
         .sort((left, right) => Number(right.isFeaturedHomepage) - Number(left.isFeaturedHomepage));
     } catch (error) {
@@ -688,7 +736,11 @@ export async function listPublishedProperties(propertyType: PropertyType): Promi
       summary: row.seo_summary ?? row.description ?? "",
       heroImageUrl: heroMedia.get(row.id) ?? "",
       status: row.status,
-      isFeaturedHomepage: Boolean(row.is_featured_homepage)
+      isFeaturedHomepage: Boolean(row.is_featured_homepage),
+      highlights: toStringArray(row.highlights),
+      mealPlans: toStringArray(row.meal_plans),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
     }));
   } catch {
     return [];

@@ -32,6 +32,12 @@ export type ResortSummary = {
   heroImageUrl?: string;
   status: PublishStatus;
   isFeaturedHomepage?: boolean;
+  selectionTags?: string[];
+  highlights?: string[];
+  mealPlans?: string[];
+  recommendedOrder?: number;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type PartnerSummary = {
