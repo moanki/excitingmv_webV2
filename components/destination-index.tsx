@@ -3,6 +3,8 @@
 import Link from "next/link";
 import {
   Anchor,
+  ArrowRight,
+  ArrowUpDown,
   Award,
   BadgeCheck,
   Briefcase,
@@ -25,7 +27,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
 import type { ResortSummary } from "@/lib/types";
@@ -69,6 +71,11 @@ type PortfolioConfig = {
   transferOptions: string[];
   emptyTitle: string;
   emptyBody: string;
+  trustChips: string[];
+  featuredTitle: string;
+  featuredSubtitle: string;
+  ctaHeadline: string;
+  ctaBody: string;
 };
 
 type PortfolioFiltersState = {
@@ -105,7 +112,12 @@ const kindConfig = {
     ],
     transferOptions: ["Speedboat", "Seaplane", "Domestic"],
     emptyTitle: "No resorts found",
-    emptyBody: "Try adjusting your search or filters."
+    emptyBody: "Try adjusting your search or filters.",
+    trustChips: ["Curated Maldives Resorts", "Partner-Ready Portfolio", "Maldives-Based Expertise", "Luxury & Family Escapes"],
+    featuredTitle: "Featured Resort Picks",
+    featuredSubtitle: "A curated selection of standout Maldives resorts for premium travel conversations.",
+    ctaHeadline: "Need help selecting the right resort for your client?",
+    ctaBody: "Our Maldives destination team can help shortlist resorts based on market, budget, travel style, and guest profile."
   },
   hotels: {
     eyebrow: "Our Hotels",
@@ -122,7 +134,12 @@ const kindConfig = {
     locationOptions: ["Malé", "Hulhumalé", "Velana International Airport Area", "Greater Malé Region", "Addu City", "Other Islands"],
     transferOptions: ["Airport Transfer", "Speedboat", "Domestic", "City Transfer"],
     emptyTitle: "No hotels found",
-    emptyBody: "Try adjusting your search or filters."
+    emptyBody: "Try adjusting your search or filters.",
+    trustChips: ["Curated City & Island Hotels", "Partner-Ready Stays", "Airport & City Access", "Maldives-Based Expertise"],
+    featuredTitle: "Featured Hotel Picks",
+    featuredSubtitle: "A selected collection of practical and premium hotel stays for travel professionals.",
+    ctaHeadline: "Need help choosing the right hotel stay?",
+    ctaBody: "Our team can help recommend practical city, airport, and island hotel options based on your client's travel plan."
   },
   liveaboards: {
     eyebrow: "Our Liveaboards",
@@ -139,7 +156,12 @@ const kindConfig = {
     locationOptions: ["Central Atolls", "North Atolls", "South Atolls", "Ari Atoll Route", "Baa Atoll Route", "Deep South Route", "Malé Departure"],
     transferOptions: ["Malé Departure", "Domestic + Vessel", "Speedboat Connection", "Seaplane Connection"],
     emptyTitle: "No liveaboards found",
-    emptyBody: "Try adjusting your search or filters."
+    emptyBody: "Try adjusting your search or filters.",
+    trustChips: ["Curated Liveaboards", "Marine-Focused Experiences", "Diving & Charter Options", "Maldives-Based Expertise"],
+    featuredTitle: "Featured Liveaboard Picks",
+    featuredSubtitle: "A curated selection of liveaboards for marine, diving, and private charter experiences.",
+    ctaHeadline: "Need help selecting the right liveaboard?",
+    ctaBody: "Our destination team can help shortlist liveaboards based on route, guest profile, diving interest, charter needs, and travel season."
   }
 } satisfies Record<DestinationKind, PortfolioConfig>;
 
@@ -155,6 +177,66 @@ const initialFilters: PortfolioFiltersState = {
   location: "",
   transferOptions: []
 };
+
+const initialVisibleCount = 12;
+
+function compactFilterSummary(filters: PortfolioFiltersState) {
+  const activeValues = [
+    filters.portfolioCategory,
+    filters.location,
+    ...filters.selectionTags,
+    ...filters.transferOptions
+  ].filter(Boolean);
+
+  if (!activeValues.length) {
+    return "No filters active";
+  }
+
+  if (activeValues.length <= 2) {
+    return activeValues.join(" + ");
+  }
+
+  return `${activeValues.length} filters active`;
+}
+
+function readInitialQueryState() {
+  if (typeof window === "undefined") {
+    return { query: "", filters: initialFilters, sort: "recommended" as SortOption };
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const sort = params.get("sort");
+  const validSort: SortOption =
+    sort === "az" || sort === "location" || sort === "category" || sort === "recent" ? sort : "recommended";
+
+  return {
+    query: params.get("q") ?? "",
+    filters: {
+      portfolioCategory: params.get("category") ?? "",
+      selectionTags: params.get("selection")?.split(",").filter(Boolean) ?? [],
+      location: params.get("location") ?? "",
+      transferOptions: params.get("transfer")?.split(",").filter(Boolean) ?? []
+    },
+    sort: validSort
+  };
+}
+
+function writeQueryState(query: string, filters: PortfolioFiltersState, sort: SortOption) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const params = new URLSearchParams();
+  if (query.trim()) params.set("q", query.trim());
+  if (filters.portfolioCategory) params.set("category", filters.portfolioCategory);
+  if (filters.selectionTags.length) params.set("selection", filters.selectionTags.join(","));
+  if (filters.location) params.set("location", filters.location);
+  if (filters.transferOptions.length) params.set("transfer", filters.transferOptions.join(","));
+  if (sort !== "recommended") params.set("sort", sort);
+
+  const nextUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+  window.history.replaceState(null, "", nextUrl);
+}
 
 function normalize(value?: string | null) {
   return value?.trim() ?? "";
@@ -408,90 +490,82 @@ function PortfolioFilters({
   query,
   filters,
   sort,
-  total,
-  resultCount,
   mobileOpen,
   onMobileOpenChange,
   onQueryChange,
   onFiltersChange,
   onSortChange,
-  onReset
+  onReset,
+  onApply
 }: {
   config: PortfolioConfig;
   query: string;
   filters: PortfolioFiltersState;
   sort: SortOption;
-  total: number;
-  resultCount: number;
   mobileOpen: boolean;
   onMobileOpenChange: (open: boolean) => void;
   onQueryChange: (value: string) => void;
   onFiltersChange: (filters: PortfolioFiltersState) => void;
   onSortChange: (sort: SortOption) => void;
   onReset: () => void;
+  onApply: () => void;
 }) {
-  const active = hasActiveFilters(query, filters, sort);
-
   return (
     <div className="portfolio-controls">
-      <label className="portfolio-search">
-        <Search size={18} />
-        <input
-          aria-label={`Search ${config.label.toLowerCase()}`}
-          value={query}
-          onChange={(event) => onQueryChange(event.target.value)}
-          placeholder={config.placeholder}
-        />
-      </label>
+      <div className="portfolio-search-panel">
+        <label className="portfolio-search">
+          <Search size={18} />
+          <input
+            aria-label={`Search ${config.label.toLowerCase()}`}
+            value={query}
+            onChange={(event) => onQueryChange(event.target.value)}
+            placeholder={config.placeholder}
+          />
+        </label>
 
-      <div className="portfolio-mobile-actions">
-        <button type="button" className="portfolio-mobile-filter" onClick={() => onMobileOpenChange(true)}>
-          <SlidersHorizontal size={17} />
-          Filters
-        </button>
-        <SortSelect sort={sort} onSortChange={onSortChange} />
-      </div>
-
-      <div className="portfolio-filter-row" aria-label={`${config.label} portfolio filters`}>
-        <FilterGroup
-          label={config.categoryLabel}
-          options={config.categoryOptions}
-          value={filters.portfolioCategory}
-          onChange={(value) => onFiltersChange({ ...filters, portfolioCategory: filters.portfolioCategory === value ? "" : value })}
-        />
-        <FilterGroup
-          label="Our Selection"
-          options={config.selectionOptions}
-          values={filters.selectionTags}
-          multi
-          onMultiChange={(value) => onFiltersChange({ ...filters, selectionTags: toggleValue(filters.selectionTags, value) })}
-        />
-        <FilterGroup
-          label="Location"
-          options={config.locationOptions}
-          value={filters.location}
-          onChange={(value) => onFiltersChange({ ...filters, location: filters.location === value ? "" : value })}
-        />
-        <FilterGroup
-          label="Transfer Option"
-          options={config.transferOptions}
-          values={filters.transferOptions}
-          multi
-          onMultiChange={(value) => onFiltersChange({ ...filters, transferOptions: toggleValue(filters.transferOptions, value) })}
-        />
-        <div className="portfolio-sort-desktop">
+        <div className="portfolio-mobile-actions">
+          <button type="button" className="portfolio-mobile-filter" onClick={() => onMobileOpenChange(true)}>
+            <SlidersHorizontal size={17} />
+            Filters
+          </button>
           <SortSelect sort={sort} onSortChange={onSortChange} />
         </div>
-      </div>
 
-      <div className="portfolio-results-bar">
-        <p>
-          Showing <strong>{resultCount}</strong> of <strong>{total}</strong> {config.label.toLowerCase()}
-        </p>
-        <button type="button" onClick={onReset} disabled={!active}>
-          <RotateCcw size={15} />
-          Reset Filters
-        </button>
+        <div className="portfolio-filter-row" aria-label={`${config.label} portfolio filters`}>
+          <FilterGroup
+            label={config.categoryLabel}
+            options={config.categoryOptions}
+            value={filters.portfolioCategory}
+            onChange={(value) => onFiltersChange({ ...filters, portfolioCategory: filters.portfolioCategory === value ? "" : value })}
+          />
+          <FilterGroup
+            label="Our Selection"
+            options={config.selectionOptions}
+            values={filters.selectionTags}
+            multi
+            onMultiChange={(value) => onFiltersChange({ ...filters, selectionTags: toggleValue(filters.selectionTags, value) })}
+          />
+          <FilterGroup
+            label="Location"
+            options={config.locationOptions}
+            value={filters.location}
+            onChange={(value) => onFiltersChange({ ...filters, location: filters.location === value ? "" : value })}
+          />
+          <FilterGroup
+            label="Transfer Option"
+            options={config.transferOptions}
+            values={filters.transferOptions}
+            multi
+            onMultiChange={(value) => onFiltersChange({ ...filters, transferOptions: toggleValue(filters.transferOptions, value) })}
+          />
+          <div className="portfolio-sort-desktop">
+            <SortSelect sort={sort} onSortChange={onSortChange} />
+          </div>
+          <button type="button" className="portfolio-apply" onClick={onApply}>
+            Apply
+            <ArrowRight size={15} />
+          </button>
+        </div>
       </div>
 
       <FilterDrawer
@@ -501,6 +575,7 @@ function PortfolioFilters({
         onClose={() => onMobileOpenChange(false)}
         onFiltersChange={onFiltersChange}
         onReset={onReset}
+        onApply={onApply}
       />
     </div>
   );
@@ -509,6 +584,7 @@ function PortfolioFilters({
 function SortSelect({ sort, onSortChange }: { sort: SortOption; onSortChange: (sort: SortOption) => void }) {
   return (
     <label className="portfolio-sort">
+      <ArrowUpDown size={15} aria-hidden="true" />
       <span>Sort</span>
       <select value={sort} onChange={(event) => onSortChange(event.target.value as SortOption)} aria-label="Sort listings">
         <option value="recommended">Recommended</option>
@@ -568,7 +644,8 @@ function FilterDrawer({
   open,
   onClose,
   onFiltersChange,
-  onReset
+  onReset,
+  onApply
 }: {
   config: PortfolioConfig;
   filters: PortfolioFiltersState;
@@ -576,7 +653,51 @@ function FilterDrawer({
   onClose: () => void;
   onFiltersChange: (filters: PortfolioFiltersState) => void;
   onReset: () => void;
+  onApply: () => void;
 }) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const panel = panelRef.current;
+    panel?.focus();
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (event.key !== "Tab" || !panel) {
+        return;
+      }
+
+      const focusable = Array.from(
+        panel.querySelectorAll<HTMLElement>("button, input, select, textarea, a[href], [tabindex]:not([tabindex='-1'])")
+      ).filter((element) => !element.hasAttribute("disabled"));
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (!first || !last) {
+        return;
+      }
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose, open]);
+
   if (!open) {
     return null;
   }
@@ -584,7 +705,7 @@ function FilterDrawer({
   return (
     <div className="portfolio-drawer" role="dialog" aria-modal="true" aria-label={`${config.label} filters`}>
       <button type="button" className="portfolio-drawer__backdrop" onClick={onClose} aria-label="Close filters" />
-      <div className="portfolio-drawer__panel">
+      <div className="portfolio-drawer__panel" ref={panelRef} tabIndex={-1}>
         <div className="portfolio-drawer__header">
           <h2>Filters</h2>
           <button type="button" onClick={onClose} aria-label="Close filters">
@@ -621,7 +742,7 @@ function FilterDrawer({
           <button type="button" onClick={onReset}>
             Reset
           </button>
-          <button type="button" onClick={onClose}>
+          <button type="button" onClick={onApply}>
             Apply Filters
           </button>
         </div>
@@ -634,19 +755,30 @@ function PortfolioGrid({ children }: { children: ReactNode }) {
   return <div className="portfolio-grid">{children}</div>;
 }
 
-function PortfolioCard({ item, config }: { item: PortfolioItem; config: PortfolioConfig }) {
+function PortfolioCard({
+  item,
+  config,
+  variant = "standard",
+  priority = false
+}: {
+  item: PortfolioItem;
+  config: PortfolioConfig;
+  variant?: "standard" | "featured";
+  priority?: boolean;
+}) {
   const image = item.image || heroFallbacks[item.type];
   const TransferIcon = transferIcon(item.transferOptions[0] ?? "");
   const visibleTags = item.selectionTags.slice(0, 2);
   const hiddenTagCount = Math.max(item.selectionTags.length - visibleTags.length, 0);
 
   return (
-    <article className="portfolio-card">
+    <article className={`portfolio-card ${variant === "featured" ? "portfolio-card--featured" : ""}`}>
       <Link href={`${config.path}/${item.slug}`} className="portfolio-card__media" aria-label={`View ${item.name}`}>
         <img
           src={optimizedImageUrl(image, { width: 760, height: 475, quality: 91 })}
           alt={item.name}
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"}
+          fetchPriority={priority ? "high" : "auto"}
           width={760}
           height={475}
         />
@@ -664,7 +796,7 @@ function PortfolioCard({ item, config }: { item: PortfolioItem; config: Portfoli
           </span>
           <span>
             <TransferIcon size={15} />
-            {item.transferOptions.join(" · ")}
+            {item.transferOptions.join(" / ")}
           </span>
         </div>
         <div className="portfolio-card__tags" aria-label="Our selection">
@@ -681,7 +813,7 @@ function PortfolioCard({ item, config }: { item: PortfolioItem; config: Portfoli
         </div>
         <Link href={`${config.path}/${item.slug}`} className="portfolio-card__cta">
           View {config.singular}
-          <span aria-hidden="true">→</span>
+          <ArrowRight size={15} aria-hidden="true" />
         </Link>
       </div>
     </article>
@@ -717,16 +849,155 @@ function PortfolioEmptyState({ config, onReset }: { config: PortfolioConfig; onR
   );
 }
 
+function PortfolioTrustChips({ config }: { config: PortfolioConfig }) {
+  return (
+    <div className="portfolio-trust-chips" aria-label={`${config.label} positioning`}>
+      {config.trustChips.map((chip) => (
+        <span key={chip}>
+          <BadgeCheck size={14} />
+          {chip}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function PortfolioFeaturedGrid({ config, items }: { config: PortfolioConfig; items: PortfolioItem[] }) {
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <section className="portfolio-featured" aria-labelledby="portfolio-featured-title">
+      <div className="portfolio-section-heading">
+        <div>
+          <p className="lux-eyebrow">Featured Picks</p>
+          <h2 id="portfolio-featured-title">{config.featuredTitle}</h2>
+        </div>
+        <p>{config.featuredSubtitle}</p>
+      </div>
+      <div className="portfolio-featured-grid">
+        {items.map((item, index) => (
+          <PortfolioCard key={item.id} item={item} config={config} variant="featured" priority={index === 0} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PortfolioResultsBar({
+  config,
+  total,
+  resultCount,
+  visibleCount,
+  query,
+  filters,
+  sort,
+  onReset
+}: {
+  config: PortfolioConfig;
+  total: number;
+  resultCount: number;
+  visibleCount: number;
+  query: string;
+  filters: PortfolioFiltersState;
+  sort: SortOption;
+  onReset: () => void;
+}) {
+  const active = hasActiveFilters(query, filters, sort);
+  return (
+    <div className="portfolio-results-bar">
+      <p>
+        Showing <strong>{Math.min(visibleCount, resultCount)}</strong> of <strong>{resultCount}</strong> matching {config.label.toLowerCase()}
+        <span> · {total} total</span>
+      </p>
+      <button type="button" onClick={onReset} disabled={!active}>
+        <RotateCcw size={15} />
+        Reset Filters
+      </button>
+    </div>
+  );
+}
+
+function PortfolioStickyBar({
+  config,
+  query,
+  filters,
+  sort,
+  onQueryChange,
+  onSortChange,
+  onMobileOpenChange,
+  onReset
+}: {
+  config: PortfolioConfig;
+  query: string;
+  filters: PortfolioFiltersState;
+  sort: SortOption;
+  onQueryChange: (value: string) => void;
+  onSortChange: (sort: SortOption) => void;
+  onMobileOpenChange: (open: boolean) => void;
+  onReset: () => void;
+}) {
+  const active = hasActiveFilters(query, filters, sort);
+  return (
+    <div className="portfolio-sticky-bar" aria-label="Compact portfolio filters">
+      <label className="portfolio-sticky-search">
+        <Search size={16} />
+        <input
+          aria-label={`Search ${config.label.toLowerCase()} sticky filter`}
+          value={query}
+          onChange={(event) => onQueryChange(event.target.value)}
+          placeholder={config.placeholder}
+        />
+      </label>
+      <button type="button" onClick={() => onMobileOpenChange(true)} className="portfolio-sticky-filter">
+        <SlidersHorizontal size={16} />
+        <span>{compactFilterSummary(filters)}</span>
+      </button>
+      <SortSelect sort={sort} onSortChange={onSortChange} />
+      <button type="button" className="portfolio-sticky-reset" onClick={onReset} disabled={!active}>
+        <RotateCcw size={15} />
+        Reset
+      </button>
+    </div>
+  );
+}
+
+function PortfolioCTA({ config }: { config: PortfolioConfig }) {
+  return (
+    <section className="portfolio-cta" aria-labelledby="portfolio-cta-title">
+      <div>
+        <p className="lux-eyebrow">Destination Support</p>
+        <h2 id="portfolio-cta-title">{config.ctaHeadline}</h2>
+        <p>{config.ctaBody}</p>
+      </div>
+      <div className="portfolio-cta__actions">
+        <Link href="/partner/register">Become a Partner</Link>
+        <Link href="/contact">Contact Destination Team</Link>
+      </div>
+    </section>
+  );
+}
+
 export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<PortfolioFiltersState>(initialFilters);
   const [sort, setSort] = useState<SortOption>("recommended");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(initialVisibleCount);
+  const hasMounted = useRef(false);
   const config = kindConfig[activeKind];
   const heroImage = items.find((item) => item.heroImageUrl)?.heroImageUrl || heroFallbacks[activeKind];
 
   const portfolioItems = useMemo(() => normalizePortfolioItems(activeKind, items), [activeKind, items]);
+
+  useEffect(() => {
+    const nextState = readInitialQueryState();
+    setQuery(nextState.query);
+    setFilters(nextState.filters);
+    setSort(nextState.sort);
+  }, []);
 
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -746,14 +1017,38 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
 
   useEffect(() => {
     setIsFiltering(true);
+    setVisibleCount(initialVisibleCount);
     const timer = window.setTimeout(() => setIsFiltering(false), 120);
     return () => window.clearTimeout(timer);
   }, [filters, query, sort]);
+
+  useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+
+    writeQueryState(query, filters, sort);
+  }, [filters, query, sort]);
+
+  const featuredItems = useMemo(() => {
+    const sorted = sortPortfolioItems(portfolioItems, "recommended");
+    const featured = sorted.filter((item) => item.featured).slice(0, 3);
+    return (featured.length >= 3 ? featured : sorted.slice(0, 3)).slice(0, 3);
+  }, [portfolioItems]);
+
+  const visibleItems = filteredItems.slice(0, visibleCount);
 
   function resetFilters() {
     setQuery("");
     setFilters(initialFilters);
     setSort("recommended");
+    setFiltersOpen(false);
+  }
+
+  function applyFilters() {
+    setFiltersOpen(false);
+    document.getElementById("portfolio-grid")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return (
@@ -773,7 +1068,7 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
             <div className="destination-hero__actions">
               <a href="#destination-results" className="destination-primary-action">
                 {config.cta}
-                <span aria-hidden="true">↗</span>
+                <ArrowRight size={15} aria-hidden="true" />
               </a>
             </div>
           </div>
@@ -787,13 +1082,35 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
             query={query}
             filters={filters}
             sort={sort}
-            total={portfolioItems.length}
-            resultCount={filteredItems.length}
             mobileOpen={filtersOpen}
             onMobileOpenChange={setFiltersOpen}
             onQueryChange={setQuery}
             onFiltersChange={setFilters}
             onSortChange={setSort}
+            onReset={resetFilters}
+            onApply={applyFilters}
+          />
+
+          <PortfolioTrustChips config={config} />
+          <PortfolioFeaturedGrid config={config} items={featuredItems} />
+          <PortfolioStickyBar
+            config={config}
+            query={query}
+            filters={filters}
+            sort={sort}
+            onQueryChange={setQuery}
+            onSortChange={setSort}
+            onMobileOpenChange={setFiltersOpen}
+            onReset={resetFilters}
+          />
+          <PortfolioResultsBar
+            config={config}
+            total={portfolioItems.length}
+            resultCount={filteredItems.length}
+            visibleCount={visibleCount}
+            query={query}
+            filters={filters}
+            sort={sort}
             onReset={resetFilters}
           />
 
@@ -804,14 +1121,28 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
               ))}
             </PortfolioGrid>
           ) : filteredItems.length ? (
-            <PortfolioGrid>
-              {filteredItems.map((item) => (
-                <PortfolioCard key={item.id} item={item} config={config} />
+            <>
+            <div id="portfolio-grid">
+              <PortfolioGrid>
+              {visibleItems.map((item) => (
+                <PortfolioCard key={item.id} item={item} config={config} priority={visibleItems.indexOf(item) < 3} />
               ))}
-            </PortfolioGrid>
+              </PortfolioGrid>
+            </div>
+            {visibleCount < filteredItems.length ? (
+              <div className="portfolio-load-more">
+                <button type="button" onClick={() => setVisibleCount((count) => count + initialVisibleCount)}>
+                  Load More {config.label}
+                  <ChevronDown size={16} />
+                </button>
+              </div>
+            ) : null}
+            </>
           ) : (
             <PortfolioEmptyState config={config} onReset={resetFilters} />
           )}
+
+          <PortfolioCTA config={config} />
         </div>
       </section>
     </main>
