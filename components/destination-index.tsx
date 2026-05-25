@@ -61,6 +61,10 @@ type PortfolioConfig = {
   locationOptions: string[];
   transferOptions: string[];
   emptyTitle: string;
+  editorTitle: string;
+  editorSubtitle: string;
+  collectionTitle: string;
+  collectionSubtitle: string;
 };
 
 type PortfolioFiltersState = {
@@ -98,7 +102,11 @@ const kindConfig = {
       "Gaafu Dhaalu Atoll"
     ],
     transferOptions: ["Speedboat", "Seaplane", "Domestic"],
-    emptyTitle: "No resorts found"
+    emptyTitle: "No resorts found",
+    editorTitle: "Editor's Resort Selection",
+    editorSubtitle: "A cinematic starting point for standout Maldives resort conversations.",
+    collectionTitle: "Signature Maldives Escapes",
+    collectionSubtitle: "Curated resort moods for travel professionals who need a sharper shortlist."
   },
   hotels: {
     eyebrow: "Our Hotels",
@@ -116,7 +124,11 @@ const kindConfig = {
     selectionOptions: ["City Stay", "Business Travel", "Transit Stay", "Family Oriented", "Budget-Conscious", "Premium Stay"],
     locationOptions: ["Male", "Hulhumale", "Velana International Airport Area", "Greater Male Region", "Addu City", "Other Islands"],
     transferOptions: ["Airport Transfer", "City Transfer", "Speedboat", "Domestic"],
-    emptyTitle: "No hotels found"
+    emptyTitle: "No hotels found",
+    editorTitle: "Editor's Hotel Selection",
+    editorSubtitle: "A calm edit of practical and premium stays for Maldives itineraries.",
+    collectionTitle: "Curated Hotel Stays",
+    collectionSubtitle: "Browse by travel purpose without turning the page into a booking engine."
   },
   liveaboards: {
     eyebrow: "Our Liveaboards",
@@ -134,7 +146,11 @@ const kindConfig = {
     selectionOptions: ["Diving", "Surfing", "Marine Experience", "Private Charter", "Group Travel", "Premium Cruise"],
     locationOptions: ["Male Departure", "Central Atolls", "North Atolls", "South Atolls", "Ari Atoll Route", "Baa Atoll Route", "Deep South Route"],
     transferOptions: ["Male Departure", "Domestic + Vessel", "Speedboat Connection", "Seaplane Connection"],
-    emptyTitle: "No liveaboards found"
+    emptyTitle: "No liveaboards found",
+    editorTitle: "Editor's Liveaboard Selection",
+    editorSubtitle: "Marine-led journeys with the strongest visual and route-led appeal.",
+    collectionTitle: "Ocean-Led Journeys",
+    collectionSubtitle: "Explore liveaboards by the kind of voyage your client is imagining."
   }
 } satisfies Record<DestinationKind, PortfolioConfig>;
 
@@ -689,6 +705,123 @@ function PortfolioEmptyState({ config, onReset }: { config: PortfolioConfig; onR
   );
 }
 
+function PortfolioEditorialCard({
+  item,
+  config,
+  large = false,
+  priority = false
+}: {
+  item: PortfolioItem;
+  config: PortfolioConfig;
+  large?: boolean;
+  priority?: boolean;
+}) {
+  const image = item.image || heroFallbacks[item.type];
+  const TransferIcon = transferIcon(item.primaryTransferDisplay);
+
+  return (
+    <Link
+      href={`${config.path}/${item.slug}`}
+      className={`portfolio-editorial-card ${large ? "portfolio-editorial-card--large" : ""}`}
+      aria-label={`View ${item.name} ${config.singular} details`}
+    >
+      <img
+        src={optimizedImageUrl(image, { width: large ? 1180 : 680, height: large ? 820 : 520, quality: 92 })}
+        alt={`${item.name} ${config.singular}`}
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "auto"}
+        width={large ? 1180 : 680}
+        height={large ? 820 : 520}
+      />
+      <span className="portfolio-editorial-card__shade" aria-hidden="true" />
+      <span className="portfolio-editorial-card__badge">{item.category}</span>
+      <span className="portfolio-editorial-card__copy">
+        <span className="portfolio-editorial-card__kicker">Curated {config.singular}</span>
+        <strong>{item.name}</strong>
+        <span className="portfolio-editorial-card__meta">
+          <span>
+            <MapPin size={14} />
+            {item.location}
+          </span>
+          <span>
+            <TransferIcon size={14} />
+            {item.primaryTransferDisplay}
+          </span>
+        </span>
+      </span>
+    </Link>
+  );
+}
+
+function PortfolioEditorialShowcase({ config, items }: { config: PortfolioConfig; items: PortfolioItem[] }) {
+  const [hero, ...supporting] = items.slice(0, 4);
+
+  if (!hero) {
+    return null;
+  }
+
+  return (
+    <section className="portfolio-editorial" aria-labelledby="portfolio-editorial-title">
+      <div className="portfolio-editorial__heading">
+        <div>
+          <p className="lux-eyebrow">Editorial Discovery</p>
+          <h2 id="portfolio-editorial-title">{config.editorTitle}</h2>
+        </div>
+        <p>{config.editorSubtitle}</p>
+      </div>
+      <div className="portfolio-editorial__grid">
+        <PortfolioEditorialCard item={hero} config={config} large priority />
+        <div className="portfolio-editorial__support">
+          {supporting.map((item) => (
+            <PortfolioEditorialCard key={item.id} item={item} config={config} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PortfolioCollections({ config, items }: { config: PortfolioConfig; items: PortfolioItem[] }) {
+  const groups = config.selectionOptions
+    .map((selection) => ({
+      selection,
+      items: sortPortfolioItems(items.filter((item) => item.selectionTag === selection), "recommended").slice(0, 5)
+    }))
+    .filter((group) => group.items.length)
+    .slice(0, 3);
+
+  if (!groups.length) {
+    return null;
+  }
+
+  return (
+    <section className="portfolio-collections" aria-labelledby="portfolio-collections-title">
+      <div className="portfolio-editorial__heading">
+        <div>
+          <p className="lux-eyebrow">Curated Collections</p>
+          <h2 id="portfolio-collections-title">{config.collectionTitle}</h2>
+        </div>
+        <p>{config.collectionSubtitle}</p>
+      </div>
+      <div className="portfolio-collections__rows">
+        {groups.map((group) => (
+          <article className="portfolio-collection-row" key={group.selection}>
+            <div className="portfolio-collection-row__header">
+              <h3>{group.selection}</h3>
+              <span>{group.items.length} selected</span>
+            </div>
+            <div className="portfolio-collection-row__scroller">
+              {group.items.map((item, index) => (
+                <PortfolioCard key={item.id} item={item} config={config} priority={index === 0} />
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function PortfolioResultsBar({
   config,
   resultCount,
@@ -776,6 +909,7 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
 
   const visibleItems = filteredItems.slice(0, visibleCount);
   const hasActive = hasActiveFilters(query, filters, sort);
+  const editorialItems = useMemo(() => sortPortfolioItems(portfolioItems, "recommended"), [portfolioItems]);
 
   function resetFilters() {
     setQuery("");
@@ -830,6 +964,9 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
             onSortChange={setSort}
             onReset={resetFilters}
           />
+
+          <PortfolioEditorialShowcase config={config} items={editorialItems} />
+          <PortfolioCollections config={config} items={editorialItems} />
 
           <PortfolioResultsBar
             config={config}
