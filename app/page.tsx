@@ -467,8 +467,8 @@ export default async function HomePage() {
         <ServicesParallax
           services={services}
           images={serviceImages}
-          title="DMC Services"
-          description="Commercial support, island logistics, and product clarity in one partner rhythm."
+          title="Your Maldives DMC, behind every seamless journey"
+          description="From resort contracting to on-island coordination, we support travel professionals with trusted destination expertise across the Maldives."
         />
       </section>
       <section className="lux-section lux-section--white why-trust-section">
