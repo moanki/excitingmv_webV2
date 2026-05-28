@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, Globe2, Handshake, Landmark, MapPin, Palmtree, Star } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  BedDouble,
+  ConciergeBell,
+  Handshake,
+  Plane,
+} from "lucide-react";
 
 import { PartnerModalButton } from "@/components/partner-modal-button";
 import { optimizedImageUrl } from "@/lib/image-urls";
@@ -36,69 +43,76 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const defaultStoryPanels = [
+const services = [
   {
-    kicker: "Resort Partnerships",
-    title: "Access That Supports Better Recommendations",
-    body:
-      "We work with a curated portfolio of premium resorts, boutique properties, and local providers, helping partners match the right island to the right client.",
+    title: "Resort & Accommodation Coordination",
+    body: "Preferred accommodation access with clear product-fit guidance.",
+    Icon: BedDouble,
   },
   {
-    kicker: "Destination Support",
-    title: "Seamless Journeys, Handled Locally",
-    body:
-      "From arrival coordination to on-island support, our local team helps partners deliver smooth guest experiences across the Maldives.",
+    title: "Transportation & Transfers",
+    body: "Seaplane, speedboat, domestic flight, and arrival movement support.",
+    Icon: Plane,
   },
   {
-    kicker: "Market Understanding",
-    title: "Insight Shaped by Real Travel Demand",
-    body:
-      "Our market awareness helps partners respond to premium demand across Russia & CIS, Europe, Middle East / GCC, and regional travel networks.",
-  },
-];
-
-const proofItems = [
-  { value: "4x", label: "TTM Top Producer", note: "Recognized production performance", Icon: Star },
-  { value: "Curated", label: "Resort Partnerships", note: "Trusted access across the Maldives", Icon: Handshake },
-  { value: "Key", label: "Global Markets", note: "Russia & CIS, Europe, Middle East / GCC", Icon: Globe2 },
-  { value: "Maldives-Based", label: "Expertise", note: "Local knowledge and destination support", Icon: MapPin },
-];
-
-const capabilityTiles = [
-  {
-    title: "Resort Partnerships",
-    body: "Trusted access to carefully selected Maldives resort partners.",
+    title: "Concierge & Personalization",
+    body: "Special requests, private dining, wellness, family, and celebration details.",
+    Icon: ConciergeBell,
   },
   {
-    title: "DMC Services",
-    body: "On-ground coordination, planning support, and destination-level service.",
-  },
-  {
-    title: "Travel Partnerships",
-    body: "Support for travel advisors, tour operators, and luxury agencies.",
-  },
-  {
-    title: "Curated Experiences",
-    body: "Handpicked Maldives experiences shaped around client profiles.",
+    title: "Events, Groups & Meet & Greet",
+    body: "Airport handling, group movement, event support, and guest flow coordination.",
+    Icon: BadgeCheck,
   },
 ];
 
-const marketIcons = [Landmark, Globe2, Landmark, Landmark, Palmtree];
+const partnerLogos = ["Luxury Resorts", "Boutique Hotels", "Local Providers", "Preferred DMC Network"];
+
+const brandPortfolio = [
+  {
+    title: "ETH Hospitality Services",
+    body: "Regional hospitality operations hub, Dubai.",
+    image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=84",
+  },
+  {
+    title: "Exciting Travel Holidays",
+    body: "Global travel distribution and partner network.",
+    image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=84",
+  },
+  {
+    title: "Exciting Islands",
+    body: "Destination branding and curated experience development.",
+    image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=900&q=84",
+  },
+];
+
+const partnerTypes = [
+  {
+    title: "Luxury Resorts",
+    body: "Premium digital exposure, high-value partner visibility, and stronger storytelling.",
+  },
+  {
+    title: "Boutique Hotels & Guesthouses",
+    body: "Access to premium markets and scalable growth opportunities.",
+  },
+  {
+    title: "Experience Providers",
+    body: "Curated exposure, cross-selling opportunities, and global distribution.",
+  },
+];
 
 export default async function AboutPage() {
   const { content } = await getAboutPageContent();
-  const marketCards = content.markets.cards.filter((item) => item.enabled);
   const logos = content.awards.logos.filter((item) => item.enabled && item.name);
-  const storyPanelImages = [
-    content.hero.imageUrl,
-    "https://images.unsplash.com/photo-1544511916-0148ccdeb877?auto=format&fit=crop&w=1400&q=84",
-    content.cta.backgroundImageUrl || content.story.imageUrl,
-  ];
-  const ctaImage = content.cta.backgroundImageUrl || content.hero.imageUrl;
+  const serviceImage =
+    content.story.imageUrl || "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1400&q=84";
+  const partnerImage =
+    content.cta.backgroundImageUrl ||
+    "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1600&q=86";
 
   return (
-    <main className="about-cinematic-page">
-      <section className="about-cinematic-hero">
+    <main className="about-company-page">
+      <section className="about-company-hero">
         <img
           src={optimizedImageUrl(content.hero.imageUrl, { width: 1920, height: 980, quality: 88 })}
           alt=""
@@ -106,171 +120,163 @@ export default async function AboutPage() {
           height={980}
           fetchPriority="high"
         />
-        <div className="about-cinematic-hero__shade" aria-hidden="true" />
-        <div className="lux-container about-cinematic-hero__content">
+        <div className="about-company-hero__shade" aria-hidden="true" />
+        <div className="lux-container about-company-hero__content">
           <p className="lux-eyebrow">ABOUT EXCITING MALDIVES</p>
           <h1>The Maldives DMC Behind Confident Travel Partnerships</h1>
           <p>
-            We connect travel professionals with trusted resort access, destination knowledge, and seamless on-ground support
+            We connect travel professionals with trusted resort access, curated destination knowledge, and seamless on-ground support
             across the Maldives.
           </p>
-          <a href="#about-story" className="about-cinematic-link">
-            Explore our story
-            <ArrowRight size={22} aria-hidden="true" />
+          <a href="#about-introduction" className="about-company-link">
+            Explore Our Story
+            <ArrowRight size={20} aria-hidden="true" />
           </a>
         </div>
       </section>
 
-      <section className="about-cinematic-section" id="about-story">
-        <div className="lux-container about-cinematic-intro">
-          <div className="about-cinematic-intro__image">
+      <section className="about-company-section about-company-introduction" id="about-introduction">
+        <div className="lux-container">
+          <p>
+            Exciting Maldives is a Maldives-based B2B Destination Management Company built to support travel professionals with
+            trusted resort partnerships, local destination expertise, and seamless inbound travel coordination.
+          </p>
+        </div>
+      </section>
+
+      <section className="about-company-section about-company-services-section">
+        <div className="lux-container about-company-services">
+          <div className="about-company-services__list">
+            <p className="lux-eyebrow">WHAT WE DO</p>
+            <h2>End-to-end inbound tourism solutions.</h2>
+            <div className="about-company-service-list">
+              {services.map(({ title, body, Icon }, index) => (
+                <article className="about-company-service" key={title}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <Icon size={22} aria-hidden="true" />
+                  <div>
+                    <h3>{title}</h3>
+                    <p>{body}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+          <div className="about-company-services__image">
             <img
-              src={optimizedImageUrl(content.story.imageUrl, { width: 980, height: 620, quality: 84 })}
+              src={optimizedImageUrl(serviceImage, { width: 900, height: 1120, quality: 86 })}
               alt={content.story.imageAlt}
-              width={980}
-              height={620}
+              width={900}
+              height={1120}
               loading="lazy"
             />
           </div>
-          <div className="about-cinematic-intro__copy">
-            <p className="lux-eyebrow">OUR STORY</p>
-            <span aria-hidden="true" />
-            <h2>Built Around Partner Confidence</h2>
-            <p>
-              Exciting Maldives was created to make Maldives travel partnerships clearer, smoother, and more reliable. We combine
-              local destination knowledge with trusted resort relationships and responsive partner support.
-            </p>
-            <p>Our role is simple: help partners recommend, plan, and deliver the Maldives with confidence.</p>
-          </div>
         </div>
       </section>
 
-      <section className="about-cinematic-proof" aria-label="Exciting Maldives proof points">
-        <div className="lux-container about-cinematic-proof__grid">
-          {proofItems.map(({ value, label, note, Icon }) => (
-            <div className="about-cinematic-proof__item" key={`${value}-${label}`}>
-              <Icon size={32} aria-hidden="true" />
-              <strong>{value}</strong>
-              <span>{label}</span>
-              <small>{note}</small>
-            </div>
+      <section className="about-company-section about-company-partners">
+        <div className="lux-container about-company-partners__grid">
+          <div>
+            <p className="lux-eyebrow">STRATEGIC HOSPITALITY PARTNERS</p>
+            <h2>Trusted access across the Maldives.</h2>
+          </div>
+          <p>
+            We collaborate with a curated portfolio of luxury resorts, boutique properties, and local providers to give partners
+            clearer product positioning and stronger Maldives recommendations.
+          </p>
+        </div>
+        <div className="lux-container about-company-logo-strip" aria-label="Strategic hospitality partner categories">
+          {(logos.length ? logos.slice(0, 4).map((logo) => logo.name) : partnerLogos).map((name) => (
+            <span key={name}>{name}</span>
           ))}
         </div>
       </section>
 
-      <section className="about-cinematic-section about-cinematic-section--panels">
-        <div className="lux-container about-cinematic-panels">
-          {defaultStoryPanels.map((panel, index) => (
-            <article className={`about-cinematic-panel ${index % 2 ? "is-reversed" : ""}`} key={panel.kicker}>
-              <div className="about-cinematic-panel__image">
+      <section className="about-company-section about-company-philosophy">
+        <div className="lux-container">
+          <p className="lux-eyebrow">OUR PHILOSOPHY & PROMISE</p>
+          <h2>Experienced with care, clarity, and respect for the islands.</h2>
+          <p>
+            Our team supports partners with personalized service, responsible destination knowledge, and reliable on-ground
+            coordination from planning to departure.
+          </p>
+          <p>
+            We believe in destination growth that respects the Maldives, supports local partnerships, and protects the character of
+            the islands.
+          </p>
+        </div>
+      </section>
+
+      <section className="about-company-section about-brand-section">
+        <div className="lux-container">
+          <div className="about-company-heading">
+            <p className="lux-eyebrow">BRAND PORTFOLIO & ECOSYSTEM</p>
+            <h2>A connected hospitality and travel platform.</h2>
+          </div>
+          <div className="about-brand-grid">
+            {brandPortfolio.map((item) => (
+              <article className="about-brand-card" key={item.title}>
                 <img
-                  src={optimizedImageUrl(storyPanelImages[index], { width: 1100, height: 700, quality: 84 })}
+                  src={optimizedImageUrl(item.image, { width: 760, height: 540, quality: 84 })}
                   alt=""
-                  width={1100}
-                  height={700}
+                  width={760}
+                  height={540}
                   loading="lazy"
                 />
-              </div>
-              <div className="about-cinematic-panel__copy">
-                <span>{String(index + 1).padStart(2, "0")} — {panel.kicker.toUpperCase()}</span>
-                <h2>{panel.title}</h2>
-                <p>{panel.body}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="about-cinematic-section about-capability-section">
-        <div className="lux-container">
-          <div className="about-capability-heading">
-            <p className="lux-eyebrow">WHAT WE DO</p>
-            <h2>End-to-end Maldives support, kept clear.</h2>
-          </div>
-          <div className="about-capability-grid">
-            {capabilityTiles.map((tile, index) => (
-              <article className="about-capability-tile" key={tile.title}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <h3>{tile.title}</h3>
-                <p>{tile.body}</p>
+                <div>
+                  <h3>{item.title}</h3>
+                  <p>{item.body}</p>
+                </div>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="about-cinematic-markets">
-        <div className="lux-container about-cinematic-markets__grid">
-          <div className="about-cinematic-markets__title">
-            <span aria-hidden="true" />
-            <h2>Connected to Key Maldives Travel Markets</h2>
-            <p>Focused market understanding for premium Maldives demand.</p>
+      <section className="about-company-section about-who-partner">
+        <div className="lux-container about-who-partner__grid">
+          <div className="about-who-partner__image">
+            <img
+              src={optimizedImageUrl(partnerImage, { width: 900, height: 980, quality: 86 })}
+              alt=""
+              width={900}
+              height={980}
+              loading="lazy"
+            />
           </div>
-          <div className="about-cinematic-markets__list">
-            {marketCards.map((market, index) => {
-              const Icon = marketIcons[index] || Globe2;
-              return (
-                <div className="about-cinematic-market" key={market.region}>
-                  <Icon size={34} aria-hidden="true" />
-                  <span>{market.region}</span>
-                </div>
-              );
-            })}
+          <div className="about-who-partner__content">
+            <p className="lux-eyebrow">WHO WE PARTNER WITH</p>
+            <h2>Partnership opportunities for Maldives hospitality providers.</h2>
+            <div className="about-partner-type-list">
+              {partnerTypes.map((item) => (
+                <article className="about-partner-type" key={item.title}>
+                  <Handshake size={20} aria-hidden="true" />
+                  <div>
+                    <h3>{item.title}</h3>
+                    <p>{item.body}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {logos.length ? (
-        <section className="about-cinematic-recognition">
-          <div className="lux-container about-cinematic-recognition__grid">
-            <div className="about-cinematic-recognition__title">
-              <h2>{content.awards.title}</h2>
-              <p>4x TTM Top Producer / Consecutive Award Winner — Last 4 Years</p>
-            </div>
-            <div className="about-cinematic-logos">
-              {logos.map((logo) => {
-                const body = logo.imageUrl ? (
-                  <img
-                    src={optimizedImageUrl(logo.imageUrl, { width: 260, height: 120, quality: 90, resize: "contain" })}
-                    alt={logo.name}
-                    width={260}
-                    height={120}
-                    loading="lazy"
-                  />
-                ) : (
-                  <span>{logo.name}</span>
-                );
-
-                return logo.href ? (
-                  <a className="about-cinematic-logo" href={logo.href} target="_blank" rel="noreferrer" key={logo.name}>
-                    {body}
-                  </a>
-                ) : (
-                  <div className="about-cinematic-logo" key={logo.name}>
-                    {body}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      <section className="about-cinematic-cta">
+      <section className="about-company-cta">
         <img
-          src={optimizedImageUrl(ctaImage, { width: 1800, height: 560, quality: 86 })}
+          src={optimizedImageUrl(partnerImage, { width: 1800, height: 560, quality: 86 })}
           alt=""
           width={1800}
           height={560}
           loading="lazy"
         />
-        <div className="about-cinematic-cta__shade" aria-hidden="true" />
-        <div className="lux-container about-cinematic-cta__content">
+        <div className="about-company-cta__shade" aria-hidden="true" />
+        <div className="lux-container about-company-cta__content">
           <div>
             <h2>Let's Build Stronger Maldives Partnerships</h2>
             <p>Work with a destination partner that brings clarity, access, and on-ground confidence.</p>
           </div>
-          <div className="about-cinematic-cta__actions">
+          <div className="about-company-cta__actions">
             <Cta href="#partner">Become a Partner</Cta>
             <Cta href="/contact" variant="light">
               Contact Us
