@@ -14971,24 +14971,41 @@ select {
 }
 
 .lux-hero__retreat-logos div {
-  gap: clamp(1.35rem, 3.6vw, 3.5rem) !important;
+  gap: clamp(1.75rem, 3.8vw, 3.75rem) !important;
   animation-duration: 72s !important;
 }
 
-.lux-hero__retreat-logos span {
+.lux-hero__retreat-logos .lux-hero__retreat-logo-frame {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
-  width: clamp(150px, 13vw, 200px) !important;
-  min-width: clamp(150px, 13vw, 200px) !important;
+  flex: 0 0 180px !important;
+  width: 180px !important;
+  height: 70px !important;
+  min-width: 180px !important;
+  text-align: center;
 }
 
 .lux-hero__retreat-logos img {
-  width: clamp(118px, 10vw, 154px) !important;
-  height: clamp(42px, 4.4vw, 58px) !important;
-  max-width: none !important;
-  max-height: none !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: 150px !important;
+  max-height: 52px !important;
   object-fit: contain !important;
+  object-position: center !important;
+  }
+
+.lux-hero__retreat-logo-frame.logo-vakkaru img,
+.lux-hero__retreat-logo-frame.logo-waldorf img {
+  transform: scale(1.14);
+}
+
+.lux-hero__retreat-logo-frame.logo-finolhu img {
+  transform: scale(0.9);
+}
+
+.lux-hero__retreat-logo-frame.logo-joali img {
+  transform: scale(0.94);
 }
 
 @media (max-width: 900px) {
@@ -15006,14 +15023,34 @@ select {
     animation-duration: 68s !important;
   }
 
-  .lux-hero__retreat-logos span {
-    width: 148px !important;
-    min-width: 148px !important;
+  .lux-hero__retreat-logos .lux-hero__retreat-logo-frame {
+    flex-basis: 150px !important;
+    width: 150px !important;
+    height: 60px !important;
+    min-width: 150px !important;
   }
 
   .lux-hero__retreat-logos img {
-    width: 116px !important;
-    height: 40px !important;
+    max-width: 126px !important;
+    max-height: 44px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .lux-hero__retreat-logos div {
+    gap: 1.4rem !important;
+  }
+
+  .lux-hero__retreat-logos .lux-hero__retreat-logo-frame {
+    flex-basis: 120px !important;
+    width: 120px !important;
+    height: 48px !important;
+    min-width: 120px !important;
+  }
+
+  .lux-hero__retreat-logos img {
+    max-width: 105px !important;
+    max-height: 36px !important;
   }
 }
 

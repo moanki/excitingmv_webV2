@@ -64,6 +64,17 @@ const partnerBenefits = ["Priority Support", "Exclusive Rates", "Access to Offer
 
 const defaultPartnerLogos = ["Soneva", "JOALI", "Patina", "Milaidhoo", "Baros", "Anantara"];
 
+function logoScaleClass(name: string) {
+  const normalized = name.toLowerCase();
+
+  if (normalized.includes("vakkaru")) return "logo-vakkaru";
+  if (normalized.includes("waldorf")) return "logo-waldorf";
+  if (normalized.includes("finolhu")) return "logo-finolhu";
+  if (normalized.includes("joali")) return "logo-joali";
+
+  return "";
+}
+
 function getMarketDisplayLabel(label: string) {
   const normalized = label.toLowerCase();
 
@@ -371,10 +382,10 @@ export default async function HomePage() {
         <div className="lux-hero__retreat-logos" aria-label="Featured retreats">
           <div>
             {[...heroLogos.slice(0, 5), ...heroLogos.slice(0, 5)].map((logo, index) => (
-              <span key={`${logo.name}-${index}`}>
+              <span className={`lux-hero__retreat-logo-frame ${logoScaleClass(logo.name)}`} key={`${logo.name}-${index}`}>
                 {logo.imageUrl ? (
                   <img
-                    src={optimizedImageUrl(logo.imageUrl, { width: 220, height: 120, quality: 78, resize: "contain" })}
+                    src={optimizedImageUrl(logo.imageUrl, { width: 360, height: 160, quality: 96, resize: "contain" })}
                     alt={logo.name || "Featured resort"}
                     width={220}
                     height={120}
