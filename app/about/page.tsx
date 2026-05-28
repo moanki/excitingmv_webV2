@@ -39,29 +39,48 @@ export async function generateMetadata(): Promise<Metadata> {
 const defaultStoryPanels = [
   {
     kicker: "Resort Partnerships",
-    title: "Access that supports better recommendations.",
+    title: "Access That Supports Better Recommendations",
     body:
-      "We work with a curated portfolio of Maldives resorts, building relationships that create real value for our travel partners.",
+      "We work with a curated portfolio of premium resorts, boutique properties, and local providers, helping partners match the right island to the right client.",
   },
   {
     kicker: "Destination Support",
-    title: "Seamless journeys, handled locally.",
+    title: "Seamless Journeys, Handled Locally",
     body:
-      "From airport arrival to island transfers and in-stay support, we make sure every detail is looked after with care and consistency.",
+      "From arrival coordination to on-island support, our local team helps partners deliver smooth guest experiences across the Maldives.",
   },
   {
     kicker: "Market Understanding",
-    title: "Insight shaped by real travel demand.",
+    title: "Insight Shaped by Real Travel Demand",
     body:
-      "We stay close to our key source markets, understanding trends and traveller expectations to support smarter business decisions.",
+      "Our market awareness helps partners respond to premium demand across Russia & CIS, Europe, Middle East / GCC, and regional travel networks.",
   },
 ];
 
 const proofItems = [
-  { value: "4x", label: "TTM Top Producer", Icon: Star },
-  { value: "150+", label: "Resort Partnerships", Icon: Handshake },
-  { value: "Key", label: "Global Markets", Icon: Globe2 },
-  { value: "Maldives-Based", label: "Expertise", Icon: MapPin },
+  { value: "4x", label: "TTM Top Producer", note: "Recognized production performance", Icon: Star },
+  { value: "Curated", label: "Resort Partnerships", note: "Trusted access across the Maldives", Icon: Handshake },
+  { value: "Key", label: "Global Markets", note: "Russia & CIS, Europe, Middle East / GCC", Icon: Globe2 },
+  { value: "Maldives-Based", label: "Expertise", note: "Local knowledge and destination support", Icon: MapPin },
+];
+
+const capabilityTiles = [
+  {
+    title: "Resort Partnerships",
+    body: "Trusted access to carefully selected Maldives resort partners.",
+  },
+  {
+    title: "DMC Services",
+    body: "On-ground coordination, planning support, and destination-level service.",
+  },
+  {
+    title: "Travel Partnerships",
+    body: "Support for travel advisors, tour operators, and luxury agencies.",
+  },
+  {
+    title: "Curated Experiences",
+    body: "Handpicked Maldives experiences shaped around client profiles.",
+  },
 ];
 
 const marketIcons = [Landmark, Globe2, Landmark, Landmark, Palmtree];
@@ -89,8 +108,8 @@ export default async function AboutPage() {
         />
         <div className="about-cinematic-hero__shade" aria-hidden="true" />
         <div className="lux-container about-cinematic-hero__content">
-          <p className="lux-eyebrow">About Exciting Maldives</p>
-          <h1>The Maldives DMC behind confident travel partnerships.</h1>
+          <p className="lux-eyebrow">ABOUT EXCITING MALDIVES</p>
+          <h1>The Maldives DMC Behind Confident Travel Partnerships</h1>
           <p>
             We connect travel professionals with trusted resort access, destination knowledge, and seamless on-ground support
             across the Maldives.
@@ -104,12 +123,6 @@ export default async function AboutPage() {
 
       <section className="about-cinematic-section" id="about-story">
         <div className="lux-container about-cinematic-intro">
-          <div className="about-cinematic-intro__copy">
-            <span aria-hidden="true" />
-            <h2>Built around partner confidence.</h2>
-            <p>Exciting Maldives was created to make Maldives travel partnerships clearer, smoother, and more reliable.</p>
-            <p>We combine local destination knowledge with trusted resort relationships and responsive partner support.</p>
-          </div>
           <div className="about-cinematic-intro__image">
             <img
               src={optimizedImageUrl(content.story.imageUrl, { width: 980, height: 620, quality: 84 })}
@@ -119,16 +132,27 @@ export default async function AboutPage() {
               loading="lazy"
             />
           </div>
+          <div className="about-cinematic-intro__copy">
+            <p className="lux-eyebrow">OUR STORY</p>
+            <span aria-hidden="true" />
+            <h2>Built Around Partner Confidence</h2>
+            <p>
+              Exciting Maldives was created to make Maldives travel partnerships clearer, smoother, and more reliable. We combine
+              local destination knowledge with trusted resort relationships and responsive partner support.
+            </p>
+            <p>Our role is simple: help partners recommend, plan, and deliver the Maldives with confidence.</p>
+          </div>
         </div>
       </section>
 
       <section className="about-cinematic-proof" aria-label="Exciting Maldives proof points">
         <div className="lux-container about-cinematic-proof__grid">
-          {proofItems.map(({ value, label, Icon }) => (
+          {proofItems.map(({ value, label, note, Icon }) => (
             <div className="about-cinematic-proof__item" key={`${value}-${label}`}>
               <Icon size={32} aria-hidden="true" />
               <strong>{value}</strong>
               <span>{label}</span>
+              <small>{note}</small>
             </div>
           ))}
         </div>
@@ -148,9 +172,8 @@ export default async function AboutPage() {
                 />
               </div>
               <div className="about-cinematic-panel__copy">
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <h2>{panel.kicker}</h2>
-                <strong>{panel.title}</strong>
+                <span>{String(index + 1).padStart(2, "0")} — {panel.kicker.toUpperCase()}</span>
+                <h2>{panel.title}</h2>
                 <p>{panel.body}</p>
               </div>
             </article>
@@ -158,11 +181,30 @@ export default async function AboutPage() {
         </div>
       </section>
 
+      <section className="about-cinematic-section about-capability-section">
+        <div className="lux-container">
+          <div className="about-capability-heading">
+            <p className="lux-eyebrow">WHAT WE DO</p>
+            <h2>End-to-end Maldives support, kept clear.</h2>
+          </div>
+          <div className="about-capability-grid">
+            {capabilityTiles.map((tile, index) => (
+              <article className="about-capability-tile" key={tile.title}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <h3>{tile.title}</h3>
+                <p>{tile.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="about-cinematic-markets">
         <div className="lux-container about-cinematic-markets__grid">
           <div className="about-cinematic-markets__title">
             <span aria-hidden="true" />
-            <h2>Connected to key Maldives travel markets.</h2>
+            <h2>Connected to Key Maldives Travel Markets</h2>
+            <p>Focused market understanding for premium Maldives demand.</p>
           </div>
           <div className="about-cinematic-markets__list">
             {marketCards.map((market, index) => {
@@ -183,6 +225,7 @@ export default async function AboutPage() {
           <div className="lux-container about-cinematic-recognition__grid">
             <div className="about-cinematic-recognition__title">
               <h2>{content.awards.title}</h2>
+              <p>4x TTM Top Producer / Consecutive Award Winner — Last 4 Years</p>
             </div>
             <div className="about-cinematic-logos">
               {logos.map((logo) => {
@@ -224,7 +267,7 @@ export default async function AboutPage() {
         <div className="about-cinematic-cta__shade" aria-hidden="true" />
         <div className="lux-container about-cinematic-cta__content">
           <div>
-            <h2>Let's build stronger Maldives partnerships.</h2>
+            <h2>Let's Build Stronger Maldives Partnerships</h2>
             <p>Work with a destination partner that brings clarity, access, and on-ground confidence.</p>
           </div>
           <div className="about-cinematic-cta__actions">
