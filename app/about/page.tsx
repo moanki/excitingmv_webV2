@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { ArrowRight, Globe2, Handshake, Landmark, MapPin, Palmtree, Star } from "lucide-react";
 
 import { PartnerModalButton } from "@/components/partner-modal-button";
 import { optimizedImageUrl } from "@/lib/image-urls";
@@ -14,7 +14,11 @@ function Cta({ href, children, variant = "gold" }: { href: string; children: Rea
     return <PartnerModalButton className={className}>{children}</PartnerModalButton>;
   }
 
-  return <Link href={href || "/contact"} className={className}>{children}</Link>;
+  return (
+    <Link href={href || "/contact"} className={className}>
+      {children}
+    </Link>
+  );
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -27,138 +31,126 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: content.seo.title,
       description: content.seo.description,
-      images: content.seo.ogImageUrl || content.hero.imageUrl ? [content.seo.ogImageUrl || content.hero.imageUrl] : undefined
-    }
+      images: content.seo.ogImageUrl || content.hero.imageUrl ? [content.seo.ogImageUrl || content.hero.imageUrl] : undefined,
+    },
   };
 }
 
+const defaultStoryPanels = [
+  {
+    kicker: "Resort Partnerships",
+    title: "Access that supports better recommendations.",
+    body:
+      "We work with a curated portfolio of Maldives resorts, building relationships that create real value for our travel partners.",
+  },
+  {
+    kicker: "Destination Support",
+    title: "Seamless journeys, handled locally.",
+    body:
+      "From airport arrival to island transfers and in-stay support, we make sure every detail is looked after with care and consistency.",
+  },
+  {
+    kicker: "Market Understanding",
+    title: "Insight shaped by real travel demand.",
+    body:
+      "We stay close to our key source markets, understanding trends and traveller expectations to support smarter business decisions.",
+  },
+];
+
+const proofItems = [
+  { value: "4x", label: "TTM Top Producer", Icon: Star },
+  { value: "150+", label: "Resort Partnerships", Icon: Handshake },
+  { value: "Key", label: "Global Markets", Icon: Globe2 },
+  { value: "Maldives-Based", label: "Expertise", Icon: MapPin },
+];
+
+const marketIcons = [Landmark, Globe2, Landmark, Landmark, Palmtree];
+
 export default async function AboutPage() {
   const { content } = await getAboutPageContent();
-  const enabledStats = content.hero.stats.filter((item) => item.enabled && (item.value || item.label));
-  const whatCards = content.whatWeDo.cards.filter((item) => item.enabled);
   const marketCards = content.markets.cards.filter((item) => item.enabled);
-  const whyPoints = content.whyUs.points.filter((item) => item.enabled);
   const logos = content.awards.logos.filter((item) => item.enabled && item.name);
   const storyPanelImages = [
-    content.story.imageUrl,
     content.hero.imageUrl,
-    content.cta.backgroundImageUrl || content.story.imageUrl
+    "https://images.unsplash.com/photo-1544511916-0148ccdeb877?auto=format&fit=crop&w=1400&q=84",
+    content.cta.backgroundImageUrl || content.story.imageUrl,
   ];
-  const storyPanels = [
-    {
-      kicker: "Resort Partnerships",
-      title: "Access that builds better recommendations.",
-      body:
-        whatCards.find((item) => /resort/i.test(item.title))?.description ||
-        "We work with a curated portfolio of Maldives resorts, helping partners match the right island to the right client."
-    },
-    {
-      kicker: "Destination Support",
-      title: "Calm coordination behind every journey.",
-      body:
-        whatCards.find((item) => /dmc|service/i.test(item.title))?.description ||
-        "From planning support to on-island details, our team keeps destination coordination clear and reliable."
-    },
-    {
-      kicker: "Market Understanding",
-      title: "Recommendations shaped by real demand.",
-      body:
-        whyPoints.find((item) => /market/i.test(item.title))?.description ||
-        "We understand important Maldives source markets and help partners shape stronger, more relevant travel conversations."
-    }
-  ];
+  const ctaImage = content.cta.backgroundImageUrl || content.hero.imageUrl;
 
   return (
-    <main className="public-lux-page">
-      <section className="public-lux-hero public-lux-hero--split">
-        <div className="lux-container public-lux-hero__grid">
-          <div className="public-lux-hero__copy">
-            <p className="lux-eyebrow">{content.hero.kicker}</p>
-            <h1>{content.hero.headline}</h1>
-            <p>{content.hero.body}</p>
-            <Cta href={content.hero.primaryCtaHref}>{content.hero.primaryCtaLabel}</Cta>
-          </div>
-          <div className="public-lux-hero__image">
-            <img
-              src={optimizedImageUrl(content.hero.imageUrl, { width: 980, height: 780, quality: 80 })}
-              alt=""
-              width={980}
-              height={780}
-              fetchPriority="high"
-            />
-          </div>
+    <main className="about-cinematic-page">
+      <section className="about-cinematic-hero">
+        <img
+          src={optimizedImageUrl(content.hero.imageUrl, { width: 1920, height: 980, quality: 88 })}
+          alt=""
+          width={1920}
+          height={980}
+          fetchPriority="high"
+        />
+        <div className="about-cinematic-hero__shade" aria-hidden="true" />
+        <div className="lux-container about-cinematic-hero__content">
+          <p className="lux-eyebrow">About Exciting Maldives</p>
+          <h1>The Maldives DMC behind confident travel partnerships.</h1>
+          <p>
+            We connect travel professionals with trusted resort access, destination knowledge, and seamless on-ground support
+            across the Maldives.
+          </p>
+          <a href="#about-story" className="about-cinematic-link">
+            Explore our story
+            <ArrowRight size={22} aria-hidden="true" />
+          </a>
         </div>
       </section>
 
-      <section className="public-lux-section">
-        <div className="lux-container about-story">
-          <div className="about-story__copy">
-            <p className="lux-eyebrow">Who We Are</p>
-            <h2>{content.story.title}</h2>
-            <p>{content.story.body}</p>
-            {content.story.secondaryBody ? <p>{content.story.secondaryBody}</p> : null}
+      <section className="about-cinematic-section" id="about-story">
+        <div className="lux-container about-cinematic-intro">
+          <div className="about-cinematic-intro__copy">
+            <span aria-hidden="true" />
+            <h2>Built around partner confidence.</h2>
+            <p>Exciting Maldives was created to make Maldives travel partnerships clearer, smoother, and more reliable.</p>
+            <p>We combine local destination knowledge with trusted resort relationships and responsive partner support.</p>
           </div>
-          <div className="about-story__image">
+          <div className="about-cinematic-intro__image">
             <img
-              src={optimizedImageUrl(content.story.imageUrl, { width: 760, height: 560, quality: 78 })}
+              src={optimizedImageUrl(content.story.imageUrl, { width: 980, height: 620, quality: 84 })}
               alt={content.story.imageAlt}
-              width={760}
-              height={560}
+              width={980}
+              height={620}
               loading="lazy"
             />
           </div>
         </div>
       </section>
 
-      {enabledStats.length ? (
-        <section className="public-lux-strip about-proof-strip-section">
-          <div className="lux-container public-lux-icon-strip about-proof-strip">
-            {enabledStats.map((stat) => (
-              <div className="public-lux-icon-strip__item" key={`${stat.value}-${stat.label}`}>
-                <Sparkles size={16} aria-hidden="true" />
-                <strong>{stat.value}</strong>
-                <span>{stat.label}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <section className="public-lux-section">
-        <div className="lux-container">
-          <div className="public-lux-section-title">
-            <p className="lux-eyebrow">Capabilities</p>
-            <h2>{content.whatWeDo.title}</h2>
-          </div>
-          <div className="about-editorial-tiles">
-            {whatCards.map((card, index) => (
-              <article className="about-editorial-tile" key={card.title}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <h3>{card.title}</h3>
-                <p>{card.description}</p>
-              </article>
-            ))}
-          </div>
+      <section className="about-cinematic-proof" aria-label="Exciting Maldives proof points">
+        <div className="lux-container about-cinematic-proof__grid">
+          {proofItems.map(({ value, label, Icon }) => (
+            <div className="about-cinematic-proof__item" key={`${value}-${label}`}>
+              <Icon size={32} aria-hidden="true" />
+              <strong>{value}</strong>
+              <span>{label}</span>
+            </div>
+          ))}
         </div>
       </section>
 
-      <section className="public-lux-section">
-        <div className="lux-container about-story-panels">
-          {storyPanels.map((panel, index) => (
-            <article className={`about-story-panel ${index % 2 ? "is-reversed" : ""}`} key={panel.kicker}>
-              <div className="about-story-panel__image">
+      <section className="about-cinematic-section about-cinematic-section--panels">
+        <div className="lux-container about-cinematic-panels">
+          {defaultStoryPanels.map((panel, index) => (
+            <article className={`about-cinematic-panel ${index % 2 ? "is-reversed" : ""}`} key={panel.kicker}>
+              <div className="about-cinematic-panel__image">
                 <img
-                  src={optimizedImageUrl(storyPanelImages[index], { width: 980, height: 680, quality: 82 })}
+                  src={optimizedImageUrl(storyPanelImages[index], { width: 1100, height: 700, quality: 84 })}
                   alt=""
-                  width={980}
-                  height={680}
+                  width={1100}
+                  height={700}
                   loading="lazy"
                 />
               </div>
-              <div className="about-story-panel__copy">
+              <div className="about-cinematic-panel__copy">
                 <span>{String(index + 1).padStart(2, "0")}</span>
-                <p className="lux-eyebrow">{panel.kicker}</p>
-                <h2>{panel.title}</h2>
+                <h2>{panel.kicker}</h2>
+                <strong>{panel.title}</strong>
                 <p>{panel.body}</p>
               </div>
             </article>
@@ -166,38 +158,40 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="public-lux-section about-market-chip-section">
-        <div className="lux-container about-markets">
-          <div className="about-markets__intro">
-            <p className="lux-eyebrow">Market Expertise</p>
-            <h2>{content.markets.title}</h2>
-            <p>{content.markets.subtitle}</p>
+      <section className="about-cinematic-markets">
+        <div className="lux-container about-cinematic-markets__grid">
+          <div className="about-cinematic-markets__title">
+            <span aria-hidden="true" />
+            <h2>Connected to key Maldives travel markets.</h2>
           </div>
-          <div className="about-market-chips">
-            {marketCards.map((market) => (
-              <span className="about-market-chip" key={market.region}>
-                {market.region}
-              </span>
-            ))}
+          <div className="about-cinematic-markets__list">
+            {marketCards.map((market, index) => {
+              const Icon = marketIcons[index] || Globe2;
+              return (
+                <div className="about-cinematic-market" key={market.region}>
+                  <Icon size={34} aria-hidden="true" />
+                  <span>{market.region}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {logos.length ? (
-        <section className="public-lux-section about-recognition-section">
-          <div className="lux-container">
-            <div className="public-lux-section-title">
-              <p className="lux-eyebrow">Awards & Memberships</p>
+        <section className="about-cinematic-recognition">
+          <div className="lux-container about-cinematic-recognition__grid">
+            <div className="about-cinematic-recognition__title">
               <h2>{content.awards.title}</h2>
             </div>
-            <div className="about-logo-strip awards-logo-grid">
+            <div className="about-cinematic-logos">
               {logos.map((logo) => {
                 const body = logo.imageUrl ? (
                   <img
-                    src={optimizedImageUrl(logo.imageUrl, { width: 240, height: 130, quality: 82, resize: "contain" })}
+                    src={optimizedImageUrl(logo.imageUrl, { width: 260, height: 120, quality: 90, resize: "contain" })}
                     alt={logo.name}
-                    width={240}
-                    height={130}
+                    width={260}
+                    height={120}
                     loading="lazy"
                   />
                 ) : (
@@ -205,9 +199,13 @@ export default async function AboutPage() {
                 );
 
                 return logo.href ? (
-                  <a className="about-logo-item" href={logo.href} target="_blank" rel="noreferrer" key={logo.name}>{body}</a>
+                  <a className="about-cinematic-logo" href={logo.href} target="_blank" rel="noreferrer" key={logo.name}>
+                    {body}
+                  </a>
                 ) : (
-                  <div className="about-logo-item" key={logo.name}>{body}</div>
+                  <div className="about-cinematic-logo" key={logo.name}>
+                    {body}
+                  </div>
                 );
               })}
             </div>
@@ -215,16 +213,25 @@ export default async function AboutPage() {
         </section>
       ) : null}
 
-      <section className="public-lux-section">
-        <div className="lux-container">
-          <div className="public-lux-banner">
-            <p className="lux-eyebrow">Partnership</p>
-            <h2>{content.cta.headline}</h2>
-            <p>{content.cta.body}</p>
-            <div className="public-lux-banner__actions">
-              <Cta href={content.cta.primaryCtaHref}>{content.cta.primaryCtaLabel}</Cta>
-              <Cta href={content.cta.secondaryCtaHref} variant="light">{content.cta.secondaryCtaLabel}</Cta>
-            </div>
+      <section className="about-cinematic-cta">
+        <img
+          src={optimizedImageUrl(ctaImage, { width: 1800, height: 560, quality: 86 })}
+          alt=""
+          width={1800}
+          height={560}
+          loading="lazy"
+        />
+        <div className="about-cinematic-cta__shade" aria-hidden="true" />
+        <div className="lux-container about-cinematic-cta__content">
+          <div>
+            <h2>Let's build stronger Maldives partnerships.</h2>
+            <p>Work with a destination partner that brings clarity, access, and on-ground confidence.</p>
+          </div>
+          <div className="about-cinematic-cta__actions">
+            <Cta href="#partner">Become a Partner</Cta>
+            <Cta href="/contact" variant="light">
+              Contact Us
+            </Cta>
           </div>
         </div>
       </section>
