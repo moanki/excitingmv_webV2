@@ -43,67 +43,72 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const services = [
+const serviceIcons = [BedDouble, Plane, ConciergeBell, BadgeCheck];
+
+const defaultServices = [
   {
     title: "Resort & Accommodation Coordination",
-    body: "Preferred accommodation access with clear product-fit guidance.",
-    Icon: BedDouble,
+    description: "Trusted support for resort selection, product matching, and booking coordination across the Maldives.",
   },
   {
     title: "Transportation & Transfers",
-    body: "Seaplane, speedboat, domestic flight, and arrival movement support.",
-    Icon: Plane,
+    description: "Seamless coordination for speedboat, domestic flight, seaplane, and arrival-to-resort movement.",
   },
   {
     title: "Concierge & Personalization",
-    body: "Special requests, private dining, wellness, family, and celebration details.",
-    Icon: ConciergeBell,
+    description: "Tailored support for guest preferences, special requests, and high-value travel experiences.",
   },
   {
     title: "Events, Groups & Meet & Greet",
-    body: "Airport handling, group movement, event support, and guest flow coordination.",
-    Icon: BadgeCheck,
+    description: "Coordinated support for arrivals, groups, events, and on-ground guest handling.",
   },
 ];
 
 const partnerLogos = ["Luxury Resorts", "Boutique Hotels", "Local Providers", "Preferred DMC Network"];
 
-const brandPortfolio = [
-  {
-    title: "ETH Hospitality Services",
-    body: "Regional hospitality operations hub, Dubai.",
-    image: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=84",
-  },
-  {
-    title: "Exciting Travel Holidays",
-    body: "Global travel distribution and partner network.",
-    image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=84",
-  },
-  {
-    title: "Exciting Islands",
-    body: "Destination branding and curated experience development.",
-    image: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=900&q=84",
-  },
+const brandImages = [
+  "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=84",
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=84",
+  "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=900&q=84",
 ];
 
-const partnerTypes = [
+const defaultBrandPortfolio = [
+  { region: "ETH Hospitality Services", description: "Regional hospitality operations hub, Dubai." },
+  { region: "Exciting Travel Holidays", description: "Global travel distribution and partner network." },
+  { region: "Exciting Islands", description: "Destination branding and curated experience development." },
+];
+
+const defaultPartnerTypes = [
   {
     title: "Luxury Resorts",
-    body: "Premium digital exposure, high-value partner visibility, and stronger storytelling.",
+    description: "Premium digital exposure, high-value partner visibility, and stronger storytelling.",
   },
   {
     title: "Boutique Hotels & Guesthouses",
-    body: "Access to premium markets and scalable growth opportunities.",
+    description: "Access to premium markets and scalable growth opportunities.",
   },
   {
     title: "Experience Providers",
-    body: "Curated exposure, cross-selling opportunities, and global distribution.",
+    description: "Curated exposure, cross-selling opportunities, and global distribution.",
   },
 ];
 
 export default async function AboutPage() {
   const { content } = await getAboutPageContent();
   const logos = content.awards.logos.filter((item) => item.enabled && item.name);
+  const savedServices = content.whatWeDo.cards.filter((item) => item.enabled && item.title).slice(0, 4);
+  const savedBrands = content.markets.cards.filter((item) => item.enabled && item.region).slice(0, 3);
+  const savedPartnerTypes = content.whyUs.points.filter((item) => item.enabled && item.title).slice(0, 3);
+  const hasLegacyServices = /what we do/i.test(content.whatWeDo.title);
+  const hasLegacyBrands = /market/i.test(content.markets.title);
+  const hasLegacyPhilosophy = /why travel|destination knowledge|resort relationships/i.test(content.whyUs.title);
+  const services = hasLegacyServices ? defaultServices : savedServices.length ? savedServices : defaultServices;
+  const brandPortfolio = hasLegacyBrands ? defaultBrandPortfolio : savedBrands.length ? savedBrands : defaultBrandPortfolio;
+  const partnerTypes = hasLegacyPhilosophy
+    ? defaultPartnerTypes
+    : savedPartnerTypes.length
+      ? savedPartnerTypes
+      : defaultPartnerTypes;
   const serviceImage =
     content.story.imageUrl || "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1400&q=84";
   const partnerImage =
@@ -138,8 +143,8 @@ export default async function AboutPage() {
       <section className="about-company-section about-company-introduction" id="about-introduction">
         <div className="lux-container">
           <p>
-            Exciting Maldives is a Maldives-based B2B Destination Management Company built to support travel professionals with
-            trusted resort partnerships, local destination expertise, and seamless inbound travel coordination.
+            {content.story.body ||
+              "Exciting Maldives is a Maldives-based B2B Destination Management Company built to support travel professionals with trusted resort partnerships, local destination expertise, and seamless inbound travel coordination."}
           </p>
         </div>
       </section>
@@ -148,18 +153,22 @@ export default async function AboutPage() {
         <div className="lux-container about-company-services">
           <div className="about-company-services__list">
             <p className="lux-eyebrow">WHAT WE DO</p>
-            <h2>End-to-end inbound tourism solutions.</h2>
+            <h2>{hasLegacyServices ? "End-to-End Destination Support" : content.whatWeDo.title || "End-to-End Destination Support"}</h2>
+            {content.whatWeDo.subtitle && !hasLegacyServices ? <p className="about-company-section-note">{content.whatWeDo.subtitle}</p> : null}
             <div className="about-company-service-list">
-              {services.map(({ title, body, Icon }, index) => (
-                <article className="about-company-service" key={title}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <Icon size={22} aria-hidden="true" />
-                  <div>
-                    <h3>{title}</h3>
-                    <p>{body}</p>
-                  </div>
-                </article>
-              ))}
+              {services.map(({ title, description }, index) => {
+                const Icon = serviceIcons[index] || BadgeCheck;
+                return (
+                  <article className="about-company-service" key={title}>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <Icon size={22} aria-hidden="true" />
+                    <div>
+                      <h3>{title}</h3>
+                      <p>{description}</p>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </div>
           <div className="about-company-services__image">
@@ -177,12 +186,12 @@ export default async function AboutPage() {
       <section className="about-company-section about-company-partners">
         <div className="lux-container about-company-partners__grid">
           <div>
-            <p className="lux-eyebrow">STRATEGIC HOSPITALITY PARTNERS</p>
-            <h2>Trusted access across the Maldives.</h2>
+            <p className="lux-eyebrow">TRUSTED HOSPITALITY NETWORK</p>
+            <h2>{/recognized/i.test(content.awards.title) ? "Trusted access across the Maldives." : content.awards.title || "Trusted access across the Maldives."}</h2>
           </div>
           <p>
-            We collaborate with a curated portfolio of luxury resorts, boutique properties, and local providers to give partners
-            clearer product positioning and stronger Maldives recommendations.
+            {content.awards.subtitle ||
+              "We collaborate with a curated portfolio of luxury resorts, boutique properties, and local providers to give partners trusted access, clearer product positioning, and stronger Maldives recommendations."}
           </p>
         </div>
         <div className="lux-container about-company-logo-strip" aria-label="Strategic hospitality partner categories">
@@ -195,15 +204,12 @@ export default async function AboutPage() {
       <section className="about-company-section about-company-philosophy">
         <div className="lux-container">
           <p className="lux-eyebrow">OUR PHILOSOPHY & PROMISE</p>
-          <h2>Experienced with care, clarity, and respect for the islands.</h2>
+          <h2>{hasLegacyPhilosophy ? "Our Philosophy & Promise" : content.whyUs.title || "Our Philosophy & Promise"}</h2>
           <p>
-            Our team supports partners with personalized service, responsible destination knowledge, and reliable on-ground
-            coordination from planning to departure.
+            {!hasLegacyPhilosophy && content.whyUs.subtitle ||
+              "We believe the Maldives should be experienced with care, clarity, and respect for the islands. Our team supports partners with personalized service, responsible destination knowledge, and reliable on-ground coordination from planning to departure."}
           </p>
-          <p>
-            We believe in destination growth that respects the Maldives, supports local partnerships, and protects the character of
-            the islands.
-          </p>
+          {content.story.secondaryBody ? <p>{content.story.secondaryBody}</p> : null}
         </div>
       </section>
 
@@ -211,21 +217,22 @@ export default async function AboutPage() {
         <div className="lux-container">
           <div className="about-company-heading">
             <p className="lux-eyebrow">BRAND PORTFOLIO & ECOSYSTEM</p>
-            <h2>A connected hospitality and travel platform.</h2>
+            <h2>{hasLegacyBrands ? "Brand Portfolio & Ecosystem" : content.markets.title || "Brand Portfolio & Ecosystem"}</h2>
+            {content.markets.subtitle && !hasLegacyBrands ? <p className="about-company-section-note">{content.markets.subtitle}</p> : null}
           </div>
           <div className="about-brand-grid">
-            {brandPortfolio.map((item) => (
-              <article className="about-brand-card" key={item.title}>
+            {brandPortfolio.map((item, index) => (
+              <article className="about-brand-card" key={item.region}>
                 <img
-                  src={optimizedImageUrl(item.image, { width: 760, height: 540, quality: 84 })}
+                  src={optimizedImageUrl(brandImages[index] || brandImages[0], { width: 760, height: 540, quality: 84 })}
                   alt=""
                   width={760}
                   height={540}
                   loading="lazy"
                 />
                 <div>
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
+                  <h3>{item.region}</h3>
+                  <p>{item.description}</p>
                 </div>
               </article>
             ))}
@@ -253,7 +260,7 @@ export default async function AboutPage() {
                   <Handshake size={20} aria-hidden="true" />
                   <div>
                     <h3>{item.title}</h3>
-                    <p>{item.body}</p>
+                    <p>{item.description}</p>
                   </div>
                 </article>
               ))}
@@ -273,13 +280,13 @@ export default async function AboutPage() {
         <div className="about-company-cta__shade" aria-hidden="true" />
         <div className="lux-container about-company-cta__content">
           <div>
-            <h2>Let's Build Stronger Maldives Partnerships</h2>
-            <p>Work with a destination partner that brings clarity, access, and on-ground confidence.</p>
+            <h2>{content.cta.headline || "Build Stronger Maldives Partnerships With Us"}</h2>
+            <p>{content.cta.body || "Work with a destination partner that brings clarity, access, and on-ground confidence."}</p>
           </div>
           <div className="about-company-cta__actions">
-            <Cta href="#partner">Become a Partner</Cta>
-            <Cta href="/contact" variant="light">
-              Contact Us
+            <Cta href={content.cta.primaryCtaHref || "#partner"}>{content.cta.primaryCtaLabel || "Become a Partner"}</Cta>
+            <Cta href={content.cta.secondaryCtaHref || "/contact"} variant="light">
+              {content.cta.secondaryCtaLabel || "Contact Us"}
             </Cta>
           </div>
         </div>

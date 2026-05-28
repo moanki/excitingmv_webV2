@@ -8666,6 +8666,14 @@ select {
   font-size: clamp(2rem, 3.2vw, 3.3rem);
 }
 
+.about-company-section-note {
+  max-width: 620px;
+  margin: 1rem 0 0;
+  color: rgba(17, 24, 39, 0.62);
+  font-size: 0.98rem;
+  line-height: 1.68;
+}
+
 .about-company-service-list {
   margin-top: clamp(2.2rem, 4vw, 3.2rem);
   border-top: 1px solid rgba(17, 24, 39, 0.1);

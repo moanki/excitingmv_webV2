@@ -97,9 +97,9 @@ export function AboutSettingsForm({
       <div className="section-heading">
         <div>
           <p className="eyebrow">About Us</p>
-          <h2 className="settings-title">Premium B2B brand confidence page.</h2>
+          <h2 className="settings-title">Premium B2B company-story page.</h2>
           <p className="admin-page-lede">
-            Manage the About page hero, trust story, bento cards, market proof, awards, CTA, and SEO.
+            Manage the About page hero, introduction, services, hospitality network, philosophy, brand ecosystem, partner types, CTA, and SEO.
           </p>
         </div>
         <form action={publishAboutAction}>
@@ -152,7 +152,7 @@ export function AboutSettingsForm({
           />
           <input type="hidden" name="about_stat_count" value={stats.length} />
           <div className="stack">
-            <p className="eyebrow">Hero stat cards</p>
+            <p className="eyebrow">Optional credibility strip</p>
             {stats.map((stat, index) => (
               <div className="panel panel-nested" key={`about-stat-${index}`}>
                 <div className="form-grid">
@@ -180,18 +180,18 @@ export function AboutSettingsForm({
         </details>
 
         <details className="panel panel-soft admin-collapsible">
-          <summary>Our Story</summary>
+          <summary>Introduction</summary>
           <div className="form-grid">
             <label className="field" style={{ gridColumn: "1 / -1" }}>
-              Section title
+              Admin label
               <input name="storyTitle" defaultValue={about.story.title} />
             </label>
             <label className="field" style={{ gridColumn: "1 / -1" }}>
-              Story text
+              Introduction paragraph
               <textarea name="storyBody" defaultValue={about.story.body} />
             </label>
             <label className="field" style={{ gridColumn: "1 / -1" }}>
-              Optional second paragraph
+              Philosophy secondary line
               <textarea name="storySecondaryBody" defaultValue={about.story.secondaryBody} />
             </label>
             <label className="field" style={{ gridColumn: "1 / -1" }}>
@@ -210,7 +210,7 @@ export function AboutSettingsForm({
         </details>
 
         <details className="panel panel-soft admin-collapsible">
-          <summary>What We Do</summary>
+          <summary>Services</summary>
           <div className="form-grid">
             <label className="field">
               Section title
@@ -252,12 +252,12 @@ export function AboutSettingsForm({
             </div>
           ))}
           <button type="button" className="button-muted" onClick={() => setWhatCards((rows) => [...rows, blankAboutBento(rows.length)])}>
-            Add Bento Card
+            Add Service
           </button>
         </details>
 
         <details className="panel panel-soft admin-collapsible">
-          <summary>Market Expertise</summary>
+          <summary>Brand Portfolio & Ecosystem</summary>
           <div className="form-grid">
             <label className="field">
               Section title
@@ -287,7 +287,7 @@ export function AboutSettingsForm({
                   <input name={`about_market_${index}_displayOrder`} defaultValue={market.displayOrder} inputMode="numeric" />
                 </label>
                 <label className="field" style={{ gridColumn: "1 / -1" }}>
-                  Region name
+                  Brand name
                   <input name={`about_market_${index}_region`} defaultValue={market.region} />
                 </label>
                 <label className="field" style={{ gridColumn: "1 / -1" }}>
@@ -299,12 +299,12 @@ export function AboutSettingsForm({
             </div>
           ))}
           <button type="button" className="button-muted" onClick={() => setMarkets((rows) => [...rows, blankAboutMarket(rows.length)])}>
-            Add Market
+            Add Brand
           </button>
         </details>
 
         <details className="panel panel-soft admin-collapsible">
-          <summary>Why Us</summary>
+          <summary>Philosophy & Partner Types</summary>
           <div className="form-grid">
             <label className="field">
               Section title
@@ -346,12 +346,12 @@ export function AboutSettingsForm({
             </div>
           ))}
           <button type="button" className="button-muted" onClick={() => setWhyPoints((rows) => [...rows, blankAboutWhy(rows.length)])}>
-            Add Value Proposition
+            Add Partner Type
           </button>
         </details>
 
         <details className="panel panel-soft admin-collapsible">
-          <summary>Awards & Memberships</summary>
+          <summary>Trusted Hospitality Network</summary>
           <div className="form-grid">
             <label className="field">
               Section title

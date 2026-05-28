@@ -705,10 +705,10 @@ export const defaultMarketSettings: MarketSettings = {
 
 export const defaultAboutPageContent: AboutPageContent = {
   hero: {
-    kicker: "About Exciting Maldives",
-    headline: "Your Trusted Maldives DMC Partner",
+    kicker: "ABOUT EXCITING MALDIVES",
+    headline: "The Maldives DMC Behind Confident Travel Partnerships",
     body:
-      "A premium Maldives DMC connecting global travel professionals with trusted resort partnerships, curated experiences, and destination expertise.",
+      "We connect travel professionals with trusted resort access, curated destination knowledge, and seamless on-ground support across the Maldives.",
     imageUrl: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1800&q=86",
     primaryCtaLabel: "Become a Partner",
     primaryCtaHref: "#partner",
@@ -722,75 +722,72 @@ export const defaultAboutPageContent: AboutPageContent = {
     ]
   },
   story: {
-    title: "Our Story",
+    title: "Introduction",
     body:
-      "Exciting Maldives was built to support travel professionals with reliable local expertise, premium resort access, and carefully managed destination services across the Maldives.",
+      "Exciting Maldives is a Maldives-based B2B Destination Management Company built to support travel professionals with trusted resort partnerships, local destination expertise, and seamless inbound travel coordination.",
     secondaryBody:
-      "We work closely with partners to simplify destination planning, strengthen resort connections, and deliver curated Maldives experiences with confidence and care.",
+      "We believe in destination growth that respects the Maldives, supports local partnerships, and protects the character of the islands.",
     imageUrl: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1400&q=84",
     imageAlt: "Maldives resort partnership and destination expertise"
   },
   whatWeDo: {
-    title: "What We Do",
+    title: "End-to-End Destination Support",
     subtitle:
-      "Supporting travel professionals with reliable Maldives expertise, resort access, and carefully curated destination services.",
+      "From resort coordination to guest handling, Exciting Maldives supports travel professionals with reliable, locally managed inbound services across the Maldives.",
     cards: [
       {
-        icon: "building-2",
-        title: "Resort Partnerships",
-        description: "Connecting travel professionals with trusted Maldives resort partners and premium accommodation options.",
+        icon: "bed-double",
+        title: "Resort & Accommodation Coordination",
+        description: "Trusted support for resort selection, product matching, and booking coordination across the Maldives.",
         displayOrder: 1,
         enabled: true
       },
       {
-        icon: "briefcase-business",
-        title: "DMC Services",
-        description: "Providing destination support, coordination, planning assistance, and local expertise for Maldives travel programs.",
+        icon: "plane",
+        title: "Transportation & Transfers",
+        description: "Seamless coordination for speedboat, domestic flight, seaplane, and arrival-to-resort movement.",
         displayOrder: 2,
         enabled: true
       },
       {
-        icon: "handshake",
-        title: "Travel Partnerships",
-        description: "Helping global travel agents, tour operators, and partners build stronger Maldives product offerings.",
+        icon: "concierge-bell",
+        title: "Concierge & Personalization",
+        description: "Tailored support for guest preferences, special requests, and high-value travel experiences.",
         displayOrder: 3,
         enabled: true
       },
       {
-        icon: "sparkles",
-        title: "Curated Experiences",
-        description: "Designing memorable Maldives experiences, from marine adventures to wellness, dining, and special moments.",
+        icon: "badge-check",
+        title: "Events, Groups & Meet & Greet",
+        description: "Coordinated support for arrivals, groups, events, and on-ground guest handling.",
         displayOrder: 4,
         enabled: true
       }
     ]
   },
   markets: {
-    title: "Connected to Key Maldives Travel Markets",
+    title: "Brand Portfolio & Ecosystem",
     subtitle:
-      "We understand the markets shaping premium Maldives demand and support partners across important travel regions.",
+      "Together with its connected hospitality and travel brands, Exciting Maldives supports a wider ecosystem of destination expertise, distribution, and curated travel development.",
     cards: [
-      { icon: "map-pin", region: "Russia & CIS", description: "Core partner demand with strong premium Maldives repeat travel.", displayOrder: 1, enabled: true },
-      { icon: "landmark", region: "Europe", description: "Established luxury travel networks and curated resort requests.", displayOrder: 2, enabled: true },
-      { icon: "globe-2", region: "Middle East / GCC", description: "High-value short-lead travel, villa privacy, and family movement.", displayOrder: 3, enabled: true },
-      { icon: "plane", region: "Asia", description: "Growing premium demand across regional travel advisors and operators.", displayOrder: 4, enabled: true },
-      { icon: "waves", region: "Maldives", description: "Local destination presence with direct resort and logistics knowledge.", displayOrder: 5, enabled: true }
+      { icon: "building-2", region: "ETH Hospitality Services", description: "Regional hospitality operations hub, Dubai.", displayOrder: 1, enabled: true },
+      { icon: "globe-2", region: "Exciting Travel Holidays", description: "Global travel distribution and partner network.", displayOrder: 2, enabled: true },
+      { icon: "palmtree", region: "Exciting Islands", description: "Destination branding and curated experience development.", displayOrder: 3, enabled: true }
     ]
   },
   whyUs: {
-    title: "Why Travel Professionals Work With Us",
-    subtitle: "Practical B2B support for teams that need confidence before, during, and after the booking.",
+    title: "Our Philosophy & Promise",
+    subtitle: "We believe the Maldives should be experienced with care, clarity, and respect for the islands. Our team supports partners with personalized service, responsible destination knowledge, and reliable on-ground coordination from planning to departure.",
     points: [
-      { icon: "check", title: "Trusted Maldives destination knowledge", description: "Local product clarity for matching the right island to the right guest profile.", displayOrder: 1, enabled: true },
-      { icon: "check", title: "Premium resort relationships", description: "Direct working relationships that support trade conversations and partner confidence.", displayOrder: 2, enabled: true },
-      { icon: "check", title: "Fast B2B communication", description: "Responsive support for availability, suitability, offers, and operational details.", displayOrder: 3, enabled: true },
-      { icon: "check", title: "Market-aware partnership approach", description: "Recommendations shaped by demand patterns across priority international markets.", displayOrder: 4, enabled: true }
+      { icon: "handshake", title: "Luxury Resorts", description: "Premium digital exposure, high-value partner visibility, and stronger storytelling.", displayOrder: 1, enabled: true },
+      { icon: "handshake", title: "Boutique Hotels & Guesthouses", description: "Access to premium markets and scalable growth opportunities.", displayOrder: 2, enabled: true },
+      { icon: "handshake", title: "Experience Providers", description: "Curated exposure, cross-selling opportunities, and global distribution.", displayOrder: 3, enabled: true }
     ]
   },
   awards: {
-    title: "Recognized by the Maldives Travel Industry",
+    title: "Trusted Hospitality Network",
     subtitle:
-      "Our partnerships, industry recognition, and destination expertise help us serve travel professionals with confidence.",
+      "We collaborate with a curated portfolio of luxury resorts, boutique properties, and local providers to give partners trusted access, clearer product positioning, and stronger Maldives recommendations.",
     logos: [
       { name: "TTM Top Producer", imageUrl: "https://dummyimage.com/280x140/ffffff/0f172a&text=TTM+Award", href: "", enabled: true, displayOrder: 1 },
       { name: "Preferred DMC Network", imageUrl: "https://dummyimage.com/280x140/ffffff/0f172a&text=DMC+Network", href: "", enabled: true, displayOrder: 2 },
@@ -798,13 +795,13 @@ export const defaultAboutPageContent: AboutPageContent = {
     ]
   },
   cta: {
-    headline: "Let's Build Stronger Maldives Partnerships Together",
+    headline: "Build Stronger Maldives Partnerships With Us",
     body:
-      "Connect with Exciting Maldives to explore resort partnerships, destination services, and curated Maldives travel opportunities for your clients.",
-    primaryCtaLabel: "Contact Us",
-    primaryCtaHref: "/contact",
-    secondaryCtaLabel: "Become a Partner",
-    secondaryCtaHref: "#partner",
+      "Whether you are a travel professional, resort, hotel, or experience provider, Exciting Maldives helps connect the right partners with the right destination opportunities.",
+    primaryCtaLabel: "Become a Partner",
+    primaryCtaHref: "#partner",
+    secondaryCtaLabel: "Contact Us",
+    secondaryCtaHref: "/contact",
     tertiaryCtaLabel: "Explore Destinations",
     tertiaryCtaHref: "/resorts",
     backgroundImageUrl: "",
