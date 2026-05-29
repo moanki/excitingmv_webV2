@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import {
-  ArrowRight,
   BadgeCheck,
   BedDouble,
   ConciergeBell,
@@ -127,16 +126,8 @@ export default async function AboutPage() {
         />
         <div className="about-company-hero__shade" aria-hidden="true" />
         <div className="lux-container about-company-hero__content">
-          <p className="lux-eyebrow">ABOUT EXCITING MALDIVES</p>
-          <h1>The Maldives DMC Behind Confident Travel Partnerships</h1>
-          <p>
-            We connect travel professionals with trusted resort access, curated destination knowledge, and seamless on-ground support
-            across the Maldives.
-          </p>
-          <a href="#about-introduction" className="about-company-link">
-            Explore Our Story
-            <ArrowRight size={20} aria-hidden="true" />
-          </a>
+          <p className="lux-eyebrow">{content.hero.kicker || "ABOUT EXCITING MALDIVES"}</p>
+          <h1>{content.hero.headline || "The Maldives DMC Behind Confident Travel Partnerships"}</h1>
         </div>
       </section>
 

@@ -71,6 +71,7 @@ function logoScaleClass(name: string) {
   if (normalized.includes("waldorf")) return "logo-waldorf";
   if (normalized.includes("finolhu")) return "logo-finolhu";
   if (normalized.includes("joali")) return "logo-joali";
+  if (normalized.includes("halcyon")) return "logo-halcyon";
 
   return "";
 }
