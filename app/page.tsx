@@ -225,7 +225,7 @@ function FeaturedRetreats({
       ];
 
   return (
-    <section className="lux-section lux-section--white">
+    <section className="lux-section lux-section--white" id="featured-retreats">
       <div className="lux-container">
         <div className="lux-heading-row">
           <SectionHeading
@@ -264,7 +264,7 @@ function TravelGuideMagazine({ guide }: { guide: HomepageGuideItem[] }) {
   const articles = guide.filter((item) => item.title && item.published).slice(0, 5);
 
   return (
-    <section className="lux-section lux-section--white">
+    <section className="lux-section lux-section--white" id="maldives-travel-guide">
       <div className="lux-container">
         <div className="lux-heading-row">
           <SectionHeading
@@ -407,7 +407,7 @@ export default async function HomePage() {
         description={featuredRetreatHeading?.description}
       />
 
-      <section className="lux-section lux-section--sand">
+      <section className="lux-section lux-section--sand" id="ceo-message">
         <div className="lux-container lux-editorial-split lux-editorial-split--ceo">
           <div className="lux-portrait-card">
             <div
@@ -435,7 +435,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="lux-section lux-section--white">
+      <section className="lux-section lux-section--white" id="our-story">
         <div className="lux-container lux-story-split">
           <div className="lux-story-copy">
             <p className="lux-eyebrow">{story.sectionLabel}</p>
@@ -455,7 +455,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="lux-section lux-section--white market-editorial-section" id="global-markets">
+      <section className="lux-section lux-section--white market-editorial-section" id="primary-markets">
+        <span className="section-anchor-alias" id="global-markets" aria-hidden="true" />
         <div className="lux-container">
           <MarketEditorial markets={{ ...markets, options: marketList }} />
         </div>
@@ -475,7 +476,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="lux-section lux-section--sand services-editorial-section">
+      <section className="lux-section lux-section--sand services-editorial-section" id="destination-management">
         <ServicesParallax
           services={services}
           images={serviceImages}
@@ -483,7 +484,7 @@ export default async function HomePage() {
           description="We support travel professionals with resort intelligence, transfer planning, arrival handling, and in-destination support — all managed with local precision."
         />
       </section>
-      <section className="lux-section lux-section--white why-trust-section">
+      <section className="lux-section lux-section--white why-trust-section" id="why-travel-designers">
         <WhyUsParallax
           items={whyUs}
           images={whyImages}
@@ -492,7 +493,7 @@ export default async function HomePage() {
         />
       </section>
 
-      <section className="lux-section lux-section--white">
+      <section className="lux-section lux-section--white" id="prestigious-awards">
         <div className="lux-container lux-awards-container">
           <SectionHeading
             eyebrow="Prestigious Awards"
@@ -542,7 +543,8 @@ export default async function HomePage() {
 
       <TravelGuideMagazine guide={guide} />
 
-      <section className="lux-contact-section" id="newsletter">
+      <section className="lux-contact-section" id="stay-connected">
+        <span className="section-anchor-alias" id="newsletter" aria-hidden="true" />
         <div className="lux-container lux-contact-grid">
           <div className="lux-contact-copy">
             <p className="lux-eyebrow">{newsletter.sectionLabel}</p>

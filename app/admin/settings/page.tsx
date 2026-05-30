@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, Building2, Globe2, Home, LogIn, Menu, MessageCircle, PanelBottom } from "lucide-react";
+import { Bell, Building2, Contact, Globe2, Home, LogIn, Menu, MessageCircle, PanelBottom } from "lucide-react";
 
 const settingsSections = [
   {
@@ -21,6 +21,11 @@ const settingsSections = [
     title: "Footer",
     href: "/admin/settings/footer",
     icon: PanelBottom
+  },
+  {
+    title: "Contact Us",
+    href: "/admin/settings/contact",
+    icon: Contact
   },
   {
     title: "WhatsApp",

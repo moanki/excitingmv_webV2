@@ -16688,3 +16688,215 @@ select {
   max-width: 180px;
   max-height: 82px;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+.section-anchor-alias {
+  position: relative;
+  top: -96px;
+  display: block;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+/* Editorial Contact Us registry */
+.contact-registry-page {
+  background: #fff;
+  color: #13202b;
+}
+
+.contact-registry-hero {
+  padding: clamp(9rem, 16vw, 13rem) 0 clamp(4rem, 8vw, 7rem);
+  border-bottom: 1px solid rgba(19, 32, 43, 0.08);
+  background:
+    radial-gradient(circle at 78% 12%, rgba(200, 161, 90, 0.11), transparent 34%),
+    #fff;
+}
+
+.contact-registry-hero h1 {
+  max-width: 760px;
+  margin: 0.85rem 0 0;
+  color: #13202b;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(2.75rem, 7vw, 6.1rem);
+  font-weight: 100;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+}
+
+.contact-registry-hero p:not(.lux-eyebrow) {
+  max-width: 660px;
+  margin: 1.35rem 0 0;
+  color: rgba(19, 32, 43, 0.64);
+  font-size: clamp(1rem, 1.3vw, 1.12rem);
+  line-height: 1.78;
+}
+
+.contact-registry-section {
+  padding: clamp(4.5rem, 8vw, 7.5rem) 0;
+}
+
+.contact-registry-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(3rem, 6vw, 6rem) clamp(2rem, 5vw, 5rem);
+}
+
+.contact-registry-entry {
+  display: grid;
+  gap: clamp(1.8rem, 3vw, 2.5rem);
+  padding-top: 1.4rem;
+  border-top: 1px solid rgba(19, 32, 43, 0.14);
+}
+
+.contact-registry-entry__heading p {
+  margin: 0;
+  color: #9b742e;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.contact-registry-entry__heading span,
+.contact-registry-entry__person span {
+  display: block;
+  margin-top: 0.55rem;
+  color: rgba(19, 32, 43, 0.58);
+  font-size: 0.95rem;
+}
+
+.contact-registry-entry__person strong {
+  display: block;
+  color: #13202b;
+  font-family: var(--font-serif), serif;
+  font-size: clamp(1.45rem, 2.1vw, 2rem);
+  font-weight: 100;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.contact-registry-entry__links {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.contact-registry-entry__links a {
+  width: fit-content;
+  color: rgba(19, 32, 43, 0.78);
+  font-size: 0.96rem;
+  text-decoration: none;
+}
+
+.contact-registry-entry__links a:hover {
+  color: #0f5e68;
+}
+
+.contact-registry-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: clamp(4.5rem, 8vw, 7rem);
+  padding-top: clamp(1.8rem, 3vw, 2.4rem);
+  border-top: 1px solid rgba(19, 32, 43, 0.1);
+}
+
+.contact-registry-cta p {
+  max-width: 560px;
+  margin: 0;
+  color: rgba(19, 32, 43, 0.68);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.contact-registry-cta a {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.35rem;
+  border-radius: 999px;
+  background: #0f5e68;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-repeatable-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.settings-mini-card {
+  padding: 1rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.settings-mini-card__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.lux-section-heading h2,
+.lux-editorial-copy h2,
+.lux-story-copy h2,
+.market-editorial__copy h2,
+.services-editorial__heading h2,
+.why-trust__intro h2,
+.lux-awards-container .lux-section-heading h2,
+.lux-contact-copy h2 {
+  font-weight: 100 !important;
+  letter-spacing: 0 !important;
+}
+
+.services-editorial__heading h2,
+.why-trust__intro h2 {
+  letter-spacing: 0.01em !important;
+}
+
+.lux-heading-row .lux-text-link {
+  font-size: 0.65rem;
+  font-weight: 100;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 980px) {
+  .contact-registry-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .contact-registry-hero {
+    padding-top: 7.5rem;
+  }
+
+  .contact-registry-grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .contact-registry-cta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .contact-registry-cta a {
+    width: 100%;
+  }
+
+  .settings-mini-card__heading {
+    flex-direction: column;
+  }
+}

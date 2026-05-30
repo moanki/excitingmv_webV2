@@ -147,6 +147,26 @@ export type FooterContent = {
   awards: FooterBadge[];
 };
 
+export type ContactRegion = {
+  regionTitle: string;
+  location: string;
+  contactName: string;
+  role: string;
+  email: string;
+  whatsapp: string;
+  displayOrder: number;
+  enabled: boolean;
+};
+
+export type ContactPageContent = {
+  title: string;
+  subtitle: string;
+  regions: ContactRegion[];
+  ctaText: string;
+  ctaLabel: string;
+  ctaHref: string;
+};
+
 export type WhatsAppSettings = {
   enabled: boolean;
   label: string;
@@ -570,14 +590,14 @@ export const defaultFooterContent: FooterContent = {
       items: [
         { label: "Resorts", href: "/resorts", enabled: true, external: false },
         { label: "Experiences", href: "/experiences", enabled: true, external: false },
-        { label: "", href: "", enabled: false, external: false }
+        { label: "Awards", href: "/#prestigious-awards", enabled: true, external: false }
       ]
     },
     {
       title: "Services",
       enabled: true,
       items: [
-        { label: "DMC Services", href: "/services", enabled: true, external: false },
+        { label: "DMC Services", href: "/#destination-management", enabled: true, external: false },
         { label: "Travel Partnerships", href: "/partner/register", enabled: true, external: false },
         { label: "", href: "", enabled: false, external: false }
       ]
@@ -587,7 +607,7 @@ export const defaultFooterContent: FooterContent = {
       enabled: true,
       items: [
         { label: "About Us", href: "/about", enabled: true, external: false },
-        { label: "Awards", href: "/awards", enabled: true, external: false },
+        { label: "Awards", href: "/#prestigious-awards", enabled: true, external: false },
         { label: "Contact", href: "/contact", enabled: true, external: false },
         { label: "", href: "", enabled: false, external: false }
       ]
@@ -642,6 +662,47 @@ export const defaultFooterContent: FooterContent = {
       enabled: false
     }
   ]
+};
+
+export const defaultContactPageContent: ContactPageContent = {
+  title: "Contact Us",
+  subtitle:
+    "Connect with the right Exciting Maldives representative for your region, partnership enquiries, and destination support.",
+  regions: [
+    {
+      regionTitle: "HEAD OFFICE",
+      location: "Male, Maldives",
+      contactName: "Aishath Ibrahim",
+      role: "Managing Director",
+      email: "hello@excitingmaldives.com",
+      whatsapp: "+960 778 5596",
+      displayOrder: 1,
+      enabled: true
+    },
+    {
+      regionTitle: "EUROPE",
+      location: "London, UK",
+      contactName: "Sophie Laurent",
+      role: "Regional Director",
+      email: "europe@excitingmaldives.com",
+      whatsapp: "+44 7700 518201",
+      displayOrder: 2,
+      enabled: true
+    },
+    {
+      regionTitle: "MIDDLE EAST",
+      location: "Dubai, UAE",
+      contactName: "Partner Relations",
+      role: "Regional Support",
+      email: "gcc@excitingmaldives.com",
+      whatsapp: "+971 50 000 0000",
+      displayOrder: 3,
+      enabled: true
+    }
+  ],
+  ctaText: "For general partnership enquiries, contact our Maldives head office.",
+  ctaLabel: "Become a Partner",
+  ctaHref: "/partner/register"
 };
 
 export const defaultWhatsAppSettings: WhatsAppSettings = {
@@ -987,6 +1048,36 @@ function normalizeAdminLoginContent(settings: unknown): AdminLoginContent {
   };
 }
 
+function normalizeContactPageContent(settings: unknown): ContactPageContent {
+  const source = (settings ?? defaultContactPageContent) as Partial<ContactPageContent>;
+  const sourceRegions = Array.isArray(source.regions) ? source.regions : defaultContactPageContent.regions;
+
+  return {
+    title: source.title || defaultContactPageContent.title,
+    subtitle: source.subtitle || defaultContactPageContent.subtitle,
+    regions: sourceRegions
+      .map((item, index) => {
+        const value = item as Partial<ContactRegion>;
+        const fallback = defaultContactPageContent.regions[index] ?? defaultContactPageContent.regions[0];
+
+        return {
+          regionTitle: value.regionTitle || fallback.regionTitle,
+          location: value.location || fallback.location,
+          contactName: value.contactName || fallback.contactName,
+          role: value.role || fallback.role,
+          email: value.email || fallback.email,
+          whatsapp: value.whatsapp || fallback.whatsapp,
+          displayOrder: numericValue(value.displayOrder, index + 1),
+          enabled: value.enabled ?? true
+        };
+      })
+      .sort((a, b) => a.displayOrder - b.displayOrder),
+    ctaText: source.ctaText || defaultContactPageContent.ctaText,
+    ctaLabel: source.ctaLabel || defaultContactPageContent.ctaLabel,
+    ctaHref: source.ctaHref || defaultContactPageContent.ctaHref
+  };
+}
+
 function normalizeAboutCards<T extends { displayOrder: number; enabled: boolean }>(
   items: unknown,
   fallback: T[],
@@ -1175,6 +1266,14 @@ export async function getAboutPageContent(mode: "draft" | "published" = "publish
 
 export async function getFooterContent(mode: "draft" | "published" = "published") {
   return getSiteSettingMode("site.footer", defaultFooterContent, mode);
+}
+
+export async function getContactPageContent(mode: "draft" | "published" = "published") {
+  const entry = await getSiteSettingMode("site.contact", defaultContactPageContent, mode);
+  return {
+    ...entry,
+    content: normalizeContactPageContent(entry.content)
+  };
 }
 
 export async function getWhatsAppSettings(mode: "draft" | "published" = "published") {

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import {
   defaultAboutPageContent,
   defaultAdminLoginContent,
+  defaultContactPageContent,
   defaultHomepageAwardsContent,
   defaultHomepageCeoContent,
   defaultFooterContent,
@@ -29,6 +30,8 @@ import {
   type AboutStatCard,
   type AboutWhyPoint,
   type AdminLoginContent,
+  type ContactPageContent,
+  type ContactRegion,
   type FooterBadge,
   type FooterContent,
   type FooterLinkGroup,
@@ -362,6 +365,67 @@ async function parseHomepageAwards(formData: FormData): Promise<HomepageAwardsCo
       })
     )
   };
+}
+
+function parseContactRegions(formData: FormData): ContactRegion[] {
+  return indexesFromCount(formData, "contact_count", 1)
+    .map((index) => ({
+      regionTitle: stringValue(formData, `contact_${index}_regionTitle`).trim(),
+      location: stringValue(formData, `contact_${index}_location`).trim(),
+      contactName: stringValue(formData, `contact_${index}_contactName`).trim(),
+      role: stringValue(formData, `contact_${index}_role`).trim(),
+      email: stringValue(formData, `contact_${index}_email`).trim(),
+      whatsapp: stringValue(formData, `contact_${index}_whatsapp`).trim(),
+      displayOrder: countValue(formData, `contact_${index}_displayOrder`, index + 1),
+      enabled: booleanValue(formData, `contact_${index}_enabled`)
+    }))
+    .filter((item) => item.regionTitle || item.contactName || item.email || item.whatsapp)
+    .sort((a, b) => a.displayOrder - b.displayOrder);
+}
+
+function validateContactContent(contact: ContactPageContent) {
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  contact.regions.forEach((region, index) => {
+    const label = region.regionTitle || `Contact ${index + 1}`;
+    if (!region.regionTitle || !region.contactName || !region.email || !region.whatsapp) {
+      throw new Error(`${label} needs region title, contact name, email, and WhatsApp.`);
+    }
+    if (!emailPattern.test(region.email)) {
+      throw new Error(`${label} has an invalid email address.`);
+    }
+  });
+}
+
+export async function saveContactDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const contact: ContactPageContent = {
+      title: stringValue(formData, "title"),
+      subtitle: stringValue(formData, "subtitle"),
+      regions: parseContactRegions(formData),
+      ctaText: stringValue(formData, "ctaText"),
+      ctaLabel: stringValue(formData, "ctaLabel"),
+      ctaHref: stringValue(formData, "ctaHref")
+    };
+
+    validateContactContent(contact);
+
+    return finalizeSettingSave({
+      formData,
+      key: "site.contact",
+      fallback: defaultContactPageContent,
+      value: contact,
+      draftMessage: "Contact Us draft saved.",
+      publishedMessage: "Contact Us page published."
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to save Contact Us page." };
+  }
+}
+
+export async function publishContactAction() {
+  await publishSiteSetting("site.contact", defaultContactPageContent);
+  revalidateSiteContent();
 }
 
 export async function saveHeroDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {

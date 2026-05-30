@@ -25,6 +25,28 @@ function footerLink(label: string, href: string): FooterLinkItem {
   return { label, href, enabled: true, external: false };
 }
 
+function footerItemWithOverrides(item: FooterLinkItem, partnerLoginHref: string): FooterLinkItem | null {
+  const normalized = item.label.trim().toLowerCase();
+
+  if (normalized === "news & updates") {
+    return null;
+  }
+
+  if (normalized === "awards") {
+    return { ...item, href: "/#prestigious-awards", external: false };
+  }
+
+  if (normalized === "dmc services") {
+    return { ...item, href: "/#destination-management", external: false };
+  }
+
+  if (normalized === "partner login") {
+    return { ...item, label: "Partner Login", href: partnerLoginHref, external: false };
+  }
+
+  return item;
+}
+
 function FooterNavLink({ item }: { item: FooterLinkItem }) {
   if (item.external) {
     return (
@@ -78,28 +100,40 @@ function BadgeGroup({ title, items }: { title: string; items: FooterBadge[] }) {
 export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: NavbarContent }) {
   const groupByTitle = (needle: string) =>
     footer.linkGroups.find((group) => group.enabled && group.title.toLowerCase().includes(needle))?.items ?? [];
+  const partnerLoginHref = navbar.partnerLoginHref || navbar.ctaHref || "/partner/login";
+  const withFooterRules = (items: FooterLinkItem[]) => {
+    const seen = new Set<string>();
+    return items
+      .map((item) => footerItemWithOverrides(item, partnerLoginHref))
+      .filter((item): item is FooterLinkItem => Boolean(item))
+      .filter((item) => {
+        const key = `${item.label.toLowerCase()}-${item.href}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+  };
 
-  const companyItems = mergeLinks(
+  const companyItems = withFooterRules(mergeLinks(
     groupByTitle("company"),
     [
       footerLink("About Us", "/about"),
-      footerLink("DMC Services", "/services"),
+      footerLink("DMC Services", "/#destination-management"),
       footerLink("Resorts", "/resorts"),
       footerLink("Travel Guide", "/travel-guide"),
+      footerLink("Awards", "/#prestigious-awards"),
       footerLink("Contact Us", "/contact")
     ]
-  ).slice(0, 5);
+  )).slice(0, 6);
 
-  const partnerItems = mergeLinks(
-    groupByTitle("resource"),
+  const partnerItems = withFooterRules(mergeLinks(
     groupByTitle("partner"),
     [
-      footerLink("Partner Login", "/partner/login"),
+      footerLink("Partner Login", partnerLoginHref),
       footerLink("Marketing Hub", "/partner/resources"),
-      footerLink("Documents", "/partner/resources"),
-      footerLink("News & Updates", "/travel-guide")
+      footerLink("Documents", "/partner/resources")
     ]
-  );
+  ));
 
   const legalItems = [
     footerLink("Terms & Conditions", "#"),
