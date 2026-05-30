@@ -16855,9 +16855,21 @@ html {
 .services-editorial__heading h2,
 .why-trust__intro h2,
 .lux-awards-container .lux-section-heading h2,
-.lux-contact-copy h2 {
+.lux-contact-copy h2,
+.lux-guide-card h3,
+.why-trust__reason h3,
+.services-editorial__text strong {
   font-weight: 100 !important;
   letter-spacing: 0 !important;
+}
+
+.lux-section-heading > p:not(.lux-eyebrow),
+.lux-story-copy p:not(.lux-eyebrow),
+.market-editorial__copy > p,
+.services-editorial__heading > p:not(.lux-eyebrow),
+.why-trust__intro > p,
+.lux-contact-copy p:not(.lux-eyebrow) {
+  font-weight: 100 !important;
 }
 
 .services-editorial__heading h2,
