@@ -17354,6 +17354,22 @@ html {
   line-height: 1.22 !important;
 }
 
+.home-page #featured-retreats .lux-eyebrow,
+.home-page #ceo-message .lux-eyebrow,
+.home-page #our-story .lux-eyebrow,
+.home-page #primary-markets .lux-eyebrow,
+.home-page #destination-management .lux-eyebrow,
+.home-page #why-travel-designers .lux-eyebrow,
+.home-page #prestigious-awards .lux-eyebrow {
+  color: rgba(153, 111, 51, 0.9) !important;
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.35 !important;
+  text-transform: uppercase !important;
+}
+
 @media (max-width: 720px) {
   .home-page .lux-section-heading h2,
   .home-page .market-editorial__copy h2,
