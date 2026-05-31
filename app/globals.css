@@ -17331,6 +17331,29 @@ html {
   font-variation-settings: "wght" 300;
 }
 
+.home-page #primary-markets .lux-eyebrow,
+.home-page #why-travel-designers .lux-eyebrow,
+.home-page #prestigious-awards .lux-eyebrow {
+  color: rgba(153, 111, 51, 0.9) !important;
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: 0.68rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.35 !important;
+  text-transform: uppercase !important;
+}
+
+.home-page #primary-markets h2,
+.home-page #why-travel-designers h2,
+.home-page #prestigious-awards .lux-section-heading h2 {
+  color: #13202b !important;
+  font-family: var(--font-serif), serif !important;
+  font-size: clamp(1.65rem, 2.25vw, 2.15rem) !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.22 !important;
+}
+
 @media (max-width: 720px) {
   .home-page .lux-section-heading h2,
   .home-page .market-editorial__copy h2,
