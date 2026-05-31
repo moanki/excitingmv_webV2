@@ -17326,6 +17326,11 @@ html {
   line-height: 1.7 !important;
 }
 
+.home-page #featured-retreats .lux-section-heading h2 {
+  font-weight: 300 !important;
+  font-variation-settings: "wght" 300;
+}
+
 @media (max-width: 720px) {
   .home-page .lux-section-heading h2,
   .home-page .market-editorial__copy h2,
