@@ -17279,3 +17279,50 @@ html {
     font-size: clamp(1.05rem, 5vw, 1.35rem) !important;
   }
 }
+
+/* Refined homepage section title scale */
+.home-page .lux-section-heading h2,
+.home-page .market-editorial__copy h2,
+.home-page .services-editorial__heading h2,
+.home-page .why-trust__intro h2,
+.home-page .lux-contact-copy h2,
+.home-page .lux-partner-cta h2 {
+  font-size: clamp(1.65rem, 2.25vw, 2.15rem) !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.22 !important;
+}
+
+.home-page .lux-editorial-copy h2,
+.home-page .lux-story-copy h2 {
+  font-size: clamp(1.65rem, 2.6vw, 2.45rem) !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.18 !important;
+}
+
+.home-page #featured-retreats .lux-section-heading > p:not(.lux-eyebrow),
+.home-page .market-editorial__copy > p,
+.home-page .services-editorial__heading > p:not(.lux-eyebrow),
+.home-page .why-trust__intro > p,
+.home-page #prestigious-awards .lux-section-heading > p:not(.lux-eyebrow),
+.home-page #maldives-travel-guide .lux-section-heading > p:not(.lux-eyebrow),
+.home-page #stay-connected .lux-contact-copy > p:not(.lux-eyebrow) {
+  font-size: clamp(0.92rem, 0.95vw, 1rem) !important;
+  font-weight: 300 !important;
+  line-height: 1.7 !important;
+}
+
+@media (max-width: 720px) {
+  .home-page .lux-section-heading h2,
+  .home-page .market-editorial__copy h2,
+  .home-page .services-editorial__heading h2,
+  .home-page .why-trust__intro h2,
+  .home-page .lux-contact-copy h2,
+  .home-page .lux-partner-cta h2,
+  .home-page .lux-editorial-copy h2,
+  .home-page .lux-story-copy h2 {
+    font-size: clamp(1.45rem, 7vw, 2rem) !important;
+    line-height: 1.18 !important;
+  }
+}
