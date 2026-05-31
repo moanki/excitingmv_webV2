@@ -16098,7 +16098,7 @@ select {
 .services-editorial {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  align-items: center;
+  align-items: stretch;
   gap: clamp(1.5rem, 2.8vw, 2.5rem);
   min-height: 0;
 }
@@ -16106,7 +16106,9 @@ select {
 .services-editorial__media {
   position: relative;
   grid-column: span 5;
-  height: clamp(320px, 36vw, 460px);
+  align-self: stretch;
+  height: auto;
+  margin-top: calc((0.75rem * 1.35) + 1.1rem);
   min-height: 0;
   overflow: hidden;
   border-radius: 24px;
@@ -16124,9 +16126,7 @@ select {
 .services-editorial__overlay {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(8, 24, 32, 0.1) 0%, rgba(8, 24, 32, 0.18) 42%, rgba(8, 24, 32, 0.72) 100%),
-    linear-gradient(90deg, rgba(8, 24, 32, 0.18), transparent 54%);
+  background: linear-gradient(180deg, rgba(8, 24, 32, 0.08) 0%, rgba(8, 24, 32, 0.14) 100%);
   pointer-events: none;
 }
 
@@ -16298,6 +16298,7 @@ select {
 
   .services-editorial__media {
     height: clamp(320px, 44vw, 420px);
+    margin-top: 0;
     min-height: 0;
   }
 }

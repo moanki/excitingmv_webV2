@@ -58,10 +58,6 @@ export function ServicesParallax({ services, images, title, description }: Servi
           loading="lazy"
         />
         <div className="services-editorial__overlay" aria-hidden="true" />
-        <div className="services-editorial__image-copy">
-          <span>Inquiry → Arrival → Support</span>
-          <p>Local precision behind every Maldives booking.</p>
-        </div>
       </div>
 
       <div className="services-editorial__content">
