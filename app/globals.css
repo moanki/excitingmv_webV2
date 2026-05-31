@@ -16914,3 +16914,99 @@ html {
     flex-direction: column;
   }
 }
+
+/* Homepage typography alignment: editorial hierarchy */
+.section-editorial-title,
+.home-page #featured-retreats .lux-eyebrow,
+.home-page #featured-retreats .lux-section-heading h2,
+.home-page .market-editorial__copy .lux-eyebrow,
+.home-page .market-editorial__copy h2,
+.home-page .services-editorial__heading .lux-eyebrow,
+.home-page .services-editorial__heading h2,
+.home-page .why-trust__intro .lux-eyebrow,
+.home-page .why-trust__intro h2,
+.home-page #prestigious-awards .lux-eyebrow,
+.home-page #prestigious-awards .lux-section-heading h2,
+.home-page #maldives-travel-guide .lux-eyebrow,
+.home-page #maldives-travel-guide .lux-section-heading h2,
+.home-page #stay-connected .lux-eyebrow,
+.home-page #stay-connected .lux-contact-copy h2,
+.home-page .lux-guide-card h3,
+.home-page .why-trust__reason h3 {
+  color: #13202b !important;
+  font-family: var(--font-serif), serif !important;
+  font-size: clamp(2rem, 3.15vw, 3.4rem) !important;
+  font-weight: 100 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.08 !important;
+  text-transform: none !important;
+}
+
+.section-heading-primary,
+.home-page .market-editorial__copy .lux-eyebrow,
+.home-page .services-editorial__heading .lux-eyebrow,
+.home-page .why-trust__intro .lux-eyebrow,
+.home-page #prestigious-awards .lux-eyebrow {
+  margin: 0 0 0.7rem !important;
+}
+
+.section-support-text,
+.home-page #featured-retreats .lux-section-heading > p:not(.lux-eyebrow),
+.home-page .market-editorial__copy > p,
+.home-page .services-editorial__heading > p:not(.lux-eyebrow),
+.home-page .why-trust__intro > p,
+.home-page #prestigious-awards .lux-section-heading > p:not(.lux-eyebrow),
+.home-page #maldives-travel-guide .lux-section-heading > p:not(.lux-eyebrow),
+.home-page #stay-connected .lux-contact-copy > p:not(.lux-eyebrow),
+.home-page .lux-contact-assurance span {
+  max-width: 720px;
+  color: rgba(23, 33, 43, 0.68) !important;
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: 0.96rem !important;
+  font-weight: 100 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.65 !important;
+}
+
+.long-editorial-paragraph,
+.home-page .lux-editorial-copy p:not(.lux-eyebrow),
+.home-page .lux-story-copy p:not(.lux-eyebrow) {
+  max-width: 650px;
+  color: rgba(19, 32, 43, 0.68) !important;
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: 1.02rem !important;
+  font-weight: 100 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.85 !important;
+  text-align: left;
+}
+
+.home-page .lux-guide-card h3,
+.home-page .why-trust__reason h3 {
+  font-size: clamp(1.3rem, 1.75vw, 1.85rem) !important;
+}
+
+@media (max-width: 720px) {
+  .section-editorial-title,
+  .home-page #featured-retreats .lux-eyebrow,
+  .home-page #featured-retreats .lux-section-heading h2,
+  .home-page .market-editorial__copy .lux-eyebrow,
+  .home-page .market-editorial__copy h2,
+  .home-page .services-editorial__heading .lux-eyebrow,
+  .home-page .services-editorial__heading h2,
+  .home-page .why-trust__intro .lux-eyebrow,
+  .home-page .why-trust__intro h2,
+  .home-page #prestigious-awards .lux-eyebrow,
+  .home-page #prestigious-awards .lux-section-heading h2,
+  .home-page #maldives-travel-guide .lux-eyebrow,
+  .home-page #maldives-travel-guide .lux-section-heading h2,
+  .home-page #stay-connected .lux-eyebrow,
+  .home-page #stay-connected .lux-contact-copy h2 {
+    font-size: clamp(1.8rem, 8vw, 2.65rem) !important;
+  }
+
+  .home-page .lux-guide-card h3,
+  .home-page .why-trust__reason h3 {
+    font-size: clamp(1.18rem, 5.5vw, 1.55rem) !important;
+  }
+}
