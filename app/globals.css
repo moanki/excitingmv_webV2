@@ -8638,7 +8638,12 @@ select {
 }
 
 .about-company-introduction {
+  padding-bottom: clamp(2.75rem, 4.8vw, 5rem);
   text-align: center;
+}
+
+.about-company-services-section {
+  padding-top: clamp(2.75rem, 4.8vw, 5rem);
 }
 
 .about-company-introduction p {
@@ -8985,6 +8990,14 @@ select {
 
   .about-company-section {
     padding: 3.75rem 0;
+  }
+
+  .about-company-introduction {
+    padding-bottom: 2.25rem;
+  }
+
+  .about-company-services-section {
+    padding-top: 2.25rem;
   }
 
   .about-company-service {
