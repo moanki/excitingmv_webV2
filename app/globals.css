@@ -16915,98 +16915,367 @@ html {
   }
 }
 
-/* Homepage typography alignment: editorial hierarchy */
+/* Luxury editorial typography system */
+.section-eyebrow,
+.home-page .lux-eyebrow,
+.public-lux-hero__copy .lux-eyebrow,
+.about-page .lux-eyebrow,
+.contact-registry-entry__heading p,
+.site-footer .section-kicker {
+  color: rgba(153, 111, 51, 0.9) !important;
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: 0.68rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.35 !important;
+  text-transform: uppercase !important;
+}
+
+.section-title,
 .section-editorial-title,
-.home-page #featured-retreats .lux-eyebrow,
-.home-page #featured-retreats .lux-section-heading h2,
-.home-page .market-editorial__copy .lux-eyebrow,
+.section-heading-primary,
+.home-page .lux-section-heading h2,
+.home-page .lux-editorial-copy h2,
+.home-page .lux-story-copy h2,
 .home-page .market-editorial__copy h2,
-.home-page .services-editorial__heading .lux-eyebrow,
 .home-page .services-editorial__heading h2,
-.home-page .why-trust__intro .lux-eyebrow,
 .home-page .why-trust__intro h2,
-.home-page #prestigious-awards .lux-eyebrow,
-.home-page #prestigious-awards .lux-section-heading h2,
-.home-page #maldives-travel-guide .lux-eyebrow,
-.home-page #maldives-travel-guide .lux-section-heading h2,
-.home-page #stay-connected .lux-eyebrow,
-.home-page #stay-connected .lux-contact-copy h2,
-.home-page .lux-guide-card h3,
-.home-page .why-trust__reason h3 {
+.home-page .lux-contact-copy h2,
+.home-page .lux-partner-cta h2,
+.public-lux-hero__copy h1,
+.about-page h1,
+.about-page h2,
+.contact-registry-hero h1,
+.contact-registry-entry__heading h2 {
   color: #13202b !important;
   font-family: var(--font-serif), serif !important;
-  font-size: clamp(2rem, 3.15vw, 3.4rem) !important;
+  font-size: clamp(2.1rem, 4vw, 4.2rem) !important;
   font-weight: 100 !important;
-  letter-spacing: 0 !important;
-  line-height: 1.08 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.05 !important;
   text-transform: none !important;
 }
 
-.section-heading-primary,
-.home-page .market-editorial__copy .lux-eyebrow,
-.home-page .services-editorial__heading .lux-eyebrow,
-.home-page .why-trust__intro .lux-eyebrow,
-.home-page #prestigious-awards .lux-eyebrow {
-  margin: 0 0 0.7rem !important;
+.home-page .lux-hero h1 {
+  color: #fff !important;
+  font-family: var(--font-serif), serif !important;
+  font-size: clamp(3rem, 7vw, 6.5rem) !important;
+  font-weight: 100 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 0.95 !important;
+  max-width: 11ch;
 }
 
+.section-subtitle,
 .section-support-text,
-.home-page #featured-retreats .lux-section-heading > p:not(.lux-eyebrow),
+.home-page .lux-hero__copy > p:not(.lux-eyebrow),
+.home-page .lux-section-heading > p:not(.lux-eyebrow),
 .home-page .market-editorial__copy > p,
 .home-page .services-editorial__heading > p:not(.lux-eyebrow),
 .home-page .why-trust__intro > p,
-.home-page #prestigious-awards .lux-section-heading > p:not(.lux-eyebrow),
-.home-page #maldives-travel-guide .lux-section-heading > p:not(.lux-eyebrow),
-.home-page #stay-connected .lux-contact-copy > p:not(.lux-eyebrow),
-.home-page .lux-contact-assurance span {
-  max-width: 720px;
+.home-page .lux-contact-copy > p:not(.lux-eyebrow),
+.home-page .lux-contact-assurance span,
+.public-lux-hero__copy p:not(.lux-eyebrow),
+.about-page p,
+.contact-registry-hero p,
+.contact-registry-entry p {
   color: rgba(23, 33, 43, 0.68) !important;
   font-family: var(--font-sans), sans-serif !important;
-  font-size: 0.96rem !important;
-  font-weight: 100 !important;
+  font-size: clamp(0.95rem, 1vw, 1.05rem) !important;
+  font-weight: 300 !important;
   letter-spacing: 0 !important;
-  line-height: 1.65 !important;
+  line-height: 1.75 !important;
 }
 
+.home-page .lux-hero__copy > p:not(.lux-eyebrow) {
+  max-width: 620px;
+  color: rgba(255, 255, 255, 0.82) !important;
+  font-size: clamp(1rem, 1.4vw, 1.25rem) !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.6 !important;
+}
+
+.editorial-body,
 .long-editorial-paragraph,
 .home-page .lux-editorial-copy p:not(.lux-eyebrow),
 .home-page .lux-story-copy p:not(.lux-eyebrow) {
   max-width: 650px;
   color: rgba(19, 32, 43, 0.68) !important;
   font-family: var(--font-sans), sans-serif !important;
-  font-size: 1.02rem !important;
-  font-weight: 100 !important;
+  font-size: 1rem !important;
+  font-weight: 300 !important;
   letter-spacing: 0 !important;
   line-height: 1.85 !important;
   text-align: left;
 }
 
+.home-page .lux-editorial-copy h2,
+.home-page .lux-story-copy h2 {
+  font-size: clamp(1.8rem, 3.5vw, 3.8rem) !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.12 !important;
+}
+
+.card-title,
+.home-page .lux-retreat-card h3,
 .home-page .lux-guide-card h3,
+.home-page .why-trust__reason h3,
+.home-page .market-editorial__row strong,
+.home-page .services-editorial__text strong,
+.about-page h3,
+.contact-registry-card h3 {
+  color: #13202b !important;
+  font-family: var(--font-serif), serif !important;
+  font-size: clamp(1.15rem, 1.5vw, 1.55rem) !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.25 !important;
+}
+
+.home-page .lux-retreat-card h3 {
+  color: #fff !important;
+  font-size: 1.05rem !important;
+}
+
 .home-page .why-trust__reason h3 {
-  font-size: clamp(1.3rem, 1.75vw, 1.85rem) !important;
+  font-size: 1.25rem !important;
+  letter-spacing: -0.015em !important;
+}
+
+.home-page .lux-guide-card h3 {
+  font-size: 1.2rem !important;
+  letter-spacing: -0.015em !important;
+  line-height: 1.3 !important;
+}
+
+.home-page .services-editorial__text strong {
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: 1rem !important;
+  letter-spacing: -0.005em !important;
+}
+
+.home-page .market-editorial__row strong {
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: 1.1rem !important;
+}
+
+.card-meta,
+.home-page .lux-retreat-card p,
+.home-page .lux-retreat-card span,
+.home-page .lux-guide-card__content > span,
+.home-page .market-editorial__row small,
+.home-page .why-trust__reason > span {
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: 0.72rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.03em !important;
+  line-height: 1.4 !important;
+  text-transform: uppercase !important;
+}
+
+.home-page .lux-retreat-card p,
+.home-page .lux-retreat-card span {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.home-page .lux-guide-card__content > span {
+  color: rgba(153, 111, 51, 0.88) !important;
+  font-size: 0.65rem !important;
+  letter-spacing: 0.08em !important;
+}
+
+.home-page .why-trust__reason > span {
+  color: rgba(153, 111, 51, 0.84) !important;
+  font-size: 0.75rem !important;
+  font-weight: 200 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.home-page .market-editorial__row small {
+  font-size: 0.62rem !important;
+  letter-spacing: 0.08em !important;
+}
+
+.home-page .market-editorial__row span,
+.home-page .services-editorial__text span,
+.home-page .why-trust__reason p,
+.home-page .lux-guide-card p {
+  color: rgba(23, 33, 43, 0.66) !important;
+  font-family: var(--font-sans), sans-serif !important;
+  font-weight: 300 !important;
+  letter-spacing: 0 !important;
+}
+
+.home-page .market-editorial__row span,
+.home-page .services-editorial__text span {
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+}
+
+.home-page .why-trust__reason p {
+  font-size: 0.95rem !important;
+  line-height: 1.7 !important;
+}
+
+.home-page .lux-guide-card p {
+  font-size: 0.9rem !important;
+  line-height: 1.65 !important;
+}
+
+.text-link-small,
+.home-page .lux-text-link,
+.home-page .lux-retreat-card strong,
+.home-page .lux-guide-card a,
+.site-footer__links a,
+.site-footer__contact a,
+.contact-registry-cta a {
+  font-family: var(--font-sans), sans-serif !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase;
+}
+
+.home-page .lux-text-link {
+  font-size: 0.65rem !important;
+  font-weight: 100 !important;
+  letter-spacing: 0.06em !important;
+}
+
+.home-page .lux-retreat-card strong,
+.home-page .lux-guide-card a {
+  font-size: 0.68rem !important;
+}
+
+.site-nav__links a,
+.site-nav__links button,
+.site-nav__partner,
+.site-nav__cta,
+.mobile-bottom-nav a {
+  font-size: 0.78rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.03em !important;
+}
+
+.lux-button,
+.about-button,
+.support-float,
+.newsletter-form button,
+.partner-register__submit,
+.contact-registry-cta a {
+  font-size: 0.75rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+.newsletter-field label,
+.partner-register__field label,
+.contact-registry-form label,
+.contact-form label {
+  font-size: 0.7rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+}
+
+.newsletter-field input,
+.newsletter-field select,
+.newsletter-field textarea,
+.partner-register__field input,
+.partner-register__field select,
+.partner-register__field textarea,
+.contact-registry-form input,
+.contact-registry-form select,
+.contact-registry-form textarea,
+.contact-form input,
+.contact-form select,
+.contact-form textarea {
+  font-size: 0.95rem !important;
+  font-weight: 300 !important;
+  line-height: 1.4 !important;
+}
+
+.newsletter-form p,
+.partner-register__helper,
+.contact-registry-form small,
+.contact-form small {
+  font-size: 0.78rem !important;
+  font-weight: 300 !important;
+  line-height: 1.5 !important;
+}
+
+.footer-title,
+.site-footer__column .section-kicker,
+.site-footer__contact .section-kicker,
+.site-footer__proof .section-kicker {
+  font-size: 0.68rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.footer-link,
+.site-footer__links a {
+  font-size: 0.82rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.9 !important;
+  text-transform: none;
+}
+
+.site-footer__summary,
+.site-footer__contact p:not(.section-kicker),
+.site-footer__contact a {
+  font-size: 0.82rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.7 !important;
+}
+
+.site-footer__bottom {
+  font-size: 0.72rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.02em !important;
 }
 
 @media (max-width: 720px) {
-  .section-editorial-title,
-  .home-page #featured-retreats .lux-eyebrow,
-  .home-page #featured-retreats .lux-section-heading h2,
-  .home-page .market-editorial__copy .lux-eyebrow,
-  .home-page .market-editorial__copy h2,
-  .home-page .services-editorial__heading .lux-eyebrow,
-  .home-page .services-editorial__heading h2,
-  .home-page .why-trust__intro .lux-eyebrow,
-  .home-page .why-trust__intro h2,
-  .home-page #prestigious-awards .lux-eyebrow,
-  .home-page #prestigious-awards .lux-section-heading h2,
-  .home-page #maldives-travel-guide .lux-eyebrow,
-  .home-page #maldives-travel-guide .lux-section-heading h2,
-  .home-page #stay-connected .lux-eyebrow,
-  .home-page #stay-connected .lux-contact-copy h2 {
-    font-size: clamp(1.8rem, 8vw, 2.65rem) !important;
+  .home-page .lux-hero h1 {
+    font-size: clamp(2.75rem, 12vw, 4rem) !important;
+    letter-spacing: -0.025em !important;
+    line-height: 1.02 !important;
   }
 
+  .section-title,
+  .section-editorial-title,
+  .section-heading-primary,
+  .home-page .lux-section-heading h2,
+  .home-page .lux-editorial-copy h2,
+  .home-page .lux-story-copy h2,
+  .home-page .market-editorial__copy h2,
+  .home-page .services-editorial__heading h2,
+  .home-page .why-trust__intro h2,
+  .home-page .lux-contact-copy h2,
+  .home-page .lux-partner-cta h2,
+  .public-lux-hero__copy h1,
+  .about-page h1,
+  .about-page h2,
+  .contact-registry-hero h1,
+  .contact-registry-entry__heading h2 {
+    font-size: clamp(2rem, 10vw, 3.2rem) !important;
+    letter-spacing: -0.025em !important;
+    line-height: 1.05 !important;
+  }
+
+  .section-eyebrow,
+  .home-page .lux-eyebrow,
+  .public-lux-hero__copy .lux-eyebrow,
+  .about-page .lux-eyebrow,
+  .site-footer .section-kicker {
+    letter-spacing: 0.07em !important;
+  }
+
+  .home-page .lux-retreat-card h3,
   .home-page .lux-guide-card h3,
   .home-page .why-trust__reason h3 {
-    font-size: clamp(1.18rem, 5.5vw, 1.55rem) !important;
+    font-size: clamp(1.05rem, 5vw, 1.35rem) !important;
   }
 }

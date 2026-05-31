@@ -90,6 +90,21 @@ function getMarketDisplayLabel(label: string) {
   return label;
 }
 
+function normalizeHeroDescription(description?: string | null) {
+  const fallback = "Curated resorts, protected trade resources, and local destination expertise for global travel partners.";
+  const source = description?.trim() || fallback;
+
+  if (source.toLowerCase() === "curated destination management for travel specialist") {
+    return "Curated destination management for luxury travel specialists.";
+  }
+
+  if (source.toLowerCase() === "curated destination management for travel specialists") {
+    return "Curated destination management for luxury travel specialists.";
+  }
+
+  return source;
+}
+
 function pickResortImage(index: number) {
   return featuredImages[index % featuredImages.length];
 }
@@ -364,10 +379,7 @@ export default async function HomePage() {
         <div className="lux-container lux-hero__inner">
           <div className="lux-hero__copy">
             <h1>{hero.title || "A Premium Maldives B2B Travel Ecosystem"}</h1>
-            <p>
-              {hero.description ||
-                "Curated resorts, protected trade resources, and local destination expertise for global travel partners."}
-            </p>
+            <p>{normalizeHeroDescription(hero.description)}</p>
             <div className="lux-hero__actions">
               <PartnerModalButton className="lux-button lux-button--glass">
                 Become a Partner
