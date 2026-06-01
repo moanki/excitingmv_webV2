@@ -2,6 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 
+import { requireAdminRole } from "@/lib/auth/require-admin";
 import { generateResortSeoCopy, type ResortSeoGenerationInput } from "@/lib/services/resort-ai-service";
 import { deleteResort, normalizePropertyType, saveResort, seedSampleResorts, type PropertyType } from "@/lib/services/resort-service";
 import { uploadSiteAsset } from "@/lib/storage/site-assets";
@@ -126,6 +127,7 @@ async function parseRoomTypes(formData: FormData) {
 
 export async function saveResortAction(_: ActionState, formData: FormData) {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const name = String(formData.get("name") ?? "").trim();
     const propertyType = normalizePropertyType(formData.get("propertyType"));
     const explicitPublishingMode = String(formData.get("publishingMode") ?? "").trim();
@@ -221,6 +223,7 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
 }
 
 export async function deleteResortAction(formData: FormData) {
+  await requireAdminRole(["super_admin", "admin", "content_manager"]);
   const id = String(formData.get("id") ?? "");
   const propertyType = normalizePropertyType(formData.get("propertyType"));
   if (!id) {
@@ -232,11 +235,13 @@ export async function deleteResortAction(formData: FormData) {
 }
 
 export async function seedResortsAction() {
+  await requireAdminRole(["super_admin"]);
   await seedSampleResorts();
   revalidateResortPaths();
 }
 
 export async function generateResortSeoAction(input: ResortSeoGenerationInput) {
+  await requireAdminRole(["super_admin", "admin", "content_manager"]);
   const parsed = resortSeoGenerationInputSchema.safeParse(input);
   if (!parsed.success) {
     return {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requireAdminJson } from "@/lib/auth/require-admin";
 import {
   compressExistingSiteImages,
   createSignedSiteAssetUpload,
@@ -11,6 +12,9 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 export async function POST(request: Request) {
+  const auth = await requireAdminJson();
+  if (!auth.ok) return auth.response;
+
   const contentTypeHeader = request.headers.get("content-type") ?? "";
 
   if (contentTypeHeader.includes("multipart/form-data")) {

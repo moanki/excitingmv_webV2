@@ -1,3 +1,4 @@
+import { requireAdminJson } from "@/lib/auth/require-admin";
 import { listPartnerRequests } from "@/lib/services/partner-service";
 
 function csvEscape(value: string) {
@@ -5,6 +6,9 @@ function csvEscape(value: string) {
 }
 
 export async function GET(request: Request) {
+  const auth = await requireAdminJson();
+  if (!auth.ok) return auth.response;
+
   const url = new URL(request.url);
   const selectedIds = (url.searchParams.get("ids") ?? "")
     .split(",")

@@ -1,4 +1,5 @@
 import type { ServiceResult } from "@/lib/types";
+import { escapeHtml } from "@/lib/security/escape-html";
 import { sendNotificationEmail } from "@/lib/services/email-service";
 import { contactSchema } from "@/lib/validations";
 import type { z } from "zod";
@@ -12,10 +13,10 @@ export async function createContactRequest(
     subject: "New contact enquiry",
     html: `
       <h2>New contact enquiry</h2>
-      <p><strong>Name:</strong> ${input.name}</p>
-      <p><strong>Email:</strong> ${input.email}</p>
+      <p><strong>Name:</strong> ${escapeHtml(input.name)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(input.email)}</p>
       <p><strong>Message:</strong></p>
-      <p>${input.message}</p>
+      <p>${escapeHtml(input.message)}</p>
     `
   });
 

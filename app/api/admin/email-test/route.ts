@@ -1,16 +1,12 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { ADMIN_SESSION_COOKIE } from "@/lib/auth/bootstrap-admin";
+import { requireAdminJson } from "@/lib/auth/require-admin";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const cookieStore = await cookies();
-
-  if (!cookieStore.get(ADMIN_SESSION_COOKIE)?.value) {
-    return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
-  }
+  const auth = await requireAdminJson();
+  if (!auth.ok) return auth.response;
 
   const body = (await request.json().catch(() => ({}))) as { to?: unknown };
   const resendApiKey = process.env.RESEND_API_KEY;

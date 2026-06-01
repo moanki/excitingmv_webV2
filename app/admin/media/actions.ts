@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { deleteSiteAsset, uploadSiteAsset } from "@/lib/storage/site-assets";
 
 type MediaActionState = { message?: string; error?: string } | undefined;
@@ -18,6 +19,7 @@ export async function uploadMediaLibraryAssetAction(
   formData: FormData
 ): Promise<MediaActionState> {
   try {
+    await requireAdmin();
     const file = formData.get("mediaFile");
     const usage = String(formData.get("usage") ?? "full");
 
@@ -36,6 +38,7 @@ export async function uploadMediaLibraryAssetAction(
 }
 
 export async function deleteMediaLibraryAssetAction(formData: FormData) {
+  await requireAdmin();
   const url = String(formData.get("url") ?? "").trim();
 
   if (!url) {

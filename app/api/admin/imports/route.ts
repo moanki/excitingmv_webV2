@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 
+import { requireAdminJson } from "@/lib/auth/require-admin";
 import {
   finalizeDriveImportBatch,
   importStoredFactSheet,
@@ -38,6 +39,9 @@ function revalidatePropertyType(propertyType: PropertyType) {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireAdminJson(["super_admin", "admin", "content_manager"]);
+  if (!auth.ok) return auth.response;
+
   const contentType = request.headers.get("content-type") ?? "";
 
   if (contentType.includes("multipart/form-data")) {

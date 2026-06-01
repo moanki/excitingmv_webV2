@@ -1,4 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { escapeHtml } from "@/lib/security/escape-html";
 import type { ServiceResult } from "@/lib/types";
 import { sendNotificationEmail } from "@/lib/services/email-service";
 import { getNotificationRecipient } from "@/lib/services/notification-settings-service";
@@ -149,12 +150,12 @@ export async function createNewsletterSubmission(
     subject: "New newsletter registration",
     html: `
       <h2>New newsletter registration</h2>
-      <p><strong>Name:</strong> ${input.fullName}</p>
-      <p><strong>Agency:</strong> ${input.agencyName}</p>
-      <p><strong>Email:</strong> ${input.email}</p>
-      <p><strong>Country:</strong> ${input.countryOfOrigin}</p>
-      <p><strong>Contact Number:</strong> ${input.contactNumber}</p>
-      <p><strong>Notes:</strong> ${input.additionalNotes ?? "-"}</p>
+      <p><strong>Name:</strong> ${escapeHtml(input.fullName)}</p>
+      <p><strong>Agency:</strong> ${escapeHtml(input.agencyName)}</p>
+      <p><strong>Email:</strong> ${escapeHtml(input.email)}</p>
+      <p><strong>Country:</strong> ${escapeHtml(input.countryOfOrigin)}</p>
+      <p><strong>Contact Number:</strong> ${escapeHtml(input.contactNumber)}</p>
+      <p><strong>Notes:</strong> ${escapeHtml(input.additionalNotes ?? "-")}</p>
     `
   });
 

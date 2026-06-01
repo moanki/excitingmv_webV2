@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { requireAdminRole } from "@/lib/auth/require-admin";
 import {
   createAdminUser,
   deleteAdminUser,
@@ -16,6 +17,7 @@ export async function createAdminUserAction(
   formData: FormData
 ): Promise<UserAccessActionState> {
   try {
+    await requireAdminRole(["super_admin"]);
     const email = String(formData.get("email") ?? "").trim();
     const password = String(formData.get("password") ?? "");
 
@@ -38,6 +40,7 @@ export async function createAdminUserAction(
 }
 
 export async function deleteAdminUserAction(formData: FormData) {
+  await requireAdminRole(["super_admin"]);
   const id = String(formData.get("id") ?? "");
   if (!id) {
     return;
@@ -52,6 +55,7 @@ export async function updateAdminUserEmailAction(
   formData: FormData
 ): Promise<UserAccessActionState> {
   try {
+    await requireAdminRole(["super_admin"]);
     const id = String(formData.get("id") ?? "");
     const email = String(formData.get("email") ?? "").trim();
 
@@ -72,6 +76,7 @@ export async function resetAdminUserPasswordAction(
   formData: FormData
 ): Promise<UserAccessActionState> {
   try {
+    await requireAdminRole(["super_admin"]);
     const id = String(formData.get("id") ?? "");
     const password = String(formData.get("password") ?? "");
 

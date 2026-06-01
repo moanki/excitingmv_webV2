@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { requireAdmin } from "@/lib/auth/require-admin";
 import {
   deleteResourcePermission,
   disableResourcePermission,
@@ -10,6 +11,7 @@ import {
 } from "@/lib/services/resource-permission-service";
 
 export async function saveResourcePermissionAction(formData: FormData) {
+  await requireAdmin();
   const resourceIds = formData.getAll("resourceIds").map((value) => String(value)).filter(Boolean);
 
   await saveResourcePermission({
@@ -25,6 +27,7 @@ export async function saveResourcePermissionAction(formData: FormData) {
 }
 
 export async function disableResourcePermissionAction(formData: FormData) {
+  await requireAdmin();
   const agentId = String(formData.get("agentId") ?? "").trim();
   if (!agentId) {
     return;
@@ -35,6 +38,7 @@ export async function disableResourcePermissionAction(formData: FormData) {
 }
 
 export async function deleteResourcePermissionAction(formData: FormData) {
+  await requireAdmin();
   const agentId = String(formData.get("agentId") ?? "").trim();
   if (!agentId) {
     return;
