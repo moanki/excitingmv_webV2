@@ -17497,3 +17497,288 @@ html {
     line-height: 1.18 !important;
   }
 }
+
+/* Homepage mobile editorial layout */
+@media (max-width: 720px) {
+  .site-nav {
+    background: #071b2a !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: none !important;
+  }
+
+  .site-nav.is-light,
+  .site-nav.is-scrolled {
+    background: #071b2a !important;
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .site-nav__inner,
+  .site-nav.is-scrolled .site-nav__inner {
+    min-height: 72px !important;
+    padding: 0 1rem !important;
+  }
+
+  .site-nav__brand-logo {
+    height: 42px !important;
+    max-width: 160px !important;
+    filter: brightness(0) invert(1);
+  }
+
+  .site-nav__brand-label,
+  .site-nav.is-light .site-nav__brand-label,
+  .site-nav.is-scrolled .site-nav__brand-label {
+    color: #fff !important;
+  }
+
+  .home-page .lux-hero {
+    min-height: 504px !important;
+    margin-top: 72px !important;
+  }
+
+  .home-page .lux-hero__asset {
+    background-position: 62% center !important;
+  }
+
+  .home-page .lux-hero__overlay {
+    background:
+      linear-gradient(180deg, rgba(7, 19, 31, 0.12) 0%, rgba(7, 19, 31, 0.34) 60%, rgba(7, 19, 31, 0.58) 100%),
+      linear-gradient(90deg, rgba(7, 19, 31, 0.38), rgba(7, 19, 31, 0.02) 78%) !important;
+  }
+
+  .home-page .lux-hero__inner {
+    min-height: 504px !important;
+    align-items: start !important;
+    padding: 4.95rem 1rem 5.75rem !important;
+  }
+
+  .home-page .lux-hero__copy {
+    max-width: 21rem !important;
+  }
+
+  .home-page .lux-hero h1 {
+    max-width: 12ch !important;
+    color: #fff !important;
+    font-family: var(--font-sans), sans-serif !important;
+    font-size: clamp(2.1rem, 9.5vw, 3.15rem) !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.045em !important;
+    line-height: 1.12 !important;
+  }
+
+  .home-page .lux-hero__copy > p:not(.lux-eyebrow) {
+    max-width: 19rem !important;
+    margin-top: 0.5rem !important;
+    color: rgba(255, 255, 255, 0.94) !important;
+    font-family: var(--font-sans), sans-serif !important;
+    font-size: 1.05rem !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.24 !important;
+  }
+
+  .home-page .lux-hero__actions,
+  .home-page .lux-hero__mobile-dots {
+    display: none !important;
+  }
+
+  .home-page .lux-hero__retreat-logos {
+    bottom: 1.1rem !important;
+  }
+
+  .home-page .lux-hero__retreat-logos div {
+    gap: 2.1rem !important;
+    animation-duration: 48s !important;
+  }
+
+  .home-page .lux-hero__retreat-logos .lux-hero__retreat-logo-frame {
+    width: 128px !important;
+    min-width: 128px !important;
+    height: 52px !important;
+  }
+
+  .home-page .lux-hero__retreat-logos img {
+    width: auto !important;
+    height: auto !important;
+    max-width: 122px !important;
+    max-height: 44px !important;
+    object-fit: contain !important;
+  }
+
+  .home-page .lux-section {
+    padding: 2.6rem 0 !important;
+  }
+
+  .home-page .lux-heading-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end !important;
+    gap: 0.75rem !important;
+  }
+
+  .home-page .lux-heading-row .lux-section-heading {
+    min-width: 0;
+  }
+
+  .home-page .lux-heading-row .lux-text-link {
+    align-self: end;
+    margin-bottom: 0.22rem;
+    white-space: nowrap;
+  }
+
+  .home-page .lux-section-heading h2,
+  .home-page .lux-editorial-copy h2,
+  .home-page .lux-story-copy h2 {
+    font-size: clamp(1.55rem, 7vw, 2.1rem) !important;
+    line-height: 1.14 !important;
+  }
+
+  .home-page #featured-retreats .lux-section-heading > p:not(.lux-eyebrow) {
+    margin-top: 0.85rem !important;
+    font-size: 0.86rem !important;
+    line-height: 1.48 !important;
+  }
+
+  .home-page .lux-retreat-carousel {
+    gap: 0.8rem !important;
+    margin-top: 2.1rem !important;
+    padding-right: 1rem;
+  }
+
+  .home-page .lux-retreat-card {
+    flex: 0 0 182px !important;
+    min-height: 282px !important;
+    border-radius: 9px !important;
+  }
+
+  .home-page .lux-retreat-card__content {
+    padding: 0.85rem !important;
+  }
+
+  .home-page .lux-retreat-card h3 {
+    font-size: 0.96rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .home-page .lux-retreat-card__content p,
+  .home-page .lux-retreat-card__content span,
+  .home-page .lux-retreat-card strong {
+    font-size: 0.62rem !important;
+  }
+
+  .home-page #ceo-message {
+    background: #f3efe8 !important;
+  }
+
+  .home-page .lux-editorial-split--ceo {
+    display: grid !important;
+    grid-template-columns: 124px minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 0.95rem !important;
+  }
+
+  .home-page .lux-editorial-split--ceo .lux-portrait-card {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    min-height: 156px !important;
+    border-radius: 18px !important;
+  }
+
+  .home-page .lux-editorial-split--ceo .lux-portrait-card__image {
+    min-height: 156px !important;
+  }
+
+  .home-page .lux-portrait-card__caption {
+    display: none !important;
+  }
+
+  .home-page .lux-editorial-split--ceo .lux-editorial-copy {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    padding: 0 !important;
+  }
+
+  .home-page .lux-editorial-split--ceo .lux-editorial-copy h2 {
+    margin-top: 0.55rem !important;
+    font-family: var(--font-sans), sans-serif !important;
+    font-size: 1.18rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.025em !important;
+    line-height: 1.22 !important;
+  }
+
+  .home-page .lux-editorial-copy p:not(.lux-eyebrow),
+  .home-page .lux-story-copy p:not(.lux-eyebrow) {
+    font-size: 0.98rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .home-page .lux-mobile-clamp-source {
+    -webkit-line-clamp: 6 !important;
+  }
+
+  .home-page .lux-mobile-readmore summary {
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+  }
+
+  .home-page .lux-signature strong {
+    display: block;
+    color: #13202b;
+    font-size: 1.04rem;
+  }
+
+  .home-page .lux-signature span {
+    color: #9b742e;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+
+  .home-page .lux-story-split {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 152px !important;
+    align-items: start !important;
+    gap: 1rem !important;
+  }
+
+  .home-page .lux-story-copy {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    padding: 0 !important;
+  }
+
+  .home-page .lux-story-image-panel {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    min-height: 176px !important;
+    border-radius: 24px !important;
+  }
+
+  .home-page .lux-story-image-panel .lux-story-panel__image {
+    min-height: 176px !important;
+  }
+
+  .home-page .lux-story-copy h2 {
+    margin-top: 0.55rem !important;
+    font-family: var(--font-sans), sans-serif !important;
+    font-size: 1.26rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.22 !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .home-page .lux-editorial-split--ceo {
+    grid-template-columns: 108px minmax(0, 1fr) !important;
+  }
+
+  .home-page .lux-story-split {
+    grid-template-columns: minmax(0, 1fr) 132px !important;
+  }
+
+  .home-page .lux-retreat-card {
+    flex-basis: 174px !important;
+  }
+}
