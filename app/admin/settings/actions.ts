@@ -607,18 +607,20 @@ export async function publishStoryAction() {
 
 export async function saveServicesDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    const sectionImageFile = uploadedFile(formData, "servicesSectionImageFile");
+    const sectionImageUrl = sectionImageFile
+      ? await uploadSiteAsset(sectionImageFile, "homepage/services", "card")
+      : stringValue(formData, "servicesSectionImageUrl");
+    const sectionImageAlt = stringValue(formData, "servicesSectionImageAlt");
+
     const services: HomepageServiceItem[] = await Promise.all(
       indexesFromCount(formData, "service_count", 6).map(async (index) => {
-        const imageFile = uploadedFile(formData, `service_${index}_imageFile`);
-
         return {
           title: stringValue(formData, `service_${index}_title`),
           description: stringValue(formData, `service_${index}_description`),
           icon: stringValue(formData, `service_${index}_icon`),
-          imageUrl: imageFile
-            ? await uploadSiteAsset(imageFile, "homepage/services", "card")
-            : stringValue(formData, `service_${index}_imageUrl`),
-          imageAlt: stringValue(formData, `service_${index}_imageAlt`),
+          imageUrl: sectionImageUrl,
+          imageAlt: sectionImageAlt,
           displayOrder: Number(stringValue(formData, `service_${index}_displayOrder`)) || index + 1,
           enabled: booleanValue(formData, `service_${index}_enabled`)
         };
