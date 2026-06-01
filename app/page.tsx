@@ -151,7 +151,7 @@ function MarketEditorial({ markets }: { markets: MarketSettings }) {
         <div className="market-editorial__rows">
           {displayMarkets.map((market, index) => (
             <div className="market-editorial__row" key={market.id}>
-              <strong>{market.label}</strong>
+              <strong>{market.label || market.region || `Market ${index + 1}`}</strong>
               <span>{market.region || marketDescriptions[index] || "Focused trade relationships and partner support."}</span>
               <em>{marketStatuses[index] || "Active"}</em>
             </div>

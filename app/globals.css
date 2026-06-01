@@ -16098,16 +16098,16 @@ select {
 .services-editorial {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  align-items: stretch;
+  align-items: center;
   gap: clamp(1.5rem, 2.8vw, 2.5rem);
-  min-height: clamp(540px, 48vw, 650px);
+  min-height: 0;
 }
 
 .services-editorial__media {
   position: relative;
   grid-column: span 5;
-  align-self: stretch;
-  height: 100%;
+  align-self: center;
+  height: clamp(390px, 38vw, 540px);
   margin-top: 0;
   min-height: 0;
   overflow: hidden;
@@ -16162,10 +16162,9 @@ select {
 .services-editorial__content {
   grid-column: span 7;
   display: flex;
-  height: 100%;
+  height: auto;
   min-height: 0;
   flex-direction: column;
-  justify-content: space-between;
   overflow: visible;
   border: 0;
   border-radius: 0;
@@ -16202,7 +16201,7 @@ select {
 
 .services-editorial__list {
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   flex-direction: column;
   border-top: 1px solid rgba(15, 23, 42, 0.08);
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
@@ -16210,7 +16209,7 @@ select {
 
 .services-editorial__row {
   display: grid;
-  flex: 1 1 0;
+  flex: 0 0 auto;
   grid-template-columns: 56px minmax(0, 1fr);
   align-items: center;
   gap: clamp(1rem, 2vw, 1.35rem);
