@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, Building2, Contact, Globe2, Home, LogIn, Menu, MessageCircle, PanelBottom } from "lucide-react";
+import { Bell, Building2, Contact, Globe2, Home, LogIn, Mail, Menu, MessageCircle, PanelBottom } from "lucide-react";
 
 const settingsSections = [
   {
@@ -36,6 +36,11 @@ const settingsSections = [
     title: "Notifications",
     href: "/admin/settings/notifications",
     icon: Bell
+  },
+  {
+    title: "Email Configuration",
+    href: "/admin/email-configuration",
+    icon: Mail
   },
   {
     title: "Markets",

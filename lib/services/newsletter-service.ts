@@ -2,7 +2,6 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { escapeHtml } from "@/lib/security/escape-html";
 import type { ServiceResult } from "@/lib/types";
 import { sendNotificationEmail } from "@/lib/services/email-service";
-import { getNotificationRecipient } from "@/lib/services/notification-settings-service";
 import { newsletterSubmissionSchema } from "@/lib/validations";
 import type { z } from "zod";
 
@@ -144,10 +143,21 @@ export async function createNewsletterSubmission(
     data = firstAttempt.data;
   }
 
-  const recipient = await getNotificationRecipient("newsletter");
   void sendNotificationEmail({
-    to: recipient,
-    subject: "New newsletter registration",
+    group: "newsletter",
+    replyTo: input.email,
+    subject: "New Newsletter Subscription - Exciting Maldives",
+    text: [
+      "New newsletter registration",
+      `Name: ${input.fullName}`,
+      `Agency: ${input.agencyName}`,
+      `Email: ${input.email}`,
+      `Country: ${input.countryOfOrigin}`,
+      `Contact Number: ${input.contactNumber}`,
+      `Primary Market: ${input.primaryMarket}`,
+      `Notes: ${input.additionalNotes ?? "-"}`,
+      `Timestamp: ${new Date().toISOString()}`
+    ].join("\n"),
     html: `
       <h2>New newsletter registration</h2>
       <p><strong>Name:</strong> ${escapeHtml(input.fullName)}</p>
@@ -155,7 +165,9 @@ export async function createNewsletterSubmission(
       <p><strong>Email:</strong> ${escapeHtml(input.email)}</p>
       <p><strong>Country:</strong> ${escapeHtml(input.countryOfOrigin)}</p>
       <p><strong>Contact Number:</strong> ${escapeHtml(input.contactNumber)}</p>
+      <p><strong>Primary Market:</strong> ${escapeHtml(input.primaryMarket)}</p>
       <p><strong>Notes:</strong> ${escapeHtml(input.additionalNotes ?? "-")}</p>
+      <p><strong>Timestamp:</strong> ${escapeHtml(new Date().toISOString())}</p>
     `
   });
 

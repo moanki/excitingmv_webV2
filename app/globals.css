@@ -3081,6 +3081,49 @@ select {
   box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.08);
 }
 
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(15, 94, 104, 0.2);
+  border-radius: 999px;
+  background: rgba(15, 94, 104, 0.08);
+  color: #0f5e68;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.45rem 0.75rem;
+  text-transform: uppercase;
+}
+
+.form-helper {
+  margin: 0.75rem 0 0;
+  color: rgba(15, 23, 42, 0.62);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.inline-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-detail-list {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.4fr) minmax(0, 1fr);
+  gap: 0.8rem 1rem;
+  color: rgba(15, 23, 42, 0.66);
+  font-size: 0.92rem;
+}
+
+.admin-detail-list strong {
+  min-width: 0;
+  color: #111827;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
 .admin-page-header {
   display: flex;
   align-items: flex-start;

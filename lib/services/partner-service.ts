@@ -2,7 +2,6 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { escapeHtml } from "@/lib/security/escape-html";
 import type { PartnerStatus, ServiceResult } from "@/lib/types";
 import { sendNotificationEmail } from "@/lib/services/email-service";
-import { getNotificationRecipient } from "@/lib/services/notification-settings-service";
 import { partnerRegistrationSchema } from "@/lib/validations";
 import type { z } from "zod";
 
@@ -73,10 +72,19 @@ export async function createPartnerRegistration(
     };
   }
 
-  const recipient = await getNotificationRecipient("partner");
   void sendNotificationEmail({
-    to: recipient,
-    subject: "New partner registration",
+    group: "general",
+    replyTo: data.email,
+    subject: "New Partner Enquiry - Exciting Maldives",
+    text: [
+      "New partner registration",
+      `Agency: ${data.agency_name}`,
+      `Email: ${data.email}`,
+      `Market: ${input.market}`,
+      `Contact: ${input.contactName}`,
+      `Notes: ${input.notes ?? "-"}`,
+      `Timestamp: ${new Date().toISOString()}`
+    ].join("\n"),
     html: `
       <h2>New partner registration</h2>
       <p><strong>Agency:</strong> ${escapeHtml(data.agency_name)}</p>
@@ -84,6 +92,7 @@ export async function createPartnerRegistration(
       <p><strong>Market:</strong> ${escapeHtml(input.market)}</p>
       <p><strong>Contact:</strong> ${escapeHtml(input.contactName)}</p>
       <p><strong>Notes:</strong> ${escapeHtml(input.notes ?? "-")}</p>
+      <p><strong>Timestamp:</strong> ${escapeHtml(new Date().toISOString())}</p>
     `
   });
 
