@@ -76,20 +76,6 @@ function logoScaleClass(name: string) {
   return "";
 }
 
-function getMarketDisplayLabel(label: string) {
-  const normalized = label.toLowerCase();
-
-  if (normalized.includes("middle east")) {
-    return "Middle East & GCC";
-  }
-
-  if (normalized.includes("south asia")) {
-    return "India & South Asia";
-  }
-
-  return label;
-}
-
 function normalizeHeroDescription(description?: string | null) {
   const fallback = "Curated resorts, protected trade resources, and local destination expertise for global travel partners.";
   const source = description?.trim() || fallback;
@@ -165,8 +151,8 @@ function MarketEditorial({ markets }: { markets: MarketSettings }) {
         <div className="market-editorial__rows">
           {displayMarkets.map((market, index) => (
             <div className="market-editorial__row" key={market.id}>
-              <strong>{getMarketDisplayLabel(market.label)}</strong>
-              <span>{marketDescriptions[index] || "Focused trade relationships and partner support."}</span>
+              <strong>{market.label}</strong>
+              <span>{market.region || marketDescriptions[index] || "Focused trade relationships and partner support."}</span>
               <em>{marketStatuses[index] || "Active"}</em>
             </div>
           ))}
