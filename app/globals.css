@@ -17384,3 +17384,116 @@ html {
     line-height: 1.18 !important;
   }
 }
+
+/* About page typography alignment */
+.about-company-page .lux-eyebrow {
+  color: rgba(153, 111, 51, 0.9) !important;
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.35 !important;
+  text-transform: uppercase !important;
+}
+
+.about-company-hero__content h1 {
+  color: #fff !important;
+  font-family: var(--font-serif), serif !important;
+  font-size: clamp(2.25rem, 4.5vw, 4.35rem) !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 1.02 !important;
+}
+
+.about-company-services__list h2,
+.about-company-partners h2,
+.about-company-philosophy h2,
+.about-company-heading h2,
+.about-who-partner__content h2 {
+  color: #13202b !important;
+  font-family: var(--font-serif), serif !important;
+  font-size: clamp(1.65rem, 2.25vw, 2.15rem) !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.22 !important;
+}
+
+.about-company-cta__content h2 {
+  color: #fff !important;
+  font-family: var(--font-serif), serif !important;
+  font-size: clamp(1.65rem, 2.25vw, 2.15rem) !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.22 !important;
+}
+
+.about-company-introduction p {
+  color: rgba(17, 24, 39, 0.78) !important;
+  font-family: var(--font-serif), serif !important;
+  font-size: clamp(1rem, 2vw, 1.35rem) !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.68 !important;
+}
+
+.about-company-section-note,
+.about-company-partners__grid > p,
+.about-company-philosophy p,
+.about-company-cta__content p,
+.about-company-service p,
+.about-brand-card p,
+.about-partner-type p {
+  font-family: var(--font-sans), sans-serif !important;
+  font-weight: 300 !important;
+  letter-spacing: 0 !important;
+}
+
+.about-company-section-note,
+.about-company-partners__grid > p,
+.about-company-philosophy p,
+.about-company-cta__content p {
+  font-size: clamp(0.92rem, 0.95vw, 1rem) !important;
+  line-height: 1.7 !important;
+}
+
+.about-company-service h3,
+.about-brand-card h3,
+.about-partner-type h3 {
+  color: #13202b !important;
+  font-family: var(--font-serif), serif !important;
+  font-size: clamp(1.05rem, 1.25vw, 1.25rem) !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.25 !important;
+}
+
+.about-company-service > span {
+  font-size: 0.75rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.35 !important;
+}
+
+.about-company-logo-strip span {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.35 !important;
+}
+
+@media (max-width: 720px) {
+  .about-company-hero__content h1 {
+    font-size: clamp(2rem, 10vw, 3rem) !important;
+    line-height: 1.05 !important;
+  }
+
+  .about-company-services__list h2,
+  .about-company-partners h2,
+  .about-company-philosophy h2,
+  .about-company-heading h2,
+  .about-who-partner__content h2,
+  .about-company-cta__content h2 {
+    font-size: clamp(1.45rem, 7vw, 2rem) !important;
+    line-height: 1.18 !important;
+  }
+}
