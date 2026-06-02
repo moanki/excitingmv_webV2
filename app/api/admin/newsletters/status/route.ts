@@ -1,8 +1,12 @@
 import { revalidatePath } from "next/cache";
 
+import { requireAdminJson } from "@/lib/auth/require-admin";
 import { updateNewsletterSubmissionStatus } from "@/lib/services/newsletter-service";
 
 export async function POST(request: Request) {
+  const auth = await requireAdminJson();
+  if (!auth.ok) return auth.response;
+
   const body = (await request.json().catch(() => null)) as
     | {
         ids?: string[];

@@ -3081,6 +3081,49 @@ select {
   box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.08);
 }
 
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(15, 94, 104, 0.2);
+  border-radius: 999px;
+  background: rgba(15, 94, 104, 0.08);
+  color: #0f5e68;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.45rem 0.75rem;
+  text-transform: uppercase;
+}
+
+.form-helper {
+  margin: 0.75rem 0 0;
+  color: rgba(15, 23, 42, 0.62);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.inline-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-detail-list {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.4fr) minmax(0, 1fr);
+  gap: 0.8rem 1rem;
+  color: rgba(15, 23, 42, 0.66);
+  font-size: 0.92rem;
+}
+
+.admin-detail-list strong {
+  min-width: 0;
+  color: #111827;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
 .admin-page-header {
   display: flex;
   align-items: flex-start;
@@ -16098,7 +16141,7 @@ select {
 .services-editorial {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  align-items: stretch;
+  align-items: center;
   gap: clamp(1.5rem, 2.8vw, 2.5rem);
   min-height: 0;
 }
@@ -16106,9 +16149,9 @@ select {
 .services-editorial__media {
   position: relative;
   grid-column: span 5;
-  align-self: stretch;
-  height: auto;
-  margin-top: calc((0.75rem * 1.35) + 1.1rem);
+  align-self: center;
+  height: clamp(390px, 38vw, 540px);
+  margin-top: 0;
   min-height: 0;
   overflow: hidden;
   border-radius: 24px;
@@ -16162,6 +16205,7 @@ select {
 .services-editorial__content {
   grid-column: span 7;
   display: flex;
+  height: auto;
   min-height: 0;
   flex-direction: column;
   overflow: visible;
@@ -16300,6 +16344,15 @@ select {
     height: clamp(320px, 44vw, 420px);
     margin-top: 0;
     min-height: 0;
+  }
+
+  .services-editorial__content {
+    height: auto;
+  }
+
+  .services-editorial__list,
+  .services-editorial__row {
+    flex: 0 0 auto;
   }
 }
 

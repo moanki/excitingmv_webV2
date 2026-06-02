@@ -60,6 +60,12 @@ const navGroups: NavGroup[] = [
         label: "Newsletter",
         description: "Leads and exports",
         icon: Mail
+      },
+      {
+        href: "/admin/email-configuration",
+        label: "Email Configuration",
+        description: "SMTP provider and notification routing",
+        icon: Bell
       }
     ]
   },
@@ -197,6 +203,10 @@ const pageMeta: Record<string, { title: string; description: string }> = {
   "/admin/newsletters": {
     title: "Newsletter Subscriptions",
     description: ""
+  },
+  "/admin/email-configuration": {
+    title: "Email Configuration",
+    description: "Configure the SMTP service used for website notifications."
   },
   "/admin/imports": {
     title: "AI Import Center",

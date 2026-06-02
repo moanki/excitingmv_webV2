@@ -2,6 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 
+import { requireAdminRole } from "@/lib/auth/require-admin";
 import {
   createImportBatch,
   importUploadedFactSheet,
@@ -33,6 +34,7 @@ function revalidateImportTargets() {
 }
 
 export async function createImportBatchAction(_: ImportActionState, formData: FormData): Promise<ImportActionState> {
+  await requireAdminRole(["super_admin", "admin", "content_manager"]);
   const result = await createImportBatch({
     googleDriveUrl: String(formData.get("googleDriveUrl") ?? ""),
     propertyType: normalizePropertyType(formData.get("propertyType"))
@@ -48,6 +50,7 @@ export async function createImportBatchAction(_: ImportActionState, formData: Fo
 }
 
 export async function createImportUploadAction(_: ImportActionState, formData: FormData): Promise<ImportActionState> {
+  await requireAdminRole(["super_admin", "admin", "content_manager"]);
   const upload = formData.get("factSheetFile");
   const result = await importUploadedFactSheet(
     upload instanceof File ? upload : new File([], ""),

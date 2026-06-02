@@ -1,3 +1,4 @@
+import { requireAdminRole } from "@/lib/auth/require-admin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import sharp from "sharp";
 
@@ -128,17 +129,9 @@ function fileNameExtension(name: string) {
   return name.split(".").pop()?.toLowerCase() ?? "";
 }
 
-export function validateSiteAssetFile(file: File) {
-  if (!file || file.size === 0) {
-    throw new SiteAssetUploadError("missing_file", "Choose a file to upload.", { status: 400 });
-  }
-
-  if (file.size > MAX_SITE_ASSET_FILE_SIZE) {
-    throw new SiteAssetUploadError("file_too_large", "File is too large. Keep uploads under 50 MB.", { status: 413 });
-  }
-
-  const extension = fileNameExtension(file.name);
-  const type = file.type || "application/octet-stream";
+function validateSiteAssetType(filename: string, contentType: string) {
+  const extension = fileNameExtension(filename);
+  const type = contentType || "application/octet-stream";
 
   if (HEIC_EXTENSIONS.includes(extension) || ["image/heic", "image/heif"].includes(type)) {
     throw new SiteAssetUploadError("unsupported_file_type", "HEIC images are not supported yet. Please convert to JPG or PNG.", {
@@ -149,9 +142,21 @@ export function validateSiteAssetFile(file: File) {
   if (!ALLOWED_SITE_ASSET_MIME_TYPES.includes(type) && !ALLOWED_EXTENSIONS.includes(extension)) {
     throw new SiteAssetUploadError("unsupported_file_type", "Unsupported file type. Upload JPG, PNG, WebP, SVG, PDF, document, video, or CSV files.", {
       status: 415,
-      details: { filename: file.name, type }
+      details: { filename, type }
     });
   }
+}
+
+export function validateSiteAssetFile(file: File) {
+  if (!file || file.size === 0) {
+    throw new SiteAssetUploadError("missing_file", "Choose a file to upload.", { status: 400 });
+  }
+
+  if (file.size > MAX_SITE_ASSET_FILE_SIZE) {
+    throw new SiteAssetUploadError("file_too_large", "File is too large. Keep uploads under 50 MB.", { status: 413 });
+  }
+
+  validateSiteAssetType(file.name, file.type || "application/octet-stream");
 }
 
 function isOptimizableImage(file: File) {
@@ -256,6 +261,7 @@ async function ensureBucket() {
 }
 
 export async function uploadSiteAsset(file: File, folder: string, usage: SiteAssetUsage = "full") {
+  await requireAdminRole(["super_admin", "admin", "content_manager"]);
   validateSiteAssetFile(file);
 
   const supabase = await ensureBucket();
@@ -335,6 +341,8 @@ export async function uploadSiteAsset(file: File, folder: string, usage: SiteAss
 }
 
 export async function createSignedSiteAssetUpload(filename: string, contentType: string, folder: string) {
+  await requireAdminRole(["super_admin", "admin", "content_manager"]);
+  validateSiteAssetType(filename, contentType);
   const supabase = await ensureBucket();
   const safeFolder = normalizeFolderPath(folder);
   const extension = fileExtension({ name: filename, type: contentType } as File);
@@ -392,6 +400,7 @@ async function listStoragePaths(prefix: string): Promise<Array<{ path: string; c
 }
 
 export async function compressExistingSiteImages() {
+  await requireAdminRole(["super_admin", "admin", "content_manager"]);
   const supabase = await ensureBucket();
   const uniquePaths = new Map<string, { contentType: string | null; size: number | null }>();
 
@@ -537,6 +546,7 @@ function variantPathsFor(path: string) {
 }
 
 export async function deleteSiteAsset(publicUrl: string) {
+  await requireAdminRole(["super_admin", "admin", "content_manager"]);
   const path = storagePathFromPublicUrl(publicUrl);
 
   if (!path) {

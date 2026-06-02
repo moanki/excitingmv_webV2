@@ -1,17 +1,14 @@
-import { cookies } from "next/headers";
-
-import { ADMIN_SESSION_COOKIE } from "@/lib/auth/bootstrap-admin";
+import { requireAdminJson } from "@/lib/auth/require-admin";
 
 export async function requireAdminApiSession() {
-  const cookieStore = await cookies();
-  const adminSession = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
+  const result = await requireAdminJson();
 
-  if (!adminSession) {
+  if (!result.ok) {
     return {
       ok: false as const,
-      response: Response.json({ ok: false, error: "Admin authentication required." }, { status: 401 })
+      response: result.response
     };
   }
 
-  return { ok: true as const, adminEmail: adminSession };
+  return { ok: true as const, adminEmail: result.admin.email, admin: result.admin };
 }

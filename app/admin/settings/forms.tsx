@@ -1683,6 +1683,8 @@ export function HomepageServicesForm({
 }) {
   const [state, action, pending] = useActionState(saveServicesDraftAction, undefined);
   const [serviceRows, setServiceRows] = useState(services.length ? services : [blankService(0)]);
+  const sectionImageUrl = serviceRows.find((service) => service.imageUrl)?.imageUrl || "";
+  const sectionImageAlt = serviceRows.find((service) => service.imageAlt)?.imageAlt || "";
 
   return (
     <div className="panel">
@@ -1698,6 +1700,26 @@ export function HomepageServicesForm({
         </form>
       </div>
       <form action={action} className="stack">
+        <div className="panel panel-soft">
+          <div className="section-heading compact">
+            <div>
+              <p className="eyebrow">Central Services Image</p>
+              <h3>Manage the single image shown beside the Destination Management services list.</h3>
+            </div>
+          </div>
+          <MediaField
+            label="Section photo"
+            inputName="servicesSectionImageUrl"
+            fileName="servicesSectionImageFile"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            value={sectionImageUrl}
+            library={mediaLibrary}
+          />
+          <label className="field">
+            Image Alt Text
+            <input name="servicesSectionImageAlt" defaultValue={sectionImageAlt} />
+          </label>
+        </div>
         <input type="hidden" name="service_count" value={serviceRows.length} />
         {serviceRows.map((item, index) => (
           <details className="panel panel-soft admin-collapsible" key={`${item.title}-${index}`} open={!item.title}>
@@ -1738,19 +1760,7 @@ export function HomepageServicesForm({
                 Short Description
                 <textarea name={`service_${index}_description`} defaultValue={item.description} />
               </label>
-              <label className="field" style={{ gridColumn: "1 / -1" }}>
-                Image Alt Text
-                <input name={`service_${index}_imageAlt`} defaultValue={item.imageAlt} />
-              </label>
             </div>
-            <MediaField
-              label="Service photo"
-              inputName={`service_${index}_imageUrl`}
-              fileName={`service_${index}_imageFile`}
-              accept="image/png,image/jpeg,image/webp,image/svg+xml"
-              value={item.imageUrl}
-              library={mediaLibrary}
-            />
             <ToggleField
               name={`service_${index}_enabled`}
               label="Show service"

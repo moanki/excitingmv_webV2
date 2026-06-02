@@ -1,9 +1,13 @@
 import { revalidatePath } from "next/cache";
 
+import { requireAdminJson } from "@/lib/auth/require-admin";
 import { updatePartnerRequestStatus } from "@/lib/services/partner-service";
 import type { PartnerStatus } from "@/lib/types";
 
 export async function POST(request: Request) {
+  const auth = await requireAdminJson();
+  if (!auth.ok) return auth.response;
+
   const body = (await request.json().catch(() => null)) as
     | {
         ids?: string[];

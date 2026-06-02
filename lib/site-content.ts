@@ -1,4 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { requireAdminRole } from "@/lib/auth/require-admin";
 
 export type HomepageHeroContent = {
   eyebrow: string;
@@ -1293,6 +1294,7 @@ export async function getMarketSettings(mode: "draft" | "published" = "published
 }
 
 export async function saveSiteSettingDraft<T>(key: string, fallback: T, draftValue: T) {
+  await requireAdminRole(["super_admin", "admin", "content_manager"]);
   const supabase = createSupabaseAdminClient();
   const existing = await getSiteSetting<T>(key, fallback);
   const value: SiteSettingEnvelope<T> = {
@@ -1312,6 +1314,7 @@ export async function saveSiteSettingDraft<T>(key: string, fallback: T, draftVal
 }
 
 export async function publishSiteSetting<T>(key: string, fallback: T) {
+  await requireAdminRole(["super_admin", "admin", "content_manager"]);
   const supabase = createSupabaseAdminClient();
   const existing = await getSiteSetting<T>(key, fallback);
   const value: SiteSettingEnvelope<T> = {

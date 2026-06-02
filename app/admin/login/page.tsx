@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Globe2, MapPin, ShieldCheck } from "lucide-react";
 
-import { ADMIN_SESSION_COOKIE } from "@/lib/auth/bootstrap-admin";
 import { AdminLoginForm } from "@/app/admin/login/login-form";
+import { getCurrentAdminUser } from "@/lib/auth/require-admin";
 import { getAdminLoginContent } from "@/lib/site-content";
 
 export default async function AdminLoginPage({
@@ -12,9 +11,9 @@ export default async function AdminLoginPage({
 }: {
   searchParams: Promise<{ next?: string }>;
 }) {
-  const cookieStore = await cookies();
+  const adminUser = await getCurrentAdminUser();
 
-  if (cookieStore.get(ADMIN_SESSION_COOKIE)?.value) {
+  if (adminUser) {
     redirect("/admin");
   }
 

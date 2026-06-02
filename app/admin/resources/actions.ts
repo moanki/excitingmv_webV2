@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 
+import { requireAdmin } from "@/lib/auth/require-admin";
 import { deleteResource, saveResource } from "@/lib/services/resource-service";
 import type { PublishStatus, ResourceAudience } from "@/lib/types";
 
 export async function saveResourceAction(formData: FormData) {
+  await requireAdmin();
   await saveResource({
     id: String(formData.get("id") ?? "").trim() || undefined,
     title: String(formData.get("title") ?? "").trim(),
@@ -24,6 +26,7 @@ export async function saveResourceAction(formData: FormData) {
 }
 
 export async function deleteResourceAction(formData: FormData) {
+  await requireAdmin();
   const id = String(formData.get("id") ?? "");
   if (!id) {
     return;
