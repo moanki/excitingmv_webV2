@@ -23,6 +23,22 @@ export type SmtpEmailInput = {
 function safeSmtpError(error: unknown) {
   const message = error instanceof Error ? error.message.toLowerCase() : "";
 
+  if (message.includes("disabled")) {
+    return "Email notifications are disabled. Save and enable the email configuration first.";
+  }
+
+  if (message.includes("incomplete")) {
+    return "Email configuration is incomplete. Save SMTP host, username, sender, and recipients first.";
+  }
+
+  if (message.includes("password is not configured")) {
+    return "SMTP password is not configured. Save the SMTP password or app password first.";
+  }
+
+  if (message.includes("encryption key")) {
+    return "Email password encryption is not configured. Set EMAIL_CONFIG_ENCRYPTION_KEY on the server.";
+  }
+
   if (message.includes("auth") || message.includes("credential") || message.includes("login")) {
     return "Authentication failed. Please verify SMTP username and password.";
   }
@@ -130,27 +146,21 @@ export async function sendSmtpEmail(input: SmtpEmailInput): Promise<ServiceResul
 }
 
 export async function sendAdminTestEmail(to?: string) {
-  const { config } = await createTransport();
-  const recipient = to || config.generalRecipients;
   const timestamp = new Date().toISOString();
   const subject = "SMTP Test - Exciting Maldives Website";
   const text = [
     "SMTP test email from Exciting Maldives Admin Center.",
-    `Provider: ${config.provider}`,
-    `SMTP host: ${config.smtpHost}`,
     `Environment URL: ${env.NEXT_PUBLIC_APP_URL}`,
     `Timestamp: ${timestamp}`
   ].join("\n");
 
   return sendSmtpEmail({
-    to: recipient,
+    to,
     subject,
     text,
     html: `
       <h2>SMTP Test - Exciting Maldives Website</h2>
       <p>This message was sent from the Admin Center Email Configuration test function.</p>
-      <p><strong>Provider:</strong> ${config.provider}</p>
-      <p><strong>SMTP host:</strong> ${config.smtpHost}</p>
       <p><strong>Environment URL:</strong> ${env.NEXT_PUBLIC_APP_URL}</p>
       <p><strong>Timestamp:</strong> ${timestamp}</p>
     `
