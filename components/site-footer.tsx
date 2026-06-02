@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
+import { FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa6";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
 import type { FooterBadge, FooterContent, FooterLinkItem, NavbarContent } from "@/lib/site-content";
@@ -165,13 +166,13 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
             <p className="site-footer__summary">{footer.description}</p>
             <div className="site-footer__social" aria-label="Social links">
               <a href="#" aria-label="LinkedIn">
-                <Linkedin size={16} />
+                <FaLinkedinIn size={16} />
               </a>
               <a href="#" aria-label="Instagram">
-                <Instagram size={16} />
+                <FaInstagram size={16} />
               </a>
               <a href="#" aria-label="Facebook">
-                <Facebook size={16} />
+                <FaFacebookF size={16} />
               </a>
             </div>
           </div>

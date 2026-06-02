@@ -35,7 +35,7 @@ function revalidatePropertyType(propertyType: PropertyType) {
   revalidatePath("/liveaboards");
   revalidatePath("/hotels");
   revalidatePath("/");
-  revalidateTag("resorts-public");
+  revalidateTag("resorts-public", "max");
 }
 
 export async function POST(request: Request) {

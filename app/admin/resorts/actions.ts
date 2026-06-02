@@ -25,7 +25,7 @@ function revalidateResortPaths(propertyType: PropertyType = "resort") {
   revalidatePath("/partner/resorts");
   revalidatePath("/admin");
   revalidatePath(adminPathForProperty(propertyType));
-  revalidateTag("resorts-public");
+  revalidateTag("resorts-public", "max");
 }
 
 function splitLines(value: string) {

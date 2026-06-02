@@ -13,9 +13,6 @@ function getSupabaseHost() {
 const supabaseHost = getSupabaseHost();
 
 const nextConfig: NextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true
-  },
   experimental: {
     serverActions: {
       bodySizeLimit: "50mb"

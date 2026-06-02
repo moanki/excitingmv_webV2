@@ -1003,7 +1003,7 @@ export async function saveResort(input: {
     }
   }
 
-  revalidateTag("resorts-public");
+  revalidateTag("resorts-public", "max");
   revalidatePath("/");
   revalidatePath(propertyBasePath(propertyType));
   revalidatePath(`${propertyBasePath(propertyType)}/${input.slug}`);
@@ -1028,7 +1028,7 @@ export async function deleteResort(id: string) {
     throw new Error(error.message);
   }
 
-  revalidateTag("resorts-public");
+  revalidateTag("resorts-public", "max");
   revalidatePath("/");
   revalidatePath("/resorts");
 }
