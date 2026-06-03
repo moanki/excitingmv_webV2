@@ -79,7 +79,7 @@ type EmailConfigurationRow = {
 
 export const providerDefaults: Record<EmailProvider, { smtpHost: string; smtpPort: number; smtpSecure: boolean; smtpRequireTls: boolean }> = {
   google_workspace: {
-    smtpHost: "smtp-relay.gmail.com",
+    smtpHost: "smtp.gmail.com",
     smtpPort: 587,
     smtpSecure: false,
     smtpRequireTls: true

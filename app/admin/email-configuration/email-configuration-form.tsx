@@ -11,11 +11,11 @@ import type { EmailConfiguration, EmailProvider } from "@/lib/email/email-config
 
 const providerDefaults: Record<EmailProvider, { smtpHost: string; smtpPort: number; smtpSecure: boolean; smtpRequireTls: boolean; description: string }> = {
   google_workspace: {
-    smtpHost: "smtp-relay.gmail.com",
+    smtpHost: "smtp.gmail.com",
     smtpPort: 587,
     smtpSecure: false,
     smtpRequireTls: true,
-    description: "Use Google Workspace SMTP relay or authenticated SMTP to send website notifications from your domain."
+    description: "Use Google Workspace authenticated SMTP with an app password or mailbox credential to send website notifications from your domain."
   },
   microsoft_365: {
     smtpHost: "smtp.office365.com",

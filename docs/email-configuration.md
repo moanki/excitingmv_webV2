@@ -16,9 +16,9 @@ The provider dropdown contains:
 - Microsoft 365
 - Custom SMTP
 
-Google Workspace defaults:
+Google Workspace authenticated SMTP defaults:
 
-- SMTP Host: `smtp-relay.gmail.com`
+- SMTP Host: `smtp.gmail.com`
 - SMTP Port: `587`
 - Secure SSL: `false`
 - Require TLS: `true`
