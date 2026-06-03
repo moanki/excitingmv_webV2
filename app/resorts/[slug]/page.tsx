@@ -57,10 +57,6 @@ export default async function ResortDetailPage({
   const similarResorts = await listSimilarPublishedResorts(resort.slug, resort.category, 3);
   const aboutParagraphs = buildAboutParagraphs(resort);
   const philosophyParagraphs = buildEditorialPhilosophy(resort);
-  const heroSummary =
-    resort.summary ||
-    aboutParagraphs[0] ||
-    "A refined Maldives island stay shaped by privacy, art, and considered service.";
   const topFacts = [
     { label: "Location", value: resort.location || "Maldives", Icon: MapPin },
     { label: "Villas", value: resort.roomTypes.length ? `${resort.roomTypes.length} room types` : "To be confirmed", Icon: BedDouble },
@@ -111,9 +107,6 @@ export default async function ResortDetailPage({
           <div className="resort-story-hero__copy">
             <p className="section-kicker">{resort.location || "Maldives"}{resort.category ? ` / ${resort.category}` : ""}</p>
             <h1>{resort.name}</h1>
-            <p className="resort-story-hero__summary">
-              {heroSummary}
-            </p>
           </div>
         </div>
       </section>
