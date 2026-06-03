@@ -55,9 +55,9 @@ export default async function ResortDetailPage({
   );
   const topFacts = [
     { label: "Location", value: resort.location || "Maldives", Icon: MapPin },
+    { label: "Villas", value: resort.roomTypes.length ? `${resort.roomTypes.length} room types` : "To be confirmed", Icon: BedDouble },
     { label: "Transfer", value: resort.transferType || "Available on request", Icon: Plane },
-    { label: "Meal Plans", value: formatInlineList(resort.mealPlans, "Available on request"), Icon: Utensils },
-    { label: "Room Types", value: resort.roomTypes.length ? `${resort.roomTypes.length}` : "To be confirmed", Icon: BedDouble }
+    { label: "Category", value: resort.category || formatInlineList(resort.mealPlans, "Luxury island resort"), Icon: Sparkles }
   ];
   const experienceCards = (signatureExperiences.length ? signatureExperiences : resort.highlights.filter(Boolean)).slice(0, 4);
   const experienceIcons = [Palette, Waves, Sparkles, Utensils];
@@ -101,11 +101,8 @@ export default async function ResortDetailPage({
         </div>
         <div className="site-container resort-story-hero__inner">
           <div className="resort-story-hero__copy">
-            <p className="section-kicker">{resort.category || "Island Retreat"} in {resort.location || "the Maldives"}</p>
+            <p className="section-kicker">{resort.location || "Maldives"}</p>
             <h1>{resort.name}</h1>
-            <p className="resort-story-hero__lede">
-              {resort.summary || "An immersive Maldives resort stay shaped by privacy, ocean calm, and thoughtful island living."}
-            </p>
           </div>
         </div>
       </section>

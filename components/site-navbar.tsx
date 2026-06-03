@@ -41,9 +41,10 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     { label: "Contact Us", href: "/contact", Icon: MessageCircle },
     { label: "Partner Login", href: partnerLoginHref, Icon: CircleUserRound }
   ];
-  const isHomepage = pathname === "/";
-  const useLightNav = !isHomepage || scrolled;
-  const navClassName = `site-nav${useLightNav ? " is-scrolled is-light" : ""}`;
+  const usesHeroOverlayNav =
+    pathname === "/" || /^\/(resorts|hotels|liveaboards)\/[^/]+/.test(pathname);
+  const useLightNav = !usesHeroOverlayNav || scrolled;
+  const navClassName = `site-nav${usesHeroOverlayNav ? " is-overlay-route" : ""}${useLightNav ? " is-scrolled is-light" : ""}`;
   const activeLogoUrl = useLightNav
     ? navbar.primaryLogoUrl || navbar.blackLogoUrl || navbar.whiteLogoUrl
     : navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl;

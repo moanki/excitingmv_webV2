@@ -4002,14 +4002,14 @@ select {
 }
 
 .resort-story-page--resort .resort-story-hero {
-  min-height: 560px;
+  min-height: clamp(680px, 78vh, 820px);
   background-position: center;
   background-size: cover;
   background-attachment: scroll;
 }
 
 .resort-story-page--resort .resort-story-hero__overlay {
-  background: linear-gradient(90deg, rgba(4, 20, 26, 0.52) 0%, rgba(4, 20, 26, 0.22) 42%, rgba(4, 20, 26, 0) 78%);
+  background: linear-gradient(90deg, rgba(4, 14, 18, 0.42) 0%, rgba(4, 14, 18, 0.12) 43%, rgba(4, 14, 18, 0) 74%);
 }
 
 .resort-story-page--resort .resort-story-hero::after {
@@ -4017,10 +4017,10 @@ select {
 }
 
 .resort-story-page--resort .resort-story-hero__inner {
-  min-height: 560px;
+  min-height: clamp(680px, 78vh, 820px);
   align-items: flex-end;
-  padding-top: 9rem;
-  padding-bottom: 6.5rem;
+  padding-top: 10rem;
+  padding-bottom: 8.35rem;
 }
 
 .resort-story-page--resort .resort-story-hero__copy {
@@ -4034,20 +4034,13 @@ select {
   letter-spacing: 0;
 }
 
-.resort-story-page--resort .resort-story-hero__lede {
-  max-width: 560px;
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 0.98rem;
-  line-height: 1.9;
-}
-
 .resort-story-page--resort .section-kicker,
 .resort-story-page--resort .eyebrow {
   letter-spacing: 0.14em;
 }
 
 .resort-story-intro {
-  margin-top: -4rem;
+  margin-top: -4.8rem;
   padding-bottom: 5rem;
   position: relative;
   z-index: 2;
@@ -4056,10 +4049,10 @@ select {
 
 .resort-story-page--resort .resort-story-facts-card {
   padding: 0;
-  border-radius: 12px;
-  border: 1px solid rgba(31, 42, 38, 0.08);
+  border-radius: 26px;
+  border: 1px solid rgba(221, 207, 185, 0.75);
   background: #fff;
-  box-shadow: 0 18px 42px rgba(31, 42, 38, 0.1);
+  box-shadow: 0 24px 60px rgba(31, 42, 38, 0.12);
   overflow: hidden;
 }
 
@@ -4072,9 +4065,9 @@ select {
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 0.18rem 0.8rem;
-  min-height: 92px;
-  padding: 1.25rem 1.65rem;
-  border-right: 1px solid rgba(31, 42, 38, 0.08);
+  min-height: 108px;
+  padding: 1.45rem 1.9rem;
+  border-right: 1px solid rgba(221, 207, 185, 0.68);
 }
 
 .resort-story-page--resort .resort-story-fact-card:last-child {
@@ -4185,7 +4178,7 @@ select {
 @media (max-width: 900px) {
   .resort-story-page--resort .resort-story-hero {
     min-height: 520px;
-    margin-top: 60px;
+    margin-top: 0;
   }
 
   .resort-story-page--resort .resort-story-hero__inner {
@@ -18098,4 +18091,45 @@ html {
   .home-page .lux-retreat-card {
     flex-basis: 174px !important;
   }
+}
+
+/* Resort/homepage hero overlay navigation */
+.site-nav.is-overlay-route:not(.is-scrolled) {
+  background: transparent !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.site-nav.is-overlay-route:not(.is-scrolled) .site-nav__inner {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.site-nav.is-overlay-route:not(.is-scrolled) .site-nav__links a:not(.site-nav__cta),
+.site-nav.is-overlay-route:not(.is-scrolled) .site-nav__links button:not(.site-nav__cta),
+.site-nav.is-overlay-route:not(.is-scrolled) .site-nav__login,
+.site-nav.is-overlay-route:not(.is-scrolled) .site-nav__brand-label {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.site-nav.is-overlay-route:not(.is-scrolled) .site-nav__cta {
+  border: 1px solid rgba(232, 180, 75, 0.62) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.site-nav.is-scrolled {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-bottom: 1px solid rgba(31, 42, 38, 0.08) !important;
+  box-shadow: 0 14px 36px rgba(31, 42, 38, 0.08) !important;
+  backdrop-filter: blur(14px) !important;
+}
+
+.site-nav.is-scrolled .site-nav__inner {
+  background: transparent !important;
+  box-shadow: none !important;
 }
