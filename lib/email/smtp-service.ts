@@ -36,7 +36,7 @@ function safeSmtpError(error: unknown) {
   }
 
   if (message.includes("encryption key")) {
-    return "Email password encryption is not configured. Set EMAIL_CONFIG_ENCRYPTION_KEY on the server.";
+    return "Email password encryption is not configured. Set EMAIL_CONFIG_ENCRYPTION_KEY or SUPABASE_SERVICE_ROLE_KEY on the server.";
   }
 
   if (message.includes("auth") || message.includes("credential") || message.includes("login")) {

@@ -32,15 +32,15 @@ Microsoft 365 defaults:
 
 Custom SMTP allows the admin to manually enter all SMTP details.
 
-## Required Vercel environment variable
+## Recommended Vercel environment variable
 
-Set this in Vercel Project Settings for Preview and Production:
+Set this in Vercel Project Settings for Preview and Production when possible:
 
 ```env
 EMAIL_CONFIG_ENCRYPTION_KEY=
 ```
 
-Use a 32-byte secret, preferably base64 encoded. Redeploy after adding or changing it.
+Use a 32-byte secret, preferably base64 encoded. Redeploy after adding or changing it. If this value is not configured, the server derives a stable encryption key from the server-only `SUPABASE_SERVICE_ROLE_KEY` so SMTP settings can still be saved.
 
 Do not store SMTP passwords, app passwords, or encryption keys in GitHub.
 

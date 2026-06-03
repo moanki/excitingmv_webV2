@@ -1,25 +1,31 @@
-import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
 
 const KEY_ENV = "EMAIL_CONFIG_ENCRYPTION_KEY";
+const FALLBACK_KEY_ENV = "SUPABASE_SERVICE_ROLE_KEY";
 
 function getEncryptionKey() {
   const value = process.env[KEY_ENV];
 
-  if (!value) {
-    throw new Error("Email encryption key is not configured.");
+  if (value) {
+    const decoded = Buffer.from(value, "base64");
+    if (decoded.length === 32) {
+      return decoded;
+    }
+
+    const raw = Buffer.from(value);
+    if (raw.length === 32) {
+      return raw;
+    }
+
+    throw new Error("Email encryption key must be 32 bytes or base64 encoded 32 bytes.");
   }
 
-  const decoded = Buffer.from(value, "base64");
-  if (decoded.length === 32) {
-    return decoded;
+  const fallbackValue = process.env[FALLBACK_KEY_ENV];
+  if (fallbackValue) {
+    return createHash("sha256").update(fallbackValue).digest();
   }
 
-  const raw = Buffer.from(value);
-  if (raw.length === 32) {
-    return raw;
-  }
-
-  throw new Error("Email encryption key must be 32 bytes or base64 encoded 32 bytes.");
+  throw new Error("Email encryption key is not configured.");
 }
 
 export function encryptSecret(plainText: string) {
