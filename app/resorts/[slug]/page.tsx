@@ -33,6 +33,15 @@ function buildAboutParagraphs(resort: Awaited<ReturnType<typeof getResortBySlug>
   return paragraphs.length ? paragraphs : ["Discover a luxury island stay in the Maldives."];
 }
 
+function buildEditorialPhilosophy(resort: NonNullable<Awaited<ReturnType<typeof getResortBySlug>>>) {
+  const category = resort.category ? resort.category.toLowerCase() : "island luxury";
+
+  return [
+    `${resort.name} pairs ${category} with a calm sense of place, where design, nature, and service are allowed to breathe.`,
+    "Days unfold through private villas, considered dining, and curated moments that feel personal, unhurried, and deeply connected to the Maldives."
+  ];
+}
+
 export default async function ResortDetailPage({
   params
 }: {
@@ -47,43 +56,42 @@ export default async function ResortDetailPage({
 
   const similarResorts = await listSimilarPublishedResorts(resort.slug, resort.category, 3);
   const aboutParagraphs = buildAboutParagraphs(resort);
-  const signatureExperiences = resort.highlights.filter(
-    (item) => !/spa|wellness|yoga|healing|retreat|relax/i.test(item)
-  );
-  const wellnessHighlights = resort.highlights.filter((item) =>
-    /spa|wellness|yoga|healing|retreat|relax/i.test(item)
-  );
+  const philosophyParagraphs = buildEditorialPhilosophy(resort);
+  const heroSummary =
+    resort.summary ||
+    aboutParagraphs[0] ||
+    "A refined Maldives island stay shaped by privacy, art, and considered service.";
   const topFacts = [
     { label: "Location", value: resort.location || "Maldives", Icon: MapPin },
     { label: "Villas", value: resort.roomTypes.length ? `${resort.roomTypes.length} room types` : "To be confirmed", Icon: BedDouble },
     { label: "Transfer", value: resort.transferType || "Available on request", Icon: Plane },
     { label: "Category", value: resort.category || formatInlineList(resort.mealPlans, "Luxury island resort"), Icon: Sparkles }
   ];
-  const experienceCards = (signatureExperiences.length ? signatureExperiences : resort.highlights.filter(Boolean)).slice(0, 4);
-  const experienceIcons = [Palette, Waves, Sparkles, Utensils];
-  const wellnessCards = wellnessHighlights.length
-    ? wellnessHighlights.slice(0, 3)
-    : [
-        "Spa rituals and holistic treatments",
-        "Calm island spaces for slow mornings",
-        "Ocean-facing wellness and restoration"
-      ];
-  const discoveryCopy = aboutParagraphs[1] ?? aboutParagraphs[0];
   const heroBackground = resort.heroImageUrl
     ? `url(${optimizedImageUrl(resort.heroImageUrl, { width: 1800, height: 1100, quality: 86 })})`
     : "linear-gradient(135deg, #163f35 0%, #f3edaa 52%, #f4f2ec 100%)";
   const curatedMoments = [
-    ...experienceCards.map((item, index) => ({
-      title: item,
-      copy: index === 0 ? "Discover art, ocean, dining, and place-led moments across the island." : "A crafted resort experience for unhurried island days.",
-      Icon: experienceIcons[index] ?? Sparkles
-    })),
-    ...wellnessCards.map((item) => ({
-      title: item,
-      copy: "Restorative rituals and calm island spaces for mind and body.",
+    {
+      title: "Art-immersive island",
+      copy: "Discover installations, sculptures, and creative spaces woven through the island.",
+      Icon: Palette
+    },
+    {
+      title: "Private pool villas",
+      copy: "Elegant beach and overwater villas designed for privacy and comfort.",
+      Icon: Waves
+    },
+    {
+      title: "Jadugar service",
+      copy: "Enjoy intuitive, personal service from your own Jadugar throughout your stay.",
       Icon: Sparkles
-    }))
-  ].slice(0, 4);
+    },
+    {
+      title: "Island wellness",
+      copy: "Slow rituals, ocean calm, and restorative spaces for mind and body.",
+      Icon: Utensils
+    }
+  ];
   const topSectionLinks = [
     { href: "#overview", label: "Overview" },
     { href: "#experiences", label: "Curated Moments" },
@@ -101,8 +109,11 @@ export default async function ResortDetailPage({
         </div>
         <div className="site-container resort-story-hero__inner">
           <div className="resort-story-hero__copy">
-            <p className="section-kicker">{resort.location || "Maldives"}</p>
+            <p className="section-kicker">{resort.location || "Maldives"}{resort.category ? ` / ${resort.category}` : ""}</p>
             <h1>{resort.name}</h1>
+            <p className="resort-story-hero__summary">
+              {heroSummary}
+            </p>
           </div>
         </div>
       </section>
@@ -132,11 +143,10 @@ export default async function ResortDetailPage({
           <div className="resort-story-editorial">
             <article className="resort-story-editorial__main">
               <p className="eyebrow">The Philosophy</p>
-              <h2>A modern island stay designed around comfort and place</h2>
-              {aboutParagraphs.map((paragraph) => (
+              <h2>Where art, nature, and joy come together</h2>
+              {philosophyParagraphs.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
-              <p>{discoveryCopy}</p>
               <a href="#rooms" className="resort-story-text-link">Discover the stay</a>
             </article>
 
@@ -166,7 +176,6 @@ export default async function ResortDetailPage({
             <div>
               <p className="eyebrow">Rooms & Villas</p>
               <h2>Explore the accommodation collection</h2>
-              <p className="muted">Large room cards highlight the stay experience without any booking clutter.</p>
             </div>
           </div>
 
