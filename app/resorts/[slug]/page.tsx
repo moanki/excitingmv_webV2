@@ -70,12 +70,23 @@ export default async function ResortDetailPage({
       ];
   const discoveryCopy = aboutParagraphs[1] ?? aboutParagraphs[0];
   const heroBackground = resort.heroImageUrl
-    ? `linear-gradient(115deg, rgba(250, 247, 238, 0.74) 0%, rgba(244, 240, 226, 0.34) 46%, rgba(210, 226, 202, 0.16) 100%), url(${optimizedImageUrl(resort.heroImageUrl, { width: 1800, height: 1100, quality: 78 })})`
+    ? `url(${optimizedImageUrl(resort.heroImageUrl, { width: 1800, height: 1100, quality: 86 })})`
     : "linear-gradient(135deg, #163f35 0%, #f3edaa 52%, #f4f2ec 100%)";
+  const curatedMoments = [
+    ...experienceCards.map((item, index) => ({
+      title: item,
+      copy: index === 0 ? "Discover art, ocean, dining, and place-led moments across the island." : "A crafted resort experience for unhurried island days.",
+      Icon: experienceIcons[index] ?? Sparkles
+    })),
+    ...wellnessCards.map((item) => ({
+      title: item,
+      copy: "Restorative rituals and calm island spaces for mind and body.",
+      Icon: Sparkles
+    }))
+  ].slice(0, 4);
   const topSectionLinks = [
     { href: "#overview", label: "Overview" },
-    ...(experienceCards.length ? [{ href: "#experiences", label: "Experiences" }] : []),
-    { href: "#wellness", label: "Wellness" },
+    { href: "#experiences", label: "Curated Moments" },
     { href: "#rooms", label: "Rooms & Villas" }
   ];
 
@@ -125,59 +136,30 @@ export default async function ResortDetailPage({
             <article className="resort-story-editorial__main">
               <p className="eyebrow">The Philosophy</p>
               <h2>A modern island stay designed around comfort and place</h2>
-            </article>
-
-            <article className="resort-story-editorial__aside">
               {aboutParagraphs.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
               <p>{discoveryCopy}</p>
               <a href="#rooms" className="resort-story-text-link">Discover the stay</a>
             </article>
-          </div>
-        </div>
-      </section>
 
-      {experienceCards.length ? (
-        <section className="resort-story-moments" id="experiences">
-          <div className="site-container">
-            <div className="resort-story-section-heading">
+            <article className="resort-story-editorial__aside" id="experiences">
               <p className="eyebrow">Curated Moments</p>
-              <h2>Signature Experiences</h2>
-            </div>
-            <div className="resort-story-experience-grid">
-              {experienceCards.map((item, index) => {
-                const Icon = experienceIcons[index] ?? Sparkles;
-                return (
-                  <article className={index === 0 ? "resort-story-experience-card is-large" : "resort-story-experience-card"} key={item}>
-                    <Icon size={18} aria-hidden="true" />
+              <div className="resort-story-curated-list">
+                {curatedMoments.map((item) => (
+                  <div className="resort-story-curated-item" key={`${item.title}-${item.copy}`}>
+                    <span className="resort-story-curated-icon">
+                      <item.Icon size={22} aria-hidden="true" />
+                    </span>
                     <div>
-                      <h3>{item}</h3>
-                      <p>{index === 0 ? "Engage with the island through immersive, place-led moments." : "A crafted resort experience for unhurried island days."}</p>
+                      <h3>{item.title}</h3>
+                      <p>{item.copy}</p>
                     </div>
-                  </article>
-                );
-              })}
-            </div>
+                  </div>
+                ))}
+              </div>
+            </article>
           </div>
-        </section>
-      ) : null}
-
-      <section className="resort-story-wellness" id="wellness">
-        <div className="site-container">
-          <article className="resort-story-wellness-card">
-            <p className="eyebrow">Sanctuary</p>
-            <h2>Wellness at {resort.name}</h2>
-            <p>A haven of wellbeing shaped by tropical surroundings, quiet rituals, and restorative island spaces.</p>
-            <ul>
-              {wellnessCards.map((item) => (
-                <li key={item}>
-                  <Sparkles size={15} aria-hidden="true" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </article>
         </div>
       </section>
 
