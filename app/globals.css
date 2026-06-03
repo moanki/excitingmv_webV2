@@ -18133,3 +18133,106 @@ html {
   background: transparent !important;
   box-shadow: none !important;
 }
+
+/* Resort detail typography aligned with homepage editorial system */
+.resort-story-page--resort .section-kicker,
+.resort-story-page--resort .eyebrow,
+.resort-story-page--resort .resort-story-fact-card span {
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: 0.68rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.35 !important;
+  text-transform: uppercase !important;
+}
+
+.resort-story-page--resort .section-kicker {
+  color: rgba(79, 209, 197, 0.92) !important;
+}
+
+.resort-story-page--resort .eyebrow,
+.resort-story-page--resort .resort-story-fact-card span {
+  color: rgba(153, 111, 51, 0.88) !important;
+}
+
+.resort-story-page--resort .resort-story-hero__copy h1 {
+  color: #fff !important;
+  font-family: var(--font-serif), serif !important;
+  font-size: clamp(3rem, 7vw, 6.5rem) !important;
+  font-weight: 100 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 0.95 !important;
+  max-width: 11ch;
+}
+
+.resort-story-page--resort .resort-story-editorial__main h2,
+.resort-story-page--resort .resort-story-section-heading h2 {
+  color: #13202b !important;
+  font-family: var(--font-serif), serif !important;
+  font-size: clamp(1.8rem, 3.5vw, 3.8rem) !important;
+  font-weight: 100 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.12 !important;
+  text-transform: none !important;
+}
+
+.resort-story-page--resort .resort-story-editorial__main p:not(.eyebrow),
+.resort-story-page--resort .resort-story-section-heading p:not(.eyebrow),
+.resort-story-page--resort .resort-story-curated-item p {
+  color: rgba(19, 32, 43, 0.68) !important;
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.85 !important;
+}
+
+.resort-story-page--resort .resort-story-curated-item h3 {
+  color: #13202b !important;
+  font-family: var(--font-serif), serif !important;
+  font-size: clamp(1.15rem, 1.5vw, 1.55rem) !important;
+  font-weight: 300 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.2 !important;
+}
+
+.resort-story-page--resort .resort-story-fact-card strong,
+.resort-story-page--resort .resort-story-tab,
+.resort-story-page--resort .resort-story-text-link {
+  font-family: var(--font-sans), sans-serif !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.05em !important;
+}
+
+.resort-story-page--resort .resort-story-fact-card strong {
+  color: #13202b !important;
+  font-size: 0.95rem !important;
+  line-height: 1.45 !important;
+}
+
+.resort-story-page--resort .resort-story-tab,
+.resort-story-page--resort .resort-story-text-link {
+  font-size: 0.68rem !important;
+  text-transform: uppercase !important;
+}
+
+@media (max-width: 720px) {
+  .resort-story-page--resort .resort-story-hero__copy h1 {
+    font-size: 2.9rem !important;
+    letter-spacing: -0.025em !important;
+    line-height: 1 !important;
+  }
+
+  .resort-story-page--resort .resort-story-editorial__main h2,
+  .resort-story-page--resort .resort-story-section-heading h2 {
+    font-size: 2rem !important;
+    line-height: 1.14 !important;
+  }
+
+  .resort-story-page--resort .resort-story-editorial__main p:not(.eyebrow),
+  .resort-story-page--resort .resort-story-section-heading p:not(.eyebrow),
+  .resort-story-page--resort .resort-story-curated-item p {
+    font-size: 0.98rem !important;
+    line-height: 1.6 !important;
+  }
+}
