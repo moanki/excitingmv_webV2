@@ -374,6 +374,7 @@ function parseContactRegions(formData: FormData): ContactRegion[] {
       location: stringValue(formData, `contact_${index}_location`).trim(),
       contactName: stringValue(formData, `contact_${index}_contactName`).trim(),
       role: stringValue(formData, `contact_${index}_role`).trim(),
+      photoUrl: stringValue(formData, `contact_${index}_photoUrl`).trim(),
       email: stringValue(formData, `contact_${index}_email`).trim(),
       whatsapp: stringValue(formData, `contact_${index}_whatsapp`).trim(),
       displayOrder: countValue(formData, `contact_${index}_displayOrder`, index + 1),

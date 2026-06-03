@@ -1128,6 +1128,7 @@ function blankContactRegion(index: number): ContactRegion {
     location: "",
     contactName: "",
     role: "",
+    photoUrl: "",
     email: "",
     whatsapp: "",
     displayOrder: index + 1,
@@ -1135,7 +1136,13 @@ function blankContactRegion(index: number): ContactRegion {
   };
 }
 
-export function ContactSettingsForm({ contact }: { contact: ContactPageContent }) {
+export function ContactSettingsForm({
+  contact,
+  mediaLibrary
+}: {
+  contact: ContactPageContent;
+  mediaLibrary: MediaLibraryItem[];
+}) {
   const [state, action, pending] = useActionState(saveContactDraftAction, undefined);
   const [regions, setRegions] = useState<ContactRegion[]>(
     contact.regions.length ? contact.regions : [blankContactRegion(0)]
@@ -1217,6 +1224,17 @@ export function ContactSettingsForm({ contact }: { contact: ContactPageContent }
                   Designation / Role
                   <input name={`contact_${index}_role`} defaultValue={region.role} />
                 </label>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <MediaField
+                    label="Regional Manager Photo"
+                    inputName={`contact_${index}_photoUrl`}
+                    fileName={`contact_${index}_photoFile`}
+                    accept="image/png,image/jpeg,image/webp"
+                    value={region.photoUrl}
+                    library={mediaLibrary}
+                    helper="Upload or select a portrait image for this contact region."
+                  />
+                </div>
                 <label className="field">
                   Email Address
                   <input name={`contact_${index}_email`} type="email" defaultValue={region.email} required />

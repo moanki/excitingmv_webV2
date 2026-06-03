@@ -1,10 +1,21 @@
 import Link from "next/link";
 
+import { optimizedImageUrl } from "@/lib/image-urls";
 import { getContactPageContent } from "@/lib/site-content";
 
 function whatsappHref(value: string) {
   const digits = value.replace(/[^\d]/g, "");
   return digits ? `https://wa.me/${digits}` : "#";
+}
+
+function initials(value: string) {
+  return value
+    .split(/\s+/)
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 export default async function ContactPage() {
@@ -30,9 +41,21 @@ export default async function ContactPage() {
                   <p>{region.regionTitle}</p>
                   <span>{region.location}</span>
                 </div>
-                <div className="contact-registry-entry__person">
-                  <strong>{region.contactName}</strong>
-                  {region.role ? <span>{region.role}</span> : null}
+                <div className="contact-registry-entry__profile">
+                  <div className="contact-registry-entry__portrait" aria-hidden="true">
+                    {region.photoUrl ? (
+                      <img
+                        src={optimizedImageUrl(region.photoUrl, { width: 240, height: 240, quality: 82 })}
+                        alt=""
+                      />
+                    ) : (
+                      <span>{initials(region.contactName || region.regionTitle)}</span>
+                    )}
+                  </div>
+                  <div className="contact-registry-entry__person">
+                    <strong>{region.contactName}</strong>
+                    {region.role ? <span>{region.role}</span> : null}
+                  </div>
                 </div>
                 <div className="contact-registry-entry__links">
                   <a href={`mailto:${region.email}`}>{region.email}</a>

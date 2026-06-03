@@ -153,6 +153,7 @@ export type ContactRegion = {
   location: string;
   contactName: string;
   role: string;
+  photoUrl: string;
   email: string;
   whatsapp: string;
   displayOrder: number;
@@ -675,6 +676,7 @@ export const defaultContactPageContent: ContactPageContent = {
       location: "Male, Maldives",
       contactName: "Aishath Ibrahim",
       role: "Managing Director",
+      photoUrl: "",
       email: "hello@excitingmaldives.com",
       whatsapp: "+960 778 5596",
       displayOrder: 1,
@@ -685,6 +687,7 @@ export const defaultContactPageContent: ContactPageContent = {
       location: "London, UK",
       contactName: "Sophie Laurent",
       role: "Regional Director",
+      photoUrl: "",
       email: "europe@excitingmaldives.com",
       whatsapp: "+44 7700 518201",
       displayOrder: 2,
@@ -695,6 +698,7 @@ export const defaultContactPageContent: ContactPageContent = {
       location: "Dubai, UAE",
       contactName: "Partner Relations",
       role: "Regional Support",
+      photoUrl: "",
       email: "gcc@excitingmaldives.com",
       whatsapp: "+971 50 000 0000",
       displayOrder: 3,
@@ -1066,6 +1070,7 @@ function normalizeContactPageContent(settings: unknown): ContactPageContent {
           location: value.location || fallback.location,
           contactName: value.contactName || fallback.contactName,
           role: value.role || fallback.role,
+          photoUrl: value.photoUrl || fallback.photoUrl || "",
           email: value.email || fallback.email,
           whatsapp: value.whatsapp || fallback.whatsapp,
           displayOrder: numericValue(value.displayOrder, index + 1),

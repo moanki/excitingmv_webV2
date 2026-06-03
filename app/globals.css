@@ -17075,9 +17075,12 @@ html {
 
 .contact-registry-entry {
   display: grid;
-  gap: clamp(1.8rem, 3vw, 2.5rem);
-  padding-top: 1.4rem;
-  border-top: 1px solid rgba(19, 32, 43, 0.14);
+  gap: clamp(1.3rem, 2.4vw, 2rem);
+  min-height: 100%;
+  padding: clamp(1.25rem, 2vw, 1.55rem);
+  border: 1px solid rgba(19, 32, 43, 0.1);
+  border-radius: 8px;
+  background: #fff;
 }
 
 .contact-registry-entry__heading p {
@@ -17097,12 +17100,41 @@ html {
   font-size: 0.95rem;
 }
 
+.contact-registry-entry__profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.contact-registry-entry__portrait {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 74px;
+  height: 74px;
+  overflow: hidden;
+  border: 1px solid rgba(155, 116, 46, 0.18);
+  border-radius: 999px;
+  background: #f8f5f0;
+  color: rgba(19, 32, 43, 0.68);
+  font-family: var(--font-serif), serif;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.contact-registry-entry__portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .contact-registry-entry__person strong {
   display: block;
   color: #13202b;
   font-family: var(--font-serif), serif;
-  font-size: clamp(1.45rem, 2.1vw, 2rem);
-  font-weight: 100;
+  font-size: clamp(1.35rem, 1.8vw, 1.75rem);
+  font-weight: 300;
   letter-spacing: -0.02em;
   line-height: 1.1;
 }
