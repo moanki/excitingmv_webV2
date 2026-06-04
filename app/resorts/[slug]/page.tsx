@@ -19,6 +19,14 @@ function formatInlineList(items: string[], fallback: string) {
   return cleaned.length ? cleaned.join(" / ") : fallback;
 }
 
+const similarResortFallbackImages = [
+  "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=900&q=82",
+  "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=900&q=82",
+  "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=900&q=82",
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=82",
+  "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=82"
+];
+
 function buildAboutParagraphs(resort: Awaited<ReturnType<typeof getResortBySlug>>) {
   if (!resort) {
     return ["Discover a luxury island stay in the Maldives."];
@@ -54,7 +62,7 @@ export default async function ResortDetailPage({
     notFound();
   }
 
-  const similarResorts = await listSimilarPublishedResorts(resort.slug, resort.category, 3);
+  const similarResorts = await listSimilarPublishedResorts(resort.slug, resort.category, 5);
   const aboutParagraphs = buildAboutParagraphs(resort);
   const philosophyParagraphs = buildEditorialPhilosophy(resort);
   const topFacts = [
@@ -235,42 +243,41 @@ export default async function ResortDetailPage({
       </section>
 
       {similarResorts.length ? (
-        <section className="site-section site-section--paper" id="similar-resorts">
+        <section className="site-section site-section--white resort-story-similar" id="similar-resorts">
           <div className="site-container">
-            <div className="section-heading">
-              <div>
-                <p className="eyebrow">Similar Resorts</p>
-                <h2>Continue exploring the collection</h2>
-              </div>
+            <div className="resort-story-similar__heading">
+              <p>Continue exploring the collection</p>
             </div>
-            <div className="resort-collection-grid resort-collection-grid--luxury">
-              {similarResorts.map((item) => (
-                <article key={item.slug} className="resort-collection-card resort-collection-card--luxury">
-                  <div
-                    className="resort-collection-card__media"
-                    style={
-                      item.heroImageUrl
-                        ? {
-                            backgroundImage: `linear-gradient(180deg, rgba(15, 23, 42, 0.12), rgba(15, 23, 42, 0.72)), url(${optimizedImageUrl(item.heroImageUrl, { width: 680, height: 480, quality: 74 })})`
-                          }
-                        : undefined
-                    }
-                  />
-                  <div className="resort-collection-card__content">
-                    <div className="featured-card__meta">
-                      <span>{item.location || "Maldives"}</span>
-                      <span>{item.category || "Luxury Resort"}</span>
-                    </div>
+            <div className="resort-story-similar__row">
+              {similarResorts.map((item, index) => {
+                const cardImage = item.heroImageUrl || similarResortFallbackImages[index % similarResortFallbackImages.length];
+
+                return (
+                <article key={item.slug} className="resort-story-similar-card">
+                  <Link href={`/resorts/${item.slug}`} className="resort-story-similar-card__image" aria-label={`Explore ${item.name}`}>
+                    <img
+                      src={optimizedImageUrl(cardImage, { width: 420, height: 280, quality: 78 })}
+                      alt=""
+                    />
+                  </Link>
+                  <div className="resort-story-similar-card__body">
                     <h3>{item.name}</h3>
-                    <p>{item.summary}</p>
-                    <div className="card-actions">
-                      <Link href={`/resorts/${item.slug}`} className="site-button site-button--teal">
-                        View Resort
-                      </Link>
-                    </div>
+                    <p>{item.summary || `${item.category || "Luxury resort"} in ${item.location || "the Maldives"}.`}</p>
+                    <Link href={`/resorts/${item.slug}`} className="resort-story-similar-card__link">
+                      Explore
+                    </Link>
                   </div>
                 </article>
-              ))}
+                );
+              })}
+              <article className="resort-story-similar-more">
+                <Link href="/resorts" className="resort-story-similar-more__panel">
+                  <span>More Resorts</span>
+                </Link>
+                <Link href="/resorts" className="resort-story-similar-more__link">
+                  View All Collection
+                </Link>
+              </article>
             </div>
           </div>
         </section>
