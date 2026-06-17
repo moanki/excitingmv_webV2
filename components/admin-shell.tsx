@@ -6,18 +6,25 @@ import { usePathname } from "next/navigation";
 import {
   Bell,
   Building2,
+  ChevronDown,
+  ChevronRight,
   FolderKanban,
   Gauge,
+  Globe2,
+  Home,
   Image,
   LayoutTemplate,
   Mail,
+  Menu,
   KeyRound,
+  Search,
   Settings2,
   Shield,
   Ship,
   Sparkles,
   UserCog,
-  LogOut
+  LogOut,
+  Waves
 } from "lucide-react";
 
 import { logoutFromAdmin } from "@/app/admin/login/actions";
@@ -110,15 +117,9 @@ const navGroups: NavGroup[] = [
       },
       {
         href: "/admin/imports",
-        label: "AI Import Center",
+        label: "AI Import",
         description: "Import intake and review",
         icon: Sparkles
-      },
-      {
-        href: "/admin/settings",
-        label: "Site Settings",
-        description: "Front-end content configuration",
-        icon: Settings2
       }
     ]
   },
@@ -143,6 +144,57 @@ const navGroups: NavGroup[] = [
         description: "Sign-in media and logo",
         icon: Image
       }
+    ]
+  }
+];
+
+const settingsGroups: Array<{
+  title: string;
+  icon: ComponentType<{ className?: string }>;
+  items: Array<{ href: string; label: string; icon: ComponentType<{ className?: string }> }>;
+}> = [
+  {
+    title: "Website",
+    icon: Globe2,
+    items: [
+      { href: "/admin/settings", label: "Homepage", icon: Home },
+      { href: "/admin/settings/navbar", label: "Navbar", icon: Menu },
+      { href: "/admin/settings/footer", label: "Footer", icon: LayoutTemplate },
+      { href: "/admin/settings/about", label: "About Us", icon: Building2 },
+      { href: "/admin/settings/contact", label: "Contact Us", icon: Mail }
+    ]
+  },
+  {
+    title: "Features",
+    icon: Sparkles,
+    items: [
+      { href: "/admin/settings/whatsapp", label: "WhatsApp widget", icon: Mail },
+      { href: "/admin/settings/notifications", label: "Notifications", icon: Bell },
+      { href: "/admin/settings/markets", label: "Markets", icon: Globe2 }
+    ]
+  },
+  {
+    title: "Admin",
+    icon: Shield,
+    items: [
+      { href: "/admin/email-configuration", label: "Email config", icon: Settings2 },
+      { href: "/admin/settings/admin-login", label: "Login page", icon: Image }
+    ]
+  },
+  {
+    title: "Page sections",
+    icon: LayoutTemplate,
+    items: [
+      { href: "/admin/settings/homepage/hero", label: "Hero", icon: LayoutTemplate },
+      { href: "/admin/settings/homepage/features", label: "Feature cards", icon: LayoutTemplate },
+      { href: "/admin/settings/homepage/stats", label: "Expertise stats", icon: Gauge },
+      { href: "/admin/settings/homepage/ceo", label: "CEO message", icon: UserCog },
+      { href: "/admin/settings/homepage/story", label: "Our story", icon: FolderKanban },
+      { href: "/admin/settings/homepage/services", label: "Services", icon: Menu },
+      { href: "/admin/settings/homepage/why-us", label: "Why us", icon: Sparkles },
+      { href: "/admin/settings/homepage/awards", label: "Awards", icon: Shield },
+      { href: "/admin/settings/homepage/guide", label: "Travel guide", icon: Globe2 },
+      { href: "/admin/settings/homepage/newsletter", label: "Newsletter", icon: Mail }
     ]
   }
 ];
@@ -277,11 +329,9 @@ function getCurrentPageMeta(pathname: string) {
 }
 
 export function AdminShell({
-  children,
-  logoUrl
+  children
 }: {
   children: React.ReactNode;
-  logoUrl?: string;
 }) {
   const pathname = usePathname();
   const current = getCurrentPageMeta(pathname);
@@ -294,10 +344,11 @@ export function AdminShell({
     <div className="admin-shell">
       <aside className="admin-sidebar">
         <div className="admin-brand-block">
-          {logoUrl ? <img src={logoUrl} alt="Exciting Maldives" className="admin-brand-logo" /> : null}
-          <div>
-            <h1>Admin Center</h1>
+          <div className="admin-brand-row">
+            <span className="admin-brand-mark"><Waves className="admin-icon" /></span>
+            <strong>Exciting Maldives</strong>
           </div>
+          <p>Admin center</p>
         </div>
 
         <nav className="admin-nav" aria-label="Admin">
@@ -327,6 +378,35 @@ export function AdminShell({
               </div>
             </div>
           ))}
+
+          <div className="admin-settings-nav">
+            <p className="admin-nav-label">Site Settings</p>
+            {settingsGroups.map((group) => {
+              const GroupIcon = group.icon;
+              const groupActive = group.items.some((item) => isActive(pathname, item.href));
+
+              return (
+                <details className="admin-settings-group" key={group.title} open={groupActive || group.title === "Website"}>
+                  <summary>
+                    <span><GroupIcon className="admin-icon" />{group.title}</span>
+                    <ChevronRight className="admin-settings-chevron" />
+                  </summary>
+                  <div className="admin-settings-links">
+                    {group.items.map((item) => {
+                      const ItemIcon = item.icon;
+                      const active = pathname === item.href || (item.href !== "/admin/settings" && pathname.startsWith(item.href));
+                      return (
+                        <Link key={item.href} href={item.href} className={active ? "admin-settings-link is-active" : "admin-settings-link"}>
+                          <ItemIcon className="admin-icon" />
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </details>
+              );
+            })}
+          </div>
         </nav>
 
         <form action={logoutFromAdmin} className="admin-logout">
@@ -340,20 +420,19 @@ export function AdminShell({
       <div className="admin-main">
         <header className="admin-topbar">
           <div className="admin-topbar-copy">
-            <p className="admin-breadcrumb">Admin Center / {current.title}</p>
             <h2>{current.title}</h2>
-            {current.description ? <p>{current.description}</p> : null}
           </div>
           <div className="admin-topbar-actions">
             <button type="button" className="admin-icon-button" aria-label="Notifications">
               <Bell className="admin-icon" />
             </button>
+            <button type="button" className="admin-icon-button" aria-label="Search">
+              <Search className="admin-icon" />
+            </button>
             <div className="admin-user-chip">
               <span>SA</span>
-              <div>
-                <strong>Super Admin</strong>
-                <small>Workspace access</small>
-              </div>
+              <strong>Super Admin</strong>
+              <ChevronDown className="admin-user-chevron" />
             </div>
           </div>
         </header>
