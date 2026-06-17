@@ -4,6 +4,7 @@ import { listPartnerRequests } from "@/lib/services/partner-service";
 import { listResourcePermissions } from "@/lib/services/resource-permission-service";
 import { listResources } from "@/lib/services/resource-service";
 import { getResortCounts } from "@/lib/services/resort-service";
+import { Building2, FileText, FolderKanban, KeyRound, Mail, Users } from "lucide-react";
 
 export default async function AdminDashboardPage() {
   const [counts, partners, newsletters, resources, users, permissions] = await Promise.all([
@@ -16,15 +17,16 @@ export default async function AdminDashboardPage() {
   ]);
 
   const stats = [
-    { label: "Pending Partners", value: String(partners.filter((partner) => partner.status === "pending").length), href: "/admin/partners" },
-    { label: "Newsletter Leads", value: String(newsletters.length), href: "/admin/newsletters" },
-    { label: "Published Resorts", value: String(counts.published), href: "/admin/resorts" },
-    { label: "Draft Resorts", value: String(counts.draft), href: "/admin/resorts" },
-    { label: "Resources", value: String(resources.length), href: "/admin/resources" },
+    { label: "Pending Partners", value: String(partners.filter((partner) => partner.status === "pending").length), href: "/admin/partners", icon: Users },
+    { label: "Newsletter Leads", value: String(newsletters.length), href: "/admin/newsletters", icon: Mail },
+    { label: "Published Resorts", value: String(counts.published), href: "/admin/resorts", icon: Building2 },
+    { label: "Draft Resorts", value: String(counts.draft), href: "/admin/resorts", icon: FileText },
+    { label: "Resources", value: String(resources.length), href: "/admin/resources", icon: FolderKanban },
     {
       label: "Active Partner Access",
       value: String(permissions.filter((permission) => permission.status === "active").length),
-      href: "/admin/resource-permissions"
+      href: "/admin/resource-permissions",
+      icon: KeyRound
     }
   ];
 
@@ -37,13 +39,20 @@ export default async function AdminDashboardPage() {
 
   return (
     <section className="stack">
+      <div className="admin-page-intro">
+        <h1>Dashboard</h1>
+        <p>Overview of your site activity</p>
+      </div>
       <div className="dashboard-grid dashboard-grid-quad">
-        {stats.map((stat) => (
-          <a key={stat.label} href={stat.href} className="stat-card stat-card-link">
-            <p className="admin-stat-label">{stat.label}</p>
-            <strong>{stat.value}</strong>
-          </a>
-        ))}
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <a key={stat.label} href={stat.href} className="stat-card stat-card-link">
+              <p className="admin-stat-label"><Icon className="admin-icon" />{stat.label}</p>
+              <strong>{stat.value}</strong>
+            </a>
+          );
+        })}
       </div>
 
       <div className="admin-overview-grid">
