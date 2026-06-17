@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bell, BookOpen, CircleUserRound, Home, MapPin, MessageCircle } from "lucide-react";
+import { Building2, Home, LockKeyhole, Mail, MapPinned } from "lucide-react";
 
 import { PartnerRegisterForm } from "@/components/partner-register-form";
 import type { NavbarContent } from "@/lib/site-content";
@@ -11,6 +11,7 @@ import type { NavbarContent } from "@/lib/site-content";
 export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const [scrolled, setScrolled] = useState(false);
   const [partnerModalOpen, setPartnerModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -21,6 +22,14 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     onScroll();
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 720px)");
+    const updateMobile = () => setIsMobile(media.matches);
+    updateMobile();
+    media.addEventListener("change", updateMobile);
+    return () => media.removeEventListener("change", updateMobile);
   }, []);
 
   useEffect(() => {
@@ -36,18 +45,23 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const partnerLoginHref = navbar.partnerLoginHref || navbar.ctaHref || "/partner/login";
   const mobileItems = [
     { label: "Home", href: "/", Icon: Home },
-    { label: "Destinations", href: "/resorts", Icon: MapPin },
-    { label: "Info", href: "/travel-guide", Icon: BookOpen },
-    { label: "Contact Us", href: "/contact", Icon: MessageCircle },
-    { label: "Partner Login", href: partnerLoginHref, Icon: CircleUserRound }
+    { label: "Destinations", href: "/resorts", Icon: MapPinned },
+    { label: "Contact", href: "/contact", Icon: Mail },
+    { label: "About", href: "/about", Icon: Building2 },
+    { label: "Partner", href: partnerLoginHref, Icon: LockKeyhole }
   ];
+  const hasMobileHero = pathname === "/" || pathname.startsWith("/resorts") || pathname === "/about";
   const usesHeroOverlayNav =
     pathname === "/" || /^\/(resorts|hotels|liveaboards)\/[^/]+/.test(pathname);
   const useLightNav = !usesHeroOverlayNav || scrolled;
-  const navClassName = `site-nav${usesHeroOverlayNav ? " is-overlay-route" : ""}${useLightNav ? " is-scrolled is-light" : ""}`;
-  const activeLogoUrl = useLightNav
-    ? navbar.primaryLogoUrl || navbar.blackLogoUrl || navbar.whiteLogoUrl
-    : navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl;
+  const navClassName = `site-nav${usesHeroOverlayNav ? " is-overlay-route" : ""}${hasMobileHero ? " has-mobile-hero" : ""}${useLightNav ? " is-scrolled is-light" : ""}`;
+  const activeLogoUrl = isMobile
+    ? hasMobileHero && !scrolled
+      ? navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl
+      : navbar.primaryLogoUrl || navbar.blackLogoUrl || navbar.whiteLogoUrl
+    : useLightNav
+      ? navbar.primaryLogoUrl || navbar.blackLogoUrl || navbar.whiteLogoUrl
+      : navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl;
 
   return (
     <>
@@ -89,19 +103,16 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
 
           <span className="site-nav__mobile-spacer" aria-hidden="true" />
 
-          <Link href={partnerLoginHref} className="site-nav__mobile-portal" aria-label="Partner notifications and access">
-            <Bell size={18} />
-          </Link>
         </div>
       </header>
 
-      <nav className="mobile-bottom-nav" aria-label="Mobile primary">
+      <nav className="mobile-tabbar" aria-label="Mobile primary">
         {mobileItems.map(({ Icon, ...item }) => {
           const isActive =
             item.href === "/"
               ? pathname === "/"
-              : item.href !== "/#newsletter" && pathname.startsWith(item.href);
-          const className = `mobile-bottom-nav__item${isActive ? " is-active" : ""}`;
+              : pathname.startsWith(item.href.replace("/login", ""));
+          const className = `mobile-tabbar__item${isActive ? " is-active" : ""}`;
 
           return (
             <Link href={item.href} key={item.label} className={className}>
