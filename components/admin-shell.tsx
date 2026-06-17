@@ -329,9 +329,11 @@ function getCurrentPageMeta(pathname: string) {
 }
 
 export function AdminShell({
-  children
+  children,
+  logoUrl
 }: {
   children: React.ReactNode;
+  logoUrl?: string;
 }) {
   const pathname = usePathname();
   const current = getCurrentPageMeta(pathname);
@@ -344,10 +346,16 @@ export function AdminShell({
     <div className="admin-shell">
       <aside className="admin-sidebar">
         <div className="admin-brand-block">
-          <div className="admin-brand-row">
-            <span className="admin-brand-mark"><Waves className="admin-icon" /></span>
-            <strong>Exciting Maldives</strong>
-          </div>
+          <Link href="/" className="admin-brand-row" aria-label="Go to Exciting Maldives website">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Exciting Maldives" className="admin-brand-logo" />
+            ) : (
+              <>
+                <span className="admin-brand-mark"><Waves className="admin-icon" /></span>
+                <strong>Exciting Maldives</strong>
+              </>
+            )}
+          </Link>
           <p>Admin center</p>
         </div>
 
@@ -370,7 +378,6 @@ export function AdminShell({
                       </span>
                       <span className="admin-nav-copy">
                         <strong>{item.label}</strong>
-                        <small>{item.description}</small>
                       </span>
                     </Link>
                   );

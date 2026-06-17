@@ -19795,3 +19795,36 @@ html {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Admin sidebar brand/menu cleanup */
+.admin-body .admin-brand-row {
+  text-decoration: none !important;
+}
+
+.admin-body .admin-brand-logo {
+  display: block !important;
+  width: min(178px, 100%) !important;
+  max-width: 178px !important;
+  height: auto !important;
+  max-height: 52px !important;
+  object-fit: contain !important;
+}
+
+.admin-body .admin-brand-block p {
+  margin-left: 0 !important;
+}
+
+.admin-body .admin-nav-copy {
+  display: block !important;
+}
+
+.admin-body .admin-nav-copy strong,
+.admin-body .admin-settings-group summary,
+.admin-body .admin-settings-link,
+.admin-body .admin-logout-button {
+  font-weight: 400 !important;
+}
+
+.admin-body .admin-nav-copy small {
+  display: none !important;
+}
