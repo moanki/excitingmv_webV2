@@ -13635,14 +13635,37 @@ select {
 
 @media (max-width: 760px) {
   .admin-body { overflow: auto; }
-  .admin-shell { display: block; height: auto; min-height: 100dvh; }
-  .admin-sidebar { position: static; width: 100%; min-width: 0; height: auto; min-height: 0; }
+  .admin-shell {
+    display: flex;
+    height: 100dvh;
+    min-height: 0;
+    overflow-x: auto;
+  }
+  .admin-sidebar {
+    position: relative;
+    width: 210px;
+    min-width: 210px;
+    height: 100dvh;
+    min-height: 0;
+  }
   .admin-brand-block { padding: 12px 16px; }
-  .admin-brand-block p, .admin-nav, .admin-logout { display: none; }
-  .admin-main { min-height: calc(100dvh - 51px); }
+  .admin-brand-block p { display: block; }
+  .admin-nav {
+    display: block;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .admin-logout { display: block; }
+  .admin-main {
+    min-width: min(760px, calc(100vw - 210px));
+    min-height: 0;
+  }
   .admin-topbar { padding: 0 14px; }
   .admin-user-chip strong, .admin-user-chevron { display: none; }
-  .admin-canvas { padding: 18px 14px; overflow: visible; }
+  .admin-canvas {
+    padding: 18px 14px;
+    overflow-y: auto;
+  }
   .dashboard-grid-quad { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .admin-overview-grid { grid-template-columns: 1fr; }
 }
