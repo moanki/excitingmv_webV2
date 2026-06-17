@@ -13438,6 +13438,7 @@ select {
 
 .admin-brand-mark .admin-icon {
   width: 15px;
+  height: 15px;
   color: #0c0f14;
 }
 
@@ -13485,8 +13486,21 @@ select {
 
 .admin-nav-item::before { top: 50%; bottom: auto; height: 14px; transform: translateY(-50%); }
 .admin-nav-item strong { color: inherit; font-size: 12px; font-weight: 400; }
+.admin-sidebar .admin-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 15px !important;
+  height: 15px !important;
+  color: currentColor;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
 .admin-nav-icon, .admin-nav-item.is-active .admin-nav-icon { width: 16px; height: 16px; }
-.admin-nav-icon .admin-icon, .admin-nav-item.is-active .admin-icon { width: 14px; height: 14px; }
+.admin-nav-icon .admin-icon, .admin-nav-item.is-active .admin-icon { width: 15px !important; height: 15px !important; }
 .admin-nav-item:hover { background: rgba(255, 255, 255, 0.05); color: rgba(242, 237, 228, 0.82); }
 .admin-nav-item.is-active { background: rgba(201, 169, 110, 0.14); color: #f2ede4; }
 .admin-nav-item.is-active::before { background: #c9a96e; }
@@ -13513,8 +13527,8 @@ select {
 .admin-settings-group summary::-webkit-details-marker { display: none; }
 .admin-settings-group summary:hover { background: rgba(255,255,255,.04); color: rgba(242,237,228,.78); }
 .admin-settings-group summary span { display: flex; align-items: center; gap: 8px; }
-.admin-settings-group summary .admin-icon { width: 14px; height: 14px; }
-.admin-settings-chevron { width: 11px; transition: transform .18s ease; }
+.admin-settings-group summary .admin-icon { width: 15px !important; height: 15px !important; }
+.admin-settings-chevron { width: 12px !important; height: 12px !important; transition: transform .18s ease; }
 .admin-settings-group[open] .admin-settings-chevron { transform: rotate(90deg); }
 
 .admin-settings-links { display: grid; }
@@ -13528,7 +13542,7 @@ select {
   color: rgba(242, 237, 228, 0.35);
   font-size: 11px;
 }
-.admin-settings-link .admin-icon { width: 12px; height: 12px; }
+.admin-settings-link .admin-icon { width: 13px !important; height: 13px !important; }
 .admin-settings-link:hover { background: rgba(255,255,255,.04); color: rgba(242,237,228,.72); }
 .admin-settings-link.is-active { background: rgba(201,169,110,.1); color: #c9a96e; }
 .admin-settings-link.is-active::before { position: absolute; left: 0; width: 2px; height: 12px; border-radius: 0 2px 2px 0; background: #c9a96e; content: ""; }
