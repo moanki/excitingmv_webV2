@@ -11,6 +11,349 @@
   --container: 1280px;
 }
 
+/* Admin desktop screenshot parity pass
+   Scoped to desktop admin only so public website and mobile UI stay unchanged. */
+@media (min-width: 981px) {
+  .admin-body .admin-sidebar {
+    width: 214px !important;
+    min-width: 214px !important;
+  }
+
+  .admin-body .admin-brand {
+    min-height: 88px !important;
+    padding: 18px 12px 14px !important;
+    align-items: flex-start !important;
+  }
+
+  .admin-body .admin-brand-link {
+    align-items: flex-start !important;
+  }
+
+  .admin-body .admin-brand-logo {
+    width: 78px !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  .admin-body .admin-brand-kicker {
+    margin-top: 4px !important;
+    color: rgba(141, 164, 183, 0.46) !important;
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.18em !important;
+  }
+
+  .admin-body .admin-nav-section {
+    padding-top: 13px !important;
+  }
+
+  .admin-body .admin-nav-label {
+    margin-bottom: 7px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    color: rgba(141, 164, 183, 0.42) !important;
+    font-size: 9px !important;
+    letter-spacing: 0.13em !important;
+  }
+
+  .admin-body .admin-nav-item {
+    min-height: 32px !important;
+    gap: 9px !important;
+    padding: 7px 12px !important;
+    color: #9eb3c6 !important;
+    font-size: 14px !important;
+  }
+
+  .admin-body .admin-nav-copy strong {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+  }
+
+  .admin-body .admin-nav-item.is-active {
+    border-left-color: transparent !important;
+    background: rgba(255, 255, 255, 0.11) !important;
+    color: #fff !important;
+  }
+
+  .admin-body .admin-nav-item.is-active .admin-nav-copy strong {
+    font-weight: 700 !important;
+  }
+
+  .admin-body .admin-topbar {
+    padding: 0 28px !important;
+  }
+
+  .admin-body .admin-canvas {
+    padding: 24px 28px !important;
+  }
+
+  .admin-body .admin-toolbar,
+  .admin-body .resort-manager-toolbar,
+  .admin-body .media-manager-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    margin: 0 0 28px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .admin-body .admin-search,
+  .admin-body .resort-search-field,
+  .admin-body .media-manager-toolbar .resort-search-field {
+    width: 280px !important;
+    max-width: 100% !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    padding: 0 12px !important;
+    border-width: 1px !important;
+    border-color: #ddd9d2 !important;
+    background: #fff !important;
+    color: var(--admin-text) !important;
+  }
+
+  .admin-body .admin-page-actions--compact {
+    justify-content: flex-end !important;
+    margin-top: -62px !important;
+    margin-bottom: 36px !important;
+    pointer-events: none !important;
+  }
+
+  .admin-body .admin-page-actions--compact > * {
+    pointer-events: auto !important;
+  }
+
+  .admin-body .admin-filter-pills,
+  .admin-body .admin-filter-pills--below,
+  .admin-body .resort-filter-pills {
+    display: flex !important;
+    align-items: center !important;
+    gap: 24px !important;
+    margin: 0 0 24px !important;
+    padding: 0 !important;
+    border-bottom: 1px solid #ddd9d2 !important;
+    background: transparent !important;
+  }
+
+  .admin-body .admin-filter-pill,
+  .admin-body .resort-filter-pills button {
+    min-height: 36px !important;
+    padding: 0 0 10px !important;
+    border: 0 !important;
+    border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: #53697d !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+  }
+
+  .admin-body .admin-filter-pill.is-active,
+  .admin-body .resort-filter-pills button.is-active {
+    border-bottom-color: var(--admin-teal) !important;
+    color: var(--admin-text) !important;
+  }
+
+  .admin-body .admin-filter-pill span,
+  .admin-body .resort-filter-pills button span {
+    display: inline-flex !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-left: 5px !important;
+    border-radius: 999px !important;
+    background: #e7f3f1 !important;
+    color: var(--admin-teal) !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+  }
+
+  .admin-body .admin-table-shell {
+    border-color: #dedad3 !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+  }
+
+  .admin-body .table th,
+  .admin-body .admin-table-shell .table th {
+    padding: 11px 20px !important;
+    background: #f6f5f2 !important;
+    color: #9babba !important;
+    font-size: 11px !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  .admin-body .table td,
+  .admin-body .admin-table-shell .table td {
+    padding: 12px 20px !important;
+    border-bottom-color: #e9e5df !important;
+    font-size: 13px !important;
+  }
+
+  .admin-body .panel,
+  .admin-body .admin-form-card,
+  .admin-body .panel-soft {
+    border-color: #dedad3 !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+  }
+
+  .admin-body .admin-panel-section .section-heading,
+  .admin-body .panel > .section-heading:first-child,
+  .admin-body .admin-form-card > .admin-form-section:first-child {
+    padding: 18px 20px 14px !important;
+  }
+
+  .admin-body .field input,
+  .admin-body .field textarea,
+  .admin-body .field select,
+  .admin-body .admin-input,
+  .admin-body .admin-select,
+  .admin-body .admin-textarea {
+    border-width: 1px !important;
+    border-color: #dedad3 !important;
+    border-radius: 7px !important;
+    background: #f4f3f0 !important;
+    font-size: 14px !important;
+  }
+
+  .admin-body .admin-btn,
+  .admin-body .button,
+  .admin-body .button-muted,
+  .admin-body button.button,
+  .admin-body a.button,
+  .admin-body a.button-muted {
+    border-radius: 7px !important;
+  }
+
+  .admin-body .admin-btn--primary,
+  .admin-body .button {
+    border-color: var(--admin-teal) !important;
+    background: var(--admin-teal) !important;
+  }
+
+  .admin-body .dashboard-grid,
+  .admin-body .dashboard-grid-quad {
+    border-color: #dedad3 !important;
+    border-radius: 10px !important;
+  }
+
+  .admin-body .stat-card {
+    min-height: 106px !important;
+    padding: 20px 24px !important;
+    border-right-color: #dedad3 !important;
+  }
+
+  .admin-body .resort-manager-grid {
+    display: block !important;
+    overflow: hidden !important;
+    border: 1px solid #dedad3 !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+  }
+
+  .admin-body .resort-manager-grid::before {
+    content: "RESORT STATUS UPDATED ACTIONS";
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 130px 130px 210px !important;
+    gap: 16px !important;
+    padding: 11px 20px !important;
+    border-bottom: 1px solid #dedad3 !important;
+    background: #f6f5f2 !important;
+    color: #9babba !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    white-space: pre !important;
+  }
+
+  .admin-body .resort-manager-card {
+    display: grid !important;
+    grid-template-columns: 68px minmax(0, 1fr) 130px 130px 210px !important;
+    gap: 16px !important;
+    align-items: center !important;
+    min-height: 74px !important;
+    padding: 14px 20px !important;
+    border: 0 !important;
+    border-bottom: 1px solid #e9e5df !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  .admin-body .resort-manager-card:hover {
+    background: #fbfaf7 !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .admin-body .resort-manager-card:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .admin-body .resort-manager-card__media {
+    width: 68px !important;
+    height: 46px !important;
+    border-radius: 6px !important;
+  }
+
+  .admin-body .resort-manager-card__body {
+    display: contents !important;
+  }
+
+  .admin-body .resort-manager-card__topline {
+    display: block !important;
+    min-width: 0 !important;
+  }
+
+  .admin-body .resort-manager-card__topline h2 {
+    margin: 0 0 3px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+  }
+
+  .admin-body .resort-manager-card__meta {
+    grid-column: 4 !important;
+    grid-row: 1 !important;
+    display: block !important;
+    color: #53697d !important;
+    font-size: 12px !important;
+  }
+
+  .admin-body .resort-manager-card__meta span:first-child {
+    display: none !important;
+  }
+
+  .admin-body .resort-manager-card__badges {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    justify-content: flex-start !important;
+  }
+
+  .admin-body .resort-manager-card__actions {
+    grid-column: 5 !important;
+    grid-row: 1 !important;
+    justify-content: flex-end !important;
+  }
+
+  .admin-body .resort-manager-card__actions .admin-btn--danger {
+    display: none !important;
+  }
+
+  .admin-body .resort-manager-footer,
+  .admin-body .admin-table-footer {
+    padding: 14px 20px !important;
+    border-top: 1px solid #e9e5df !important;
+    color: #8fa2b4 !important;
+    font-size: 12px !important;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -21948,5 +22291,348 @@ html {
     color: #102023;
     font-size: 0.72rem;
     font-weight: 400;
+  }
+}
+
+/* Admin desktop screenshot parity pass
+   Scoped to desktop admin only so public website and mobile UI stay unchanged. */
+@media (min-width: 981px) {
+  .admin-body .admin-sidebar {
+    width: 214px !important;
+    min-width: 214px !important;
+  }
+
+  .admin-body .admin-brand {
+    min-height: 88px !important;
+    padding: 18px 12px 14px !important;
+    align-items: flex-start !important;
+  }
+
+  .admin-body .admin-brand-link {
+    align-items: flex-start !important;
+  }
+
+  .admin-body .admin-brand-logo {
+    width: 78px !important;
+    height: auto !important;
+    object-fit: contain !important;
+  }
+
+  .admin-body .admin-brand-kicker {
+    margin-top: 4px !important;
+    color: rgba(141, 164, 183, 0.46) !important;
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.18em !important;
+  }
+
+  .admin-body .admin-nav-section {
+    padding-top: 13px !important;
+  }
+
+  .admin-body .admin-nav-label {
+    margin-bottom: 7px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    color: rgba(141, 164, 183, 0.42) !important;
+    font-size: 9px !important;
+    letter-spacing: 0.13em !important;
+  }
+
+  .admin-body .admin-nav-item {
+    min-height: 32px !important;
+    gap: 9px !important;
+    padding: 7px 12px !important;
+    color: #9eb3c6 !important;
+    font-size: 14px !important;
+  }
+
+  .admin-body .admin-nav-copy strong {
+    font-size: 14px !important;
+    font-weight: 400 !important;
+  }
+
+  .admin-body .admin-nav-item.is-active {
+    border-left-color: transparent !important;
+    background: rgba(255, 255, 255, 0.11) !important;
+    color: #fff !important;
+  }
+
+  .admin-body .admin-nav-item.is-active .admin-nav-copy strong {
+    font-weight: 700 !important;
+  }
+
+  .admin-body .admin-topbar {
+    padding: 0 28px !important;
+  }
+
+  .admin-body .admin-canvas {
+    padding: 24px 28px !important;
+  }
+
+  .admin-body .admin-toolbar,
+  .admin-body .resort-manager-toolbar,
+  .admin-body .media-manager-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    margin: 0 0 28px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .admin-body .admin-search,
+  .admin-body .resort-search-field,
+  .admin-body .media-manager-toolbar .resort-search-field {
+    width: 280px !important;
+    max-width: 100% !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    padding: 0 12px !important;
+    border-width: 1px !important;
+    border-color: #ddd9d2 !important;
+    background: #fff !important;
+    color: var(--admin-text) !important;
+  }
+
+  .admin-body .admin-page-actions--compact {
+    justify-content: flex-end !important;
+    margin-top: -62px !important;
+    margin-bottom: 36px !important;
+    pointer-events: none !important;
+  }
+
+  .admin-body .admin-page-actions--compact > * {
+    pointer-events: auto !important;
+  }
+
+  .admin-body .admin-filter-pills,
+  .admin-body .admin-filter-pills--below,
+  .admin-body .resort-filter-pills {
+    display: flex !important;
+    align-items: center !important;
+    gap: 24px !important;
+    margin: 0 0 24px !important;
+    padding: 0 !important;
+    border-bottom: 1px solid #ddd9d2 !important;
+    background: transparent !important;
+  }
+
+  .admin-body .admin-filter-pill,
+  .admin-body .resort-filter-pills button {
+    min-height: 36px !important;
+    padding: 0 0 10px !important;
+    border: 0 !important;
+    border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: #53697d !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+  }
+
+  .admin-body .admin-filter-pill.is-active,
+  .admin-body .resort-filter-pills button.is-active {
+    border-bottom-color: var(--admin-teal) !important;
+    color: var(--admin-text) !important;
+  }
+
+  .admin-body .admin-filter-pill span,
+  .admin-body .resort-filter-pills button span {
+    display: inline-flex !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-left: 5px !important;
+    border-radius: 999px !important;
+    background: #e7f3f1 !important;
+    color: var(--admin-teal) !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+  }
+
+  .admin-body .admin-table-shell {
+    border-color: #dedad3 !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+  }
+
+  .admin-body .table th,
+  .admin-body .admin-table-shell .table th {
+    padding: 11px 20px !important;
+    background: #f6f5f2 !important;
+    color: #9babba !important;
+    font-size: 11px !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  .admin-body .table td,
+  .admin-body .admin-table-shell .table td {
+    padding: 12px 20px !important;
+    border-bottom-color: #e9e5df !important;
+    font-size: 13px !important;
+  }
+
+  .admin-body .panel,
+  .admin-body .admin-form-card,
+  .admin-body .panel-soft {
+    border-color: #dedad3 !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+  }
+
+  .admin-body .admin-panel-section .section-heading,
+  .admin-body .panel > .section-heading:first-child,
+  .admin-body .admin-form-card > .admin-form-section:first-child {
+    padding: 18px 20px 14px !important;
+  }
+
+  .admin-body .field input,
+  .admin-body .field textarea,
+  .admin-body .field select,
+  .admin-body .admin-input,
+  .admin-body .admin-select,
+  .admin-body .admin-textarea {
+    border-width: 1px !important;
+    border-color: #dedad3 !important;
+    border-radius: 7px !important;
+    background: #f4f3f0 !important;
+    font-size: 14px !important;
+  }
+
+  .admin-body .admin-btn,
+  .admin-body .button,
+  .admin-body .button-muted,
+  .admin-body button.button,
+  .admin-body a.button,
+  .admin-body a.button-muted {
+    border-radius: 7px !important;
+  }
+
+  .admin-body .admin-btn--primary,
+  .admin-body .button {
+    border-color: var(--admin-teal) !important;
+    background: var(--admin-teal) !important;
+  }
+
+  .admin-body .dashboard-grid,
+  .admin-body .dashboard-grid-quad {
+    border-color: #dedad3 !important;
+    border-radius: 10px !important;
+  }
+
+  .admin-body .stat-card {
+    min-height: 106px !important;
+    padding: 20px 24px !important;
+    border-right-color: #dedad3 !important;
+  }
+
+  .admin-body .resort-manager-grid {
+    display: block !important;
+    overflow: hidden !important;
+    border: 1px solid #dedad3 !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+  }
+
+  .admin-body .resort-manager-grid::before {
+    content: "RESORT STATUS UPDATED ACTIONS";
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 130px 130px 210px !important;
+    gap: 16px !important;
+    padding: 11px 20px !important;
+    border-bottom: 1px solid #dedad3 !important;
+    background: #f6f5f2 !important;
+    color: #9babba !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    white-space: pre !important;
+  }
+
+  .admin-body .resort-manager-card {
+    display: grid !important;
+    grid-template-columns: 68px minmax(0, 1fr) 130px 130px 210px !important;
+    gap: 16px !important;
+    align-items: center !important;
+    min-height: 74px !important;
+    padding: 14px 20px !important;
+    border: 0 !important;
+    border-bottom: 1px solid #e9e5df !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  .admin-body .resort-manager-card:hover {
+    background: #fbfaf7 !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .admin-body .resort-manager-card:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .admin-body .resort-manager-card__media {
+    width: 68px !important;
+    height: 46px !important;
+    border-radius: 6px !important;
+  }
+
+  .admin-body .resort-manager-card__body {
+    display: contents !important;
+  }
+
+  .admin-body .resort-manager-card__topline {
+    display: block !important;
+    min-width: 0 !important;
+  }
+
+  .admin-body .resort-manager-card__topline h2 {
+    margin: 0 0 3px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+  }
+
+  .admin-body .resort-manager-card__meta {
+    grid-column: 4 !important;
+    grid-row: 1 !important;
+    display: block !important;
+    color: #53697d !important;
+    font-size: 12px !important;
+  }
+
+  .admin-body .resort-manager-card__meta span:first-child {
+    display: none !important;
+  }
+
+  .admin-body .resort-manager-card__badges {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    justify-content: flex-start !important;
+  }
+
+  .admin-body .resort-manager-card__actions {
+    grid-column: 5 !important;
+    grid-row: 1 !important;
+    justify-content: flex-end !important;
+  }
+
+  .admin-body .resort-manager-card__actions .admin-btn--danger {
+    display: none !important;
+  }
+
+  .admin-body .resort-manager-footer,
+  .admin-body .admin-table-footer {
+    padding: 14px 20px !important;
+    border-top: 1px solid #e9e5df !important;
+    color: #8fa2b4 !important;
+    font-size: 12px !important;
   }
 }

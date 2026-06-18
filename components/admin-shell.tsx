@@ -7,15 +7,11 @@ import {
   Bell,
   Building2,
   ChevronDown,
-  ChevronRight,
   FolderKanban,
   Gauge,
-  Globe2,
-  Home,
   Image,
   LayoutTemplate,
   Mail,
-  Menu,
   KeyRound,
   Search,
   Settings2,
@@ -144,57 +140,6 @@ const navGroups: NavGroup[] = [
         description: "Sign-in media and logo",
         icon: Image
       }
-    ]
-  }
-];
-
-const settingsGroups: Array<{
-  title: string;
-  icon: ComponentType<{ className?: string }>;
-  items: Array<{ href: string; label: string; icon: ComponentType<{ className?: string }> }>;
-}> = [
-  {
-    title: "Website",
-    icon: Globe2,
-    items: [
-      { href: "/admin/settings", label: "Homepage", icon: Home },
-      { href: "/admin/settings/navbar", label: "Navbar", icon: Menu },
-      { href: "/admin/settings/footer", label: "Footer", icon: LayoutTemplate },
-      { href: "/admin/settings/about", label: "About Us", icon: Building2 },
-      { href: "/admin/settings/contact", label: "Contact Us", icon: Mail }
-    ]
-  },
-  {
-    title: "Features",
-    icon: Sparkles,
-    items: [
-      { href: "/admin/settings/whatsapp", label: "WhatsApp widget", icon: Mail },
-      { href: "/admin/settings/notifications", label: "Notifications", icon: Bell },
-      { href: "/admin/settings/markets", label: "Markets", icon: Globe2 }
-    ]
-  },
-  {
-    title: "Admin",
-    icon: Shield,
-    items: [
-      { href: "/admin/email-configuration", label: "Email config", icon: Settings2 },
-      { href: "/admin/settings/admin-login", label: "Login page", icon: Image }
-    ]
-  },
-  {
-    title: "Page sections",
-    icon: LayoutTemplate,
-    items: [
-      { href: "/admin/settings/homepage/hero", label: "Hero", icon: LayoutTemplate },
-      { href: "/admin/settings/homepage/features", label: "Feature cards", icon: LayoutTemplate },
-      { href: "/admin/settings/homepage/stats", label: "Expertise stats", icon: Gauge },
-      { href: "/admin/settings/homepage/ceo", label: "CEO message", icon: UserCog },
-      { href: "/admin/settings/homepage/story", label: "Our story", icon: FolderKanban },
-      { href: "/admin/settings/homepage/services", label: "Services", icon: Menu },
-      { href: "/admin/settings/homepage/why-us", label: "Why us", icon: Sparkles },
-      { href: "/admin/settings/homepage/awards", label: "Awards", icon: Shield },
-      { href: "/admin/settings/homepage/guide", label: "Travel guide", icon: Globe2 },
-      { href: "/admin/settings/homepage/newsletter", label: "Newsletter", icon: Mail }
     ]
   }
 ];
@@ -388,31 +333,14 @@ export function AdminShell({
 
           <div className="admin-settings-nav">
             <p className="admin-nav-label">Site Settings</p>
-            {settingsGroups.map((group) => {
-              const GroupIcon = group.icon;
-              const groupActive = group.items.some((item) => isActive(pathname, item.href));
-
-              return (
-                <details className="admin-settings-group" key={group.title} open={groupActive || group.title === "Website"}>
-                  <summary>
-                    <span><GroupIcon className="admin-icon" />{group.title}</span>
-                    <ChevronRight className="admin-settings-chevron" />
-                  </summary>
-                  <div className="admin-settings-links">
-                    {group.items.map((item) => {
-                      const ItemIcon = item.icon;
-                      const active = pathname === item.href || (item.href !== "/admin/settings" && pathname.startsWith(item.href));
-                      return (
-                        <Link key={item.href} href={item.href} className={active ? "admin-settings-link is-active" : "admin-settings-link"}>
-                          <ItemIcon className="admin-icon" />
-                          {item.label}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </details>
-              );
-            })}
+            <Link href="/admin/settings" className={pathname.startsWith("/admin/settings") ? "admin-nav-item is-active" : "admin-nav-item"}>
+              <span className="admin-nav-icon">
+                <Settings2 className="admin-icon" />
+              </span>
+              <span className="admin-nav-copy">
+                <strong>Site Settings</strong>
+              </span>
+            </Link>
           </div>
         </nav>
 
