@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Building2, Clock3, Globe2, Headphones, MapPin, Star } from "lucide-react";
+import { ArrowRight, BookOpen, Building2, CircleUserRound, Clock3, Globe2, Headphones, Home, MapPin, MessageCircle, Search, Star } from "lucide-react";
 
 import { GlobalMarketMap } from "@/components/global-market-map";
 import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
@@ -20,10 +20,14 @@ import {
   getHomepageStats,
   getHomepageStoryContent,
   getHomepageWhyUs,
+  getFooterContent,
   getMarketSettings,
+  getNavbarContent,
+  type FooterContent,
   type HomepageGuideItem,
   type HomepageStat,
   type MarketSettings,
+  type NavbarContent,
 } from "@/lib/site-content";
 
 const featuredImages = [
@@ -300,6 +304,333 @@ function TravelGuideMagazine({ guide }: { guide: HomepageGuideItem[] }) {
   );
 }
 
+function shortText(value: string | undefined, fallback = "", maxLength = 148) {
+  const source = (value || fallback).replace(/\s+/g, " ").trim();
+  if (source.length <= maxLength) return source;
+  return `${source.slice(0, maxLength).trim()}...`;
+}
+
+function getFooterLinks(footer: FooterContent, navbar: NavbarContent) {
+  const defaults = [
+    { label: "About Us", href: "/about" },
+    { label: "Resorts", href: "/resorts" },
+    { label: "Travel Guide", href: "/travel-guide" },
+    { label: "Contact", href: "/contact" },
+    { label: "Partner Login", href: navbar.partnerLoginHref || "/partner/login" }
+  ];
+  const configured = footer.linkGroups
+    .filter((group) => group.enabled)
+    .flatMap((group) => group.items)
+    .filter((item) => item.enabled && item.label && item.href)
+    .map((item) => ({ label: item.label, href: item.href }));
+
+  return (configured.length ? configured : defaults).slice(0, 5);
+}
+
+function MobileHomeV2({
+  hero,
+  navbar,
+  footer,
+  stats,
+  resorts,
+  ceo,
+  story,
+  markets,
+  services,
+  whyUs,
+  awards,
+  guide,
+  newsletter,
+  marketLabels
+}: {
+  hero: Awaited<ReturnType<typeof getHomepageHeroContent>>["content"];
+  navbar: NavbarContent;
+  footer: FooterContent;
+  stats: HomepageStat[];
+  resorts: ResortSummary[];
+  ceo: Awaited<ReturnType<typeof getHomepageCeoContent>>["content"];
+  story: Awaited<ReturnType<typeof getHomepageStoryContent>>["content"];
+  markets: MarketSettings;
+  services: Awaited<ReturnType<typeof getHomepageServices>>["content"];
+  whyUs: Awaited<ReturnType<typeof getHomepageWhyUs>>["content"];
+  awards: Awaited<ReturnType<typeof getHomepageAwardsContent>>["content"];
+  guide: HomepageGuideItem[];
+  newsletter: Awaited<ReturnType<typeof getHomepageNewsletterContent>>["content"];
+  marketLabels: string[];
+}) {
+  const heroImage = hero.mediaUrl || heroFallback;
+  const logoUrl = navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl;
+  const partnerLoginHref = navbar.partnerLoginHref || navbar.ctaHref || "/partner/login";
+  const mobileStats = getHeroStats(stats);
+  const displayResorts = resorts.length ? resorts : [];
+  const primaryResort = displayResorts[0];
+  const secondaryResorts = displayResorts.slice(1, 7);
+  const activeMarkets = markets.options.filter((market) => market.enabled).slice(0, 4);
+  const displayServices = services.filter((service) => service.enabled && service.title).slice(0, 6);
+  const displayWhy = whyUs.filter((item) => item.title).slice(0, 3);
+  const displayAwards = awards.items.filter((item) => item.enabled && (item.imageUrl || item.name)).slice(0, 4);
+  const displayGuides = guide.filter((item) => item.published && item.title).slice(0, 4);
+  const footerLogo = footer.companyLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl || navbar.whiteLogoUrl;
+  const affiliateBadges = [...footer.memberships, ...footer.awards].filter((item) => item.enabled && item.imageUrl).slice(0, 2);
+
+  return (
+    <div className="mobile-v2-home" aria-label="Exciting Maldives mobile home">
+      <section className="mv2-hero">
+        <div
+          className="mv2-hero__bg"
+          style={{ backgroundImage: `url(${optimizedImageUrl(heroImage, { width: 900, height: 1250, quality: 84 })})` }}
+        />
+        <div className="mv2-hero__shade" />
+        <div className="mv2-hero__nav">
+          {logoUrl ? <img src={optimizedImageUrl(logoUrl, { width: 260, height: 120, quality: 90, resize: "contain" })} alt={navbar.brandLabel || "Exciting Maldives"} /> : <strong>{navbar.brandLabel || "Exciting Maldives"}</strong>}
+          <Link href="/resorts" className="mv2-icon-button" aria-label="Search properties">
+            <Search size={18} />
+          </Link>
+        </div>
+        <div className="mv2-hero__copy">
+          <p>{hero.eyebrow || "Luxury B2B Partner Platform"}</p>
+          <h1>{hero.title || "The Art of Maldivian Luxury"}</h1>
+          <div className="mv2-hero__actions">
+            <Link href={hero.primaryCtaHref || "/resorts"} className="mv2-btn mv2-btn--white">
+              {hero.primaryCtaLabel || "Explore Properties"}
+            </Link>
+            <PartnerModalButton className="mv2-btn mv2-btn--ghost">
+              {hero.secondaryCtaLabel || "Become a Partner"}
+            </PartnerModalButton>
+          </div>
+        </div>
+      </section>
+
+      <section className="mv2-ticker" aria-label="Featured retreat logos">
+        <div className="mv2-ticker__track">
+          {[...(hero.featuredResortLogos ?? []), ...(hero.featuredResortLogos ?? [])]
+            .filter((item) => item.enabled && (item.imageUrl || item.name))
+            .slice(0, 12)
+            .map((logo, index) => (
+              <span className="mv2-ticker__item" key={`${logo.name}-${index}`}>
+                {logo.imageUrl ? (
+                  <img src={optimizedImageUrl(logo.imageUrl, { width: 260, height: 120, quality: 94, resize: "contain" })} alt={logo.name || "Featured retreat"} />
+                ) : (
+                  logo.name
+                )}
+              </span>
+            ))}
+        </div>
+      </section>
+
+      <section className="mv2-stats" aria-label="Exciting Maldives stats">
+        {mobileStats.map((stat) => (
+          <div className="mv2-stat" key={`${stat.value}-${stat.label}`}>
+            <strong>{stat.value}</strong>
+            <span>{stat.label.replace("Years Experience", "Yrs Exp.")}</span>
+          </div>
+        ))}
+      </section>
+
+      <section className="mv2-section mv2-section--white" id="mobile-featured-retreats">
+        <div className="mv2-section__header">
+          <div>
+            <p className="mv2-eyebrow">Featured Retreats</p>
+            <h2>Hand-picked luxury island escapes</h2>
+          </div>
+          <Link href="/resorts">View all</Link>
+        </div>
+
+        {primaryResort ? (
+          <Link href={`/resorts/${primaryResort.slug}`} className="mv2-big-card">
+            <div
+              className="mv2-big-card__bg"
+              style={{ backgroundImage: `url(${optimizedImageUrl(primaryResort.heroImageUrl || pickResortImage(0), { width: 800, height: 620, quality: 88 })})` }}
+            />
+            <div className="mv2-big-card__shade" />
+            <div className="mv2-big-card__body">
+              <span>★ {primaryResort.category || "Luxury Resort"}</span>
+              <strong>{primaryResort.name}</strong>
+              <p>{[formatAtoll(primaryResort.location), primaryResort.transferType, primaryResort.summary].filter(Boolean).slice(0, 3).join(" · ")}</p>
+            </div>
+          </Link>
+        ) : null}
+
+        <div className="mv2-card-scroll">
+          {secondaryResorts.map((resort, index) => (
+            <Link href={`/resorts/${resort.slug}`} className="mv2-property-card" key={resort.id}>
+              <img src={optimizedImageUrl(resort.heroImageUrl || pickResortImage(index + 1), { width: 420, height: 300, quality: 84 })} alt={resort.name} loading="lazy" />
+              <div>
+                <span>{resort.category || "Luxury Resort"}</span>
+                <strong>{resort.name}</strong>
+                <p>{[formatAtoll(resort.location), resort.transferType].filter(Boolean).join(" · ")}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mv2-section mv2-section--paper">
+        <p className="mv2-eyebrow">{ceo.sectionLabel || "CEO's Message"}</p>
+        <article className="mv2-ceo">
+          <div className="mv2-ceo__top">
+            {ceo.photoUrl ? <img src={optimizedImageUrl(ceo.photoUrl, { width: 120, height: 120, quality: 80 })} alt={ceo.name} /> : <span>{ceo.name?.charAt(0) || "E"}</span>}
+            <div>
+              <strong>{ceo.name}</strong>
+              <p>{ceo.title}</p>
+            </div>
+          </div>
+          <h2>{ceo.quote}</h2>
+          <p>{shortText(ceo.message, "", 210)}</p>
+        </article>
+      </section>
+
+      <section className="mv2-section mv2-section--white">
+        <p className="mv2-eyebrow">{story.sectionLabel || "Our Story"}</p>
+        <h2>{story.title}</h2>
+        <img className="mv2-story-image" src={optimizedImageUrl(story.imageUrl || featuredImages[1], { width: 760, height: 520, quality: 84 })} alt="Exciting Maldives story" loading="lazy" />
+        <p className="mv2-muted-copy">{shortText(story.description, "", 230)}</p>
+        <Link href="/about" className="mv2-inline-link">Read more <ArrowRight size={14} /></Link>
+      </section>
+
+      <section className="mv2-section mv2-section--paper">
+        <p className="mv2-eyebrow">{markets.sectionTitle || "Primary Markets"}</p>
+        <h2>{markets.heading || "Connected to Premium Markets"}</h2>
+        <p className="mv2-subcopy">{markets.description}</p>
+        <div className="mv2-market-list">
+          {activeMarkets.map((market, index) => (
+            <div className="mv2-market-row" key={market.id}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{market.label || market.region}</strong>
+              <em>{marketStatuses[index] || "Active"}</em>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mv2-section mv2-section--white">
+        <p className="mv2-eyebrow">Destination Management</p>
+        <h2>Built around every Maldives booking.</h2>
+        <p className="mv2-subcopy">Local precision across every stage of the journey.</p>
+        <div className="mv2-service-grid">
+          {displayServices.map((service, index) => (
+            <article className={index === displayServices.length - 1 ? "mv2-service mv2-service--accent" : "mv2-service"} key={`${service.title}-${index}`}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <h3>{service.title}</h3>
+              <p>{service.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="mv2-section mv2-section--paper">
+        <p className="mv2-eyebrow">Why Travel Designers Choose Us</p>
+        <h2>Local precision for more than a resort list.</h2>
+        <p className="mv2-subcopy">Commercial fluency and resort relationships that protect high-value bookings.</p>
+        <div className="mv2-why-list">
+          {displayWhy.map((item, index) => (
+            <article className="mv2-why-card" key={`${item.title}-${index}`}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <div>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {displayAwards.length ? (
+        <section className="mv2-section mv2-section--white">
+          <p className="mv2-eyebrow">Prestigious Awards</p>
+          <h2>{awards.title}</h2>
+          <p className="mv2-subcopy">{awards.summary}</p>
+          <div className="mv2-award-scroll">
+            {displayAwards.map((award) => (
+              <div className="mv2-award-card" key={award.name || award.imageUrl}>
+                {award.imageUrl ? <img src={optimizedImageUrl(award.imageUrl, { width: 240, height: 140, quality: 88, resize: "contain" })} alt={award.name || "Award"} loading="lazy" /> : null}
+                <strong>{award.name}</strong>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="mv2-section mv2-section--paper">
+        <div className="mv2-section__header">
+          <div>
+            <p className="mv2-eyebrow">Maldives Travel Guide</p>
+            <h2>Editorial intelligence for sharper selling</h2>
+          </div>
+          <Link href="/travel-guide">All insights</Link>
+        </div>
+        <div className="mv2-insight-list">
+          {displayGuides.map((item) => (
+            <Link href={`/travel-guide/${item.slug}`} className="mv2-insight" key={item.slug}>
+              <div>
+                <span>{item.category}</span>
+                <strong>{item.title}</strong>
+                <p>{item.summary || item.description}</p>
+              </div>
+              <ArrowRight size={16} />
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mv2-section mv2-section--white">
+        <div className="mv2-partner-cta">
+          <h2>Join Our Global Network of Travel Professionals</h2>
+          <p>Apply for protected access to curated resort intelligence, trade-ready offers, and responsive Maldives support.</p>
+          <div className="mv2-perks">
+            {partnerBenefits.map((benefit) => <span key={benefit}>{benefit}</span>)}
+          </div>
+          <PartnerModalButton className="mv2-cta mv2-cta--dark">Become a Travel Partner</PartnerModalButton>
+          <Link href={partnerLoginHref} className="mv2-cta mv2-cta--light">Partner Login</Link>
+        </div>
+      </section>
+
+      <section className="mv2-section mv2-section--paper">
+        <p className="mv2-eyebrow">{newsletter.sectionLabel || "Stay Connected"}</p>
+        <h2>{newsletter.title || "Be in Touch"}</h2>
+        <p className="mv2-subcopy">{newsletter.description}</p>
+        <div className="mv2-newsletter-card">
+          <NewsletterSignupForm markets={marketLabels.length ? marketLabels : defaultPartnerLogos} />
+        </div>
+      </section>
+
+      <footer className="mv2-footer">
+        {footerLogo ? <img src={optimizedImageUrl(footerLogo, { width: 240, height: 160, quality: 88, resize: "contain" })} alt={footer.companyLabel} /> : <strong>{footer.companyLabel}</strong>}
+        <p>{footer.description}</p>
+        <div className="mv2-footer__links">
+          {getFooterLinks(footer, navbar).map((item) => <Link href={item.href} key={`${item.label}-${item.href}`}>{item.label}</Link>)}
+        </div>
+        <address>
+          <a href={`tel:${footer.contactPhone}`}>{footer.contactPhone}</a>
+          <a href={`mailto:${footer.contactEmail}`}>{footer.contactEmail}</a>
+          <span>{footer.address}</span>
+        </address>
+        {affiliateBadges.length ? (
+          <div className="mv2-footer__badges">
+            {affiliateBadges.map((badge) => <img src={optimizedImageUrl(badge.imageUrl, { width: 180, height: 90, quality: 84, resize: "contain" })} alt={badge.name} key={badge.name} />)}
+          </div>
+        ) : null}
+        <small>© 2026 Exciting Maldives. All rights reserved.</small>
+      </footer>
+
+      <nav className="mv2-bottom-nav" aria-label="Mobile primary">
+        {[
+          { label: "Home", href: "/", Icon: Home },
+          { label: "Properties", href: "/resorts", Icon: MapPin },
+          { label: "Info", href: "/travel-guide", Icon: BookOpen },
+          { label: "Contact", href: "/contact", Icon: MessageCircle },
+          { label: "Partner", href: partnerLoginHref, Icon: CircleUserRound }
+        ].map(({ Icon, ...item }) => (
+          <Link href={item.href} className="mv2-bottom-nav__item" key={item.label}>
+            <Icon size={18} />
+            <span>{item.label}</span>
+          </Link>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
 export default async function HomePage() {
   const [
     { content: hero },
@@ -313,6 +644,8 @@ export default async function HomePage() {
     { content: guide },
     { content: newsletter },
     { content: markets },
+    { content: navbar },
+    { content: footer },
     resorts
   ] = await Promise.all([
     getHomepageHeroContent("published"),
@@ -326,6 +659,8 @@ export default async function HomePage() {
     getHomepageGuide("published"),
     getHomepageNewsletterContent("published"),
     getMarketSettings("published"),
+    getNavbarContent("published"),
+    getFooterContent("published"),
     listHomepageFeaturedResorts(5)
   ]);
 
@@ -342,6 +677,24 @@ export default async function HomePage() {
 
   return (
     <main className="home-page lux-home">
+      <MobileHomeV2
+        hero={hero}
+        navbar={navbar}
+        footer={footer}
+        stats={stats}
+        resorts={featuredResorts}
+        ceo={ceo}
+        story={story}
+        markets={{ ...markets, options: marketList }}
+        services={services}
+        whyUs={whyUs}
+        awards={awards}
+        guide={guide}
+        newsletter={newsletter}
+        marketLabels={marketLabels}
+      />
+
+      <div className="lux-home__desktop">
       <section className="lux-hero">
         <div className="lux-hero__media">
           {hero.mediaUrl && isVideoAsset(hero.mediaUrl, hero.mediaType) ? (
@@ -563,6 +916,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      </div>
     </main>
   );
 }
