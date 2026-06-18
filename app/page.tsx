@@ -420,12 +420,6 @@ function MobileHomeV2({
           <Link href="/resorts">View all</Link>
         </div>
 
-        <nav className="mv2-destination-tabs" aria-label="Destination categories">
-          <Link href="/resorts">Resorts</Link>
-          <Link href="/hotels">Hotels</Link>
-          <Link href="/liveaboards">Liveaboards</Link>
-        </nav>
-
         {primaryResort ? (
           <Link href={`/resorts/${primaryResort.slug}`} className="mv2-big-card">
             <div
@@ -503,6 +497,11 @@ function MobileHomeV2({
         <p className="mv2-eyebrow">Destination Management</p>
         <h2>Built around every Maldives booking.</h2>
         <p className="mv2-subcopy">Local precision across every stage of the journey.</p>
+        <nav className="mv2-destination-tabs" aria-label="Destination categories">
+          <Link href="/resorts">Resorts</Link>
+          <Link href="/hotels">Hotels</Link>
+          <Link href="/liveaboards">Liveaboards</Link>
+        </nav>
         <div className="mv2-service-grid">
           {displayServices.map((service, index) => (
             <article className={index === displayServices.length - 1 ? "mv2-service mv2-service--accent" : "mv2-service"} key={`${service.title}-${index}`}>
