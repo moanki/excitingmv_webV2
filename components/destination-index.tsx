@@ -809,6 +809,29 @@ function PortfolioResultsBar({
   );
 }
 
+function DestinationMobileTabs({ activeKind }: { activeKind: DestinationKind }) {
+  const tabs = [
+    { kind: "resort" as const, label: "Resorts", href: "/resorts" },
+    { kind: "hotels" as const, label: "Hotels", href: "/hotels" },
+    { kind: "liveaboards" as const, label: "Liveaboards", href: "/liveaboards" }
+  ];
+
+  return (
+    <nav className="destination-mobile-tabs" aria-label="Destination categories">
+      {tabs.map((tab) => (
+        <Link
+          href={tab.href}
+          key={tab.kind}
+          className={activeKind === tab.kind ? "is-active" : ""}
+          aria-current={activeKind === tab.kind ? "page" : undefined}
+        >
+          {tab.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -903,6 +926,8 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
 
       <section className="destination-results portfolio-results" id="destination-results">
         <div className="site-container">
+          <DestinationMobileTabs activeKind={activeKind} />
+
           <div className="portfolio-heading">
             <div>
               <h2>{config.portfolioTitle}</h2>

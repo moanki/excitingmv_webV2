@@ -28,6 +28,7 @@ export function TravelGuideDirectory({ guides }: { guides: HomepageGuideItem[] }
     <>
       <div className="guide-directory__tools">
         <label className="guide-directory__search">
+          <span>Search</span>
           <input
             aria-label="Search travel guides"
             value={query}
@@ -60,6 +61,11 @@ export function TravelGuideDirectory({ guides }: { guides: HomepageGuideItem[] }
           </article>
         </Link>
       ) : null}
+
+      <div className="guide-directory__feed-heading">
+        <p className="lux-eyebrow">Articles</p>
+        <h2>Latest Maldives insights</h2>
+      </div>
 
       <div className="guide-directory__grid">
         {supportingGuides.map((guide) => (

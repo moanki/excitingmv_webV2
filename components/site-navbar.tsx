@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bell, BookOpen, CircleUserRound, Home, MapPin, MessageCircle } from "lucide-react";
+import { Article, BellSimple, Compass, House, Lifebuoy, UserCircle } from "@phosphor-icons/react";
 
 import { PartnerRegisterForm } from "@/components/partner-register-form";
 import type { NavbarContent } from "@/lib/site-content";
@@ -11,6 +11,7 @@ import type { NavbarContent } from "@/lib/site-content";
 export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const [scrolled, setScrolled] = useState(false);
   const [partnerModalOpen, setPartnerModalOpen] = useState(false);
+  const [activeMobileLabel, setActiveMobileLabel] = useState<string | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -35,11 +36,11 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const navItems = navbar.navItems.filter((item) => item.enabled && item.label && item.href);
   const partnerLoginHref = navbar.partnerLoginHref || navbar.ctaHref || "/partner/login";
   const mobileItems = [
-    { label: "Home", href: "/", Icon: Home },
-    { label: "Destinations", href: "/resorts", Icon: MapPin },
-    { label: "Info", href: "/travel-guide", Icon: BookOpen },
-    { label: "Contact Us", href: "/contact", Icon: MessageCircle },
-    { label: "Partner Login", href: partnerLoginHref, Icon: CircleUserRound }
+    { label: "Home", href: "/", Icon: House },
+    { label: "Destinations", href: "/resorts", Icon: Compass, destinationRoutes: ["/resorts", "/hotels", "/liveaboards"] },
+    { label: "Travel Guide", href: "/travel-guide", Icon: Article },
+    { label: "Contact Us", href: "/contact", Icon: Lifebuoy },
+    { label: "Partner Login", href: partnerLoginHref, Icon: UserCircle }
   ];
   const usesHeroOverlayNav =
     pathname === "/" || /^\/(resorts|hotels|liveaboards)\/[^/]+/.test(pathname);
@@ -90,7 +91,7 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
           <span className="site-nav__mobile-spacer" aria-hidden="true" />
 
           <Link href={partnerLoginHref} className="site-nav__mobile-portal" aria-label="Partner notifications and access">
-            <Bell size={18} />
+            <BellSimple size={18} weight="regular" />
           </Link>
         </div>
       </header>
@@ -100,12 +101,19 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
           const isActive =
             item.href === "/"
               ? pathname === "/"
-              : item.href !== "/#newsletter" && pathname.startsWith(item.href);
+              : item.destinationRoutes
+                ? activeMobileLabel === item.label || item.destinationRoutes.some((route) => pathname.startsWith(route))
+                : item.href !== "/#newsletter" && pathname.startsWith(item.href);
           const className = `mobile-bottom-nav__item${isActive ? " is-active" : ""}`;
 
           return (
-            <Link href={item.href} key={item.label} className={className}>
-              <Icon size={19} strokeWidth={1.9} />
+            <Link
+              href={item.href}
+              key={item.label}
+              className={className}
+              onClick={() => setActiveMobileLabel(item.label === "Destinations" ? item.label : null)}
+            >
+              <Icon size={19} weight={isActive ? "duotone" : "regular"} />
               <span>{item.label}</span>
             </Link>
           );

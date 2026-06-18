@@ -411,6 +411,26 @@ function MobileHomeV2({
         ))}
       </section>
 
+      <section
+        className="mv2-section mv2-section--white mv2-destination-panel"
+        id="mobile-destinations"
+        aria-labelledby="mobile-destinations-title"
+      >
+        <p className="mv2-eyebrow">Destinations</p>
+        <h2 id="mobile-destinations-title">Choose your Maldives stay style</h2>
+        <div className="mv2-destination-tabs" role="tablist" aria-label="Destination categories">
+          <Link href="/resorts" className="mv2-destination-tab is-active" role="tab" aria-selected="true">
+            Resorts
+          </Link>
+          <Link href="/hotels" className="mv2-destination-tab" role="tab" aria-selected="false">
+            Hotels
+          </Link>
+          <Link href="/liveaboards" className="mv2-destination-tab" role="tab" aria-selected="false">
+            Liveaboards
+          </Link>
+        </div>
+      </section>
+
       <section className="mv2-section mv2-section--white" id="mobile-featured-retreats">
         <div className="mv2-section__header">
           <div>
