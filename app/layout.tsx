@@ -31,6 +31,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const headerStore = await headers();
   const pathname = headerStore.get("x-pathname") ?? "";
   const isAdminRoute = pathname.startsWith("/admin");
+  const isHomeRoute = pathname === "/";
 
   if (isAdminRoute) {
     return (
@@ -48,7 +49,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${playfair.variable}`}>
+      <body className={`${inter.variable} ${playfair.variable}${isHomeRoute ? " home-mobile-v2-body" : ""}`}>
         <SiteNavbar navbar={navbar} />
         {children}
         <SiteFooter footer={footer} navbar={navbar} />
