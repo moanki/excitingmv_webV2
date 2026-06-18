@@ -19832,7 +19832,7 @@ html {
     --mv2-line: rgba(16, 32, 35, 0.1);
     display: block;
     min-height: 100dvh;
-    padding-bottom: 96px;
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
     overflow-x: hidden;
     background: var(--mv2-paper);
     color: var(--mv2-ink);
@@ -19843,7 +19843,7 @@ html {
   body:has(.mobile-v2-home) .whatsapp-float {
     display: inline-flex !important;
     right: 0.9rem !important;
-    bottom: 5.8rem !important;
+    bottom: calc(82px + env(safe-area-inset-bottom)) !important;
     width: 54px !important;
     height: 54px !important;
     padding: 0 !important;
@@ -19858,9 +19858,14 @@ html {
     display: none !important;
   }
 
+  .home-mobile-v2-body .chat-widget,
+  body:has(.mobile-v2-home) .chat-widget {
+    bottom: calc(144px + env(safe-area-inset-bottom)) !important;
+  }
+
   .mv2-hero {
     position: relative;
-    min-height: 610px;
+    min-height: min(720px, 92dvh);
     overflow: hidden;
     background: #071316;
     color: #fff;
@@ -19878,8 +19883,8 @@ html {
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(180deg, rgba(5, 12, 14, 0.35), rgba(5, 12, 14, 0.16) 34%, rgba(5, 12, 14, 0.82) 100%),
-      radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.1), transparent 46%);
+      linear-gradient(180deg, rgba(5, 12, 14, 0.52), rgba(5, 12, 14, 0.24) 34%, rgba(5, 12, 14, 0.9) 100%),
+      radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.08), transparent 46%);
   }
 
   .mv2-hero__nav {
@@ -19888,7 +19893,7 @@ html {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 18px 18px 0;
+    padding: max(18px, env(safe-area-inset-top)) 20px 0;
   }
 
   .mv2-hero__nav img {
@@ -19918,17 +19923,17 @@ html {
     position: absolute;
     z-index: 2;
     right: 20px;
-    bottom: 104px;
+    bottom: 112px;
     left: 20px;
   }
 
   .mv2-hero__copy p,
   .mv2-eyebrow {
-    margin: 0 0 10px;
+    margin: 0 0 12px;
     color: var(--mv2-gold);
-    font-size: 0.66rem;
+    font-size: 0.74rem;
     font-weight: 700;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
@@ -19937,10 +19942,10 @@ html {
     max-width: 320px;
     color: #fff;
     font-family: var(--font-serif), Georgia, serif;
-    font-size: clamp(3.45rem, 15vw, 5.2rem);
+    font-size: clamp(2rem, 9.2vw, 2.25rem);
     font-weight: 400;
-    letter-spacing: -0.07em;
-    line-height: 0.88;
+    letter-spacing: -0.045em;
+    line-height: 1.02;
   }
 
   .mv2-hero__actions {
@@ -19960,7 +19965,7 @@ html {
     padding: 0 16px;
     border: 0;
     font: inherit;
-    font-size: 0.82rem;
+    font-size: 0.88rem;
     font-weight: 700;
     text-decoration: none;
   }
@@ -19993,7 +19998,7 @@ html {
     width: max-content;
     gap: 22px;
     align-items: center;
-    padding: 16px 18px;
+    padding: 16px 20px 18px;
     animation: mv2Ticker 28s linear infinite;
   }
 
@@ -20023,7 +20028,7 @@ html {
 
   .mv2-stats {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1px;
     background: var(--mv2-line);
     border-bottom: 1px solid var(--mv2-line);
@@ -20031,7 +20036,7 @@ html {
 
   .mv2-stat {
     display: grid;
-    min-height: 82px;
+    min-height: 96px;
     place-items: center;
     align-content: center;
     gap: 5px;
@@ -20042,20 +20047,20 @@ html {
   .mv2-stat strong {
     color: var(--mv2-ink);
     font-family: var(--font-serif), Georgia, serif;
-    font-size: 1.35rem;
+    font-size: 1.55rem;
     font-weight: 500;
     letter-spacing: -0.04em;
   }
 
   .mv2-stat span {
     color: var(--mv2-muted);
-    font-size: 0.62rem;
+    font-size: 0.68rem;
     font-weight: 700;
     text-transform: uppercase;
   }
 
   .mv2-section {
-    padding: 30px 18px;
+    padding: 64px 20px;
   }
 
   .mv2-section--white {
@@ -20070,7 +20075,7 @@ html {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
-    margin: 18px 0 4px;
+    margin: 20px 0 6px;
     padding: 6px;
     border: 1px solid var(--mv2-line);
     border-radius: 999px;
@@ -20079,12 +20084,12 @@ html {
 
   .mv2-destination-tabs a {
     display: inline-flex;
-    min-height: 40px;
+    min-height: 44px;
     align-items: center;
     justify-content: center;
     border-radius: 999px;
     color: rgba(16, 32, 35, 0.7);
-    font-size: 0.78rem;
+    font-size: 0.84rem;
     font-weight: 700;
     text-decoration: none;
   }
@@ -20096,13 +20101,13 @@ html {
   }
 
   .mv2-section h2 {
-    margin: 0 0 12px;
+    margin: 0 0 14px;
     color: var(--mv2-ink);
     font-family: var(--font-serif), Georgia, serif;
-    font-size: clamp(2rem, 10vw, 3rem);
+    font-size: clamp(1.65rem, 7.6vw, 2rem);
     font-weight: 400;
     letter-spacing: -0.06em;
-    line-height: 0.96;
+    line-height: 1.05;
   }
 
   .mv2-section__header {
@@ -20110,7 +20115,7 @@ html {
     align-items: flex-start;
     justify-content: space-between;
     gap: 18px;
-    margin-bottom: 18px;
+    margin-bottom: 22px;
   }
 
   .mv2-section__header a,
@@ -20119,7 +20124,8 @@ html {
     align-items: center;
     gap: 4px;
     color: var(--mv2-teal);
-    font-size: 0.82rem;
+    min-height: 44px;
+    font-size: 0.88rem;
     font-weight: 700;
     text-decoration: none;
     white-space: nowrap;
@@ -20128,7 +20134,8 @@ html {
   .mv2-big-card {
     position: relative;
     display: block;
-    min-height: 360px;
+    min-height: auto;
+    aspect-ratio: 0.86;
     overflow: hidden;
     border-radius: 26px;
     color: #fff;
@@ -20162,7 +20169,7 @@ html {
   .mv2-big-card__body strong {
     display: block;
     color: #fff;
-    font-size: 1.45rem;
+    font-size: 1.35rem;
     font-weight: 700;
     letter-spacing: -0.04em;
   }
@@ -20170,16 +20177,16 @@ html {
   .mv2-big-card__body p {
     margin: 4px 0 0;
     color: rgba(255, 255, 255, 0.82);
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
 
   .mv2-card-scroll,
   .mv2-award-scroll {
     display: flex;
     gap: 12px;
-    margin: 18px -18px 0;
+    margin: 20px -20px 0;
     overflow-x: auto;
-    padding: 0 18px 4px;
+    padding: 0 20px 8px;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
   }
@@ -20191,8 +20198,8 @@ html {
 
   .mv2-property-card {
     position: relative;
-    flex: 0 0 236px;
-    min-height: 292px;
+    flex: 0 0 min(76vw, 286px);
+    min-height: 320px;
     overflow: hidden;
     border: 0;
     border-radius: 26px;
@@ -20251,10 +20258,10 @@ html {
 
   .mv2-muted-copy,
   .mv2-subcopy {
-    margin: 8px 0 0;
+    margin: 10px 0 0;
     color: var(--mv2-muted);
-    font-size: 0.88rem;
-    line-height: 1.7;
+    font-size: 0.97rem;
+    line-height: 1.72;
   }
 
   .mv2-property-card p {
@@ -20268,7 +20275,7 @@ html {
     border: 1px solid rgba(16, 32, 35, 0.08);
     border-radius: 26px;
     background: #fff;
-    padding: 18px;
+    padding: 22px;
     box-shadow: 0 14px 36px rgba(16, 32, 35, 0.06);
   }
 
@@ -20297,7 +20304,7 @@ html {
   .mv2-why-card h3 {
     display: block;
     color: var(--mv2-ink);
-    font-size: 1rem;
+    font-size: 1.02rem;
     font-weight: 800;
   }
 
@@ -20305,21 +20312,22 @@ html {
   .mv2-ceo p,
   .mv2-service p,
   .mv2-why-card p {
-    margin: 2px 0 0;
+    margin: 4px 0 0;
     color: var(--mv2-muted);
-    font-size: 0.84rem;
-    line-height: 1.62;
+    font-size: 0.95rem;
+    line-height: 1.68;
   }
 
   .mv2-ceo h2 {
-    font-size: 1.65rem;
-    line-height: 1.05;
+    font-size: 1.5rem;
+    line-height: 1.12;
   }
 
   .mv2-story-image {
     display: block;
     width: 100%;
-    height: 224px;
+    height: auto;
+    aspect-ratio: 1.35;
     object-fit: cover;
     border-radius: 24px;
     margin: 4px 0 16px;
@@ -20329,8 +20337,8 @@ html {
   .mv2-why-list,
   .mv2-insight-list {
     display: grid;
-    gap: 10px;
-    margin-top: 16px;
+    gap: 12px;
+    margin-top: 20px;
   }
 
   .mv2-market-row {
@@ -20338,8 +20346,8 @@ html {
     grid-template-columns: 38px 1fr auto;
     gap: 10px;
     align-items: center;
-    min-height: 54px;
-    padding: 10px 12px;
+    min-height: 62px;
+    padding: 12px 14px;
     border: 1px solid rgba(16, 32, 35, 0.08);
     border-radius: 16px;
     background: #fff;
@@ -20353,7 +20361,7 @@ html {
 
   .mv2-market-row strong {
     color: var(--mv2-ink);
-    font-size: 0.92rem;
+    font-size: 0.98rem;
   }
 
   .mv2-market-row em {
@@ -20369,14 +20377,14 @@ html {
 
   .mv2-service-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    margin-top: 16px;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 20px;
   }
 
   .mv2-service {
-    min-height: 156px;
-    padding: 14px;
+    min-height: auto;
+    padding: 18px;
     border: 1px solid rgba(16, 32, 35, 0.08);
     border-radius: 20px;
     background: #fff;
@@ -20406,19 +20414,19 @@ html {
     display: grid;
     grid-template-columns: 42px minmax(0, 1fr);
     gap: 12px;
-    padding: 14px;
+    padding: 18px;
     border: 1px solid rgba(16, 32, 35, 0.08);
     border-radius: 20px;
     background: #fff;
   }
 
   .mv2-award-card {
-    flex: 0 0 164px;
+    flex: 0 0 176px;
     display: grid;
     gap: 8px;
     align-content: center;
     min-height: 132px;
-    padding: 14px;
+    padding: 16px;
     border: 1px solid var(--mv2-line);
     border-radius: 20px;
     background: #fff;
@@ -20441,7 +20449,7 @@ html {
     grid-template-columns: 1fr auto;
     gap: 12px;
     align-items: center;
-    padding: 14px;
+    padding: 16px;
     border: 1px solid rgba(16, 32, 35, 0.08);
     border-radius: 18px;
     background: #fff;
@@ -20459,19 +20467,19 @@ html {
   .mv2-insight strong {
     display: block;
     margin-top: 4px;
-    font-size: 0.98rem;
-    line-height: 1.18;
+    font-size: 1.02rem;
+    line-height: 1.25;
   }
 
   .mv2-insight p {
-    margin: 5px 0 0;
+    margin: 6px 0 0;
     color: var(--mv2-muted);
-    font-size: 0.78rem;
-    line-height: 1.45;
+    font-size: 0.9rem;
+    line-height: 1.55;
   }
 
   .mv2-partner-cta {
-    padding: 22px;
+    padding: 24px;
     border-radius: 28px;
     background: linear-gradient(145deg, #0d4f53, #102023);
     color: #fff;
@@ -20479,7 +20487,7 @@ html {
 
   .mv2-partner-cta h2 {
     color: #fff;
-    font-size: 2.25rem;
+    font-size: clamp(1.85rem, 8vw, 2.25rem);
   }
 
   .mv2-partner-cta p {
@@ -20520,8 +20528,8 @@ html {
   }
 
   .mv2-newsletter-card {
-    margin-top: 16px;
-    padding: 16px;
+    margin-top: 20px;
+    padding: 18px;
     border-radius: 24px;
     background: #fff;
   }
@@ -20529,7 +20537,7 @@ html {
   .mv2-newsletter-card .newsletter-form__grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 12px;
   }
 
   .mv2-newsletter-card .newsletter-field,
@@ -20540,8 +20548,16 @@ html {
   .mv2-newsletter-card input,
   .mv2-newsletter-card textarea,
   .mv2-newsletter-card select {
+    width: 100%;
+    min-height: 46px;
     border-radius: 14px;
     background: #faf7f0;
+  }
+
+  .mv2-newsletter-card button,
+  .mv2-newsletter-card .newsletter-form button {
+    width: 100%;
+    min-height: 46px;
   }
 
   .mv2-footer {
@@ -20642,6 +20658,86 @@ html {
   .mv2-bottom-nav__item:first-child {
     background: var(--mv2-teal);
     color: #fff;
+  }
+
+  .home-mobile-v2-body .mobile-bottom-nav,
+  body:has(.mobile-v2-home) .mobile-bottom-nav {
+    padding-bottom: calc(0.45rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  .home-mobile-v2-body .mobile-bottom-nav__item[href*="partner"],
+  body:has(.mobile-v2-home) .mobile-bottom-nav__item[href*="partner"] {
+    color: #b88931;
+    background: rgba(184, 137, 49, 0.1);
+  }
+}
+
+@media (max-width: 430px) {
+  .mobile-v2-home .mv2-hero {
+    min-height: min(660px, 90dvh);
+  }
+
+  .mobile-v2-home .mv2-hero__copy {
+    bottom: 104px;
+  }
+
+  .mobile-v2-home .mv2-section {
+    padding-block: 56px;
+  }
+
+  .mobile-v2-home .mv2-section__header {
+    display: grid;
+  }
+
+  .mobile-v2-home .mv2-section__header a {
+    width: max-content;
+  }
+
+  .mobile-v2-home .mv2-destination-tabs {
+    border-radius: 22px;
+  }
+
+  .mobile-v2-home .mv2-destination-tabs a {
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 370px) {
+  .mobile-v2-home .mv2-hero__copy h1 {
+    max-width: 290px;
+    font-size: 2rem;
+  }
+
+  .mobile-v2-home .mv2-hero__actions {
+    gap: 8px;
+  }
+
+  .mobile-v2-home .mv2-btn {
+    padding-inline: 14px;
+    font-size: 0.82rem;
+  }
+}
+
+@media (min-width: 431px) and (max-width: 768px) {
+  .mobile-v2-home .mv2-section {
+    padding-block: 72px;
+  }
+
+  .mobile-v2-home .mv2-hero__copy h1 {
+    max-width: 390px;
+    font-size: clamp(2.2rem, 7vw, 2.65rem);
+  }
+
+  .mobile-v2-home .mv2-service-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mobile-v2-home .mv2-big-card {
+    aspect-ratio: 1.08;
+  }
+
+  .mobile-v2-home .mv2-property-card {
+    flex-basis: min(44vw, 300px);
   }
 }
 
