@@ -352,9 +352,6 @@ function MobileHomeV2({
         : defaultPartnerLogos.map((name) => ({ enabled: true, name, imageUrl: "" })));
   const logoItems = [...tickerLogos, ...tickerLogos]
     .slice(0, 12);
-  const activeMarkets = markets.options.filter((market) => market.enabled).slice(0, 4);
-  const displayServices = services.filter((service) => service.enabled && service.title).slice(0, 6);
-  const displayWhy = whyUs.filter((item) => item.title).slice(0, 3);
   const displayAwards = awards.items.filter((item) => item.enabled && (item.imageUrl || item.name)).slice(0, 4);
   const displayGuides = guide.filter((item) => item.published && item.title).slice(0, 4);
 
@@ -499,50 +496,36 @@ function MobileHomeV2({
       </section>
 
       <section className="mv2-section mv2-section--paper">
-        <p className="mv2-eyebrow">{markets.sectionTitle || "Primary Markets"}</p>
-        <h2>{markets.heading || "Connected to Premium Markets"}</h2>
-        <p className="mv2-subcopy">{markets.description}</p>
-        <div className="mv2-market-list">
-          {activeMarkets.map((market, index) => (
-            <div className="mv2-market-row" key={market.id}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <strong>{market.label || market.region}</strong>
-              <em>{marketStatuses[index] || "Active"}</em>
-            </div>
-          ))}
+        <p className="mv2-eyebrow">PRIMARY MARKETS</p>
+        <h2>Connected to Premium Markets</h2>
+        <p className="mv2-subcopy">Supporting travel designers and agencies across global markets.</p>
+        <div className="mv2-editorial-visual mv2-editorial-visual--map" aria-label="Primary markets map">
+          <GlobalMarketMap markets={markets.options} />
         </div>
       </section>
 
       <section className="mv2-section mv2-section--white">
-        <p className="mv2-eyebrow">Destination Management</p>
+        <p className="mv2-eyebrow">DESTINATION MANAGEMENT</p>
         <h2>Built around every Maldives booking.</h2>
         <p className="mv2-subcopy">Local precision across every stage of the journey.</p>
-        <div className="mv2-service-grid">
-          {displayServices.map((service, index) => (
-            <article className={index === displayServices.length - 1 ? "mv2-service mv2-service--accent" : "mv2-service"} key={`${service.title}-${index}`}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <h3>{service.title}</h3>
-              <p>{service.description}</p>
-            </article>
-          ))}
-        </div>
+        <img
+          className="mv2-story-image mv2-editorial-image"
+          src={optimizedImageUrl(serviceImages[0], { width: 760, height: 520, quality: 84 })}
+          alt="Destination management in the Maldives"
+          loading="lazy"
+        />
       </section>
 
       <section className="mv2-section mv2-section--paper">
-        <p className="mv2-eyebrow">Why Travel Designers Choose Us</p>
+        <p className="mv2-eyebrow">WHY TRAVEL DESIGNERS CHOOSE US</p>
         <h2>Local precision for more than a resort list.</h2>
         <p className="mv2-subcopy">Commercial fluency and resort relationships that protect high-value bookings.</p>
-        <div className="mv2-why-list">
-          {displayWhy.map((item, index) => (
-            <article className="mv2-why-card" key={`${item.title}-${index}`}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <div>
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-              </div>
-            </article>
-          ))}
-        </div>
+        <img
+          className="mv2-story-image mv2-editorial-image"
+          src={optimizedImageUrl(whyImages[0], { width: 760, height: 520, quality: 84 })}
+          alt="Travel designer support in the Maldives"
+          loading="lazy"
+        />
       </section>
 
       {displayAwards.length ? (
@@ -564,7 +547,7 @@ function MobileHomeV2({
       <section className="mv2-section mv2-section--paper">
         <div className="mv2-section__header">
           <div>
-            <p className="mv2-eyebrow">Maldives Travel Guide</p>
+            <p className="mv2-eyebrow">MALDIVES TRAVEL GUIDE</p>
             <h2>Editorial intelligence for sharper selling</h2>
           </div>
           <Link href="/travel-guide">All insights</Link>
@@ -572,12 +555,20 @@ function MobileHomeV2({
         <div className="mv2-insight-list">
           {displayGuides.map((item) => (
             <Link href={`/travel-guide/${item.slug}`} className="mv2-insight" key={item.slug}>
+              <div
+                className="mv2-insight__image"
+                style={{
+                  backgroundImage: `url(${optimizedImageUrl(item.imageUrl || pickResortImage(1), { width: 760, height: 460, quality: 78 })})`
+                }}
+                aria-hidden="true"
+              >
+                <span>{item.category || "Destination Insight"}</span>
+              </div>
               <div>
-                <span>{item.category}</span>
                 <strong>{item.title}</strong>
                 <p>{item.summary || item.description}</p>
+                <em>Read Insight <ArrowRight size={14} /></em>
               </div>
-              <ArrowRight size={16} />
             </Link>
           ))}
         </div>

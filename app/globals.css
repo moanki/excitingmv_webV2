@@ -20695,6 +20695,52 @@ html {
     margin: 4px 0 16px;
   }
 
+  .mv2-editorial-image {
+    margin-top: 18px;
+    margin-bottom: 0;
+    box-shadow: none;
+  }
+
+  .mv2-editorial-visual {
+    width: 100%;
+    aspect-ratio: 1.35;
+    margin-top: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(16, 32, 35, 0.08);
+    border-radius: 24px;
+    background: #fff;
+  }
+
+  .mv2-editorial-visual--map .market-map,
+  .mv2-editorial-visual--map .market-map__canvas,
+  .mv2-editorial-visual--map .market-map__fallback {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border-radius: inherit;
+  }
+
+  .mv2-editorial-visual--map .market-map {
+    border: 0;
+    box-shadow: none;
+  }
+
+  .mv2-editorial-visual--map .market-map__summary {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    width: auto;
+    padding: 10px 12px;
+  }
+
+  .mv2-editorial-visual--map .market-map__summary strong {
+    font-size: 1.35rem;
+  }
+
+  .mv2-editorial-visual--map .market-map__summary span {
+    font-size: 0.66rem;
+  }
+
   .mv2-market-list,
   .mv2-why-list,
   .mv2-insight-list {
@@ -20841,6 +20887,66 @@ html {
     color: var(--mv2-muted);
     font-size: 0.9rem;
     line-height: 1.55;
+  }
+
+  .mv2-insight {
+    display: block;
+    overflow: hidden;
+    padding: 0;
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .mv2-insight > div:not(.mv2-insight__image) {
+    padding: 15px 16px 16px;
+  }
+
+  .mv2-insight__image {
+    position: relative;
+    min-height: 154px;
+    overflow: hidden;
+    background-position: center;
+    background-size: cover;
+  }
+
+  .mv2-insight__image::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(16, 32, 35, 0.08), rgba(16, 32, 35, 0.18));
+  }
+
+  .mv2-insight__image span {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 1;
+    display: inline-flex;
+    max-width: calc(100% - 24px);
+    padding: 6px 9px;
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    border-radius: 999px;
+    background: rgba(16, 32, 35, 0.42);
+    color: #fff;
+    font-size: 0.58rem;
+    font-weight: 400;
+    letter-spacing: 0.11em;
+    line-height: 1;
+    text-transform: uppercase;
+    backdrop-filter: blur(10px);
+  }
+
+  .mv2-insight em {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 12px;
+    color: var(--mv2-teal);
+    font-size: 0.78rem;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 0.01em;
   }
 
   .mv2-partner-cta {
