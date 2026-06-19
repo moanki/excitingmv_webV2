@@ -37,10 +37,10 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const partnerLoginHref = navbar.partnerLoginHref || navbar.ctaHref || "/partner/login";
   const mobileItems = [
     { label: "Home", href: "/", Icon: House },
-    { label: "Destinations", href: "/resorts", Icon: Compass, destinationRoutes: ["/resorts", "/hotels", "/liveaboards"] },
-    { label: "Travel Guide", href: "/travel-guide", Icon: Article },
-    { label: "Contact Us", href: "/contact", Icon: Lifebuoy },
-    { label: "Partner Login", href: partnerLoginHref, Icon: UserCircle }
+    { label: "Explore", href: "/resorts", Icon: Compass, destinationRoutes: ["/resorts", "/hotels", "/liveaboards"] },
+    { label: "Guide", href: "/travel-guide", Icon: Article },
+    { label: "Contact", href: "/contact", Icon: Lifebuoy },
+    { label: "Partners", href: partnerLoginHref, Icon: UserCircle }
   ];
   const usesHeroOverlayNav =
     pathname === "/" || /^\/(resorts|hotels|liveaboards)\/[^/]+/.test(pathname);
@@ -111,10 +111,16 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
               href={item.href}
               key={item.label}
               className={className}
-              onClick={() => setActiveMobileLabel(item.label === "Destinations" ? item.label : null)}
+              onClick={() => setActiveMobileLabel(item.label === "Explore" ? item.label : null)}
             >
-              <Icon size={19} weight={isActive ? "duotone" : "regular"} />
-              <span>{item.label}</span>
+              <span className="mobile-bottom-nav__frame" aria-hidden="true">
+                <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--tl" />
+                <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--tr" />
+                <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--bl" />
+                <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--br" />
+                <Icon className="mobile-bottom-nav__icon" size={18} weight={isActive ? "regular" : "regular"} />
+              </span>
+              <span className="mobile-bottom-nav__label">{item.label}</span>
             </Link>
           );
         })}
