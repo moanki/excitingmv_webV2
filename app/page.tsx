@@ -373,6 +373,8 @@ function MobileHomeV2({
         : defaultPartnerLogos.map((name) => ({ enabled: true, name, imageUrl: "" })));
   const logoItems = [...tickerLogos, ...tickerLogos]
     .slice(0, 12);
+  const displayServices = services.filter((service) => service.enabled && service.title).slice(0, 4);
+  const displayWhy = whyUs.filter((item) => item.title).slice(0, 3);
   const displayAwards = awards.items.filter((item) => item.enabled && (item.imageUrl || item.name)).slice(0, 4);
   const displayGuides = guide.filter((item) => item.published && item.title).slice(0, 4);
 
@@ -559,6 +561,15 @@ function MobileHomeV2({
           alt="Destination management in the Maldives"
           loading="lazy"
         />
+        <div className="mv2-service-grid mv2-editorial-text-list" aria-label="Destination management services">
+          {displayServices.map((service, index) => (
+            <article className="mv2-service" key={`${service.title}-${index}`}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <h3>{service.title}</h3>
+              <p>{service.description}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="mv2-section mv2-section--paper">
@@ -571,6 +582,17 @@ function MobileHomeV2({
           alt="Travel designer support in the Maldives"
           loading="lazy"
         />
+        <div className="mv2-why-list mv2-editorial-text-list" aria-label="Why travel designers choose us">
+          {displayWhy.map((item, index) => (
+            <article className="mv2-why-card" key={`${item.title}-${index}`}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <div>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
       {displayAwards.length ? (
