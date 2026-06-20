@@ -373,6 +373,7 @@ function MobileHomeV2({
         : defaultPartnerLogos.map((name) => ({ enabled: true, name, imageUrl: "" })));
   const logoItems = [...tickerLogos, ...tickerLogos]
     .slice(0, 12);
+  const activeMarkets = markets.options.filter((market) => market.enabled).slice(0, 4);
   const displayServices = services.filter((service) => service.enabled && service.title).slice(0, 4);
   const displayWhy = whyUs.filter((item) => item.title).slice(0, 3);
   const displayAwards = awards.items.filter((item) => item.enabled && (item.imageUrl || item.name)).slice(0, 4);
@@ -523,6 +524,7 @@ function MobileHomeV2({
           </div>
           <h2>{ceo.quote}</h2>
           <p>{shortText(ceo.message, "", 210)}</p>
+          <Link href="/about" className="mv2-read-more-link">Read more <ArrowRight size={14} /></Link>
         </article>
       </section>
 
@@ -548,6 +550,15 @@ function MobileHomeV2({
               zoom: 0.72
             }}
           />
+        </div>
+        <div className="mv2-market-list mv2-editorial-text-list" aria-label="Primary travel markets">
+          {activeMarkets.map((market, index) => (
+            <div className="mv2-market-row" key={market.id}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{market.label || market.region}</strong>
+              <em>{market.region || marketStatuses[index] || "Active"}</em>
+            </div>
+          ))}
         </div>
       </section>
 

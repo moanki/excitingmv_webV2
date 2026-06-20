@@ -492,6 +492,72 @@
   }
 }
 
+/* Final mobile homepage rhythm and title alignment pass. */
+@media (max-width: 768px) {
+  .mobile-v2-home .mv2-section {
+    padding-top: 48px !important;
+    padding-bottom: 48px !important;
+  }
+
+  .mobile-v2-home .mv2-section h2,
+  .mobile-v2-home .mv2-partner-cta h2,
+  .mobile-v2-home .mv2-ceo h2 {
+    color: var(--mv2-ink) !important;
+    font-family: var(--mv2-font), var(--font-sans), Inter, system-ui, sans-serif !important;
+    font-size: clamp(1.28rem, 5.8vw, 1.62rem) !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.035em !important;
+    line-height: 1.12 !important;
+  }
+
+  .mobile-v2-home .mv2-subcopy {
+    margin-top: 8px !important;
+  }
+
+  .mobile-v2-home .mv2-editorial-text-list {
+    margin-top: 16px !important;
+  }
+
+  .mobile-v2-home .mv2-read-more-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 14px;
+    color: var(--mv2-teal);
+    font-size: 0.84rem;
+    font-weight: 400;
+    text-decoration: none;
+  }
+
+  .mobile-v2-home .mv2-read-more-link svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .mobile-v2-home .mv2-market-list.mv2-editorial-text-list {
+    gap: 10px;
+  }
+
+  .mobile-v2-home .mv2-market-list.mv2-editorial-text-list .mv2-market-row {
+    min-height: 54px;
+    padding: 10px 12px;
+  }
+
+  .mobile-v2-home .mv2-market-list.mv2-editorial-text-list .mv2-market-row em {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (min-width: 431px) and (max-width: 768px) {
+  .mobile-v2-home .mv2-section {
+    padding-top: 56px !important;
+    padding-bottom: 56px !important;
+  }
+}
+
 /* Mobile Primary Markets map tuning only. */
 @media (max-width: 768px) {
   .mobile-v2-home .mv2-editorial-visual--map {
