@@ -439,13 +439,14 @@
   }
 
   .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreat h3 {
-    margin: 28px 0 12px !important;
+    margin: 22px auto 10px !important;
+    max-width: 92% !important;
     color: #161310 !important;
-    font-family: var(--font-serif), "Cormorant Garamond", Georgia, serif !important;
-    font-size: clamp(2rem, 8.2vw, 2.45rem) !important;
-    font-weight: 600 !important;
-    letter-spacing: -0.01em !important;
-    line-height: 1.1 !important;
+    font-family: var(--mv2-font), var(--font-sans), Inter, system-ui, sans-serif !important;
+    font-size: clamp(1.05rem, 4.8vw, 1.28rem) !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.025em !important;
+    line-height: 1.15 !important;
   }
 
   .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreat p {
@@ -488,6 +489,78 @@
     left: 0 !important;
     height: 1px !important;
     background: #8c6a3f !important;
+  }
+}
+
+/* Mobile Primary Markets map tuning only. */
+@media (max-width: 768px) {
+  .mobile-v2-home .mv2-editorial-visual--map {
+    aspect-ratio: 1.08 !important;
+    margin-top: 16px !important;
+    border-radius: 20px !important;
+    background: #eef1ee !important;
+  }
+
+  .mobile-v2-home .mv2-editorial-visual--map .market-map,
+  .mobile-v2-home .mv2-editorial-visual--map .market-map__canvas {
+    min-height: 0 !important;
+    background: #eef1ee !important;
+  }
+
+  .mobile-v2-home .mv2-editorial-visual--map .market-map__summary {
+    display: none !important;
+  }
+
+  .mobile-v2-home .mv2-editorial-visual--map .market-map-marker {
+    gap: 0.22rem !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: translateY(-1px) scale(0.9) !important;
+    transform-origin: center !important;
+    white-space: nowrap !important;
+  }
+
+  .mobile-v2-home .mv2-editorial-visual--map .market-map-marker span {
+    width: 6px !important;
+    height: 6px !important;
+    min-width: 6px !important;
+    background: #0d4f53 !important;
+    box-shadow: 0 0 0 3px rgba(13, 79, 83, 0.14) !important;
+    animation: none !important;
+  }
+
+  .mobile-v2-home .mv2-editorial-visual--map .market-map-marker strong {
+    max-width: 72px !important;
+    overflow: hidden !important;
+    padding: 0.16rem 0.28rem !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.72) !important;
+    color: rgba(16, 32, 35, 0.78) !important;
+    font-size: 0.46rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.055em !important;
+    line-height: 1.1 !important;
+    text-overflow: ellipsis !important;
+    text-shadow: none !important;
+    text-transform: uppercase !important;
+    backdrop-filter: blur(6px) !important;
+  }
+
+  .mobile-v2-home .mv2-editorial-visual--map .maplibregl-popup-content {
+    padding: 0.55rem 0.65rem !important;
+    border-radius: 12px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .mobile-v2-home .mv2-editorial-visual--map .market-map-popup strong {
+    font-size: 0.74rem !important;
+  }
+
+  .mobile-v2-home .mv2-editorial-visual--map .market-map-popup span {
+    font-size: 0.64rem !important;
   }
 }
 
@@ -576,13 +649,14 @@
   }
 
   .mobile-v2-home .mv2-focus-retreat h3 {
-    margin: 28px 0 12px;
+    margin: 22px auto 10px;
+    max-width: 92%;
     color: #161310;
-    font-family: var(--font-serif), "Cormorant Garamond", Georgia, serif;
-    font-size: clamp(2rem, 8.2vw, 2.45rem);
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    line-height: 1.1;
+    font-family: var(--mv2-font), var(--font-sans), Inter, system-ui, sans-serif;
+    font-size: clamp(1.05rem, 4.8vw, 1.28rem);
+    font-weight: 400;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
   }
 
   .mobile-v2-home .mv2-focus-retreat p {

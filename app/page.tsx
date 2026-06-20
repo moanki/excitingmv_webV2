@@ -537,7 +537,15 @@ function MobileHomeV2({
         <h2>Connected to Premium Markets</h2>
         <p className="mv2-subcopy">Supporting travel designers and agencies across global markets.</p>
         <div className="mv2-editorial-visual mv2-editorial-visual--map" aria-label="Primary markets map">
-          <GlobalMarketMap markets={markets.options} />
+          <GlobalMarketMap
+            markets={markets.options}
+            labelledMap
+            initialViewState={{
+              longitude: 28,
+              latitude: 18,
+              zoom: 0.72
+            }}
+          />
         </div>
       </section>
 

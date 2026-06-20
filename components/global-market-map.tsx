@@ -9,11 +9,18 @@ import type { MarketOption } from "@/lib/site-content";
 
 type GlobalMarketMapProps = {
   markets: MarketOption[];
+  initialViewState?: {
+    longitude: number;
+    latitude: number;
+    zoom: number;
+  };
+  labelledMap?: boolean;
 };
 
 const mapStyle = "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json";
+const labelledMapStyle = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
-export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
+export function GlobalMarketMap({ markets, initialViewState, labelledMap = false }: GlobalMarketMapProps) {
   const [selectedMarket, setSelectedMarket] = useState<MarketOption | null>(null);
 
   const activeMarkets = useMemo(
@@ -34,13 +41,13 @@ export function GlobalMarketMap({ markets }: GlobalMarketMapProps) {
       <div className="market-map__fallback" aria-hidden="true" />
       <div className="market-map__canvas" aria-label="Global market reach map">
         <Map
-          initialViewState={{
+          initialViewState={initialViewState ?? {
             longitude: 28,
             latitude: 18,
             zoom: 1.18,
           }}
           style={{ width: "100%", height: "100%" }}
-          mapStyle={mapStyle}
+          mapStyle={labelledMap ? labelledMapStyle : mapStyle}
           attributionControl={false}
           cooperativeGestures
         >
