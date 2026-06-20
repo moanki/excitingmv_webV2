@@ -342,6 +342,27 @@ function MobileHomeV2({
   const partnerLoginHref = navbar.partnerLoginHref || navbar.ctaHref || "/partner/login";
   const mobileStats = getHeroStats(stats);
   const displayResorts = resorts.length ? resorts : [];
+  const featuredCarouselItems = displayResorts.length
+    ? displayResorts.slice(0, 5).map((resort, index) => ({
+        href: `/resorts/${resort.slug}`,
+        image: resort.heroImageUrl || pickResortImage(index),
+        title: resort.name,
+        location: [formatAtoll(resort.location), resort.category || resort.transferType || "Luxury"].filter(Boolean).join(" — ")
+      }))
+    : [
+        {
+          href: "/resorts",
+          image: pickResortImage(0),
+          title: "Curated Private-Island Retreats",
+          location: "Maldives — Luxury"
+        },
+        {
+          href: "/resorts",
+          image: pickResortImage(1),
+          title: "Partner-Ready Island Escapes",
+          location: "Maldives — Trade Intelligence"
+        }
+      ];
   const primaryResort = displayResorts[0];
   const secondaryResorts = displayResorts.slice(1, 7);
   const configuredLogos = (hero.featuredResortLogos ?? []).filter((item) => item.enabled && (item.imageUrl || item.name));
@@ -428,13 +449,29 @@ function MobileHomeV2({
         </div>
       </section>
 
-      <section className="mv2-section mv2-section--white" id="mobile-featured-retreats">
-        <div className="mv2-section__header">
-          <div>
-            <p className="mv2-eyebrow">Featured Retreats</p>
-            <h2>Hand-picked luxury island escapes</h2>
-          </div>
-          <Link href="/resorts">View all</Link>
+      <section className="mv2-section mv2-section--white mv2-focus-retreats" id="mobile-featured-retreats">
+        <div className="mv2-focus-retreats__head">
+          <span>Featured Retreats</span>
+          <span><b>01</b> / {String(featuredCarouselItems.length).padStart(2, "0")}</span>
+        </div>
+
+        <div className="mv2-focus-retreats__track" aria-label="Featured resort carousel">
+          <span className="mv2-focus-retreats__spacer" aria-hidden="true" />
+          {featuredCarouselItems.map((retreat, index) => (
+            <Link href={retreat.href} className="mv2-focus-retreat" key={`${retreat.href}-${retreat.title}-${index}`}>
+              <div className="mv2-focus-retreat__frame">
+                <img
+                  src={optimizedImageUrl(retreat.image, { width: 760, height: 980, quality: 84 })}
+                  alt={retreat.title}
+                  loading="lazy"
+                />
+              </div>
+              <h3>{retreat.title}</h3>
+              <p>{retreat.location}</p>
+              <span>Enquire about this retreat</span>
+            </Link>
+          ))}
+          <span className="mv2-focus-retreats__spacer" aria-hidden="true" />
         </div>
 
         {primaryResort ? (
