@@ -109,6 +109,7 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
           return (
             <Link
               href={item.href}
+              prefetch={false}
               key={item.label}
               className={className}
               onClick={() => setActiveMobileLabel(item.label === "Explore" ? item.label : null)}

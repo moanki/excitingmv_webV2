@@ -727,7 +727,7 @@ function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem
 
   return (
     <article className="portfolio-card">
-      <Link href={`${config.path}/${item.slug}`} className="portfolio-card__link" aria-label={detailLabel}>
+      <Link href={`${config.path}/${item.slug}`} prefetch={false} className="portfolio-card__link" aria-label={detailLabel}>
         <img
           src={optimizedImageUrl(image, { width: 560, height: 700, quality: 90 })}
           alt={`${item.name} ${config.singular}`}
@@ -821,6 +821,7 @@ function DestinationMobileTabs({ activeKind }: { activeKind: DestinationKind }) 
       {tabs.map((tab) => (
         <Link
           href={tab.href}
+          prefetch={false}
           key={tab.kind}
           className={activeKind === tab.kind ? "is-active" : ""}
           aria-current={activeKind === tab.kind ? "page" : undefined}
@@ -966,7 +967,7 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
               <div id="portfolio-grid">
                 <PortfolioGrid>
                   {visibleItems.map((item, index) => (
-                    <PortfolioCard key={item.id} item={item} config={config} priority={index < 5} />
+                    <PortfolioCard key={item.id} item={item} config={config} priority={index === 0} />
                   ))}
                 </PortfolioGrid>
               </div>
