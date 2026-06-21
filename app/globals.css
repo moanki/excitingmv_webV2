@@ -508,6 +508,73 @@
   }
 }
 
+/* Mobile destination cards: visible, non-overlay fallback for slow/missing images. */
+@media (max-width: 900px) {
+  html body:not(.admin-body) .portfolio-page .portfolio-card {
+    overflow: hidden !important;
+    border: 1px solid rgba(16, 32, 35, 0.1) !important;
+    border-radius: 22px !important;
+    background: #fff !important;
+    box-shadow: 0 14px 34px rgba(16, 32, 35, 0.08) !important;
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-card__link {
+    display: grid !important;
+    min-height: 0 !important;
+    grid-template-rows: auto auto auto !important;
+    overflow: hidden !important;
+    border-radius: 22px !important;
+    background: #fff !important;
+    color: #102023 !important;
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-card__link > img {
+    position: relative !important;
+    inset: auto !important;
+    display: block !important;
+    width: 100% !important;
+    height: 220px !important;
+    object-fit: cover !important;
+    background: #eef3f2 !important;
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-card__overlay {
+    display: none !important;
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-card__badge {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    z-index: 1 !important;
+    width: fit-content !important;
+    max-width: calc(100% - 2rem) !important;
+    margin: 1rem 1rem 0 !important;
+    border-color: rgba(16, 32, 35, 0.1) !important;
+    background: #eef6f4 !important;
+    color: #0f766e !important;
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-card__text {
+    position: relative !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: 1 !important;
+    display: grid !important;
+    gap: 0.65rem !important;
+    padding: 0.85rem 1rem 1.15rem !important;
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-card__title {
+    color: #102023 !important;
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-card__meta {
+    color: rgba(16, 32, 35, 0.68) !important;
+  }
+}
+
 /* Mobile-only public navigation, listing visibility, and title alignment fixes. */
 @media (max-width: 900px) {
   body:not(.admin-body) .mobile-bottom-nav {
