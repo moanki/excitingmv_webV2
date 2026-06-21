@@ -816,8 +816,42 @@ function DestinationMobileTabs({ activeKind }: { activeKind: DestinationKind }) 
     { kind: "liveaboards" as const, label: "Liveaboards", href: "/liveaboards" }
   ];
 
+  const tabIcon = (kind: DestinationKind) => {
+    if (kind === "resort") {
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 21V10" />
+          <path d="M12 10c0-3-2.2-5-5.5-5.2C7 8 9 10 12 10Z" />
+          <path d="M12 10c0-3 2.2-5 5.5-5.2C17 8 15 10 12 10Z" />
+          <path d="M12 10c-1.6-2-1.6-4.2 0-6 1.6 1.8 1.6 4 0 6Z" />
+        </svg>
+      );
+    }
+
+    if (kind === "hotels") {
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 19v-7a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v2" />
+          <path d="M3 19v-3h18v3" />
+          <path d="M10 12h4a2 2 0 0 1 2 2v2" />
+          <path d="M3 19v1.5M21 19v1.5M3 12V7" />
+        </svg>
+      );
+    }
+
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="5.5" r="1.6" />
+        <path d="M12 7.5v11" />
+        <path d="M7 12h10" />
+        <path d="M6 14a6 6 0 0 0 6 5 6 6 0 0 0 6-5" />
+      </svg>
+    );
+  };
+
   return (
-    <nav className="destination-mobile-tabs" aria-label="Destination categories">
+    <nav className={`destination-mobile-tabs destination-mobile-tabs--${activeKind}`} aria-label="Destination categories">
+      <span className="destination-mobile-tabs__indicator" aria-hidden="true" />
       {tabs.map((tab) => (
         <Link
           href={tab.href}
@@ -826,6 +860,7 @@ function DestinationMobileTabs({ activeKind }: { activeKind: DestinationKind }) 
           className={activeKind === tab.kind ? "is-active" : ""}
           aria-current={activeKind === tab.kind ? "page" : undefined}
         >
+          <span className="destination-mobile-tabs__icon">{tabIcon(tab.kind)}</span>
           {tab.label}
         </Link>
       ))}
