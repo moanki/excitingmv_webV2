@@ -9,6 +9,8 @@ export type PropertyType = "resort" | "liveaboards" | "hotels";
 const PROPERTY_TABLE = "property";
 const LEGACY_PROPERTY_TABLE = "resorts";
 const PROPERTY_TABLES = [PROPERTY_TABLE, LEGACY_PROPERTY_TABLE] as const;
+const VIEW_LABEL_FEATURE_PREFIX = "__viewLabel:";
+const FEATURED_MIGRATION_ERROR = "Database migration missing: is_featured_homepage column is not available.";
 const ADMIN_LIST_COLUMNS =
   "id,property_type,slug,name,atoll,category,transfer_type,description,seo_summary,status,is_featured_homepage,published_at,created_at,updated_at";
 
@@ -279,8 +281,9 @@ function getRoomImage(roomId: string, mediaRows: MediaRow[], resortHeroImageUrl 
 function mapRoom(row: RoomRow, mediaRows: MediaRow[], resortHeroImageUrl = ""): ResortRoomRecord {
   const description = normalizeText(row.short_description);
   const seoDescription = normalizeText(row.seo_summary) || description;
-  const amenities = toStringArray(row.features);
-  const viewLabel = amenities.find((item) => /view/i.test(item)) ?? "";
+  const rawFeatures = toStringArray(row.features);
+  const viewLabel = rawFeatures.find((item) => item.startsWith(VIEW_LABEL_FEATURE_PREFIX))?.slice(VIEW_LABEL_FEATURE_PREFIX.length) ?? "";
+  const amenities = rawFeatures.filter((item) => !item.startsWith(VIEW_LABEL_FEATURE_PREFIX));
 
   return {
     id: row.id,
@@ -376,7 +379,10 @@ export async function listAdminResorts(propertyType: PropertyType = "resort"): P
     }
 
     return [];
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === FEATURED_MIGRATION_ERROR) {
+      throw error;
+    }
     return [];
   }
 }
@@ -407,11 +413,7 @@ export async function listAdminResortCards(propertyType: PropertyType = "resort"
           continue;
         }
         if (isMissingAdminListColumnError(error)) {
-          const fallbackResorts = await listAdminResortCardsWithFallbackColumns(tableName, propertyType, limit);
-          if (fallbackResorts.length) {
-            return fallbackResorts;
-          }
-          continue;
+          throw new Error(FEATURED_MIGRATION_ERROR);
         }
         throw error;
       }
@@ -435,7 +437,10 @@ export async function listAdminResortCards(propertyType: PropertyType = "resort"
     }
 
     return [];
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === FEATURED_MIGRATION_ERROR) {
+      throw error;
+    }
     return [];
   }
 }
@@ -593,48 +598,11 @@ async function listPublishedResortRowsFromTable(
     return propertyType === "resort" ? listPublishedResortRowsWithoutPropertyType(tableName) : [];
   }
 
-  if (!isMissingFeaturedHomepageColumnError(firstAttempt.error)) {
-    throw firstAttempt.error;
+  if (isMissingFeaturedHomepageColumnError(firstAttempt.error)) {
+    throw new Error(FEATURED_MIGRATION_ERROR);
   }
 
-  const fallbackAttempt = await supabase
-    .from(tableName)
-    .select("id,slug,name,atoll,category,transfer_type,description,highlights,meal_plans,seo_summary,status,created_at,updated_at")
-    .eq("status", "published")
-    .in("property_type", propertyTypeAliases(propertyType))
-    .order("updated_at", { ascending: false });
-
-  if (fallbackAttempt.error) {
-    if (isMissingPropertyTableError(fallbackAttempt.error)) {
-      return null;
-    }
-    if (isMissingPropertyTypeColumnError(fallbackAttempt.error)) {
-      return propertyType === "resort" ? listPublishedResortRowsWithoutPropertyType(tableName) : [];
-    }
-    throw fallbackAttempt.error;
-  }
-
-  return ((fallbackAttempt.data ?? []) as Array<
-    Pick<
-      ResortRow,
-      | "id"
-      | "slug"
-      | "name"
-      | "atoll"
-      | "category"
-      | "transfer_type"
-      | "description"
-      | "highlights"
-      | "meal_plans"
-      | "seo_summary"
-      | "status"
-      | "created_at"
-      | "updated_at"
-    >
-  >).map((row) => ({
-    ...row,
-    is_featured_homepage: false
-  }));
+  throw firstAttempt.error;
 }
 
 async function listPublishedResortRowsWithoutPropertyType(tableName = PROPERTY_TABLE) {
@@ -876,6 +844,24 @@ export async function saveResort(input: {
   let error: { message?: string } | null = null;
 
   for (const tableName of PROPERTY_TABLES) {
+    const duplicateQuery = supabase
+      .from(tableName)
+      .select("id")
+      .eq("slug", input.slug)
+      .limit(1);
+    const duplicateAttempt = input.id ? await duplicateQuery.neq("id", input.id).maybeSingle() : await duplicateQuery.maybeSingle();
+
+    if (duplicateAttempt.error) {
+      if (isMissingPropertyTableError(duplicateAttempt.error)) {
+        continue;
+      }
+      throw new Error(duplicateAttempt.error.message);
+    }
+
+    if (duplicateAttempt.data) {
+      throw new Error("A property with this slug already exists. Please choose a different slug.");
+    }
+
     const tablePayload = {
       ...basePayload,
       property_type: propertyTypeForTable(propertyType, tableName)
@@ -913,15 +899,7 @@ export async function saveResort(input: {
     }
 
     if (error && isMissingFeaturedHomepageColumnError(error)) {
-      const { property_type: _propertyType, ...legacyPayload } = tablePayload;
-      const fallbackAttempt = await supabase
-        .from(tableName)
-        .upsert(legacyPayload)
-        .select("id")
-        .single();
-
-      data = fallbackAttempt.data;
-      error = fallbackAttempt.error;
+      throw new Error(FEATURED_MIGRATION_ERROR);
     }
 
     break;
@@ -941,7 +919,10 @@ export async function saveResort(input: {
       size_label: room.sizeLabel?.trim() || null,
       max_occupancy: room.maxOccupancy ?? null,
       bed_type: room.bedType?.trim() || null,
-      features: room.amenities?.filter(Boolean) ?? [],
+      features: [
+        ...(room.viewLabel?.trim() ? [`${VIEW_LABEL_FEATURE_PREFIX}${room.viewLabel.trim()}`] : []),
+        ...(room.amenities?.map((item) => item.trim()).filter(Boolean) ?? [])
+      ],
       seo_summary: room.seoDescription.trim() || room.description.trim() || null,
       sort_order: index
     }))

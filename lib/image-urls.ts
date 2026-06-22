@@ -5,11 +5,17 @@ type ImageTransformOptions = {
   resize?: "cover" | "contain" | "fill";
 };
 
+import { isSafeMediaUrl } from "@/lib/validations";
+
 const SUPABASE_PUBLIC_OBJECT_MARKER = "/storage/v1/object/public/";
 const SUPABASE_RENDER_IMAGE_MARKER = "/storage/v1/render/image/public/";
 
 export function optimizedImageUrl(url: string | null | undefined, options: ImageTransformOptions = {}) {
   if (!url) {
+    return "";
+  }
+
+  if (!isSafeMediaUrl(url)) {
     return "";
   }
 
@@ -43,7 +49,7 @@ export function optimizedImageUrl(url: string | null | undefined, options: Image
 
     return parsed.toString();
   } catch {
-    return url;
+    return "";
   }
 }
 

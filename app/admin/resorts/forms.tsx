@@ -22,11 +22,11 @@ import {
 } from "@/app/admin/resorts/actions";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 import { optimizedImageUrl } from "@/lib/image-urls";
-import type { PublishStatus, ResortPublishingMode } from "@/lib/types";
+import type { PublishStatus } from "@/lib/types";
 import type { PropertyType, ResortRecord } from "@/lib/services/resort-service";
 
 type ResortEditorMode = "create" | "edit";
-type ResortFilter = "all" | "published" | "draft" | "featured";
+type ResortFilter = "all" | "published" | "draft" | "featured" | "archived";
 
 type PropertyLabels = {
   singular: string;
@@ -66,22 +66,6 @@ function StatusMessage({ message, error }: { message?: string; error?: string })
   return null;
 }
 
-function publishingModeForResort(resort: Partial<ResortRecord>): ResortPublishingMode {
-  if (resort.status === "published" && resort.isFeaturedHomepage) {
-    return "published_featured";
-  }
-
-  if (resort.status === "published") {
-    return "published_standard";
-  }
-
-  if (resort.status === "archived") {
-    return "archived";
-  }
-
-  return "draft";
-}
-
 function statusLabel(resort: Partial<ResortRecord>) {
   if (resort.status === "published" && resort.isFeaturedHomepage) {
     return "Published Featured";
@@ -96,6 +80,27 @@ function statusLabel(resort: Partial<ResortRecord>) {
   }
 
   return "Draft";
+}
+
+function featureCopy(status: PublishStatus) {
+  if (status === "published") {
+    return {
+      label: "Feature on homepage",
+      help: "Published featured resorts can appear in the homepage featured section."
+    };
+  }
+
+  if (status === "archived") {
+    return {
+      label: "Feature on homepage",
+      help: "Archived resorts cannot appear on the homepage."
+    };
+  }
+
+  return {
+    label: "Feature on homepage when published",
+    help: "Only published resorts can appear on the homepage."
+  };
 }
 
 function statusTone(resort: Partial<ResortRecord>) {
@@ -422,7 +427,7 @@ function RoomTypeEditor({
                       label={`Room photo ${index + 1}`}
                       inputName={`room_${index}_photoUrl`}
                       fileName={`room_${index}_photoFile`}
-                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                      accept="image/png,image/jpeg,image/webp"
                       value={room.photoUrl}
                       library={mediaLibrary}
                       helper="This room photo appears on the public room card."
@@ -509,8 +514,9 @@ export function ResortEditor({
   const [location, setLocation] = useState(resort.location ?? "");
   const [category, setCategory] = useState(resort.category ?? "");
   const [transferType, setTransferType] = useState(resort.transferType ?? "");
-  const [status, setStatus] = useState<PublishStatus>(resort.status ?? "draft");
+  const status: PublishStatus = resort.status ?? "draft";
   const [isFeaturedHomepage, setIsFeaturedHomepage] = useState(Boolean(resort.isFeaturedHomepage));
+  const [heroImageUrl, setHeroImageUrl] = useState(resort.heroImageUrl ?? "");
   const [descriptionValue, setDescriptionValue] = useState(resort.description ?? resort.summary ?? "");
   const [highlightsValue, setHighlightsValue] = useState((resort.highlights ?? []).join("\n"));
   const [mealPlansValue, setMealPlansValue] = useState((resort.mealPlans ?? []).join("\n"));
@@ -521,14 +527,8 @@ export function ResortEditor({
 
   const formId = resort.id ? `resort-editor-form-${resort.id}` : "resort-editor-form-new";
   const previewHref = resort.slug ? `${labels.publicBasePath}/${resort.slug}` : null;
-  const currentPublishingMode =
-    status === "published"
-      ? isFeaturedHomepage
-        ? "published_featured"
-        : "published_standard"
-      : status === "archived"
-        ? "archived"
-        : "draft";
+  const homepageFeatureCopy = featureCopy(status);
+  const effectiveFeatured = status === "published" && isFeaturedHomepage;
 
   useEffect(() => {
     if (state?.message) {
@@ -575,8 +575,15 @@ export function ResortEditor({
               Preview {labels.singular}
             </Link>
           ) : null}
-          <button className="admin-btn admin-btn--primary" type="submit" form={formId} disabled={pending}>
-            {pending ? "Saving..." : mode === "create" ? "Create Resort" : "Save Changes"}
+          <button
+            className="admin-btn admin-btn--primary"
+            type="submit"
+            form={formId}
+            name="submitIntent"
+            value={status === "published" ? "updatePublished" : "saveDraft"}
+            disabled={pending || status === "archived"}
+          >
+            {pending ? "Saving..." : status === "published" ? `Update Published ${labels.singular}` : "Save Draft"}
           </button>
         </div>
       </div>
@@ -588,7 +595,7 @@ export function ResortEditor({
           <p className="admin-page-lede">{description}</p>
         </div>
         <div className="resort-workspace__meta">
-          <span className={`badge ${statusTone({ status, isFeaturedHomepage })}`}>{statusLabel({ status, isFeaturedHomepage })}</span>
+          <span className={`badge ${statusTone({ status, isFeaturedHomepage: effectiveFeatured })}`}>{statusLabel({ status, isFeaturedHomepage: effectiveFeatured })}</span>
           {resort.updatedAt ? <span>Updated {formatUpdatedLabel(resort.updatedAt)}</span> : null}
           {resort.roomTypes?.length ? <span>{resort.roomTypes.length} room types</span> : null}
         </div>
@@ -651,32 +658,21 @@ export function ResortEditor({
                 onChange={(event) => setTransferType(event.target.value)}
               />
             </label>
-            <label className="field">
-              <span className="field__label">Status</span>
-              <select
-                className="admin-select"
-                name="status"
-                value={status}
-                onChange={(event) => setStatus(event.target.value as PublishStatus)}
-              >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-                <option value="archived">Archived</option>
-              </select>
-            </label>
             <label className="field field--full admin-toggle-field">
               <span className="field__label">Featured Homepage Toggle</span>
               <div className="admin-toggle-card">
                 <div>
-                  <strong>Feature on homepage</strong>
-                  <p>Featured published resorts can appear in the homepage collection, up to 5 properties.</p>
+                  <strong>{homepageFeatureCopy.label}</strong>
+                  <p>{homepageFeatureCopy.help}</p>
                 </div>
-                <input
-                  type="checkbox"
-                  name="isFeaturedHomepage"
-                  checked={isFeaturedHomepage}
-                  onChange={(event) => setIsFeaturedHomepage(event.target.checked)}
-                />
+                {status === "archived" ? null : (
+                  <input
+                    type="checkbox"
+                    name="isFeaturedHomepage"
+                    checked={isFeaturedHomepage}
+                    onChange={(event) => setIsFeaturedHomepage(event.target.checked)}
+                  />
+                )}
               </div>
             </label>
           </div>
@@ -738,10 +734,11 @@ export function ResortEditor({
             label={`${labels.singular} banner image`}
             inputName="heroImageUrl"
             fileName="heroImageFile"
-            accept="image/png,image/jpeg,image/webp,image/svg+xml"
-            value={resort.heroImageUrl ?? ""}
+            accept="image/png,image/jpeg,image/webp"
+            value={heroImageUrl}
             library={mediaLibrary}
             helper="Primary hero image for the resort listing, homepage feature, and property page."
+            onChange={setHeroImageUrl}
           />
 
           <div className="field field--full">
@@ -805,7 +802,7 @@ export function ResortEditor({
             <h4>Content Checklist</h4>
             <ul>
               <li>{name.trim() ? "✓" : "•"} Resort name added</li>
-              <li>{(resort.heroImageUrl ?? "").trim() ? "✓" : "•"} Banner image added</li>
+              <li>{heroImageUrl.trim() ? "✓" : "•"} Banner image added</li>
               <li>{descriptionValue.trim() ? "✓" : "•"} Description added</li>
               <li>{rooms.length ? "✓" : "•"} Room types added</li>
               <li>{rooms.some((room) => splitLines(room.amenities).length) ? "✓" : "•"} Room amenities added</li>
@@ -821,38 +818,59 @@ export function ResortEditor({
           <Link href={labels.adminBasePath} className="admin-btn admin-btn--ghost">
             Cancel
           </Link>
-          {resort.id ? (
-            <button className="admin-btn admin-btn--danger" type="submit" form={`delete-resort-${resort.id}`}>
-              Delete {labels.singular}
-            </button>
-          ) : null}
-          <button
-            className="admin-btn admin-btn--secondary"
-            type="submit"
-            disabled={pending}
-          >
-            Save Changes
-          </button>
-          <button
-            className="admin-btn admin-btn--primary"
-            type="submit"
-            name="publishingMode"
-            value={currentPublishingMode === "archived" || currentPublishingMode === "draft"
-              ? isFeaturedHomepage
-                ? "published_featured"
-                : "published_standard"
-              : currentPublishingMode}
-            disabled={pending}
-          >
-            {pending ? "Saving..." : `Publish ${labels.singular}`}
-          </button>
+          {status === "archived" ? (
+            <>
+              {resort.id ? (
+                <button className="admin-btn admin-btn--danger" type="submit" form={`delete-resort-${resort.id}`}>
+                  Delete {labels.singular}
+                </button>
+              ) : null}
+              <button className="admin-btn admin-btn--primary" type="submit" name="submitIntent" value="restoreDraft" disabled={pending}>
+                Restore to Draft
+              </button>
+            </>
+          ) : status === "published" ? (
+            <>
+              <button className="admin-btn admin-btn--secondary" type="submit" name="submitIntent" value="unpublish" disabled={pending}>
+                Unpublish to Draft
+              </button>
+              <button className="admin-btn admin-btn--danger" type="submit" name="submitIntent" value="archive" disabled={pending}>
+                Archive
+              </button>
+              <button className="admin-btn admin-btn--primary" type="submit" name="submitIntent" value="updatePublished" disabled={pending}>
+                {pending ? "Saving..." : `Update Published ${labels.singular}`}
+              </button>
+            </>
+          ) : (
+            <>
+              {mode === "edit" ? (
+                <button className="admin-btn admin-btn--danger" type="submit" name="submitIntent" value="archive" disabled={pending}>
+                  Archive
+                </button>
+              ) : null}
+              <button className="admin-btn admin-btn--secondary" type="submit" name="submitIntent" value="saveDraft" disabled={pending}>
+                Save Draft
+              </button>
+              <button className="admin-btn admin-btn--primary" type="submit" name="submitIntent" value="publish" disabled={pending}>
+                {pending ? "Publishing..." : `Publish ${labels.singular}`}
+              </button>
+            </>
+          )}
         </div>
 
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
 
       {resort.id ? (
-        <form id={`delete-resort-${resort.id}`} action={deleteResortAction}>
+        <form
+          id={`delete-resort-${resort.id}`}
+          action={deleteResortAction}
+          onSubmit={(event) => {
+            if (!window.confirm(`Delete ${resort.name || labels.singular}? This permanently removes the property. Archiving is usually safer.`)) {
+              event.preventDefault();
+            }
+          }}
+        >
           <input type="hidden" name="id" value={resort.id} />
           <input type="hidden" name="propertyType" value={propertyType} />
         </form>
@@ -897,6 +915,10 @@ export function ResortManagerListView({
         return resort.status === "published" && resort.isFeaturedHomepage;
       }
 
+      if (filter === "archived") {
+        return resort.status === "archived";
+      }
+
       return true;
     });
   }, [filter, query, resorts]);
@@ -905,7 +927,8 @@ export function ResortManagerListView({
     { id: "all", label: "All" },
     { id: "published", label: "Published" },
     { id: "draft", label: "Draft" },
-    { id: "featured", label: "Featured" }
+    { id: "featured", label: "Featured" },
+    { id: "archived", label: "Archived" }
   ];
 
   return (
@@ -987,7 +1010,14 @@ export function ResortManagerListView({
                       Preview
                     </Link>
                   ) : null}
-                  <form action={deleteResortAction}>
+                  <form
+                    action={deleteResortAction}
+                    onSubmit={(event) => {
+                      if (!window.confirm(`Delete ${resort.name}? This permanently removes the property. Archiving is usually safer.`)) {
+                        event.preventDefault();
+                      }
+                    }}
+                  >
                     <input type="hidden" name="id" value={resort.id} />
                     <input type="hidden" name="propertyType" value={propertyType} />
                     <button className="admin-btn admin-btn--danger" type="submit">

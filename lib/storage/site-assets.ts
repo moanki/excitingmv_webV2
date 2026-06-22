@@ -266,6 +266,11 @@ export async function uploadSiteAsset(file: File, folder: string, usage: SiteAss
 
   const supabase = await ensureBucket();
   const safeFolder = normalizeFolderPath(folder);
+  if (safeFolder.startsWith("resorts") && (file.type === "image/svg+xml" || fileNameExtension(file.name) === "svg")) {
+    throw new SiteAssetUploadError("unsupported_file_type", "SVG uploads are not allowed for resort media. Upload JPG, PNG, or WebP images.", {
+      status: 415
+    });
+  }
   const shouldOptimize = isOptimizableImage(file);
   const assetId = `${Date.now()}-${crypto.randomUUID()}`;
   let body: Buffer | File = file;

@@ -4,7 +4,14 @@ import { ResortManagerListView } from "@/app/admin/resorts/forms";
 import { getResortCounts, listAdminResortCards } from "@/lib/services/resort-service";
 
 export default async function AdminResortsPage() {
-  const [resorts, counts] = await Promise.all([listAdminResortCards(), getResortCounts()]);
+  const [resortsResult, counts] = await Promise.all([
+    listAdminResortCards().then(
+      (resorts) => ({ resorts, error: "" }),
+      (error) => ({ resorts: [], error: error instanceof Error ? error.message : "Failed to load resorts." })
+    ),
+    getResortCounts()
+  ]);
+  const { resorts, error } = resortsResult;
 
   return (
     <section className="stack">
@@ -34,6 +41,8 @@ export default async function AdminResortsPage() {
           <strong>{counts.draft}</strong>
         </article>
       </div>
+
+      {error ? <p className="admin-alert admin-alert--error">{error}</p> : null}
 
       <ResortManagerListView resorts={resorts} />
     </section>

@@ -7,7 +7,12 @@ import { generateResortSeoCopy, type ResortSeoGenerationInput } from "@/lib/serv
 import { deleteResort, normalizePropertyType, saveResort, seedSampleResorts, type PropertyType } from "@/lib/services/resort-service";
 import { uploadSiteAsset } from "@/lib/storage/site-assets";
 import type { PublishStatus } from "@/lib/types";
-import { resortSeoGenerationInputSchema } from "@/lib/validations";
+import {
+  adminResortPayloadSchema,
+  adminResortSubmitIntentSchema,
+  normalizeSafeMediaUrl,
+  resortSeoGenerationInputSchema
+} from "@/lib/validations";
 
 type ActionState = { message?: string; error?: string } | undefined;
 
@@ -43,30 +48,28 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-function publishingState(value: string): { status: PublishStatus; isFeaturedHomepage: boolean } {
-  if (value === "published_featured") {
-    return { status: "published", isFeaturedHomepage: true };
+type AdminResortSubmitIntent = ReturnType<typeof adminResortSubmitIntentSchema.parse>;
+
+function finalPublishingState(intent: AdminResortSubmitIntent, featuredValue: FormDataEntryValue | null): { status: PublishStatus; isFeaturedHomepage: boolean } {
+  if (intent === "publish" || intent === "updatePublished") {
+    return { status: "published", isFeaturedHomepage: featuredValue === "on" };
   }
 
-  if (value === "published_standard") {
-    return { status: "published", isFeaturedHomepage: false };
-  }
-
-  if (value === "archived") {
+  if (intent === "archive") {
     return { status: "archived", isFeaturedHomepage: false };
   }
 
   return { status: "draft", isFeaturedHomepage: false };
 }
 
-function publishingStateFromStatus(statusValue: string, featuredValue: FormDataEntryValue | null) {
-  const status = statusValue === "published" || statusValue === "archived" ? statusValue : "draft";
-  const isFeaturedHomepage = featuredValue === "on" && status === "published";
-
-  return {
-    status,
-    isFeaturedHomepage
-  } as const;
+function successMessage(name: string, intent: AdminResortSubmitIntent, featured: boolean) {
+  if (intent === "saveDraft") return "Draft saved";
+  if (intent === "publish") return featured ? "Published and featured on homepage" : "Resort published";
+  if (intent === "updatePublished") return featured ? "Published resort updated and featured on homepage" : "Published resort updated";
+  if (intent === "unpublish") return "Resort unpublished to draft";
+  if (intent === "archive") return "Resort archived";
+  if (intent === "restoreDraft") return "Resort restored to draft";
+  return `${name} saved`;
 }
 
 async function parseRoomTypes(formData: FormData) {
@@ -101,12 +104,25 @@ async function parseRoomTypes(formData: FormData) {
       }
     }
 
+    if (photoUrl) {
+      photoUrl = normalizeSafeMediaUrl(photoUrl);
+    }
+
     if (!name && !description && !seoDescription && !photoUrl && !sizeLabel && !maxOccupancyValue && !bedType && !viewLabel && !amenities.length) {
       continue;
     }
 
     if (!name) {
-      continue;
+      throw new Error(`Room ${index + 1} needs a room name before saving.`);
+    }
+
+    let maxOccupancy: number | null = null;
+    if (maxOccupancyValue) {
+      const parsedOccupancy = Number(maxOccupancyValue);
+      if (!Number.isInteger(parsedOccupancy) || parsedOccupancy <= 0) {
+        throw new Error(`Room ${index + 1} max occupancy must be a positive whole number.`);
+      }
+      maxOccupancy = parsedOccupancy;
     }
 
     rooms.push({
@@ -115,7 +131,7 @@ async function parseRoomTypes(formData: FormData) {
       seoDescription,
       photoUrl,
       sizeLabel,
-      maxOccupancy: maxOccupancyValue ? Number(maxOccupancyValue) : null,
+      maxOccupancy,
       bedType,
       viewLabel,
       amenities
@@ -130,13 +146,8 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
     await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const name = String(formData.get("name") ?? "").trim();
     const propertyType = normalizePropertyType(formData.get("propertyType"));
-    const explicitPublishingMode = String(formData.get("publishingMode") ?? "").trim();
-    const publishing = explicitPublishingMode
-      ? publishingState(explicitPublishingMode)
-      : publishingStateFromStatus(
-          String(formData.get("status") ?? "draft").trim(),
-          formData.get("isFeaturedHomepage")
-        );
+    const submitIntent = adminResortSubmitIntentSchema.parse(String(formData.get("submitIntent") ?? "saveDraft"));
+    const publishing = finalPublishingState(submitIntent, formData.get("isFeaturedHomepage"));
     const heroImageFile = formData.get("heroImageFile");
     const galleryFiles = formData.getAll("galleryMediaFiles");
     let uploadedHeroImage = String(formData.get("heroImageUrl") ?? "").trim();
@@ -150,6 +161,7 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
         };
       }
     }
+    uploadedHeroImage = normalizeSafeMediaUrl(uploadedHeroImage);
 
     const galleryUploadFiles = galleryFiles.filter((item): item is File => item instanceof File && item.size > 0);
     const galleryUploadResults = await Promise.allSettled(
@@ -177,12 +189,19 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
     const galleryMediaUrls = String(formData.get("galleryMediaUrls") ?? "")
       .split(/\r?\n|,/)
       .map((item) => item.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .map((item) => normalizeSafeMediaUrl(item));
     const roomTypes = await parseRoomTypes(formData);
-    const input = {
+    const submittedSlug = String(formData.get("slug") ?? "").trim();
+    const normalizedSlug = slugify(submittedSlug || name);
+    if (submittedSlug && submittedSlug !== normalizedSlug) {
+      return { error: "Slug must be lowercase, URL-safe, and cannot contain spaces or unsafe characters." };
+    }
+    const parsedInput = adminResortPayloadSchema.safeParse({
       id: String(formData.get("id") ?? "").trim() || undefined,
       propertyType,
-      slug: slugify(String(formData.get("slug") ?? name)),
+      submitIntent,
+      slug: normalizedSlug,
       name,
       location: String(formData.get("location") ?? "").trim(),
       category: String(formData.get("category") ?? "").trim(),
@@ -196,13 +215,18 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
       heroImageUrl: uploadedHeroImage,
       galleryMediaUrls: [...galleryMediaUrls, ...uploadedGalleryImages],
       roomTypes,
-      status: publishing.status,
       isFeaturedHomepage: publishing.isFeaturedHomepage
-    };
+    });
 
-    if (!input.name || !input.slug) {
-      return { error: "Property name and slug are required." };
+    if (!parsedInput.success) {
+      return { error: parsedInput.error.issues[0]?.message ?? "Check the resort form and try again." };
     }
+
+    const input = {
+      ...parsedInput.data,
+      status: publishing.status,
+      isFeaturedHomepage: publishing.status === "published" ? publishing.isFeaturedHomepage : false
+    };
 
     await saveResort(input);
     revalidateResortPaths(propertyType);
@@ -216,7 +240,7 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
         : galleryUploadFiles.length
           ? ` ${uploadedGalleryImages.length} gallery image${uploadedGalleryImages.length === 1 ? "" : "s"} uploaded.`
           : "";
-    return { message: `${input.name} saved.${galleryMessage}` };
+    return { message: `${successMessage(input.name, submitIntent, input.isFeaturedHomepage)}.${galleryMessage}` };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save property." };
   }

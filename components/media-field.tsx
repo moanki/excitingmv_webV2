@@ -6,6 +6,7 @@ import { FileText, Image as ImageIcon, Library, Upload, Video } from "lucide-rea
 
 import { uploadAdminMediaFile } from "@/lib/admin-media-client-upload";
 import { optimizedImageUrl } from "@/lib/image-urls";
+import { safeMediaUrlError } from "@/lib/validations";
 
 export type MediaLibraryItem = {
   name: string;
@@ -77,6 +78,8 @@ export function MediaField({
   const [uploadState, setUploadState] = useState<{ pending: boolean; error?: string; message?: string }>({
     pending: false
   });
+  const [urlDraft, setUrlDraft] = useState(value);
+  const [urlError, setUrlError] = useState("");
   const [mode, setMode] = useState<"upload" | "library" | "url">("upload");
   const [expanded, setExpanded] = useState(false);
   const [visibleCount, setVisibleCount] = useState(6);
@@ -102,6 +105,12 @@ export function MediaField({
   }, [mode, filteredLibrary.length]);
 
   useEffect(() => {
+    setSelectedUrl(value);
+    setUrlDraft(value);
+    setUrlError("");
+  }, [value]);
+
+  useEffect(() => {
     const form = fileInputRef.current?.form;
     if (!form) return;
 
@@ -120,7 +129,18 @@ export function MediaField({
 
   function updateSelectedUrl(url: string) {
     setSelectedUrl(url);
+    setUrlDraft(url);
+    setUrlError("");
     onChange?.(url);
+  }
+
+  function updateDirectUrl(url: string) {
+    setUrlDraft(url);
+    const error = safeMediaUrlError(url);
+    setUrlError(error);
+    if (!error) {
+      updateSelectedUrl(url.trim());
+    }
   }
 
   function clearNativeFileInput() {
@@ -273,10 +293,11 @@ export function MediaField({
           <span className="field__label">Direct URL</span>
           <input
             className="admin-input"
-            value={selectedUrl}
-            onChange={(event) => updateSelectedUrl(event.target.value)}
+            value={urlDraft}
+            onChange={(event) => updateDirectUrl(event.target.value)}
             placeholder="https://..."
           />
+          {urlError ? <span className="field__error">{urlError}</span> : null}
         </label>
       ) : null}
 
