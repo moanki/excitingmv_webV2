@@ -413,7 +413,11 @@ export async function listAdminResortCards(propertyType: PropertyType = "resort"
           continue;
         }
         if (isMissingAdminListColumnError(error)) {
-          throw new Error(FEATURED_MIGRATION_ERROR);
+          const fallbackResorts = await listAdminResortCardsWithFallbackColumns(tableName, propertyType, limit);
+          if (fallbackResorts.length) {
+            return fallbackResorts;
+          }
+          continue;
         }
         throw error;
       }
@@ -437,10 +441,7 @@ export async function listAdminResortCards(propertyType: PropertyType = "resort"
     }
 
     return [];
-  } catch (error) {
-    if (error instanceof Error && error.message === FEATURED_MIGRATION_ERROR) {
-      throw error;
-    }
+  } catch {
     return [];
   }
 }
@@ -599,7 +600,29 @@ async function listPublishedResortRowsFromTable(
   }
 
   if (isMissingFeaturedHomepageColumnError(firstAttempt.error)) {
-    throw new Error(FEATURED_MIGRATION_ERROR);
+    const fallbackAttempt = await supabase
+      .from(tableName)
+      .select("id,property_type,slug,name,atoll,category,transfer_type,description,highlights,meal_plans,seo_summary,status,created_at,updated_at")
+      .eq("status", "published")
+      .in("property_type", propertyTypeAliases(propertyType))
+      .order("updated_at", { ascending: false });
+
+    if (fallbackAttempt.error) {
+      if (isMissingPropertyTableError(fallbackAttempt.error)) {
+        return null;
+      }
+
+      if (isMissingPropertyTypeColumnError(fallbackAttempt.error)) {
+        return propertyType === "resort" ? listPublishedResortRowsWithoutPropertyType(tableName) : [];
+      }
+
+      throw fallbackAttempt.error;
+    }
+
+    return ((fallbackAttempt.data ?? []) as Array<Omit<ResortRow, "is_featured_homepage" | "published_at">>).map((row) => ({
+      ...row,
+      is_featured_homepage: false
+    }));
   }
 
   throw firstAttempt.error;
