@@ -347,20 +347,26 @@ function MobileHomeV2({
         href: `/resorts/${resort.slug}`,
         image: resort.heroImageUrl || pickResortImage(index),
         title: resort.name,
-        location: [formatAtoll(resort.location), resort.category || resort.transferType || "Luxury"].filter(Boolean).join(" — ")
+        tag: resort.category || resort.transferType || "Luxury Resort",
+        atoll: formatAtoll(resort.location),
+        location: [formatAtoll(resort.location), resort.category || resort.transferType || "Luxury"].filter(Boolean).join(" â€” ")
       }))
     : [
         {
           href: "/resorts",
           image: pickResortImage(0),
           title: "Curated Private-Island Retreats",
-          location: "Maldives — Luxury"
+          tag: "Luxury Resort",
+          atoll: "Maldives",
+          location: "Maldives â€” Luxury"
         },
         {
           href: "/resorts",
           image: pickResortImage(1),
           title: "Partner-Ready Island Escapes",
-          location: "Maldives — Trade Intelligence"
+          tag: "Trade Intelligence",
+          atoll: "Maldives",
+          location: "Maldives â€” Trade Intelligence"
         }
       ];
   const primaryResort = displayResorts[0];
@@ -469,9 +475,13 @@ function MobileHomeV2({
                   loading="lazy"
                 />
               </div>
+              <span className="mv2-focus-retreat__tag">{retreat.tag}</span>
               <h3>{retreat.title}</h3>
-              <p>{retreat.location}</p>
-              <span>Enquire about this retreat</span>
+              <p>
+                <MapPin size={9} aria-hidden="true" />
+                <span>{retreat.atoll}</span>
+              </p>
+              <span className="mv2-focus-retreat__cta">Enquire about this retreat</span>
             </Link>
           ))}
           <span className="mv2-focus-retreats__spacer" aria-hidden="true" />
@@ -485,9 +495,9 @@ function MobileHomeV2({
             />
             <div className="mv2-big-card__shade" />
             <div className="mv2-big-card__body">
-              <span>★ {primaryResort.category || "Luxury Resort"}</span>
+              <span>â˜… {primaryResort.category || "Luxury Resort"}</span>
               <strong>{primaryResort.name}</strong>
-              <p>{[formatAtoll(primaryResort.location), primaryResort.transferType].filter(Boolean).join(" · ")}</p>
+              <p>{[formatAtoll(primaryResort.location), primaryResort.transferType].filter(Boolean).join(" Â· ")}</p>
             </div>
           </Link>
         ) : null}
@@ -505,7 +515,7 @@ function MobileHomeV2({
               <div className="mv2-property-card__body">
                 <span>{resort.category || "Luxury Resort"}</span>
                 <strong>{resort.name}</strong>
-                <p>{[formatAtoll(resort.location), resort.transferType].filter(Boolean).join(" · ")}</p>
+                <p>{[formatAtoll(resort.location), resort.transferType].filter(Boolean).join(" Â· ")}</p>
               </div>
             </Link>
           ))}
@@ -874,7 +884,7 @@ export default async function HomePage() {
           services={services}
           images={serviceImages}
           title="Built around every Maldives booking."
-          description="We support travel professionals with resort intelligence, transfer planning, arrival handling, and in-destination support — all managed with local precision."
+          description="We support travel professionals with resort intelligence, transfer planning, arrival handling, and in-destination support â€” all managed with local precision."
         />
       </section>
       <section className="lux-section lux-section--white why-trust-section" id="why-travel-designers">

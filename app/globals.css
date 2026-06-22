@@ -24729,3 +24729,216 @@ html {
     color: #fff !important;
   }
 }
+
+/* Mobile homepage destination grid refinement — desktop remains untouched. */
+@media (max-width: 767px) {
+  .mobile-v2-home #mobile-destinations.mv2-destination-panel {
+    padding: 38px 22px 12px !important;
+    background: #fff !important;
+  }
+
+  .mobile-v2-home #mobile-destinations .mv2-eyebrow {
+    margin-bottom: 12px !important;
+    color: #7c8a86 !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.24em !important;
+  }
+
+  .mobile-v2-home #mobile-destinations h2 {
+    max-width: 310px !important;
+    margin: 0 0 18px !important;
+    color: #16201f !important;
+    font-family: var(--font-serif), Georgia, serif !important;
+    font-size: clamp(1.42rem, 6.2vw, 1.72rem) !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.1 !important;
+  }
+
+  .mobile-v2-home #mobile-destinations .mv2-destination-tabs {
+    display: flex !important;
+    gap: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 4px !important;
+    border: 1px solid #e4e8e6 !important;
+    border-radius: 24px !important;
+    background: #fafbfa !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-v2-home #mobile-destinations .mv2-destination-tab {
+    display: flex !important;
+    min-height: 40px !important;
+    flex: 1 1 0 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 4px !important;
+    border: 0 !important;
+    border-radius: 20px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #7c8a86 !important;
+    font-family: var(--font-sans), Inter, system-ui, sans-serif !important;
+    font-size: 9.5px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.07em !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    text-transform: uppercase !important;
+  }
+
+  .mobile-v2-home #mobile-destinations .mv2-destination-tab.is-active {
+    background: #16201f !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats.mv2-focus-retreats {
+    padding: 10px 0 48px !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats.mv2-focus-retreats > .mv2-big-card,
+  .mobile-v2-home #mobile-featured-retreats.mv2-focus-retreats > .mv2-card-scroll {
+    display: none !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreats__head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 1rem !important;
+    margin: 0 !important;
+    padding: 0 22px 12px !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreats__head span {
+    color: #dce2e0 !important;
+    font-size: 9.5px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.14em !important;
+    line-height: 1 !important;
+    text-transform: uppercase !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreats__head b {
+    color: #234f52 !important;
+    font-weight: 600 !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreats__track {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 26px 14px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 6px 22px 8px !important;
+    overflow: visible !important;
+    scroll-snap-type: none !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreats__spacer {
+    display: none !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreat {
+    display: block !important;
+    width: auto !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: inherit !important;
+    text-decoration: none !important;
+    scroll-snap-align: none !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreat__frame {
+    width: 100% !important;
+    aspect-ratio: 3 / 4 !important;
+    height: auto !important;
+    overflow: hidden !important;
+    border-radius: 2px !important;
+    background: #eee !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreat__frame img {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    transition: transform 0.5s ease !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreat:active .mv2-focus-retreat__frame img {
+    transform: scale(1.04) !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreat__tag {
+    display: block !important;
+    margin: 11px 0 6px !important;
+    overflow: hidden !important;
+    color: #234f52 !important;
+    font-size: 8.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.09em !important;
+    line-height: 1.25 !important;
+    text-overflow: ellipsis !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreat h3 {
+    display: -webkit-box !important;
+    margin: 0 0 6px !important;
+    overflow: hidden !important;
+    color: #16201f !important;
+    font-family: var(--font-serif), Georgia, serif !important;
+    font-size: 15.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.22 !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreat p {
+    display: flex !important;
+    min-width: 0 !important;
+    align-items: center !important;
+    gap: 4px !important;
+    margin: 0 !important;
+    color: #8a8064 !important;
+    font-size: 9px !important;
+    letter-spacing: 0.03em !important;
+    line-height: 1.25 !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreat p svg {
+    width: 9px !important;
+    height: 9px !important;
+    flex: 0 0 auto !important;
+    color: #7c8a86 !important;
+    fill: none !important;
+    stroke-width: 1.6 !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreat p span {
+    display: block !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreat__cta,
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreat > span:not(.mv2-focus-retreat__tag) {
+    display: none !important;
+  }
+}
