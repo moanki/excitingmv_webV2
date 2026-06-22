@@ -51,15 +51,17 @@ function slugify(value: string) {
 type AdminResortSubmitIntent = ReturnType<typeof adminResortSubmitIntentSchema.parse>;
 
 function finalPublishingState(intent: AdminResortSubmitIntent, featuredValue: FormDataEntryValue | null): { status: PublishStatus; isFeaturedHomepage: boolean } {
+  const isFeaturedHomepage = featuredValue === "on";
+
   if (intent === "publish" || intent === "updatePublished") {
-    return { status: "published", isFeaturedHomepage: featuredValue === "on" };
+    return { status: "published", isFeaturedHomepage };
   }
 
   if (intent === "archive") {
-    return { status: "archived", isFeaturedHomepage: false };
+    return { status: "archived", isFeaturedHomepage };
   }
 
-  return { status: "draft", isFeaturedHomepage: false };
+  return { status: "draft", isFeaturedHomepage };
 }
 
 function successMessage(name: string, intent: AdminResortSubmitIntent, featured: boolean) {
@@ -225,7 +227,7 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
     const input = {
       ...parsedInput.data,
       status: publishing.status,
-      isFeaturedHomepage: publishing.status === "published" ? publishing.isFeaturedHomepage : false
+      isFeaturedHomepage: publishing.isFeaturedHomepage
     };
 
     await saveResort(input);

@@ -740,15 +740,9 @@ export async function listPublishedProperties(propertyType: PropertyType): Promi
 
 export async function listHomepageFeaturedResorts(limit = 5): Promise<ResortSummary[]> {
   const resorts = await listPublishedResorts();
-  const featured = resorts
+  return resorts
     .filter((resort) => resort.isFeaturedHomepage)
     .slice(0, limit);
-
-  if (featured.length) {
-    return featured;
-  }
-
-  return resorts.slice(0, limit);
 }
 
 export async function getResortBySlug(slug: string, propertyType: PropertyType = "resort"): Promise<ResortRecord | null> {
@@ -894,7 +888,7 @@ export async function saveResort(input: {
       .from(tableName)
       .upsert({
         ...tablePayload,
-        is_featured_homepage: input.status === "published" ? input.isFeaturedHomepage : false
+        is_featured_homepage: input.isFeaturedHomepage
       })
       .select("id")
       .single();
@@ -912,7 +906,7 @@ export async function saveResort(input: {
         .from(tableName)
         .upsert({
           ...legacyPayload,
-          is_featured_homepage: input.status === "published" ? input.isFeaturedHomepage : false
+          is_featured_homepage: input.isFeaturedHomepage
         })
         .select("id")
         .single();

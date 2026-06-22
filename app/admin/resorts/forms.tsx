@@ -665,14 +665,12 @@ export function ResortEditor({
                   <strong>{homepageFeatureCopy.label}</strong>
                   <p>{homepageFeatureCopy.help}</p>
                 </div>
-                {status === "archived" ? null : (
-                  <input
-                    type="checkbox"
-                    name="isFeaturedHomepage"
-                    checked={isFeaturedHomepage}
-                    onChange={(event) => setIsFeaturedHomepage(event.target.checked)}
-                  />
-                )}
+                <input
+                  type="checkbox"
+                  name="isFeaturedHomepage"
+                  checked={isFeaturedHomepage}
+                  onChange={(event) => setIsFeaturedHomepage(event.target.checked)}
+                />
               </div>
             </label>
           </div>
