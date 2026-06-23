@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Article, BellSimple, Compass, House, Lifebuoy, UserCircle } from "@phosphor-icons/react";
+import { BookOpenText, Compass, Home, LifeBuoy, UserCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { PartnerRegisterForm } from "@/components/partner-register-form";
 import type { NavbarContent } from "@/lib/site-content";
@@ -12,6 +12,7 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const [scrolled, setScrolled] = useState(false);
   const [partnerModalOpen, setPartnerModalOpen] = useState(false);
   const [activeMobileLabel, setActiveMobileLabel] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -22,6 +23,14 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     onScroll();
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 720px)");
+    const updateMobile = () => setIsMobile(media.matches);
+    updateMobile();
+    media.addEventListener("change", updateMobile);
+    return () => media.removeEventListener("change", updateMobile);
   }, []);
 
   useEffect(() => {
@@ -36,19 +45,24 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const navItems = navbar.navItems.filter((item) => item.enabled && item.label && item.href);
   const partnerLoginHref = navbar.partnerLoginHref || navbar.ctaHref || "/partner/login";
   const mobileItems = [
-    { label: "Home", href: "/", Icon: House },
+    { label: "Home", href: "/", Icon: Home },
     { label: "Explore", href: "/resorts", Icon: Compass, destinationRoutes: ["/resorts", "/hotels", "/liveaboards"] },
-    { label: "Guide", href: "/travel-guide", Icon: Article },
-    { label: "Contact", href: "/contact", Icon: Lifebuoy },
+    { label: "Guide", href: "/travel-guide", Icon: BookOpenText },
+    { label: "Contact", href: "/contact", Icon: LifeBuoy },
     { label: "Partners", href: partnerLoginHref, Icon: UserCircle }
   ];
+  const hasMobileHero = pathname === "/" || pathname.startsWith("/resorts") || pathname === "/about";
   const usesHeroOverlayNav =
     pathname === "/" || /^\/(resorts|hotels|liveaboards)\/[^/]+/.test(pathname);
   const useLightNav = !usesHeroOverlayNav || scrolled;
-  const navClassName = `site-nav${usesHeroOverlayNav ? " is-overlay-route" : ""}${useLightNav ? " is-scrolled is-light" : ""}`;
-  const activeLogoUrl = useLightNav
-    ? navbar.primaryLogoUrl || navbar.blackLogoUrl || navbar.whiteLogoUrl
-    : navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl;
+  const navClassName = `site-nav${usesHeroOverlayNav ? " is-overlay-route" : ""}${hasMobileHero ? " has-mobile-hero" : ""}${useLightNav ? " is-scrolled is-light" : ""}`;
+  const activeLogoUrl = isMobile
+    ? hasMobileHero && !scrolled
+      ? navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl
+      : navbar.primaryLogoUrl || navbar.blackLogoUrl || navbar.whiteLogoUrl
+    : useLightNav
+      ? navbar.primaryLogoUrl || navbar.blackLogoUrl || navbar.whiteLogoUrl
+      : navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl;
 
   return (
     <>
@@ -89,10 +103,6 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
           </nav>
 
           <span className="site-nav__mobile-spacer" aria-hidden="true" />
-
-          <Link href={partnerLoginHref} className="site-nav__mobile-portal" aria-label="Partner notifications and access">
-            <BellSimple size={18} weight="regular" />
-          </Link>
         </div>
       </header>
 
@@ -119,7 +129,7 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
                 <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--tr" />
                 <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--bl" />
                 <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--br" />
-                <Icon className="mobile-bottom-nav__icon" size={18} weight={isActive ? "regular" : "regular"} />
+                <Icon className="mobile-bottom-nav__icon" size={18} strokeWidth={1.8} />
               </span>
               <span className="mobile-bottom-nav__label">{item.label}</span>
             </Link>

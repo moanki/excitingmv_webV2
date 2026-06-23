@@ -30,6 +30,8 @@ export const sampleResorts: ResortSummary[] = [
     category: "Ultra Luxury",
     transferType: "Seaplane",
     summary: "Barefoot luxury with expansive villas, marine experiences, and iconic family appeal.",
+    heroImageUrl:
+      "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1200&q=88",
     status: "published"
   },
   {
@@ -40,6 +42,8 @@ export const sampleResorts: ResortSummary[] = [
     category: "Luxury Art Retreat",
     transferType: "Seaplane",
     summary: "Art-led island hospitality with curated wellness, refined dining, and elevated design.",
+    heroImageUrl:
+      "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/resorts/1777890426234-ff89c105-42a8-44b1-a1a3-f33fe8289e09.jpg?width=1200&height=800&resize=cover&quality=90",
     status: "published"
   },
   {
@@ -50,7 +54,33 @@ export const sampleResorts: ResortSummary[] = [
     category: "Modern Luxury",
     transferType: "Speedboat",
     summary: "Contemporary island living built for design-conscious travellers and multi-experience stays.",
-    status: "draft"
+    heroImageUrl:
+      "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=1200&q=88",
+    status: "published"
+  },
+  {
+    id: "resort-4",
+    slug: "waldorf-astoria-maldives-ithaafushi",
+    name: "Waldorf Astoria Maldives Ithaafushi",
+    location: "South Male Atoll",
+    category: "Ultra Luxury",
+    transferType: "Speedboat",
+    summary: "Three private islands, expansive pool villas, and exceptional destination dining.",
+    heroImageUrl:
+      "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/resorts/1777887197118-55eee71b-a9d2-4d21-8028-84b4b9a1de14.jpg?width=1200&height=800&resize=cover&quality=90",
+    status: "published"
+  },
+  {
+    id: "resort-5",
+    slug: "hilton-maldives-amingiri",
+    name: "Hilton Maldives Amingiri Resort & Spa",
+    location: "North Male Atoll",
+    category: "Luxury",
+    transferType: "Speedboat",
+    summary: "A polished island retreat with private pools, family experiences, and easy access from Male.",
+    heroImageUrl:
+      "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/media-library/1780221773862-5459d356-30b3-4950-adc1-27405f131657.webp?width=1200&height=800&resize=cover&quality=90",
+    status: "published"
   }
 ];
 
