@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { MapPin, Search } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -53,6 +53,28 @@ const hotelItems: DestinationItem[] = [
     imageUrl: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=900&q=86",
     tags: ["Hulhumale", "Beachfront", "Airport Transfer"],
     href: "/contact"
+  },
+  {
+    id: "jen-maldives",
+    name: "JEN Maldives Male",
+    location: "Male City",
+    category: "City Hotel",
+    transfer: "Airport Transfer",
+    description: "A central city hotel option for efficient transits and business-led partner itineraries.",
+    imageUrl: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=86",
+    tags: ["Male City", "Business", "Transit"],
+    href: "/contact"
+  },
+  {
+    id: "saii-lagoon",
+    name: "SAii Lagoon Maldives",
+    location: "Emboodhoo Lagoon",
+    category: "Lifestyle Hotel",
+    transfer: "Speedboat",
+    description: "A polished lagoon stay suited to short escapes, families, and connected island experiences.",
+    imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=900&q=86",
+    tags: ["Lagoon", "Lifestyle", "Speedboat"],
+    href: "/contact"
   }
 ];
 
@@ -77,6 +99,28 @@ const liveaboardItems: DestinationItem[] = [
     description: "An island-hopping itinerary created for diving, surfing, and remote-atoll discovery.",
     imageUrl: "https://images.unsplash.com/photo-1540946485063-a40da27545f8?auto=format&fit=crop&w=900&q=86",
     tags: ["Diving", "Surfing", "10 Nights"],
+    href: "/contact"
+  },
+  {
+    id: "emperor-serenity",
+    name: "Emperor Serenity",
+    location: "Central Atolls",
+    category: "Diving Charter",
+    transfer: "7 Nights",
+    description: "A comfortable dive-led vessel for classic Maldives routes and marine-rich itineraries.",
+    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=86",
+    tags: ["Diving", "Central Atolls", "7 Nights"],
+    href: "/contact"
+  },
+  {
+    id: "duke-of-york",
+    name: "Duke of York",
+    location: "South Atolls",
+    category: "Luxury Charter",
+    transfer: "10 Nights",
+    description: "A refined charter-style liveaboard for private groups and extended atoll exploration.",
+    imageUrl: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=86",
+    tags: ["Luxury Yacht", "Private Charter", "10 Nights"],
     href: "/contact"
   }
 ];
@@ -206,7 +250,10 @@ export function MobileDestinations({ resorts }: MobileDestinationsProps) {
                 <span className="mobile-resort-card__transfer">{item.transfer}</span>
               </div>
               <div className="mobile-resort-card__body">
-                <p>{item.location}</p>
+                <p>
+                  <MapPin aria-hidden="true" size={10} />
+                  <span>{item.location}</span>
+                </p>
                 <h2>{item.name}</h2>
                 <span>{item.description}</span>
                 <div className="mobile-tag-row">

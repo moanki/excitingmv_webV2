@@ -142,6 +142,29 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
     footerLink("Cookie Policy", "#")
   ];
 
+  const mobileFooterGroups = [
+    {
+      title: "Destinations",
+      items: [
+        footerLink("Resorts", "/resorts"),
+        footerLink("Hotels", "/hotels"),
+        footerLink("Liveaboards", "/liveaboards"),
+        footerLink("Travel Guide", "/travel-guide")
+      ]
+    },
+    {
+      title: "Services",
+      items: [
+        footerLink("DMC Services", "/#destination-management"),
+        footerLink("Partner Support", "/contact"),
+        footerLink("Resort Intelligence", "/resorts"),
+        footerLink("Contact Us", "/contact")
+      ]
+    },
+    { title: "Company", items: companyItems.slice(0, 4) },
+    { title: "Resources", items: partnerItems.slice(0, 4) }
+  ];
+
   const enabledMemberships = footer.memberships.filter((item) => item.enabled && item.name);
   const enabledAwards = footer.awards.filter((item) => item.enabled && item.name);
   const footerLogoUrl = navbar.primaryLogoUrl || footer.companyLogoUrl || navbar.blackLogoUrl || navbar.whiteLogoUrl;
@@ -202,6 +225,19 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
                 ))}
               </div>
             </div>
+          </nav>
+
+          <nav className="site-footer__mobile-nav" aria-label="Mobile footer navigation">
+            {mobileFooterGroups.map((group) => (
+              <div className="site-footer__mobile-group" key={group.title}>
+                <p className="section-kicker">{group.title}</p>
+                <div className="site-footer__links">
+                  {group.items.map((item) => (
+                    <FooterNavLink item={item} key={`${group.title}-${item.label}-${item.href}`} />
+                  ))}
+                </div>
+              </div>
+            ))}
           </nav>
 
           <div className="site-footer__contact">
