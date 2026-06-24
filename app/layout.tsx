@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Inter, Playfair_Display } from "next/font/google";
 
 import "@/app/globals.css";
+import "@/app/reference-redesign.css";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNavbar } from "@/components/site-navbar";
 import { getFooterContent, getNavbarContent, getWhatsAppSettings } from "@/lib/site-content";

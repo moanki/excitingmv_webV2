@@ -38,6 +38,7 @@ type PortfolioItem = {
   recommendedOrder: number;
   createdAt: string;
   featured: boolean;
+  summary: string;
 };
 
 type DestinationIndexProps = {
@@ -324,7 +325,8 @@ function normalizePortfolioItems(kind: DestinationKind, items: ResortSummary[]) 
       primaryTransferDisplay: transferOptions[0] ?? "",
       recommendedOrder: item.recommendedOrder ?? index + 1,
       createdAt: item.createdAt ?? item.updatedAt ?? "",
-      featured: Boolean(item.isFeaturedHomepage)
+      featured: Boolean(item.isFeaturedHomepage),
+      summary: item.summary
     } satisfies PortfolioItem;
   });
 }
@@ -728,20 +730,25 @@ function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem
   return (
     <article className="portfolio-card">
       <Link href={`${config.path}/${item.slug}`} prefetch={false} className="portfolio-card__link" aria-label={detailLabel}>
-        <img
-          src={optimizedImageUrl(image, { width: 560, height: 700, quality: 90 })}
-          alt={`${item.name} ${config.singular}`}
-          loading={priority ? "eager" : "lazy"}
-          fetchPriority={priority ? "high" : "auto"}
-          width={560}
-          height={700}
-        />
-        <span className="portfolio-card__overlay" aria-hidden="true" />
-        <span className="portfolio-card__badge">
-          <BadgeCheck size={12} aria-hidden="true" />
-          {item.category}
+        <span className="portfolio-card__media">
+          <img
+            src={optimizedImageUrl(image, { width: 560, height: 700, quality: 90 })}
+            alt={`${item.name} ${config.singular}`}
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
+            width={560}
+            height={700}
+          />
+          <span className="portfolio-card__overlay">
+            <span className="portfolio-card__description">{item.summary}</span>
+            <span className="portfolio-card__view">View {config.singular}</span>
+          </span>
         </span>
         <span className="portfolio-card__text">
+          <span className="portfolio-card__badge">
+            <BadgeCheck size={12} aria-hidden="true" />
+            {item.category}
+          </span>
           <span className="portfolio-card__title">{item.name}</span>
           <span className="portfolio-card__meta">
             <span>
@@ -756,6 +763,84 @@ function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem
         </span>
       </Link>
     </article>
+  );
+}
+
+function ResortDesktopSidebar({
+  config,
+  query,
+  filters,
+  onQueryChange,
+  onFiltersChange,
+  onReset
+}: {
+  config: PortfolioConfig;
+  query: string;
+  filters: PortfolioFiltersState;
+  onQueryChange: (value: string) => void;
+  onFiltersChange: (filters: PortfolioFiltersState) => void;
+  onReset: () => void;
+}) {
+  const groups = [
+    { label: "Category", key: "category" as const, allLabel: "All Categories", options: config.categoryOptions },
+    { label: "Atoll", key: "location" as const, allLabel: "All Atolls", options: config.locationOptions }
+  ];
+
+  return (
+    <aside className="resort-desktop-sidebar" aria-label="Resort filters">
+      <div className="resort-sidebar-section">
+        <span className="resort-sidebar-label">Search</span>
+        <label className="resort-sidebar-search">
+          <Search size={14} aria-hidden="true" />
+          <input
+            value={query}
+            onChange={(event) => onQueryChange(event.target.value)}
+            placeholder="Search resorts..."
+            aria-label="Search resorts"
+          />
+        </label>
+      </div>
+
+      {groups.map((group) => (
+        <fieldset className="resort-sidebar-section" key={group.key}>
+          <legend className="resort-sidebar-label">{group.label}</legend>
+          <div className="resort-sidebar-options">
+            {[{ label: group.allLabel, value: "" }, ...group.options.map((option) => ({ label: option, value: option }))].map((option) => (
+              <button
+                type="button"
+                className={filters[group.key] === option.value ? "is-active" : ""}
+                aria-pressed={filters[group.key] === option.value}
+                onClick={() => onFiltersChange({ ...filters, [group.key]: option.value })}
+                key={`${group.key}-${option.value || "all"}`}
+              >
+                <span>{option.label}</span>
+                <i aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      ))}
+
+      <fieldset className="resort-sidebar-section">
+        <legend className="resort-sidebar-label">Transfer</legend>
+        <div className="resort-transfer-options">
+          {[{ label: "All", value: "" }, ...config.transferOptions.map((option) => ({ label: option, value: option }))].map((option) => (
+            <button
+              type="button"
+              className={filters.transfer === option.value ? "is-active" : ""}
+              aria-pressed={filters.transfer === option.value}
+              onClick={() => onFiltersChange({ ...filters, transfer: option.value })}
+              key={option.value || "all"}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <button type="button" className="resort-sidebar-reset" onClick={onReset}>
+          Reset All Filters
+        </button>
+      </fieldset>
+    </aside>
   );
 }
 
@@ -937,7 +1022,7 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
   }
 
   return (
-    <main className="destination-page portfolio-page">
+    <main className={`destination-page portfolio-page portfolio-page--${activeKind}`}>
       <section className="destination-hero portfolio-hero">
         <div
           className="destination-hero__image"
@@ -956,11 +1041,25 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
                 <span aria-hidden="true">→</span>
               </a>
             </div>
+            {activeKind === "resort" ? (
+              <div className="resort-hero-stats" aria-label="Resort portfolio highlights">
+                <span><strong>{portfolioItems.length}</strong>Curated Resorts</span>
+                <i aria-hidden="true" />
+                <span><strong>{new Set(portfolioItems.map((item) => item.location)).size}</strong>Atolls Covered</span>
+                <i aria-hidden="true" />
+                <span><strong>100%</strong>Partner Ready</span>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>
 
       <section className="destination-results portfolio-results" id="destination-results">
+        {activeKind === "resort" ? (
+          <div className="resort-desktop-breadcrumb">
+            <Link href="/">Home</Link><span aria-hidden="true">›</span><strong>Resorts</strong>
+          </div>
+        ) : null}
         <div className="site-container">
           <DestinationMobileTabs activeKind={activeKind} />
 
@@ -970,54 +1069,69 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
             </div>
           </div>
 
-          <PortfolioFilters
-            config={config}
-            query={query}
-            filters={filters}
-            sort={sort}
-            mobileOpen={filtersOpen}
-            onMobileOpenChange={setFiltersOpen}
-            onQueryChange={setQuery}
-            onFiltersChange={setFilters}
-            onSortChange={setSort}
-            onReset={resetFilters}
-          />
+          <div className={activeKind === "resort" ? "resort-desktop-layout" : undefined}>
+            {activeKind === "resort" ? (
+              <ResortDesktopSidebar
+                config={config}
+                query={query}
+                filters={filters}
+                onQueryChange={setQuery}
+                onFiltersChange={setFilters}
+                onReset={resetFilters}
+              />
+            ) : null}
 
-          <PortfolioResultsBar
-            config={config}
-            resultCount={filteredItems.length}
-            total={portfolioItems.length}
-            hasActive={hasActive}
-            onReset={resetFilters}
-          />
+            <div className="portfolio-results-main">
+              <PortfolioFilters
+                config={config}
+                query={query}
+                filters={filters}
+                sort={sort}
+                mobileOpen={filtersOpen}
+                onMobileOpenChange={setFiltersOpen}
+                onQueryChange={setQuery}
+                onFiltersChange={setFilters}
+                onSortChange={setSort}
+                onReset={resetFilters}
+              />
 
-          {isFiltering ? (
-            <PortfolioGrid>
-              {Array.from({ length: 10 }).map((_, index) => (
-                <PortfolioSkeletonCard key={index} />
-              ))}
-            </PortfolioGrid>
-          ) : filteredItems.length ? (
-            <>
-              <div id="portfolio-grid">
+              <PortfolioResultsBar
+                config={config}
+                resultCount={filteredItems.length}
+                total={portfolioItems.length}
+                hasActive={hasActive}
+                onReset={resetFilters}
+              />
+
+              {isFiltering ? (
                 <PortfolioGrid>
-                  {visibleItems.map((item, index) => (
-                    <PortfolioCard key={item.id} item={item} config={config} priority={index === 0} />
+                  {Array.from({ length: 10 }).map((_, index) => (
+                    <PortfolioSkeletonCard key={index} />
                   ))}
                 </PortfolioGrid>
-              </div>
-              {visibleCount < filteredItems.length ? (
-                <div className="portfolio-load-more">
-                  <button type="button" onClick={() => setVisibleCount((count) => count + initialVisibleCount)}>
-                    Load More {config.label}
-                    <ChevronDown size={16} />
-                  </button>
-                </div>
-              ) : null}
-            </>
-          ) : (
-            <PortfolioEmptyState config={config} onReset={resetFilters} />
-          )}
+              ) : filteredItems.length ? (
+                <>
+                  <div id="portfolio-grid">
+                    <PortfolioGrid>
+                      {visibleItems.map((item, index) => (
+                        <PortfolioCard key={item.id} item={item} config={config} priority={index === 0} />
+                      ))}
+                    </PortfolioGrid>
+                  </div>
+                  {visibleCount < filteredItems.length ? (
+                    <div className="portfolio-load-more">
+                      <button type="button" onClick={() => setVisibleCount((count) => count + initialVisibleCount)}>
+                        Load More {config.label}
+                        <ChevronDown size={16} />
+                      </button>
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <PortfolioEmptyState config={config} onReset={resetFilters} />
+              )}
+            </div>
+          </div>
         </div>
       </section>
     </main>

@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Search } from "lucide-react";
+import { ChevronDown, MapPin, Plane, Search, Ship, SlidersHorizontal, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -146,7 +146,8 @@ function matchesFilter(item: DestinationItem, filter: string) {
 export function MobileDestinations({ resorts }: MobileDestinationsProps) {
   const [activeTab, setActiveTab] = useState<DestinationTab>("resorts");
   const [activeFilter, setActiveFilter] = useState("All");
-  const [query, setQuery] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [sort, setSort] = useState<"recommended" | "az">("recommended");
 
   const resortItems = useMemo<DestinationItem[]>(
     () => resorts.map((resort, index) => ({
@@ -170,32 +171,54 @@ export function MobileDestinations({ resorts }: MobileDestinationsProps) {
       : liveaboardItems;
 
   const visibleItems = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return activeItems.filter((item) => {
-      const matchesQuery = !normalizedQuery || [item.name, item.location, item.category, item.description]
-        .join(" ")
-        .toLowerCase()
-        .includes(normalizedQuery);
-      return matchesQuery && matchesFilter(item, activeFilter);
-    });
-  }, [activeFilter, activeItems, query]);
+    const filtered = activeItems.filter((item) => matchesFilter(item, activeFilter));
+    return sort === "az" ? [...filtered].sort((left, right) => left.name.localeCompare(right.name)) : filtered;
+  }, [activeFilter, activeItems, sort]);
 
   function selectTab(tab: DestinationTab) {
     setActiveTab(tab);
     setActiveFilter("All");
-    setQuery("");
+    setSort("recommended");
+  }
+
+  function tabIcon(tab: DestinationTab) {
+    if (tab === "resorts") {
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 21V10M12 10C12 7 9.8 5 6.5 4.8 7 8 9 10 12 10Zm0 0c0-3 2.2-5 5.5-5.2C17 8 15 10 12 10Zm0 0c-1.6-2-1.6-4.2 0-6 1.6 1.8 1.6 4 0 6Z" />
+        </svg>
+      );
+    }
+    if (tab === "hotels") {
+      return (
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 20V8h10v12M14 12h6v8M7 11h3M7 15h3M17 15h1M2 20h20" />
+        </svg>
+      );
+    }
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 15h16l-2.5 4H7L4 15Zm3-3h10l-1.5-5h-7L7 12ZM12 7V3M9 3h6" />
+      </svg>
+    );
+  }
+
+  function TransferIcon({ label }: { label: string }) {
+    return /seaplane|airport/i.test(label) ? <Plane aria-hidden="true" /> : <Ship aria-hidden="true" />;
   }
 
   return (
     <main className="mobile-screen mobile-resorts">
       <section className="mobile-hero mobile-hero--destinations">
         <div className="mobile-hero__content">
+          <span>Explore</span>
           <h1>Discover More Than Paradise</h1>
-          <p>Curated island stays and voyages across the Maldives</p>
+          <p>Curated island stays and voyages across the Maldives, selected for remarkable journeys and confident partner planning.</p>
         </div>
       </section>
 
       <nav className="mobile-subtabs" aria-label="Destination categories">
+        <span className={`mobile-subtabs__indicator mobile-subtabs__indicator--${activeTab}`} aria-hidden="true" />
         {(Object.keys(tabLabels) as DestinationTab[]).map((tab) => (
           <button
             type="button"
@@ -204,40 +227,30 @@ export function MobileDestinations({ resorts }: MobileDestinationsProps) {
             onClick={() => selectTab(tab)}
             key={tab}
           >
+            {tabIcon(tab)}
             {tabLabels[tab]}
           </button>
         ))}
       </nav>
 
       <div className="mobile-destination-tools">
-        <label className="mobile-search-field">
-          <Search aria-hidden="true" size={16} />
-          <span className="mobile-visually-hidden">Search {tabLabels[activeTab]}</span>
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={`Search ${tabLabels[activeTab].toLowerCase()}`}
-          />
+        <button type="button" className="mobile-explore-filter" onClick={() => setFiltersOpen(true)}>
+          <SlidersHorizontal aria-hidden="true" />
+          Filters
+          {activeFilter !== "All" ? <i aria-hidden="true" /> : null}
+        </button>
+        <label className="mobile-explore-sort">
+          <span>Sort: <strong>{sort === "recommended" ? "Recommended" : "A–Z"}</strong></span>
+          <ChevronDown aria-hidden="true" />
+          <select value={sort} onChange={(event) => setSort(event.target.value as "recommended" | "az")} aria-label="Sort destinations">
+            <option value="recommended">Recommended</option>
+            <option value="az">A–Z</option>
+          </select>
         </label>
-
-        <div className="mobile-chip-row" aria-label={`${tabLabels[activeTab]} filters`}>
-          {tabFilters[activeTab].map((filter) => (
-            <button
-              type="button"
-              className={filter === activeFilter ? "is-active" : ""}
-              aria-pressed={filter === activeFilter}
-              onClick={() => setActiveFilter(filter)}
-              key={filter}
-            >
-              {filter}
-            </button>
-          ))}
-        </div>
       </div>
 
       <p className="mobile-count">
-        <strong>{visibleItems.length}</strong> {tabLabels[activeTab].toLowerCase()} available
+        Showing <strong>{visibleItems.length}</strong> {tabLabels[activeTab]}
       </p>
 
       {visibleItems.length ? (
@@ -246,19 +259,15 @@ export function MobileDestinations({ resorts }: MobileDestinationsProps) {
             <Link href={item.href} className="mobile-resort-card" key={item.id}>
               <div className="mobile-resort-card__image">
                 <img src={item.imageUrl} alt={item.name} loading="lazy" />
-                <span className="mobile-resort-card__badge">{item.category}</span>
-                <span className="mobile-resort-card__transfer">{item.transfer}</span>
               </div>
               <div className="mobile-resort-card__body">
-                <p>
-                  <MapPin aria-hidden="true" size={10} />
-                  <span>{item.location}</span>
-                </p>
+                <span className="mobile-resort-card__category">{item.category}</span>
                 <h2>{item.name}</h2>
-                <span>{item.description}</span>
-                <div className="mobile-tag-row">
-                  {item.tags.map((tag) => <em key={tag}>{tag}</em>)}
-                </div>
+                <p>
+                  <span><MapPin aria-hidden="true" />{item.location}</span>
+                  <i aria-hidden="true" />
+                  <span><TransferIcon label={item.transfer} />{item.transfer}</span>
+                </p>
               </div>
             </Link>
           ))}
@@ -270,6 +279,34 @@ export function MobileDestinations({ resorts }: MobileDestinationsProps) {
           <span>Try another search or filter.</span>
         </div>
       )}
+
+      {filtersOpen ? (
+        <div className="mobile-explore-sheet" role="dialog" aria-modal="true" aria-label={`${tabLabels[activeTab]} filters`}>
+          <button type="button" className="mobile-explore-sheet__backdrop" onClick={() => setFiltersOpen(false)} aria-label="Close filters" />
+          <div className="mobile-explore-sheet__panel">
+            <i className="mobile-explore-sheet__handle" aria-hidden="true" />
+            <header>
+              <h2>Filters</h2>
+              <button type="button" onClick={() => setFiltersOpen(false)} aria-label="Close filters"><X /></button>
+            </header>
+            <div className="mobile-explore-sheet__options">
+              <span>{tabLabels[activeTab]} options</span>
+              {tabFilters[activeTab].map((filter) => (
+                <button
+                  type="button"
+                  className={filter === activeFilter ? "is-active" : ""}
+                  aria-pressed={filter === activeFilter}
+                  onClick={() => setActiveFilter(filter)}
+                  key={filter}
+                >
+                  {filter}<i aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+            <button type="button" className="mobile-explore-sheet__apply" onClick={() => setFiltersOpen(false)}>Apply Filters</button>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
