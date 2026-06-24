@@ -766,84 +766,6 @@ function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem
   );
 }
 
-function ResortDesktopSidebar({
-  config,
-  query,
-  filters,
-  onQueryChange,
-  onFiltersChange,
-  onReset
-}: {
-  config: PortfolioConfig;
-  query: string;
-  filters: PortfolioFiltersState;
-  onQueryChange: (value: string) => void;
-  onFiltersChange: (filters: PortfolioFiltersState) => void;
-  onReset: () => void;
-}) {
-  const groups = [
-    { label: "Category", key: "category" as const, allLabel: "All Categories", options: config.categoryOptions },
-    { label: "Atoll", key: "location" as const, allLabel: "All Atolls", options: config.locationOptions }
-  ];
-
-  return (
-    <aside className="resort-desktop-sidebar" aria-label="Resort filters">
-      <div className="resort-sidebar-section">
-        <span className="resort-sidebar-label">Search</span>
-        <label className="resort-sidebar-search">
-          <Search size={14} aria-hidden="true" />
-          <input
-            value={query}
-            onChange={(event) => onQueryChange(event.target.value)}
-            placeholder="Search resorts..."
-            aria-label="Search resorts"
-          />
-        </label>
-      </div>
-
-      {groups.map((group) => (
-        <fieldset className="resort-sidebar-section" key={group.key}>
-          <legend className="resort-sidebar-label">{group.label}</legend>
-          <div className="resort-sidebar-options">
-            {[{ label: group.allLabel, value: "" }, ...group.options.map((option) => ({ label: option, value: option }))].map((option) => (
-              <button
-                type="button"
-                className={filters[group.key] === option.value ? "is-active" : ""}
-                aria-pressed={filters[group.key] === option.value}
-                onClick={() => onFiltersChange({ ...filters, [group.key]: option.value })}
-                key={`${group.key}-${option.value || "all"}`}
-              >
-                <span>{option.label}</span>
-                <i aria-hidden="true" />
-              </button>
-            ))}
-          </div>
-        </fieldset>
-      ))}
-
-      <fieldset className="resort-sidebar-section">
-        <legend className="resort-sidebar-label">Transfer</legend>
-        <div className="resort-transfer-options">
-          {[{ label: "All", value: "" }, ...config.transferOptions.map((option) => ({ label: option, value: option }))].map((option) => (
-            <button
-              type="button"
-              className={filters.transfer === option.value ? "is-active" : ""}
-              aria-pressed={filters.transfer === option.value}
-              onClick={() => onFiltersChange({ ...filters, transfer: option.value })}
-              key={option.value || "all"}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-        <button type="button" className="resort-sidebar-reset" onClick={onReset}>
-          Reset All Filters
-        </button>
-      </fieldset>
-    </aside>
-  );
-}
-
 function PortfolioSkeletonCard() {
   return (
     <article className="portfolio-card portfolio-card--skeleton" aria-hidden="true">
@@ -1031,7 +953,7 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
         />
         <div className="site-container destination-hero__content">
           <div className="destination-hero__copy">
-            <p className="lux-eyebrow">{config.eyebrow}</p>
+            <p className="lux-eyebrow">{activeKind === "resort" ? "Our Resort Portfolio" : config.eyebrow}</p>
             <h1>{config.title}</h1>
             <span className="destination-title-rule" aria-hidden="true" />
             <p>{config.body}</p>
@@ -1047,6 +969,8 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
                 <i aria-hidden="true" />
                 <span><strong>{new Set(portfolioItems.map((item) => item.location)).size}</strong>Atolls Covered</span>
                 <i aria-hidden="true" />
+                <span><strong>17+</strong>Years Experience</span>
+                <i aria-hidden="true" />
                 <span><strong>100%</strong>Partner Ready</span>
               </div>
             ) : null}
@@ -1055,11 +979,6 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
       </section>
 
       <section className="destination-results portfolio-results" id="destination-results">
-        {activeKind === "resort" ? (
-          <div className="resort-desktop-breadcrumb">
-            <Link href="/">Home</Link><span aria-hidden="true">›</span><strong>Resorts</strong>
-          </div>
-        ) : null}
         <div className="site-container">
           <DestinationMobileTabs activeKind={activeKind} />
 
@@ -1070,17 +989,6 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
           </div>
 
           <div className={activeKind === "resort" ? "resort-desktop-layout" : undefined}>
-            {activeKind === "resort" ? (
-              <ResortDesktopSidebar
-                config={config}
-                query={query}
-                filters={filters}
-                onQueryChange={setQuery}
-                onFiltersChange={setFilters}
-                onReset={resetFilters}
-              />
-            ) : null}
-
             <div className="portfolio-results-main">
               <PortfolioFilters
                 config={config}
@@ -1102,6 +1010,13 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
                 hasActive={hasActive}
                 onReset={resetFilters}
               />
+
+              {activeKind === "resort" ? (
+                <div className="resort-desktop-section-heading">
+                  <p>Resort Portfolio</p>
+                  <h2>Curated for Confident Partner Conversations</h2>
+                </div>
+              ) : null}
 
               {isFiltering ? (
                 <PortfolioGrid>
