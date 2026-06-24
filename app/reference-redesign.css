@@ -1,0 +1,108 @@
+.desktop-screen{display:block}.mobile-screen{display:none}.portfolio-card__media{position:absolute;inset:0;display:block;overflow:hidden}.portfolio-card__media>img{width:100%;height:100%;object-fit:cover}.portfolio-card__description,.portfolio-card__view,.resort-hero-stats,.resort-desktop-breadcrumb,.resort-desktop-sidebar{display:none}
+
+@media (min-width:769px){
+body:not(.admin-body) .portfolio-page--resort{--rd-teal:#234f52;--rd-teal-light:#ebf2f2;--rd-ink:#16201f;--rd-page:#f7f9f8;--rd-mist:#7c8a86;--rd-mist-light:#dce2e0;--rd-line:#e4e8e6;background:var(--rd-page)}
+body:not(.admin-body) .portfolio-page--resort .portfolio-hero{height:420px;min-height:420px;padding:0;background:linear-gradient(105deg,#0c2629 0%,#1a3d3f 42%,#234f52 72%,#2d6469 100%)}
+body:not(.admin-body) .portfolio-page--resort .portfolio-hero .destination-hero__image{display:none}
+body:not(.admin-body) .portfolio-page--resort .portfolio-hero::after{content:"";position:absolute;inset:0;opacity:.08;background-image:repeating-linear-gradient(0deg,transparent,transparent 60px,rgba(255,255,255,.08) 60px,rgba(255,255,255,.08) 61px),repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(255,255,255,.08) 60px,rgba(255,255,255,.08) 61px)}
+body:not(.admin-body) .portfolio-page--resort .portfolio-hero .destination-hero__content{position:relative;z-index:2;min-height:420px;align-items:flex-end;max-width:none;padding:0 48px 48px}
+body:not(.admin-body) .portfolio-page--resort .portfolio-hero .destination-hero__copy{max-width:760px}
+body:not(.admin-body) .portfolio-page--resort .portfolio-hero .lux-eyebrow{margin-bottom:14px;color:rgba(255,255,255,.55);font-size:10.5px;font-weight:500;letter-spacing:.24em}
+body:not(.admin-body) .portfolio-page--resort .portfolio-hero .destination-hero__copy h1{max-width:700px;margin:0 0 16px;color:#fff;font-size:clamp(46px,4.2vw,58px);font-weight:600;line-height:1.02}
+body:not(.admin-body) .portfolio-page--resort .portfolio-hero .destination-hero__copy p:not(.lux-eyebrow){max-width:560px;margin:0 0 24px;color:rgba(255,255,255,.7);font-size:14px;line-height:1.65}
+body:not(.admin-body) .portfolio-page--resort .destination-hero__actions{display:none}
+body:not(.admin-body) .portfolio-page--resort .resort-hero-stats{display:flex;align-items:center;gap:28px}
+body:not(.admin-body) .portfolio-page--resort .resort-hero-stats span{display:grid;gap:4px;color:rgba(255,255,255,.5);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+body:not(.admin-body) .portfolio-page--resort .resort-hero-stats strong{color:#fff;font-family:var(--font-serif),Georgia,serif;font-size:28px;font-weight:600;letter-spacing:0;line-height:1;text-transform:none}
+body:not(.admin-body) .portfolio-page--resort .resort-hero-stats>i{width:1px;height:32px;background:rgba(255,255,255,.15)}
+body:not(.admin-body) .portfolio-page--resort .portfolio-results{padding:0 0 64px;background:var(--rd-page)}
+body:not(.admin-body) .portfolio-page--resort .resort-desktop-breadcrumb{display:flex;align-items:center;gap:8px;padding:14px 48px;border-bottom:1px solid var(--rd-line);background:#fff;color:var(--rd-mist);font-size:11px;letter-spacing:.04em}
+body:not(.admin-body) .portfolio-page--resort .resort-desktop-breadcrumb a{color:inherit;text-decoration:none}
+body:not(.admin-body) .portfolio-page--resort .resort-desktop-breadcrumb strong{color:var(--rd-ink);font-weight:400}
+body:not(.admin-body) .portfolio-page--resort .portfolio-results>.site-container{width:100%;max-width:none;padding:0}
+body:not(.admin-body) .portfolio-page--resort .destination-mobile-tabs,body:not(.admin-body) .portfolio-page--resort .portfolio-heading{display:none}
+body:not(.admin-body) .portfolio-page--resort .resort-desktop-layout{display:grid;grid-template-columns:280px minmax(0,1fr);align-items:start}
+body:not(.admin-body) .portfolio-page--resort .resort-desktop-sidebar{position:sticky;top:72px;display:block;max-height:calc(100vh - 72px);overflow-y:auto;border-right:1px solid var(--rd-line);background:#fff;scrollbar-width:none}
+body:not(.admin-body) .portfolio-page--resort .resort-sidebar-section{display:block;margin:0;padding:24px;border:0;border-bottom:1px solid var(--rd-line)}
+body:not(.admin-body) .portfolio-page--resort .resort-sidebar-label{display:block;margin:0 0 13px;padding:0;color:#a5afac;font-size:9.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
+body:not(.admin-body) .portfolio-page--resort .resort-sidebar-search{position:relative;display:block}
+body:not(.admin-body) .portfolio-page--resort .resort-sidebar-search svg{position:absolute;top:50%;left:12px;transform:translateY(-50%);color:var(--rd-mist)}
+body:not(.admin-body) .portfolio-page--resort .resort-sidebar-search input{width:100%;min-height:40px;padding:0 12px 0 36px;border:1px solid var(--rd-line);border-radius:3px;outline:0;background:var(--rd-page);color:var(--rd-ink);font:inherit;font-size:13px}
+body:not(.admin-body) .portfolio-page--resort .resort-sidebar-search input:focus{border-color:var(--rd-teal)}
+body:not(.admin-body) .portfolio-page--resort .resort-sidebar-options{display:grid;gap:2px}
+body:not(.admin-body) .portfolio-page--resort .resort-sidebar-options button{display:flex;width:100%;min-height:34px;align-items:center;justify-content:space-between;padding:7px 10px;border:0;border-radius:3px;background:transparent;color:var(--rd-ink);font-size:12.5px;text-align:left}
+body:not(.admin-body) .portfolio-page--resort .resort-sidebar-options button:hover,body:not(.admin-body) .portfolio-page--resort .resort-sidebar-options button.is-active{background:var(--rd-teal-light);color:var(--rd-teal)}
+body:not(.admin-body) .portfolio-page--resort .resort-sidebar-options i{position:relative;width:16px;height:16px;flex:0 0 auto;border:1.5px solid var(--rd-mist-light);border-radius:50%}
+body:not(.admin-body) .portfolio-page--resort .resort-sidebar-options button.is-active i{border-color:var(--rd-teal)}
+body:not(.admin-body) .portfolio-page--resort .resort-sidebar-options button.is-active i::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--rd-teal)}
+body:not(.admin-body) .portfolio-page--resort .resort-transfer-options{display:flex;flex-wrap:wrap;gap:8px}
+body:not(.admin-body) .portfolio-page--resort .resort-transfer-options button{min-height:31px;padding:0 11px;border:1px solid var(--rd-line);border-radius:20px;background:var(--rd-page);color:var(--rd-mist);font-size:11px}
+body:not(.admin-body) .portfolio-page--resort .resort-transfer-options button.is-active{border-color:var(--rd-teal);background:var(--rd-teal-light);color:var(--rd-teal)}
+body:not(.admin-body) .portfolio-page--resort .resort-sidebar-reset{width:100%;min-height:38px;margin-top:18px;border:1px solid var(--rd-line);border-radius:3px;background:#fff;color:var(--rd-mist);font-size:10.5px;font-weight:500;letter-spacing:.07em;text-transform:uppercase}
+body:not(.admin-body) .portfolio-page--resort .portfolio-results-main{min-width:0;padding:28px 40px 60px}
+body:not(.admin-body) .portfolio-page--resort .portfolio-controls{float:right;margin:0 0 20px}
+body:not(.admin-body) .portfolio-page--resort .portfolio-filter-row{display:block}
+body:not(.admin-body) .portfolio-page--resort .portfolio-search,body:not(.admin-body) .portfolio-page--resort .portfolio-filter-row__desktop>:not(.portfolio-select--sort){display:none}
+body:not(.admin-body) .portfolio-page--resort .portfolio-filter-row__desktop{display:block}
+body:not(.admin-body) .portfolio-page--resort .portfolio-select--sort{width:190px;min-height:36px;border-radius:3px;font-size:12px}
+body:not(.admin-body) .portfolio-page--resort .portfolio-results-bar{min-height:36px;margin:0 0 20px;color:var(--rd-mist);font-size:12px;letter-spacing:.04em}
+body:not(.admin-body) .portfolio-page--resort .portfolio-results-bar strong{color:var(--rd-teal);font-size:14px}
+body:not(.admin-body) .portfolio-page--resort .portfolio-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:24px 20px}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card{overflow:hidden;aspect-ratio:auto;border:1px solid var(--rd-line);border-radius:3px;background:#fff;box-shadow:none}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card__link{position:relative;inset:auto;display:flex;height:100%;flex-direction:column}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card__media{position:relative;inset:auto;aspect-ratio:4/5;background:#d5dcda}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card__overlay{display:flex;flex-direction:column;justify-content:flex-end;padding:20px 18px;opacity:0;background:linear-gradient(180deg,rgba(12,38,41,0) 35%,rgba(12,38,41,.9) 100%);transition:opacity .35s ease}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card:hover .portfolio-card__overlay{opacity:1}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card__description{display:-webkit-box;margin-bottom:14px;overflow:hidden;color:rgba(255,255,255,.88);font-size:12px;line-height:1.55;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card__view{display:inline-block;align-self:flex-start;padding-bottom:3px;border-bottom:1px solid rgba(255,255,255,.5);color:#fff;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card__text{position:relative;inset:auto;display:flex;flex:1;flex-direction:column;padding:16px 18px 18px;color:var(--rd-ink)}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card__badge{position:static;display:block;max-width:100%;margin:0 0 6px;padding:0;overflow:hidden;border-radius:0;background:transparent;color:var(--rd-teal);font-size:9px;font-weight:600;letter-spacing:.12em;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap;backdrop-filter:none}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card__badge svg{display:none}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card__title{flex:1;margin:0 0 8px;color:var(--rd-ink);font-size:17px;font-weight:600;line-height:1.22}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card__meta{gap:7px;color:var(--rd-mist);font-size:10px;font-weight:400}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card__meta>span+span::before{content:"";width:1px;height:11px;margin-right:3px;background:var(--rd-mist-light)}
+}
+
+@media (max-width:768px){
+.desktop-screen{display:none!important}.mobile-screen{display:block!important}
+body:not(.admin-body) .portfolio-page .portfolio-card__media{position:relative!important;inset:auto!important;display:block!important;aspect-ratio:3/4!important;border-radius:2px!important}
+body:not(.admin-body) .portfolio-page .portfolio-card__media>img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important}
+body:not(.admin-body) .portfolio-page .portfolio-card__media .portfolio-card__overlay{display:none!important}
+.mobile-resorts{--ex-ink:#16201f;--ex-teal:#234f52;--ex-mist:#7c8a86;--ex-mist-light:#dce2e0;--ex-line:#e4e8e6;padding-bottom:calc(72px + env(safe-area-inset-bottom));background:#fff!important;color:var(--ex-ink)}
+.mobile-resorts .mobile-hero--destinations{min-height:0;padding:34px 24px 26px;background:#fff}
+.mobile-resorts .mobile-hero--destinations::before,.mobile-resorts .mobile-hero--destinations::after{display:none}
+.mobile-resorts .mobile-hero__content{position:relative;inset:auto;padding:0;color:var(--ex-ink)}
+.mobile-resorts .mobile-hero__content>span{display:block;margin-bottom:12px;color:var(--ex-mist);font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase}
+.mobile-resorts .mobile-hero__content h1{max-width:320px;margin:0 0 12px;color:var(--ex-ink);font-family:var(--font-serif),Georgia,serif;font-size:30px;font-weight:600;line-height:1.1}
+.mobile-resorts .mobile-hero__content p{max-width:315px;margin:0;color:#5d6b68;font-size:12.5px;line-height:1.65}
+.mobile-resorts .mobile-subtabs{position:relative;display:flex;margin:4px 22px 22px;padding:4px;overflow:hidden;border:1px solid var(--ex-line);border-radius:50px;background:#f0f3f3}
+.mobile-resorts .mobile-subtabs__indicator{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/3);border-radius:40px;background:var(--ex-teal);box-shadow:0 4px 14px -4px rgba(35,79,82,.38);transition:transform .36s cubic-bezier(.3,.8,.25,1)}
+.mobile-resorts .mobile-subtabs__indicator--hotels{transform:translateX(100%)}.mobile-resorts .mobile-subtabs__indicator--liveaboards{transform:translateX(200%)}
+.mobile-resorts .mobile-subtabs button{position:relative;z-index:1;display:flex;flex:1;flex-direction:column;align-items:center;gap:4px;padding:10px 4px 9px;border:0;background:transparent;color:var(--ex-mist);font-size:9.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.mobile-resorts .mobile-subtabs button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.mobile-resorts .mobile-subtabs button.is-active{color:#fff;font-weight:600}
+.mobile-resorts .mobile-destination-tools{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:13px 22px;border-top:1px solid var(--ex-line);border-bottom:1px solid var(--ex-line);background:#fff}
+.mobile-resorts .mobile-explore-filter,.mobile-resorts .mobile-explore-sort{position:relative;display:inline-flex;min-height:24px;align-items:center;gap:7px;border:0;background:transparent;color:var(--ex-ink);font-size:10.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.mobile-resorts .mobile-explore-filter svg{width:13px;height:13px;stroke-width:1.5}.mobile-resorts .mobile-explore-filter>i{width:5px;height:5px;border-radius:50%;background:var(--ex-teal)}
+.mobile-resorts .mobile-explore-sort{gap:4px;color:var(--ex-mist);letter-spacing:.04em;text-transform:none}.mobile-resorts .mobile-explore-sort strong{color:var(--ex-ink);font-weight:600}.mobile-resorts .mobile-explore-sort svg{width:10px;height:10px}.mobile-resorts .mobile-explore-sort select{position:absolute;inset:0;width:100%;opacity:0}
+.mobile-resorts .mobile-count{margin:0;padding:16px 22px 10px;color:var(--ex-mist-light);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase}.mobile-resorts .mobile-count strong{color:var(--ex-teal);font-weight:700}
+.mobile-resorts .mobile-card-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:24px 12px!important;padding:8px 16px 36px!important}
+.mobile-resorts .mobile-resort-card{min-width:0;overflow:visible!important;border:0!important;border-radius:0!important;background:#fff!important;box-shadow:none!important}
+.mobile-resorts .mobile-resort-card__image{aspect-ratio:3/4!important;border-radius:3px!important;background:#edf1f0}.mobile-resorts .mobile-resort-card__image::after{display:none!important}
+.mobile-resorts .mobile-resort-card__image img{filter:brightness(.95) contrast(1.04) saturate(1.06);transition:transform .7s cubic-bezier(.2,.7,.3,1)}.mobile-resorts .mobile-resort-card:active .mobile-resort-card__image img{transform:scale(1.04)}
+.mobile-resorts .mobile-resort-card__body{display:flex!important;min-width:0;flex-direction:column;gap:5px;padding:12px 2px 0!important}
+.mobile-resorts .mobile-resort-card__category{display:block;overflow:hidden;color:var(--ex-teal);font-size:8.5px;font-weight:600;letter-spacing:.11em;line-height:1.2;text-overflow:ellipsis;text-transform:uppercase;white-space:nowrap}
+.mobile-resorts .mobile-resort-card__body h2{min-height:39px;margin:0!important;color:var(--ex-ink)!important;font-family:var(--font-serif),Georgia,serif!important;font-size:16px!important;font-weight:600!important;line-height:1.22!important}
+.mobile-resorts .mobile-resort-card__body p{display:flex!important;min-width:0;align-items:center;gap:4px;margin:auto 0 0!important;padding-top:2px;color:var(--ex-mist);font-size:9px!important;letter-spacing:.02em;line-height:1.2}
+.mobile-resorts .mobile-resort-card__body p>span{display:flex;min-width:0;align-items:center;gap:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mobile-resorts .mobile-resort-card__body p>span:last-child{color:#abb4b1}.mobile-resorts .mobile-resort-card__body p>i{width:1px;height:9px;flex:0 0 auto;background:var(--ex-mist-light)}
+.mobile-resorts .mobile-resort-card__body p svg{width:9px!important;height:9px!important;flex:0 0 auto;color:#b7c0bd!important;stroke-width:1.8!important}
+.mobile-explore-sheet{position:fixed;inset:0;z-index:200}.mobile-explore-sheet__backdrop{position:absolute;inset:0;width:100%;border:0;background:rgba(22,32,31,.45)}
+.mobile-explore-sheet__panel{position:absolute;right:0;bottom:0;left:0;max-height:82vh;overflow-y:auto;padding:12px 0 calc(30px + env(safe-area-inset-bottom));border-radius:16px 16px 0 0;background:#fff}
+.mobile-explore-sheet__handle{display:block;width:32px;height:3px;margin:0 auto 20px;border-radius:2px;background:var(--ex-line)}
+.mobile-explore-sheet__panel header{display:flex;align-items:center;justify-content:space-between;padding:0 24px 18px;border-bottom:1px solid var(--ex-line)}.mobile-explore-sheet__panel header h2{margin:0;font-family:var(--font-serif),Georgia,serif;font-size:22px;font-weight:600}.mobile-explore-sheet__panel header button{border:0;background:transparent;color:var(--ex-mist)}.mobile-explore-sheet__panel header svg{width:18px;height:18px}
+.mobile-explore-sheet__options{padding:16px 24px}.mobile-explore-sheet__options>span{display:block;margin-bottom:8px;color:var(--ex-mist);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase}
+.mobile-explore-sheet__options button{display:flex;width:100%;min-height:42px;align-items:center;justify-content:space-between;border:0;background:transparent;color:var(--ex-ink);font-size:13px;text-align:left}
+.mobile-explore-sheet__options button>i{position:relative;width:14px;height:14px;border:1.5px solid var(--ex-mist-light);border-radius:50%}.mobile-explore-sheet__options button.is-active{color:var(--ex-teal)}.mobile-explore-sheet__options button.is-active>i{border-color:var(--ex-teal)}.mobile-explore-sheet__options button.is-active>i::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--ex-teal)}
+.mobile-explore-sheet__apply{width:calc(100% - 48px);min-height:44px;margin:4px 24px 0;border:0;border-radius:4px;background:var(--ex-teal);color:#fff;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+}
+
+@media (max-width:340px){.mobile-resorts .mobile-card-list{grid-template-columns:1fr!important}}
