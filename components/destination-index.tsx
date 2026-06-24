@@ -743,9 +743,14 @@ function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem
             <span className="portfolio-card__description">{item.summary}</span>
             <span className="portfolio-card__view">View {config.singular}</span>
           </span>
+          {item.type === "resort" ? (
+            <span className="portfolio-card__badge portfolio-card__badge--image">
+              {item.category}
+            </span>
+          ) : null}
         </span>
         <span className="portfolio-card__text">
-          <span className="portfolio-card__badge">
+          <span className="portfolio-card__badge portfolio-card__badge--text">
             <BadgeCheck size={12} aria-hidden="true" />
             {item.category}
           </span>
