@@ -1,4 +1,5 @@
 .desktop-screen{display:block}.mobile-screen{display:none}.portfolio-card__media{position:absolute;inset:0;display:block;overflow:hidden}.portfolio-card__media>img{width:100%;height:100%;object-fit:cover}.portfolio-card__description,.portfolio-card__view,.resort-hero-stats,.resort-desktop-breadcrumb,.resort-desktop-sidebar{display:none}
+.portfolio-card__badge--image{display:none}
 
 @media (min-width:769px){
 body:not(.admin-body) .portfolio-page--resort{--rd-teal:#234f52;--rd-teal-light:#ebf2f2;--rd-ink:#16201f;--rd-page:#f7f9f8;--rd-mist:#7c8a86;--rd-mist-light:#dce2e0;--rd-line:#e4e8e6;background:var(--rd-page)}
@@ -157,6 +158,8 @@ body:not(.admin-body) .portfolio-page--resort .portfolio-card__media{aspect-rati
 body:not(.admin-body) .portfolio-page--resort .portfolio-card__media>img{filter:brightness(.97) contrast(1.02) saturate(1.04)}
 body:not(.admin-body) .portfolio-page--resort .portfolio-card__text{padding:16px 0 4px}
 body:not(.admin-body) .portfolio-page--resort .portfolio-card__badge{position:absolute;top:14px;left:14px;z-index:2;width:auto;max-width:calc(100% - 28px);margin:0;padding:4px 9px;border-radius:1px;background:rgba(237,244,244,.9);color:var(--rd-teal);font-size:8.5px;backdrop-filter:blur(4px)}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card__badge--image{display:block}
+body:not(.admin-body) .portfolio-page--resort .portfolio-card__badge--text{display:none}
 body:not(.admin-body) .portfolio-page--resort .portfolio-card__title{margin-bottom:6px;font-size:17px}
 body:not(.admin-body) .portfolio-page--resort .portfolio-card__meta{gap:6px;margin-top:2px;font-size:10px}
 body:not(.admin-body) .portfolio-page--resort .portfolio-load-more{order:4;margin-top:40px}
