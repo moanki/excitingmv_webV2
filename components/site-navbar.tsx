@@ -51,11 +51,17 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     { label: "Contact", href: "/contact", Icon: LifeBuoy },
     { label: "Partners", href: partnerLoginHref, Icon: UserCircle }
   ];
-  const hasMobileHero = pathname === "/" || pathname.startsWith("/resorts") || pathname === "/about";
+  const isExploreListing = /^\/(resorts|hotels|liveaboards)$/.test(pathname);
+  const hasMobileHero =
+    pathname === "/"
+    || pathname.startsWith("/resorts")
+    || pathname.startsWith("/hotels")
+    || pathname.startsWith("/liveaboards")
+    || pathname === "/about";
   const usesHeroOverlayNav =
     pathname === "/" || /^\/(resorts|hotels|liveaboards)\/[^/]+/.test(pathname);
-  const useLightNav = !usesHeroOverlayNav || scrolled;
-  const navClassName = `site-nav${usesHeroOverlayNav ? " is-overlay-route" : ""}${hasMobileHero ? " has-mobile-hero" : ""}${useLightNav ? " is-scrolled is-light" : ""}`;
+  const useLightNav = isMobile && isExploreListing ? scrolled : !usesHeroOverlayNav || scrolled;
+  const navClassName = `site-nav${usesHeroOverlayNav ? " is-overlay-route" : ""}${isExploreListing ? " is-explore-listing" : ""}${hasMobileHero ? " has-mobile-hero" : ""}${useLightNav ? " is-scrolled is-light" : ""}`;
   const activeLogoUrl = isMobile
     ? hasMobileHero && !scrolled
       ? navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl

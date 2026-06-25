@@ -24872,6 +24872,22 @@ html {
   }
 }
 
+/* Mobile Explore banner navigation: transparent over the hero, white after scroll. */
+@media (max-width: 720px) {
+  html body:not(.admin-body):has(main.mobile-explore-v8) header.site-nav.is-explore-listing.has-mobile-hero:not(.is-scrolled) {
+    background: transparent !important;
+    border-bottom-color: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+
+  html body:not(.admin-body):has(main.mobile-explore-v8) header.site-nav.is-explore-listing.has-mobile-hero:not(.is-scrolled) .site-nav__inner {
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
 /* Admin desktop screenshot parity pass
    Scoped to desktop admin only so public website and mobile UI stay unchanged. */
 @media (min-width: 981px) {
