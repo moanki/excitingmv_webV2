@@ -10,7 +10,7 @@ export default async function ResortsPage() {
       <div className="desktop-screen">
         <DestinationIndex activeKind="resort" items={resorts} />
       </div>
-      <MobileDestinations resorts={resorts} />
+      <MobileDestinations activeKind="resort" items={resorts} />
     </>
   );
 }

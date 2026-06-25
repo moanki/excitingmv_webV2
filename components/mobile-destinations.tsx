@@ -1,309 +1,253 @@
 "use client";
 
-import { ChevronDown, MapPin, Plane, Search, Ship, SlidersHorizontal, X } from "lucide-react";
+import { ArrowRight, ChevronDown, MapPin, Plane, Search, Ship, SlidersHorizontal, X } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { optimizedImageUrl } from "@/lib/image-urls";
 import type { ResortSummary } from "@/lib/types";
 
-type DestinationTab = "resorts" | "hotels" | "liveaboards";
-
-type DestinationItem = {
-  id: string;
-  name: string;
-  location: string;
-  category: string;
-  transfer: string;
-  description: string;
-  imageUrl: string;
-  tags: string[];
-  href: string;
-};
+type DestinationKind = "resort" | "hotels" | "liveaboards";
+type SortOption = "recommended" | "az";
 
 type MobileDestinationsProps = {
-  resorts: ResortSummary[];
+  activeKind: DestinationKind;
+  items: ResortSummary[];
 };
 
-const resortFallbackImages = [
+const fallbackImages = [
   "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=900&q=88",
   "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=900&q=88",
   "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=85",
-  "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=900&q=85"
+  "https://images.unsplash.com/photo-1566847438217-76e82d383f84?auto=format&fit=crop&w=900&q=86"
 ];
 
-const hotelItems: DestinationItem[] = [
-  {
-    id: "samann-grand",
-    name: "Samann Grand",
-    location: "Male City",
-    category: "City Hotel",
-    transfer: "Airport Transfer",
-    description: "A polished city stay for convenient arrivals, departures, and short Maldives stopovers.",
-    imageUrl: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=86",
-    tags: ["Male City", "Business", "Airport Transfer"],
-    href: "/contact"
+const kindDetails = {
+  resort: {
+    label: "Resorts",
+    singular: "resort",
+    path: "/resorts",
+    title: "Discover More Than Paradise",
+    subtitle: "Curated for confident partner conversations.",
+    banner: "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/resorts/1777890426234-ff89c105-42a8-44b1-a1a3-f33fe8289e09.jpg"
   },
-  {
-    id: "h78-maldives",
-    name: "H78 Maldives",
-    location: "Hulhumale",
-    category: "Beachfront Hotel",
-    transfer: "Airport Transfer",
-    description: "A relaxed beachfront base close to Velana International Airport and Male.",
-    imageUrl: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=900&q=86",
-    tags: ["Hulhumale", "Beachfront", "Airport Transfer"],
-    href: "/contact"
+  hotels: {
+    label: "Hotels",
+    singular: "hotel",
+    path: "/hotels",
+    title: "City & Island Hotels",
+    subtitle: "Carefully selected hotel partners across the Maldives.",
+    banner: "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/media-library/1779012223137-b55962de-de0d-41f4-8478-34a7aef74fb5.jpg"
   },
-  {
-    id: "jen-maldives",
-    name: "JEN Maldives Male",
-    location: "Male City",
-    category: "City Hotel",
-    transfer: "Airport Transfer",
-    description: "A central city hotel option for efficient transits and business-led partner itineraries.",
-    imageUrl: "https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=900&q=86",
-    tags: ["Male City", "Business", "Transit"],
-    href: "/contact"
-  },
-  {
-    id: "saii-lagoon",
-    name: "SAii Lagoon Maldives",
-    location: "Emboodhoo Lagoon",
-    category: "Lifestyle Hotel",
-    transfer: "Speedboat",
-    description: "A polished lagoon stay suited to short escapes, families, and connected island experiences.",
-    imageUrl: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=900&q=86",
-    tags: ["Lagoon", "Lifestyle", "Speedboat"],
-    href: "/contact"
+  liveaboards: {
+    label: "Liveaboards",
+    singular: "liveaboard",
+    path: "/liveaboards",
+    title: "Liveaboard Charters",
+    subtitle: "Exclusive voyages across the Maldivian archipelago.",
+    banner: "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/media-library/1780215750661-ab0bf4cc-9341-4789-aee5-71065630abef.webp"
   }
-];
+} satisfies Record<DestinationKind, {
+  label: string;
+  singular: string;
+  path: string;
+  title: string;
+  subtitle: string;
+  banner: string;
+}>;
 
-const liveaboardItems: DestinationItem[] = [
-  {
-    id: "scubaspa-ying",
-    name: "Scubaspa Ying",
-    location: "Central Atolls",
-    category: "Luxury Liveaboard",
-    transfer: "7 Nights",
-    description: "A premium dive and wellness voyage combining marine exploration with spa-led relaxation.",
-    imageUrl: "https://images.unsplash.com/photo-1566847438217-76e82d383f84?auto=format&fit=crop&w=900&q=86",
-    tags: ["Diving", "Luxury Yacht", "7 Nights"],
-    href: "/contact"
-  },
-  {
-    id: "maldives-explorer",
-    name: "Maldives Explorer",
-    location: "North & Central Atolls",
-    category: "Adventure Liveaboard",
-    transfer: "10 Nights",
-    description: "An island-hopping itinerary created for diving, surfing, and remote-atoll discovery.",
-    imageUrl: "https://images.unsplash.com/photo-1540946485063-a40da27545f8?auto=format&fit=crop&w=900&q=86",
-    tags: ["Diving", "Surfing", "10 Nights"],
-    href: "/contact"
-  },
-  {
-    id: "emperor-serenity",
-    name: "Emperor Serenity",
-    location: "Central Atolls",
-    category: "Diving Charter",
-    transfer: "7 Nights",
-    description: "A comfortable dive-led vessel for classic Maldives routes and marine-rich itineraries.",
-    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=86",
-    tags: ["Diving", "Central Atolls", "7 Nights"],
-    href: "/contact"
-  },
-  {
-    id: "duke-of-york",
-    name: "Duke of York",
-    location: "South Atolls",
-    category: "Luxury Charter",
-    transfer: "10 Nights",
-    description: "A refined charter-style liveaboard for private groups and extended atoll exploration.",
-    imageUrl: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&w=900&q=86",
-    tags: ["Luxury Yacht", "Private Charter", "10 Nights"],
-    href: "/contact"
+const tabOrder: DestinationKind[] = ["resort", "hotels", "liveaboards"];
+
+function TabIcon({ kind }: { kind: DestinationKind }) {
+  if (kind === "resort") {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5M5.5 10v9a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-9" /></svg>;
   }
-];
-
-const tabFilters: Record<DestinationTab, string[]> = {
-  resorts: ["All", "Seaplane", "Speedboat", "Raa Atoll", "Baa Atoll", "South Male", "Ultra Luxury"],
-  hotels: ["All", "Male City", "Hulhumale", "Airport Transfer", "Business", "Beachfront"],
-  liveaboards: ["All", "Diving", "Surfing", "Luxury Yacht", "7 Nights", "10 Nights"]
-};
-
-const tabLabels: Record<DestinationTab, string> = {
-  resorts: "Resorts",
-  hotels: "Hotels",
-  liveaboards: "Liveaboards"
-};
-
-function matchesFilter(item: DestinationItem, filter: string) {
-  if (filter === "All") return true;
-  const searchable = [item.location, item.category, item.transfer, ...item.tags].join(" ").toLowerCase();
-  return searchable.includes(filter.toLowerCase());
+  if (kind === "hotels") {
+    return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="17" rx="1" /><path d="M4 9h16" /></svg>;
+  }
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17h18M12 3v10M6 13 12 3l6 10H6Z" /></svg>;
 }
 
-export function MobileDestinations({ resorts }: MobileDestinationsProps) {
-  const [activeTab, setActiveTab] = useState<DestinationTab>("resorts");
+function TransferIcon({ label }: { label: string }) {
+  return /seaplane|airport|domestic/i.test(label) ? <Plane aria-hidden="true" /> : <Ship aria-hidden="true" />;
+}
+
+export function MobileDestinations({ activeKind, items }: MobileDestinationsProps) {
+  const details = kindDetails[activeKind];
+  const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [sort, setSort] = useState<"recommended" | "az">("recommended");
+  const [sort, setSort] = useState<SortOption>("recommended");
 
-  const resortItems = useMemo<DestinationItem[]>(
-    () => resorts.map((resort, index) => ({
-      id: resort.id,
-      name: resort.name,
-      location: resort.location || "Maldives",
-      category: resort.category || "Luxury",
-      transfer: resort.transferType || "Transfer",
-      description: resort.summary,
-      imageUrl: resort.heroImageUrl || resortFallbackImages[index % resortFallbackImages.length],
-      tags: [resort.category, resort.transferType, "Partner Ready"].filter(Boolean),
-      href: `/resorts/${resort.slug}`
-    })),
-    [resorts]
-  );
+  useEffect(() => {
+    if (!filtersOpen) return;
 
-  const activeItems = activeTab === "resorts"
-    ? resortItems
-    : activeTab === "hotels"
-      ? hotelItems
-      : liveaboardItems;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setFiltersOpen(false);
+    };
+    document.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [filtersOpen]);
+
+  const filterOptions = useMemo(() => {
+    const options = new Set<string>();
+    items.forEach((item) => {
+      if (item.category) options.add(item.category);
+      if (item.transferType) options.add(item.transferType);
+      if (item.location) options.add(item.location);
+    });
+    return ["All", ...Array.from(options).slice(0, 12)];
+  }, [items]);
 
   const visibleItems = useMemo(() => {
-    const filtered = activeItems.filter((item) => matchesFilter(item, activeFilter));
+    const normalizedQuery = query.trim().toLowerCase();
+    const filtered = items.filter((item) => {
+      const searchable = [item.name, item.location, item.category, item.transferType, item.summary, ...(item.selectionTags ?? [])]
+        .join(" ")
+        .toLowerCase();
+      return (!normalizedQuery || searchable.includes(normalizedQuery))
+        && (activeFilter === "All" || searchable.includes(activeFilter.toLowerCase()));
+    });
     return sort === "az" ? [...filtered].sort((left, right) => left.name.localeCompare(right.name)) : filtered;
-  }, [activeFilter, activeItems, sort]);
-
-  function selectTab(tab: DestinationTab) {
-    setActiveTab(tab);
-    setActiveFilter("All");
-    setSort("recommended");
-  }
-
-  function tabIcon(tab: DestinationTab) {
-    if (tab === "resorts") {
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 21V10M12 10C12 7 9.8 5 6.5 4.8 7 8 9 10 12 10Zm0 0c0-3 2.2-5 5.5-5.2C17 8 15 10 12 10Zm0 0c-1.6-2-1.6-4.2 0-6 1.6 1.8 1.6 4 0 6Z" />
-        </svg>
-      );
-    }
-    if (tab === "hotels") {
-      return (
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 20V8h10v12M14 12h6v8M7 11h3M7 15h3M17 15h1M2 20h20" />
-        </svg>
-      );
-    }
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M4 15h16l-2.5 4H7L4 15Zm3-3h10l-1.5-5h-7L7 12ZM12 7V3M9 3h6" />
-      </svg>
-    );
-  }
-
-  function TransferIcon({ label }: { label: string }) {
-    return /seaplane|airport/i.test(label) ? <Plane aria-hidden="true" /> : <Ship aria-hidden="true" />;
-  }
+  }, [activeFilter, items, query, sort]);
 
   return (
-    <main className="mobile-screen mobile-resorts">
-      <section className="mobile-hero mobile-hero--destinations">
-        <div className="mobile-hero__content">
-          <span>Explore</span>
-          <h1>Discover More Than Paradise</h1>
-          <p>Curated island stays and voyages across the Maldives, selected for remarkable journeys and confident partner planning.</p>
+    <main className={`mobile-screen mobile-resorts mobile-explore-v8 mobile-explore-v8--${activeKind}`}>
+      <section
+        className="mobile-explore-v8__hero"
+        style={{ backgroundImage: `url(${optimizedImageUrl(details.banner, { width: 900, height: 520, quality: 88 })})` }}
+      >
+        <div className="mobile-explore-v8__hero-shade" />
+        <div className="mobile-explore-v8__hero-copy">
+          <span>{details.label}</span>
+          <h1>{details.title}</h1>
+          <p>{details.subtitle}</p>
         </div>
       </section>
 
-      <nav className="mobile-subtabs" aria-label="Destination categories">
-        <span className={`mobile-subtabs__indicator mobile-subtabs__indicator--${activeTab}`} aria-hidden="true" />
-        {(Object.keys(tabLabels) as DestinationTab[]).map((tab) => (
-          <button
-            type="button"
-            className={activeTab === tab ? "is-active" : ""}
-            aria-pressed={activeTab === tab}
-            onClick={() => selectTab(tab)}
-            key={tab}
-          >
-            {tabIcon(tab)}
-            {tabLabels[tab]}
-          </button>
-        ))}
+      <nav className="mobile-explore-v8__tabs" aria-label="Destination categories">
+        {tabOrder.map((kind) => {
+          const tab = kindDetails[kind];
+          return (
+            <Link href={tab.path} className={kind === activeKind ? "is-active" : ""} aria-current={kind === activeKind ? "page" : undefined} key={kind}>
+              <TabIcon kind={kind} />
+              {tab.label}
+            </Link>
+          );
+        })}
       </nav>
 
-      <div className="mobile-destination-tools">
-        <button type="button" className="mobile-explore-filter" onClick={() => setFiltersOpen(true)}>
-          <SlidersHorizontal aria-hidden="true" />
-          Filters
-          {activeFilter !== "All" ? <i aria-hidden="true" /> : null}
-        </button>
-        <label className="mobile-explore-sort">
-          <span>Sort: <strong>{sort === "recommended" ? "Recommended" : "A–Z"}</strong></span>
-          <ChevronDown aria-hidden="true" />
-          <select value={sort} onChange={(event) => setSort(event.target.value as "recommended" | "az")} aria-label="Sort destinations">
-            <option value="recommended">Recommended</option>
-            <option value="az">A–Z</option>
-          </select>
+      <section className="mobile-explore-v8__search">
+        <span>Search the portfolio</span>
+        <label>
+          <Search aria-hidden="true" />
+          <input
+            aria-label={`Search ${details.label.toLowerCase()}`}
+            placeholder="Name, atoll, experience…"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          {query ? <button type="button" onClick={() => setQuery("")}>Clear</button> : null}
         </label>
+      </section>
+
+      <div className="mobile-explore-v8__toolbar">
+        <span>Showing <strong>{visibleItems.length}</strong> {details.label.toLowerCase()}</span>
+        <div>
+          <label className="mobile-explore-v8__sort">
+            <strong>{sort === "recommended" ? "Recommended" : "Name A–Z"}</strong>
+            <ChevronDown aria-hidden="true" />
+            <select value={sort} onChange={(event) => setSort(event.target.value as SortOption)} aria-label={`Sort ${details.label.toLowerCase()}`}>
+              <option value="recommended">Recommended</option>
+              <option value="az">Name A–Z</option>
+            </select>
+          </label>
+          <button type="button" className="mobile-explore-v8__refine" onClick={() => setFiltersOpen(true)}>
+            <SlidersHorizontal aria-hidden="true" />
+            Refine
+            {activeFilter !== "All" ? <i>1</i> : null}
+          </button>
+        </div>
       </div>
 
-      <p className="mobile-count">
-        Showing <strong>{visibleItems.length}</strong> {tabLabels[activeTab]}
-      </p>
+      {activeFilter !== "All" ? (
+        <div className="mobile-explore-v8__tags">
+          <button type="button" onClick={() => setActiveFilter("All")}>{activeFilter}<X aria-hidden="true" /></button>
+        </div>
+      ) : null}
 
       {visibleItems.length ? (
-        <section className="mobile-card-list">
-          {visibleItems.map((item) => (
-            <Link href={item.href} className="mobile-resort-card" key={item.id}>
-              <div className="mobile-resort-card__image">
-                <img src={item.imageUrl} alt={item.name} loading="lazy" />
+        <section className="mobile-explore-v8__grid" aria-label={`${details.label} portfolio`}>
+          {visibleItems.map((item, index) => (
+            <Link href={item.slug ? `${details.path}/${item.slug}` : details.path} className="mobile-explore-v8__card" key={item.id}>
+              <div className="mobile-explore-v8__photo">
+                <img
+                  src={optimizedImageUrl(item.heroImageUrl || fallbackImages[index % fallbackImages.length], { width: 480, height: 640, quality: 84 })}
+                  alt={item.name}
+                  loading="lazy"
+                />
+                <span className="mobile-explore-v8__badge">{item.category || details.label}</span>
+                <div className="mobile-explore-v8__overlay">
+                  <h2>{item.name}</h2>
+                  <p>
+                    <span><MapPin aria-hidden="true" />{item.location || "Maldives"}</span>
+                    <i aria-hidden="true" />
+                    <span><TransferIcon label={item.transferType} />{item.transferType || "Transfer"}</span>
+                  </p>
+                </div>
+                <span className="mobile-explore-v8__view">View {details.singular}<ArrowRight aria-hidden="true" /></span>
               </div>
-              <div className="mobile-resort-card__body">
-                <span className="mobile-resort-card__category">{item.category}</span>
-                <h2>{item.name}</h2>
-                <p>
-                  <span><MapPin aria-hidden="true" />{item.location}</span>
-                  <i aria-hidden="true" />
-                  <span><TransferIcon label={item.transfer} />{item.transfer}</span>
-                </p>
+              <div className="mobile-explore-v8__card-tags">
+                {(item.selectionTags?.length ? item.selectionTags : [item.category]).filter(Boolean).slice(0, 2).map((tag) => <span key={tag}>{tag}</span>)}
               </div>
             </Link>
           ))}
         </section>
       ) : (
-        <div className="mobile-empty-state">
-          <Search aria-hidden="true" size={20} />
-          <strong>No matches found</strong>
-          <span>Try another search or filter.</span>
+        <div className="mobile-explore-v8__empty">
+          <Search aria-hidden="true" />
+          <h2>No results</h2>
+          <p>Adjust your search or filters.</p>
         </div>
       )}
 
       {filtersOpen ? (
-        <div className="mobile-explore-sheet" role="dialog" aria-modal="true" aria-label={`${tabLabels[activeTab]} filters`}>
-          <button type="button" className="mobile-explore-sheet__backdrop" onClick={() => setFiltersOpen(false)} aria-label="Close filters" />
-          <div className="mobile-explore-sheet__panel">
-            <i className="mobile-explore-sheet__handle" aria-hidden="true" />
+        <div className="mobile-explore-v8__sheet" role="dialog" aria-modal="true" aria-label={`Refine ${details.label.toLowerCase()}`}>
+          <button type="button" className="mobile-explore-v8__scrim" onClick={() => setFiltersOpen(false)} aria-label="Close filters" />
+          <div className="mobile-explore-v8__sheet-card">
+            <i className="mobile-explore-v8__handle" aria-hidden="true" />
             <header>
-              <h2>Filters</h2>
+              <h2>Refine your search</h2>
               <button type="button" onClick={() => setFiltersOpen(false)} aria-label="Close filters"><X /></button>
             </header>
-            <div className="mobile-explore-sheet__options">
-              <span>{tabLabels[activeTab]} options</span>
-              {tabFilters[activeTab].map((filter) => (
-                <button
-                  type="button"
-                  className={filter === activeFilter ? "is-active" : ""}
-                  aria-pressed={filter === activeFilter}
-                  onClick={() => setActiveFilter(filter)}
-                  key={filter}
-                >
-                  {filter}<i aria-hidden="true" />
-                </button>
-              ))}
-            </div>
-            <button type="button" className="mobile-explore-sheet__apply" onClick={() => setFiltersOpen(false)}>Apply Filters</button>
+            <section>
+              <span>{details.label} options</span>
+              <div>
+                {filterOptions.map((filter) => (
+                  <button
+                    type="button"
+                    className={filter === activeFilter ? "is-selected" : ""}
+                    onClick={() => setActiveFilter(filter)}
+                    key={filter}
+                  >
+                    {filter}
+                  </button>
+                ))}
+              </div>
+            </section>
+            <footer>
+              <em>Showing <strong>{visibleItems.length}</strong> {details.label.toLowerCase()}</em>
+              <div>
+                <button type="button" onClick={() => setActiveFilter("All")}>Reset</button>
+                <button type="button" onClick={() => setFiltersOpen(false)}>Apply filters</button>
+              </div>
+            </footer>
           </div>
         </div>
       ) : null}
