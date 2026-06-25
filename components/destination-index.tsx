@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   Anchor,
+  ArrowRight,
   ArrowUpDown,
   BadgeCheck,
   Car,
@@ -631,6 +632,137 @@ function PortfolioFilters({
   );
 }
 
+function ResortDesktopControls({
+  config,
+  query,
+  filters,
+  sort,
+  resultCount,
+  open,
+  onOpenChange,
+  onQueryChange,
+  onFiltersChange,
+  onSortChange,
+  onReset
+}: {
+  config: PortfolioConfig;
+  query: string;
+  filters: PortfolioFiltersState;
+  sort: SortOption;
+  resultCount: number;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onQueryChange: (value: string) => void;
+  onFiltersChange: (filters: PortfolioFiltersState) => void;
+  onSortChange: (sort: SortOption) => void;
+  onReset: () => void;
+}) {
+  const activeFilters = [
+    filters.category ? { key: "category", label: filters.category } : null,
+    filters.selection ? { key: "selection", label: filters.selection } : null,
+    filters.location ? { key: "location", label: filters.location } : null,
+    filters.transfer ? { key: "transfer", label: filters.transfer } : null
+  ].filter((item): item is { key: keyof PortfolioFiltersState; label: string } => Boolean(item));
+
+  const filterGroups = [
+    { key: "location" as const, label: "Location", options: config.locationOptions },
+    { key: "category" as const, label: "Resort Category", options: config.categoryOptions },
+    { key: "selection" as const, label: "Experience", options: config.selectionOptions },
+    { key: "transfer" as const, label: "Transfer", options: config.transferOptions }
+  ];
+
+  return (
+    <>
+      <div className="resort-v6-search">
+        <div className="resort-v6-search__inner">
+          <span>Search the portfolio</span>
+          <label>
+            <Search aria-hidden="true" />
+            <input
+              aria-label="Search resorts"
+              value={query}
+              onChange={(event) => onQueryChange(event.target.value)}
+              placeholder="Resort name, atoll, or experience..."
+            />
+            {query ? <button type="button" onClick={() => onQueryChange("")}>Clear</button> : null}
+          </label>
+        </div>
+      </div>
+
+      <div className="resort-v6-toolbar">
+        <div className="resort-v6-toolbar__left">
+          <span>Showing <strong>{resultCount}</strong> resorts</span>
+          <div className="resort-v6-tags">
+            {activeFilters.map((filter) => (
+              <button
+                type="button"
+                key={filter.key}
+                onClick={() => onFiltersChange({ ...filters, [filter.key]: "" })}
+              >
+                {filter.label}<span aria-hidden="true">×</span>
+              </button>
+            ))}
+          </div>
+          {activeFilters.length ? <button type="button" className="resort-v6-clear" onClick={onReset}>Clear all</button> : null}
+        </div>
+        <div className="resort-v6-toolbar__right">
+          <SortSelect sort={sort} onSortChange={onSortChange} />
+          <button type="button" className="resort-v6-refine" onClick={() => onOpenChange(true)}>
+            <SlidersHorizontal aria-hidden="true" />
+            Refine
+            {activeFilters.length ? <i>{activeFilters.length}</i> : null}
+          </button>
+        </div>
+      </div>
+
+      {open ? (
+        <div className="resort-v6-modal" role="dialog" aria-modal="true" aria-label="Refine resorts">
+          <button type="button" className="resort-v6-modal__scrim" aria-label="Close filters" onClick={() => onOpenChange(false)} />
+          <div className="resort-v6-modal__card">
+            <header>
+              <h2>Refine your search</h2>
+              <button type="button" aria-label="Close filters" onClick={() => onOpenChange(false)}><X /></button>
+            </header>
+            <div className="resort-v6-modal__groups">
+              {filterGroups.map((group) => (
+                <fieldset key={group.key}>
+                  <legend>{group.label}</legend>
+                  <div>
+                    <button
+                      type="button"
+                      className={!filters[group.key] ? "is-selected" : ""}
+                      onClick={() => onFiltersChange({ ...filters, [group.key]: "" })}
+                    >
+                      All
+                    </button>
+                    {group.options.map((option) => (
+                      <button
+                        type="button"
+                        className={filters[group.key] === option ? "is-selected" : ""}
+                        onClick={() => onFiltersChange({ ...filters, [group.key]: option })}
+                        key={option}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+              ))}
+            </div>
+            <footer>
+              <em>Showing <strong>{resultCount}</strong> resorts</em>
+              <div>
+                <button type="button" onClick={onReset}>Reset all</button>
+                <button type="button" onClick={() => onOpenChange(false)}>Apply filters</button>
+              </div>
+            </footer>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 function MobileFilterDrawer({
   config,
   filters,
@@ -739,10 +871,25 @@ function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem
             width={560}
             height={700}
           />
-          <span className="portfolio-card__overlay">
-            <span className="portfolio-card__description">{item.summary}</span>
-            <span className="portfolio-card__view">View {config.singular}</span>
-          </span>
+          {item.type === "resort" ? (
+            <>
+              <span className="portfolio-card__overlay portfolio-card__overlay--resort">
+                <span className="portfolio-card__title portfolio-card__title--image">{item.name}</span>
+                <span className="portfolio-card__meta portfolio-card__meta--image">
+                  <span><MapPin size={12} />{item.location}</span>
+                  <span><TransferIcon size={12} />{item.primaryTransferDisplay}</span>
+                </span>
+              </span>
+              <span className="portfolio-card__drawer">
+                <span>View resort <ArrowRight aria-hidden="true" /></span>
+              </span>
+            </>
+          ) : (
+            <span className="portfolio-card__overlay">
+              <span className="portfolio-card__description">{item.summary}</span>
+              <span className="portfolio-card__view">View {config.singular}</span>
+            </span>
+          )}
           {item.type === "resort" ? (
             <span className="portfolio-card__badge portfolio-card__badge--image">
               {item.category}
@@ -765,6 +912,12 @@ function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem
               {item.primaryTransferDisplay}
             </span>
           </span>
+          {item.type === "resort" ? (
+            <span className="portfolio-card__selection-tags">
+              <span>{item.selectionTag}</span>
+              {item.featured ? <span>Featured</span> : null}
+            </span>
+          ) : null}
         </span>
       </Link>
     </article>
@@ -968,17 +1121,6 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
                 <span aria-hidden="true">→</span>
               </a>
             </div>
-            {activeKind === "resort" ? (
-              <div className="resort-hero-stats" aria-label="Resort portfolio highlights">
-                <span><strong>{portfolioItems.length}</strong>Curated Resorts</span>
-                <i aria-hidden="true" />
-                <span><strong>{new Set(portfolioItems.map((item) => item.location)).size}</strong>Atolls Covered</span>
-                <i aria-hidden="true" />
-                <span><strong>17+</strong>Years Experience</span>
-                <i aria-hidden="true" />
-                <span><strong>100%</strong>Partner Ready</span>
-              </div>
-            ) : null}
           </div>
         </div>
       </section>
@@ -995,33 +1137,43 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
 
           <div className={activeKind === "resort" ? "resort-desktop-layout" : undefined}>
             <div className="portfolio-results-main">
-              <PortfolioFilters
-                config={config}
-                query={query}
-                filters={filters}
-                sort={sort}
-                mobileOpen={filtersOpen}
-                onMobileOpenChange={setFiltersOpen}
-                onQueryChange={setQuery}
-                onFiltersChange={setFilters}
-                onSortChange={setSort}
-                onReset={resetFilters}
-              />
-
-              <PortfolioResultsBar
-                config={config}
-                resultCount={filteredItems.length}
-                total={portfolioItems.length}
-                hasActive={hasActive}
-                onReset={resetFilters}
-              />
-
               {activeKind === "resort" ? (
-                <div className="resort-desktop-section-heading">
-                  <p>Resort Portfolio</p>
-                  <h2>Curated for Confident Partner Conversations</h2>
-                </div>
-              ) : null}
+                <ResortDesktopControls
+                  config={config}
+                  query={query}
+                  filters={filters}
+                  sort={sort}
+                  resultCount={filteredItems.length}
+                  open={filtersOpen}
+                  onOpenChange={setFiltersOpen}
+                  onQueryChange={setQuery}
+                  onFiltersChange={setFilters}
+                  onSortChange={setSort}
+                  onReset={resetFilters}
+                />
+              ) : (
+                <>
+                  <PortfolioFilters
+                    config={config}
+                    query={query}
+                    filters={filters}
+                    sort={sort}
+                    mobileOpen={filtersOpen}
+                    onMobileOpenChange={setFiltersOpen}
+                    onQueryChange={setQuery}
+                    onFiltersChange={setFilters}
+                    onSortChange={setSort}
+                    onReset={resetFilters}
+                  />
+                  <PortfolioResultsBar
+                    config={config}
+                    resultCount={filteredItems.length}
+                    total={portfolioItems.length}
+                    hasActive={hasActive}
+                    onReset={resetFilters}
+                  />
+                </>
+              )}
 
               {isFiltering ? (
                 <PortfolioGrid>
