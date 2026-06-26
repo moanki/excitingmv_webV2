@@ -1,5 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { samplePartnerResources } from "@/lib/sample-data";
+import { SITE_ASSET_BUCKET } from "@/lib/storage/site-assets";
 import type { PublishStatus, ResourceAudience } from "@/lib/types";
 
 export type ResourceRecord = {
@@ -75,6 +76,53 @@ export async function listResources() {
 export async function listPublishedResources() {
   const resources = await listResources();
   return resources.filter((resource) => resource.status === "published");
+}
+
+export async function getPublishedResource(id: string) {
+  const resources = await listPublishedResources();
+  return resources.find((resource) => resource.id === id) ?? null;
+}
+
+function storagePathFromResourceUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    const publicMarker = `/object/public/${SITE_ASSET_BUCKET}/`;
+    const signedMarker = `/object/sign/${SITE_ASSET_BUCKET}/`;
+    const marker = parsed.pathname.includes(publicMarker) ? publicMarker : signedMarker;
+    const index = parsed.pathname.indexOf(marker);
+
+    if (index === -1) {
+      return "";
+    }
+
+    return decodeURIComponent(parsed.pathname.slice(index + marker.length));
+  } catch {
+    return "";
+  }
+}
+
+export async function createProtectedResourceUrl(resource: ResourceRecord, mode: "view" | "download") {
+  if (!resource.filePath || resource.filePath === "#") {
+    return "#";
+  }
+
+  const storagePath = storagePathFromResourceUrl(resource.filePath);
+  if (!storagePath) {
+    return resource.filePath;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const signed = await supabase.storage.from(SITE_ASSET_BUCKET).createSignedUrl(
+    storagePath,
+    60 * 5,
+    mode === "download" ? { download: resource.title } : undefined
+  );
+
+  if (signed.error || !signed.data?.signedUrl) {
+    throw new Error(signed.error?.message ?? "Failed to create protected resource link.");
+  }
+
+  return signed.data.signedUrl;
 }
 
 export async function saveResource(input: {

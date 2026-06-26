@@ -30,9 +30,9 @@ export function ResourcePermissionForm({ permission, resources }: Props) {
             <input className="admin-input" name="username" type="email" defaultValue={permission?.username ?? ""} />
           </label>
           <label className="field">
-            <span className="field__label">Password</span>
-            <input className="admin-input" name="password" type="text" placeholder="Managed separately" />
-            <p className="field__help">Partner passwords are not exposed here. This workspace manages resource access only.</p>
+            <span className="field__label">Resource Password</span>
+            <input className="admin-input" name="password" type="password" placeholder={permission ? "Leave blank to keep existing password" : "Set resource password"} />
+            <p className="field__help">Saved as a secure hash. Leave blank when editing to keep the current password.</p>
           </label>
           <label className="field">
             <span className="field__label">Status</span>

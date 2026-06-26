@@ -1,8 +1,6 @@
 import Link from "next/link";
 
 const navItems = [
-  { href: "/partner", label: "Dashboard" },
-  { href: "/partner/resorts", label: "Resorts" },
   { href: "/partner/resources", label: "Resources" }
 ];
 
@@ -17,9 +15,6 @@ export default function PartnerLayout({ children }: Readonly<{ children: React.R
               {item.label}
             </Link>
           ))}
-          <a href={process.env.SAMOA_EXTERNAL_URL ?? "#"} target="_blank" rel="noreferrer">
-            Samoa
-          </a>
         </nav>
       </aside>
       <div className="dashboard">{children}</div>

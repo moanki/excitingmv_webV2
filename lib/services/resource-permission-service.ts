@@ -1,4 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
+import { promisify } from "node:util";
 
 export type ResourcePermissionStatus = "active" | "disabled";
 
@@ -18,6 +20,8 @@ type AgentRow = {
   contact_name: string;
   email: string;
   status: "pending" | "approved" | "rejected" | "suspended";
+  resource_password_hash?: string | null;
+  resource_password_expires_at?: string | null;
   created_at: string;
 };
 
@@ -42,6 +46,29 @@ function toPermissionStatus(status: AgentRow["status"]): ResourcePermissionStatu
 
 function toAgentStatus(status: ResourcePermissionStatus): AgentRow["status"] {
   return status === "disabled" ? "suspended" : "approved";
+}
+
+const scryptAsync = promisify(scrypt);
+const RESOURCE_PASSWORD_PREFIX = "scrypt";
+const RESOURCE_PASSWORD_KEY_LENGTH = 64;
+
+async function hashResourcePassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const derived = (await scryptAsync(password, salt, RESOURCE_PASSWORD_KEY_LENGTH)) as Buffer;
+
+  return `${RESOURCE_PASSWORD_PREFIX}$${salt}$${derived.toString("hex")}`;
+}
+
+async function verifyResourcePassword(password: string, storedHash: string) {
+  const [scheme, salt, hash] = storedHash.split("$");
+  if (scheme !== RESOURCE_PASSWORD_PREFIX || !salt || !hash) {
+    return false;
+  }
+
+  const expected = Buffer.from(hash, "hex");
+  const actual = (await scryptAsync(password, salt, expected.length)) as Buffer;
+
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 
 export async function listResourcePermissions() {
@@ -98,11 +125,14 @@ export async function saveResourcePermission(input: {
   agentId?: string;
   agencyName: string;
   username: string;
+  password?: string;
   status: ResourcePermissionStatus;
   resourceIds: string[];
 }) {
   const supabase = createSupabaseAdminClient();
   let agentId = input.agentId;
+  const password = input.password?.trim();
+  const passwordPatch = password ? { resource_password_hash: await hashResourcePassword(password) } : {};
 
   if (agentId) {
     const { error } = await supabase
@@ -111,7 +141,8 @@ export async function saveResourcePermission(input: {
         agency_name: input.agencyName,
         email: input.username,
         contact_name: input.agencyName,
-        status: toAgentStatus(input.status)
+        status: toAgentStatus(input.status),
+        ...passwordPatch
       })
       .eq("id", agentId);
 
@@ -125,7 +156,8 @@ export async function saveResourcePermission(input: {
         agency_name: input.agencyName,
         contact_name: input.agencyName,
         email: input.username,
-        status: toAgentStatus(input.status)
+        status: toAgentStatus(input.status),
+        ...passwordPatch
       })
       .select("id")
       .single();
@@ -176,4 +208,49 @@ export async function deleteResourcePermission(agentId: string) {
   if (agentError) {
     throw new Error(agentError.message);
   }
+}
+
+export async function validateActiveResourcePassword(password: string) {
+  const candidate = password.trim();
+  if (!candidate) {
+    return false;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const [{ data, error }, { data: protectedRows, error: protectedError }] = await Promise.all([
+    supabase
+      .from("agents")
+      .select("id, status, resource_password_hash, resource_password_expires_at")
+      .eq("status", "approved")
+      .not("resource_password_hash", "is", null),
+    supabase.from("protected_resources").select("agent_id")
+  ]);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (protectedError) {
+    throw new Error(protectedError.message);
+  }
+
+  const protectedAgentIds = new Set(
+    ((protectedRows ?? []) as Array<{ agent_id: string | null }>).map((row) => row.agent_id).filter(Boolean)
+  );
+  const now = Date.now();
+  for (const agent of (data ?? []) as Pick<AgentRow, "id" | "resource_password_hash" | "resource_password_expires_at">[]) {
+    if (!agent.resource_password_hash || !protectedAgentIds.has(agent.id)) {
+      continue;
+    }
+
+    if (agent.resource_password_expires_at && new Date(agent.resource_password_expires_at).getTime() <= now) {
+      continue;
+    }
+
+    if (await verifyResourcePassword(candidate, agent.resource_password_hash)) {
+      return true;
+    }
+  }
+
+  return false;
 }

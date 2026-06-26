@@ -18,6 +18,7 @@ export async function saveResourcePermissionAction(formData: FormData) {
     agentId: String(formData.get("agentId") ?? "").trim() || undefined,
     agencyName: String(formData.get("agencyName") ?? "").trim(),
     username: String(formData.get("username") ?? "").trim(),
+    password: String(formData.get("password") ?? "").trim(),
     status: String(formData.get("status") ?? "active") as ResourcePermissionStatus,
     resourceIds
   });

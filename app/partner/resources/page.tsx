@@ -1,40 +1,45 @@
+import { ResourceAccessPanel } from "@/app/partner/resources/resource-access-panel";
+import { hasResourceAccessSession } from "@/lib/partner-resource-access";
 import { listPublishedResources } from "@/lib/services/resource-service";
 
-export default async function PartnerResourcesPage() {
-  const resources = await listPublishedResources();
+export default async function PartnerResourcesPage({
+  searchParams
+}: {
+  searchParams: Promise<{ access?: string }>;
+}) {
+  const [resources, hasAccess, params] = await Promise.all([
+    listPublishedResources(),
+    hasResourceAccessSession(),
+    searchParams
+  ]);
+
+  const safeResources = resources.map(({ id, title, description, resourceType, audienceType }) => ({
+    id,
+    title,
+    description,
+    resourceType,
+    audienceType
+  }));
+  const openOnLoad = !hasAccess && (!params.access || params.access === "required");
 
   return (
-    <section>
-      <p className="eyebrow">Protected Resources</p>
-      <h1 className="section-title">Rates, offers, kits, and collateral.</h1>
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Type</th>
-            <th>Audience</th>
-            <th>Status</th>
-            <th>Document</th>
-          </tr>
-        </thead>
-        <tbody>
-          {resources.map((resource) => (
-            <tr key={resource.id}>
-              <td>{resource.title}</td>
-              <td>{resource.resourceType}</td>
-              <td>{resource.audienceType}</td>
-              <td>
-                <span className="badge">{resource.status}</span>
-              </td>
-              <td>
-                <a href={resource.filePath} target="_blank" rel="noreferrer">
-                  Open
-                </a>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <section className="partner-resources-page">
+      <div className="partner-resources-hero">
+        <p className="eyebrow">Resources</p>
+        <h1 className="section-title">Rates, offers, kits, and collateral.</h1>
+        <p>
+          Enter the password provided by our team to unlock the shared partner resource library.
+        </p>
+      </div>
+
+      {!hasAccess ? (
+        <div className="partner-resource-locked-state" aria-live="polite">
+          <strong>Resources are locked.</strong>
+          <span>Unlock access to view and download protected files.</span>
+        </div>
+      ) : null}
+
+      <ResourceAccessPanel resources={safeResources} hasAccess={hasAccess} openOnLoad={openOnLoad} />
     </section>
   );
 }
