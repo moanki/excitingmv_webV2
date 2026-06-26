@@ -1,12 +1,17 @@
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
-import { FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa6";
+import { FaFacebookF, FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
 import type { FooterBadge, FooterContent, FooterLinkItem, NavbarContent } from "@/lib/site-content";
 
 function normalizeHref(value: string) {
   return value || "#";
+}
+
+function whatsappHref(value: string) {
+  const digits = value.replace(/[^\d]/g, "");
+  return digits ? `https://wa.me/${digits}` : "#";
 }
 
 function mergeLinks(...groups: FooterLinkItem[][]) {
@@ -246,6 +251,12 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
               <Phone size={15} />
               {footer.contactPhone}
             </a>
+            {footer.contactWhatsApp ? (
+              <a href={whatsappHref(footer.contactWhatsApp)} target="_blank" rel="noreferrer">
+                <FaWhatsapp size={15} />
+                {footer.contactWhatsApp}
+              </a>
+            ) : null}
             <a href={`mailto:${footer.contactEmail}`}>
               <Mail size={15} />
               {footer.contactEmail}

@@ -832,6 +832,7 @@ export async function saveFooterDraftAction(_: ActionState, formData: FormData):
       description: stringValue(formData, "description"),
       contactEmail: stringValue(formData, "contactEmail"),
       contactPhone: stringValue(formData, "contactPhone"),
+      contactWhatsApp: stringValue(formData, "contactWhatsApp"),
       address: stringValue(formData, "address"),
       samoaUrl: stringValue(formData, "samoaUrl"),
       companyLogoUrl: companyLogoFile

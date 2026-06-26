@@ -1075,6 +1075,10 @@ export function FooterSettingsForm({
             <input name="contactPhone" defaultValue={footer.contactPhone} />
           </label>
           <label className="field">
+            WhatsApp Phone
+            <input name="contactWhatsApp" defaultValue={footer.contactWhatsApp} placeholder="+960 778 5596" />
+          </label>
+          <label className="field">
             Address
             <input name="address" defaultValue={footer.address} />
           </label>

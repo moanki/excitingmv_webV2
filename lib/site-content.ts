@@ -140,6 +140,7 @@ export type FooterContent = {
   description: string;
   contactEmail: string;
   contactPhone: string;
+  contactWhatsApp: string;
   address: string;
   samoaUrl: string;
   companyLogoUrl: string;
@@ -565,8 +566,8 @@ export const defaultNavbarContent: NavbarContent = {
     { label: "Resort", href: "/resorts", enabled: true, external: false },
     { label: "Hotels", href: "/hotels", enabled: true, external: false },
     { label: "Liveaboard", href: "/liveaboards", enabled: true, external: false },
-    { label: "Map", href: "/#global-markets", enabled: true, external: false },
-    { label: "Info", href: "/travel-guide", enabled: true, external: false }
+    { label: "Contact", href: "/contact", enabled: true, external: false },
+    { label: "Travel Guide", href: "/travel-guide", enabled: true, external: false }
   ],
   partnerLoginHref: "/partner/login",
   ctaLabel: "Login to Partner Portal",
@@ -585,6 +586,7 @@ export const defaultFooterContent: FooterContent = {
     "Luxury resort partnerships, protected trade resources, and curated Maldives expertise.",
   contactEmail: "partners@excitingmv.com",
   contactPhone: "+960 000 0000",
+  contactWhatsApp: "+960 778 5596",
   address: "Male, Maldives",
   samoaUrl: "https://samoa.example.com",
   companyLogoUrl: "",
@@ -1023,6 +1025,35 @@ function normalizeNavbarContent(settings: unknown): NavbarContent {
   const source = (settings ?? defaultNavbarContent) as Partial<NavbarContent>;
   const sourceItems = Array.isArray(source.navItems) ? source.navItems : [];
   const navItems = sourceItems.length ? sourceItems : defaultNavbarContent.navItems;
+  const normalizeNavItem = (item: Partial<FooterLinkItem>, fallback: FooterLinkItem): FooterLinkItem => {
+    const label = item.label ?? fallback.label;
+    const normalizedLabel = label.trim().toLowerCase();
+
+    if (normalizedLabel === "map" || normalizedLabel === "maps") {
+      return {
+        label: "Contact",
+        href: "/contact",
+        enabled: item.enabled ?? fallback.enabled,
+        external: false
+      };
+    }
+
+    if (normalizedLabel === "info") {
+      return {
+        label: "Travel Guide",
+        href: "/travel-guide",
+        enabled: item.enabled ?? fallback.enabled,
+        external: false
+      };
+    }
+
+    return {
+      label,
+      href: item.href ?? fallback.href,
+      enabled: item.enabled ?? fallback.enabled,
+      external: item.external ?? fallback.external
+    };
+  };
 
   return {
     brandKicker: source.brandKicker ?? defaultNavbarContent.brandKicker,
@@ -1032,18 +1063,30 @@ function normalizeNavbarContent(settings: unknown): NavbarContent {
     blackLogoUrl: source.blackLogoUrl ?? defaultNavbarContent.blackLogoUrl,
     navItems: navItems.map((item, index) => {
       const fallback = defaultNavbarContent.navItems[index] ?? defaultNavbarContent.navItems[0];
-
-      return {
-        label: item.label ?? fallback.label,
-        href: item.href ?? fallback.href,
-        enabled: item.enabled ?? fallback.enabled,
-        external: item.external ?? fallback.external
-      };
+      return normalizeNavItem(item, fallback);
     }),
     partnerLoginHref: source.partnerLoginHref ?? source.ctaHref ?? defaultNavbarContent.partnerLoginHref,
     ctaLabel: source.ctaLabel ?? defaultNavbarContent.ctaLabel,
     ctaHref: source.ctaHref ?? defaultNavbarContent.ctaHref,
     ctaEnabled: source.ctaEnabled ?? defaultNavbarContent.ctaEnabled
+  };
+}
+
+function normalizeFooterContent(settings: unknown): FooterContent {
+  const source = (settings ?? defaultFooterContent) as Partial<FooterContent>;
+
+  return {
+    companyLabel: source.companyLabel ?? defaultFooterContent.companyLabel,
+    description: source.description ?? defaultFooterContent.description,
+    contactEmail: source.contactEmail ?? defaultFooterContent.contactEmail,
+    contactPhone: source.contactPhone ?? defaultFooterContent.contactPhone,
+    contactWhatsApp: source.contactWhatsApp ?? defaultFooterContent.contactWhatsApp,
+    address: source.address ?? defaultFooterContent.address,
+    samoaUrl: source.samoaUrl ?? defaultFooterContent.samoaUrl,
+    companyLogoUrl: source.companyLogoUrl ?? defaultFooterContent.companyLogoUrl,
+    linkGroups: Array.isArray(source.linkGroups) ? source.linkGroups : defaultFooterContent.linkGroups,
+    memberships: Array.isArray(source.memberships) ? source.memberships : defaultFooterContent.memberships,
+    awards: Array.isArray(source.awards) ? source.awards : defaultFooterContent.awards
   };
 }
 
@@ -1274,7 +1317,11 @@ export async function getAboutPageContent(mode: "draft" | "published" = "publish
 }
 
 export async function getFooterContent(mode: "draft" | "published" = "published") {
-  return getSiteSettingMode("site.footer", defaultFooterContent, mode);
+  const entry = await getSiteSettingMode("site.footer", defaultFooterContent, mode);
+  return {
+    ...entry,
+    content: normalizeFooterContent(entry.content)
+  };
 }
 
 export async function getContactPageContent(mode: "draft" | "published" = "published") {
