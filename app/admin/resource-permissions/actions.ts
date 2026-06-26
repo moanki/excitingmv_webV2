@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
 import {
@@ -25,6 +26,7 @@ export async function saveResourcePermissionAction(formData: FormData) {
 
   revalidatePath("/admin/resource-permissions");
   revalidatePath("/partner/resources");
+  redirect("/admin/resource-permissions");
 }
 
 export async function disableResourcePermissionAction(formData: FormData) {

@@ -23,15 +23,21 @@ export function ResourcePermissionForm({ permission, resources }: Props) {
         <div className="form-grid">
           <label className="field">
             <span className="field__label">Partner Agency Name</span>
-            <input className="admin-input" name="agencyName" defaultValue={permission?.agencyName ?? ""} />
+            <input className="admin-input" name="agencyName" defaultValue={permission?.agencyName ?? ""} required />
           </label>
           <label className="field">
             <span className="field__label">Username</span>
-            <input className="admin-input" name="username" type="email" defaultValue={permission?.username ?? ""} />
+            <input className="admin-input" name="username" type="email" defaultValue={permission?.username ?? ""} required />
           </label>
           <label className="field">
             <span className="field__label">Resource Password</span>
-            <input className="admin-input" name="password" type="password" placeholder={permission ? "Leave blank to keep existing password" : "Set resource password"} />
+            <input
+              className="admin-input"
+              name="password"
+              type="password"
+              placeholder={permission ? "Leave blank to keep existing password" : "Set resource password"}
+              required={!permission}
+            />
             <p className="field__help">Saved as a secure hash. Leave blank when editing to keep the current password.</p>
           </label>
           <label className="field">

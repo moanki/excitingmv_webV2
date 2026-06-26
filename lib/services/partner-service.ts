@@ -31,6 +31,16 @@ type PartnerRow = {
   created_at: string;
 };
 
+const RESOURCE_PASSWORD_NOTE_PREFIX = "[resource_password_hash]:";
+
+function publicPartnerNotes(notes?: string | null) {
+  return (notes ?? "")
+    .split("\n")
+    .filter((line) => !line.startsWith(RESOURCE_PASSWORD_NOTE_PREFIX))
+    .join("\n")
+    .trim();
+}
+
 function mapPartnerRow(row: PartnerRow): PartnerRequestRecord {
   return {
     id: row.id,
@@ -38,7 +48,7 @@ function mapPartnerRow(row: PartnerRow): PartnerRequestRecord {
     contactName: row.contact_name,
     email: row.email,
     market: row.market ?? "",
-    notes: row.notes ?? "",
+    notes: publicPartnerNotes(row.notes),
     status: row.status,
     approvedAt: row.approved_at,
     createdAt: row.created_at
