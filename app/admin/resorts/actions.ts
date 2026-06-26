@@ -64,10 +64,10 @@ function finalPublishingState(intent: AdminResortSubmitIntent, featuredValue: Fo
   return { status: "draft", isFeaturedHomepage };
 }
 
-function successMessage(name: string, intent: AdminResortSubmitIntent, featured: boolean) {
+function successMessage(intent: AdminResortSubmitIntent) {
   if (intent === "saveDraft") return "Draft saved";
-  if (intent === "publish") return featured ? "Published and featured on homepage" : "Resort published";
-  if (intent === "updatePublished") return featured ? "Published resort updated and featured on homepage" : "Published resort updated";
+  if (intent === "publish") return "Resort published";
+  if (intent === "updatePublished") return "Published resort updated";
   if (intent === "unpublish") return "Resort unpublished to draft";
   if (intent === "archive") return "Resort archived";
   if (intent === "restoreDraft") return "Resort restored to draft";
@@ -242,7 +242,7 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
         : galleryUploadFiles.length
           ? ` ${uploadedGalleryImages.length} gallery image${uploadedGalleryImages.length === 1 ? "" : "s"} uploaded.`
           : "";
-    return { message: `${successMessage(input.name, submitIntent, input.isFeaturedHomepage)}.${galleryMessage}` };
+    return { message: `${successMessage(submitIntent)}.${galleryMessage}` };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save property." };
   }

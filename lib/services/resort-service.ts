@@ -2,6 +2,7 @@ import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { sampleResorts } from "@/lib/sample-data";
+import { getHomepageFeaturedResortsSetting } from "@/lib/site-content";
 import type { PublishStatus, ResortRoomSummary, ResortSummary } from "@/lib/types";
 
 export type PropertyType = "resort" | "liveaboards" | "hotels";
@@ -740,8 +741,19 @@ export async function listPublishedProperties(propertyType: PropertyType): Promi
 
 export async function listHomepageFeaturedResorts(limit = 5): Promise<ResortSummary[]> {
   const resorts = await listPublishedResorts();
-  return resorts
-    .filter((resort) => resort.isFeaturedHomepage)
+  const { content: curatedItems } = await getHomepageFeaturedResortsSetting("published");
+
+  if (!curatedItems.length) {
+    return resorts
+      .filter((resort) => resort.isFeaturedHomepage)
+      .slice(0, limit);
+  }
+
+  const resortMap = new Map(resorts.map((resort) => [resort.id, resort]));
+  return curatedItems
+    .sort((left, right) => left.sortOrder - right.sortOrder)
+    .map((item) => resortMap.get(item.resortId))
+    .filter((resort): resort is ResortSummary => Boolean(resort))
     .slice(0, limit);
 }
 

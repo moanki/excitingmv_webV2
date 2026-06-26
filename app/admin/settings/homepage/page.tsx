@@ -3,6 +3,7 @@ import Link from "next/link";
 const homepageSections = [
   { title: "Hero", href: "/admin/settings/homepage/hero" },
   { title: "Feature Cards", href: "/admin/settings/homepage/features" },
+  { title: "Featured Resorts", href: "/admin/settings/homepage/featured-resorts" },
   { title: "Expertise Stats", href: "/admin/settings/homepage/stats" },
   { title: "CEO Message", href: "/admin/settings/homepage/ceo" },
   { title: "Our Story", href: "/admin/settings/homepage/story" },

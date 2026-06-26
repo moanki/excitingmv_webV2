@@ -22,6 +22,11 @@ export type HomepageFeatureCard = {
   imageUrl: string;
 };
 
+export type HomepageFeaturedResortItem = {
+  resortId: string;
+  sortOrder: number;
+};
+
 export type HomepageStat = {
   value: string;
   label: string;
@@ -344,6 +349,8 @@ export const defaultHomepageFeatures: HomepageFeatureCard[] = [
     imageUrl: ""
   }
 ];
+
+export const defaultHomepageFeaturedResorts: HomepageFeaturedResortItem[] = [];
 
 export const defaultHomepageStats: HomepageStat[] = [
   { value: "198+", label: "Resorts" },
@@ -1072,6 +1079,33 @@ function normalizeNavbarContent(settings: unknown): NavbarContent {
   };
 }
 
+function normalizeHomepageFeaturedResorts(settings: unknown): HomepageFeaturedResortItem[] {
+  const source = Array.isArray(settings) ? settings : defaultHomepageFeaturedResorts;
+  const seen = new Set<string>();
+
+  return source
+    .map((item, index) => {
+      const value = item as Partial<HomepageFeaturedResortItem>;
+      return {
+        resortId: String(value.resortId ?? "").trim(),
+        sortOrder: numericValue(value.sortOrder, index + 1)
+      };
+    })
+    .filter((item) => {
+      if (!item.resortId || seen.has(item.resortId)) {
+        return false;
+      }
+      seen.add(item.resortId);
+      return true;
+    })
+    .sort((left, right) => left.sortOrder - right.sortOrder)
+    .slice(0, 5)
+    .map((item, index) => ({
+      resortId: item.resortId,
+      sortOrder: index + 1
+    }));
+}
+
 function normalizeFooterContent(settings: unknown): FooterContent {
   const source = (settings ?? defaultFooterContent) as Partial<FooterContent>;
 
@@ -1250,6 +1284,14 @@ export async function getHomepageHeroContent(mode: "draft" | "published" = "publ
 
 export async function getHomepageFeatures(mode: "draft" | "published" = "published") {
   return getSiteSettingMode("homepage.features", defaultHomepageFeatures, mode);
+}
+
+export async function getHomepageFeaturedResortsSetting(mode: "draft" | "published" = "published") {
+  const entry = await getSiteSettingMode("homepage.featuredResorts", defaultHomepageFeaturedResorts, mode);
+  return {
+    ...entry,
+    content: normalizeHomepageFeaturedResorts(entry.content)
+  };
 }
 
 export async function getHomepageStats(mode: "draft" | "published" = "published") {

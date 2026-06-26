@@ -84,27 +84,6 @@ function statusLabel(resort: Partial<ResortRecord>) {
   return "Draft";
 }
 
-function featureCopy(status: PublishStatus) {
-  if (status === "published") {
-    return {
-      label: "Feature on homepage",
-      help: "Published featured resorts can appear in the homepage featured section."
-    };
-  }
-
-  if (status === "archived") {
-    return {
-      label: "Feature on homepage",
-      help: "Archived resorts cannot appear on the homepage."
-    };
-  }
-
-  return {
-    label: "Feature on homepage when published",
-    help: "Only published resorts can appear on the homepage."
-  };
-}
-
 function statusTone(resort: Partial<ResortRecord>) {
   if (resort.status === "published" && resort.isFeaturedHomepage) {
     return "is-featured";
@@ -555,7 +534,8 @@ export function ResortEditor({
   mediaLibrary,
   mode,
   propertyType = "resort",
-  labels = resortLabels
+  labels = resortLabels,
+  isHomepageFeatured
 }: {
   resort: Partial<ResortRecord> & { id?: string; name?: string };
   title: string;
@@ -564,6 +544,7 @@ export function ResortEditor({
   mode: ResortEditorMode;
   propertyType?: PropertyType;
   labels?: PropertyLabels;
+  isHomepageFeatured?: boolean;
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(saveResortAction, undefined);
@@ -587,7 +568,6 @@ export function ResortEditor({
   const [category, setCategory] = useState(resort.category ?? "");
   const [transferType, setTransferType] = useState(resort.transferType ?? "");
   const status: PublishStatus = resort.status ?? "draft";
-  const [isFeaturedHomepage, setIsFeaturedHomepage] = useState(Boolean(resort.isFeaturedHomepage));
   const [heroImageUrl, setHeroImageUrl] = useState(resort.heroImageUrl ?? "");
   const [descriptionValue, setDescriptionValue] = useState(resort.description ?? resort.summary ?? "");
   const [highlightsValue, setHighlightsValue] = useState((resort.highlights ?? []).join("\n"));
@@ -599,8 +579,7 @@ export function ResortEditor({
 
   const formId = resort.id ? `resort-editor-form-${resort.id}` : "resort-editor-form-new";
   const previewHref = resort.slug ? `${labels.publicBasePath}/${resort.slug}` : null;
-  const homepageFeatureCopy = featureCopy(status);
-  const effectiveFeatured = status === "published" && isFeaturedHomepage;
+  const homepageFeatured = propertyType === "resort" && Boolean(isHomepageFeatured ?? resort.isFeaturedHomepage);
 
   useEffect(() => {
     if (state?.message) {
@@ -667,7 +646,7 @@ export function ResortEditor({
           <p className="admin-page-lede">{description}</p>
         </div>
         <div className="resort-workspace__meta">
-          <span className={`badge ${statusTone({ status, isFeaturedHomepage: effectiveFeatured })}`}>{statusLabel({ status, isFeaturedHomepage: effectiveFeatured })}</span>
+          <span className={`badge ${statusTone({ status, isFeaturedHomepage: homepageFeatured })}`}>{statusLabel({ status, isFeaturedHomepage: homepageFeatured })}</span>
           {resort.updatedAt ? <span>Updated {formatUpdatedLabel(resort.updatedAt)}</span> : null}
           {resort.roomTypes?.length ? <span>{resort.roomTypes.length} room types</span> : null}
         </div>
@@ -685,12 +664,13 @@ export function ResortEditor({
         {resort.id ? <input type="hidden" name="id" value={resort.id} /> : null}
         <input type="hidden" name="propertyType" value={propertyType} />
         <input type="hidden" name="roomCount" value={rooms.length} />
+        {resort.isFeaturedHomepage ? <input type="hidden" name="isFeaturedHomepage" value="on" /> : null}
 
         <section className="admin-form-section" id="basics">
           <div className="admin-form-section__header">
             <h3 className="admin-form-section__title">Basics</h3>
             <p className="admin-form-section__help">
-              Core identity, location, category, transfer profile, and homepage feature state.
+              Core identity, location, category, and transfer profile.
             </p>
           </div>
 
@@ -730,21 +710,21 @@ export function ResortEditor({
                 onChange={(event) => setTransferType(event.target.value)}
               />
             </label>
-            <label className="field field--full admin-toggle-field">
-              <span className="field__label">Featured Homepage Toggle</span>
+            <div className="field field--full admin-toggle-field">
+              <span className="field__label">Homepage Feature Status</span>
               <div className="admin-toggle-card">
                 <div>
-                  <strong>{homepageFeatureCopy.label}</strong>
-                  <p>{homepageFeatureCopy.help}</p>
+                  <strong>Homepage feature status: {homepageFeatured ? "Featured" : "Not featured"}</strong>
+                  <p>
+                    Manage homepage placement, order, and featured list membership from{" "}
+                    <Link href="/admin/settings/homepage/featured-resorts">Homepage Featured Resorts</Link>.
+                  </p>
                 </div>
-                <input
-                  type="checkbox"
-                  name="isFeaturedHomepage"
-                  checked={isFeaturedHomepage}
-                  onChange={(event) => setIsFeaturedHomepage(event.target.checked)}
-                />
+                <span className={`badge ${homepageFeatured ? "is-featured" : "is-muted"}`}>
+                  {homepageFeatured ? "Featured" : "Not featured"}
+                </span>
               </div>
-            </label>
+            </div>
           </div>
         </section>
 
