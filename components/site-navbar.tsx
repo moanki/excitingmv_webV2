@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpenText, Compass, Home, LifeBuoy, UserCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { BookOpenText, Compass, Home, UserCircle } from "lucide-react";
+import { Fragment, useEffect, useState } from "react";
 
 import { PartnerRegisterForm } from "@/components/partner-register-form";
 import type { NavbarContent } from "@/lib/site-content";
@@ -48,7 +48,6 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     { label: "Home", href: "/", Icon: Home },
     { label: "Explore", href: "/resorts", Icon: Compass, destinationRoutes: ["/resorts", "/hotels", "/liveaboards"] },
     { label: "Guide", href: "/travel-guide", Icon: BookOpenText },
-    { label: "Contact", href: "/contact", Icon: LifeBuoy },
     { label: "Partners", href: partnerLoginHref, Icon: UserCircle }
   ];
   const isExploreListing = /^\/(resorts|hotels|liveaboards)$/.test(pathname);
@@ -113,7 +112,7 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
       </header>
 
       <nav className="mobile-bottom-nav" aria-label="Mobile primary">
-        {mobileItems.map(({ Icon, ...item }) => {
+        {mobileItems.map(({ Icon, ...item }, index) => {
           const isActive =
             item.href === "/"
               ? pathname === "/"
@@ -123,22 +122,36 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
           const className = `mobile-bottom-nav__item${isActive ? " is-active" : ""}`;
 
           return (
-            <Link
-              href={item.href}
-              prefetch={false}
-              key={item.label}
-              className={className}
-              onClick={() => setActiveMobileLabel(item.label === "Explore" ? item.label : null)}
-            >
-              <span className="mobile-bottom-nav__frame" aria-hidden="true">
-                <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--tl" />
-                <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--tr" />
-                <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--bl" />
-                <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--br" />
-                <Icon className="mobile-bottom-nav__icon" size={18} strokeWidth={1.8} />
-              </span>
-              <span className="mobile-bottom-nav__label">{item.label}</span>
-            </Link>
+            <Fragment key={item.label}>
+              <Link
+                href={item.href}
+                prefetch={false}
+                className={className}
+                onClick={() => setActiveMobileLabel(item.label === "Explore" ? item.label : null)}
+              >
+                <span className="mobile-bottom-nav__frame" aria-hidden="true">
+                  <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--tl" />
+                  <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--tr" />
+                  <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--bl" />
+                  <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--br" />
+                  <Icon className="mobile-bottom-nav__icon" size={18} strokeWidth={1.8} />
+                </span>
+                <span className="mobile-bottom-nav__label">{item.label}</span>
+              </Link>
+              {index === 1 ? (
+                <Link href="/" prefetch={false} className="mobile-bottom-nav__orb" aria-label="Go to home">
+                  {navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl ? (
+                    <img
+                      src={navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl}
+                      alt=""
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <span aria-hidden="true">EM</span>
+                  )}
+                </Link>
+              ) : null}
+            </Fragment>
           );
         })}
       </nav>
