@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Eye,
+  ImageIcon,
+  MapPin,
   Pencil,
   Plus,
   Search,
@@ -117,6 +119,76 @@ function statusTone(resort: Partial<ResortRecord>) {
   }
 
   return "is-draft";
+}
+
+function listStatusLabel(status: PublishStatus) {
+  if (status === "published") {
+    return "Published";
+  }
+
+  if (status === "archived") {
+    return "Archived";
+  }
+
+  return "Draft";
+}
+
+function listStatusClass(status: PublishStatus) {
+  if (status === "published") {
+    return "s-published";
+  }
+
+  if (status === "archived") {
+    return "s-archived";
+  }
+
+  return "s-draft";
+}
+
+function propertyCategoryFallback(propertyType: PropertyType) {
+  if (propertyType === "hotels") {
+    return "City Hotel";
+  }
+
+  if (propertyType === "liveaboards") {
+    return "Charter Vessel";
+  }
+
+  return "Luxury Resort";
+}
+
+function propertyTransferFallback(propertyType: PropertyType) {
+  if (propertyType === "hotels") {
+    return "Island access";
+  }
+
+  if (propertyType === "liveaboards") {
+    return "Cruise route";
+  }
+
+  return "Transfer TBC";
+}
+
+function propertyUnitLabel(propertyType: PropertyType, count: number) {
+  const unit = propertyType === "liveaboards" ? "cabin type" : "room type";
+
+  return `${count} ${unit}${count === 1 ? "" : "s"}`;
+}
+
+function propertyPlaceholderLabel(propertyType: PropertyType) {
+  if (propertyType === "hotels") {
+    return "Hotel image";
+  }
+
+  if (propertyType === "liveaboards") {
+    return "Vessel image";
+  }
+
+  return "Resort image";
+}
+
+function propertyListTags(resort: ResortRecord) {
+  return [...resort.highlights, ...resort.mealPlans].filter(Boolean).slice(0, 2);
 }
 
 function formatUpdatedLabel(value?: string) {
@@ -910,7 +982,7 @@ export function ResortManagerListView({
       }
 
       if (filter === "featured") {
-        return resort.status === "published" && resort.isFeaturedHomepage;
+        return propertyType === "resort" && resort.status === "published" && resort.isFeaturedHomepage;
       }
 
       if (filter === "archived") {
@@ -919,93 +991,127 @@ export function ResortManagerListView({
 
       return true;
     });
-  }, [filter, query, resorts]);
+  }, [filter, propertyType, query, resorts]);
 
   const filterOptions: Array<{ id: ResortFilter; label: string }> = [
     { id: "all", label: "All" },
     { id: "published", label: "Published" },
     { id: "draft", label: "Draft" },
-    { id: "featured", label: "Featured" },
+    ...(propertyType === "resort" ? [{ id: "featured" as ResortFilter, label: "Featured" }] : []),
     { id: "archived", label: "Archived" }
   ];
 
   return (
     <div className="stack">
-      <div className="resort-manager-toolbar">
-        <label className="resort-search-field" htmlFor="resort-search">
-          <Search className="admin-icon" />
-          <input
-            id="resort-search"
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={`Search ${labels.plural.toLowerCase()}...`}
-          />
-        </label>
-        <div className="resort-filter-pills" role="tablist" aria-label="Resort filters">
-          {filterOptions.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              className={filter === option.id ? "is-active" : ""}
-              onClick={() => setFilter(option.id)}
-            >
-              {option.label}
-            </button>
-          ))}
+      <div className="table-toolbar resort-manager-toolbar">
+        <div className="table-toolbar-left">
+          <label className="tbl-search resort-search-field" htmlFor={`${propertyType}-search`}>
+            <Search className="admin-icon" />
+            <input
+              id={`${propertyType}-search`}
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={`Search ${labels.plural.toLowerCase()}...`}
+            />
+          </label>
+
+          <div className="tbl-filter resort-filter-pills" role="tablist" aria-label={`${labels.singular} filters`}>
+            {filterOptions.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className={filter === option.id ? "is-active" : ""}
+                onClick={() => setFilter(option.id)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="table-toolbar-right">
+          <span className="tbl-count">
+            Showing {filteredResorts.length} of {resorts.length} {labels.plural.toLowerCase()}
+          </span>
+          <Link href={`${labels.adminBasePath}/new`} className="tbl-add">
+            + Add {labels.singular}
+          </Link>
         </div>
       </div>
 
       {filteredResorts.length ? (
-        <div className="resort-manager-grid">
-          {filteredResorts.map((resort) => (
-            <article className="resort-manager-card" key={resort.id}>
-              <div className="resort-manager-card__media">
-                {resort.heroImageUrl ? (
-                  <img
-                    src={optimizedImageUrl(resort.heroImageUrl, { width: 520, height: 320, quality: 72 })}
-                    alt={resort.name}
-                    width={520}
-                    height={320}
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="resort-manager-card__media-placeholder">No banner image</div>
-                )}
-              </div>
-              <div className="resort-manager-card__body">
-                <div className="resort-manager-card__topline">
-                  <div>
-                    <h3>{resort.name}</h3>
-                    <p>
-                      {[resort.location || "Maldives", resort.category || "Luxury Resort"].filter(Boolean).join(" · ")}
-                    </p>
-                  </div>
-                  <div className="resort-manager-card__badges">
-                    <span className={`badge ${statusTone(resort)}`}>{statusLabel(resort)}</span>
-                    {resort.isFeaturedHomepage ? (
-                      <span className="badge is-featured">
-                        <Star className="admin-icon" />
-                        Featured
-                      </span>
-                    ) : null}
-                  </div>
+        <div className="data-list property-data-list">
+          <div className="list-head property-list-head" aria-hidden="true">
+            <span>Property</span>
+            <span>Status</span>
+            <span>Updated</span>
+            <span>Actions</span>
+          </div>
+
+          {filteredResorts.map((resort) => {
+            const tags = propertyListTags(resort);
+
+            return (
+              <article className="list-row property-list-row" key={resort.id}>
+                <div className="lr-thumb-wrap">
+                  {resort.heroImageUrl ? (
+                    <img
+                      className="lr-thumb"
+                      src={optimizedImageUrl(resort.heroImageUrl, { width: 520, height: 320, quality: 72 })}
+                      alt={resort.name}
+                      width={96}
+                      height={72}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="lr-thumb-ph">
+                      <ImageIcon className="admin-icon" />
+                      <span>{propertyPlaceholderLabel(propertyType)}</span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="resort-manager-card__meta">
-                  <span>{resort.roomCount ?? resort.roomTypes.length} room types</span>
-                  <span>Updated {formatUpdatedLabel(resort.updatedAt)}</span>
+                <div className="lr-info">
+                  <div className="lr-name">{resort.name}</div>
+                  <div className="lr-cat">{resort.category || propertyCategoryFallback(propertyType)}</div>
+                  <div className="lr-meta">
+                    <span className="lr-meta-item">
+                      <MapPin className="admin-icon" />
+                      {resort.location || "Maldives"}
+                    </span>
+                    <span className="lr-meta-item">{resort.transferType || propertyTransferFallback(propertyType)}</span>
+                    <span className="lr-meta-item">{propertyUnitLabel(propertyType, resort.roomCount ?? resort.roomTypes.length)}</span>
+                  </div>
+
+                  {tags.length ? (
+                    <div className="lr-tags">
+                      {tags.map((tag) => (
+                        <span className="lr-tag" key={tag}>{tag}</span>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
 
-                <div className="resort-manager-card__actions">
-                    <Link className="admin-btn admin-btn--primary" href={`${labels.adminBasePath}/${resort.id}/edit`}>
+                <div className="lr-status">
+                  <span className={`status-pill ${listStatusClass(resort.status)}`}>{listStatusLabel(resort.status)}</span>
+                  {propertyType === "resort" && resort.isFeaturedHomepage ? (
+                    <span className="lr-tag lr-tag-featured">
+                      <Star className="admin-icon" />
+                      Featured
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="lr-updated">Updated {formatUpdatedLabel(resort.updatedAt)}</div>
+
+                <div className="lr-actions">
+                  <Link className="act-btn" href={`${labels.adminBasePath}/${resort.id}/edit`} aria-label={`Edit ${resort.name}`} title={`Edit ${resort.name}`}>
                     <Pencil className="admin-icon" />
-                    Edit
                   </Link>
                   {resort.slug ? (
-                    <Link className="admin-btn admin-btn--secondary" href={`${labels.publicBasePath}/${resort.slug}`} target="_blank">
+                    <Link className="act-btn" href={`${labels.publicBasePath}/${resort.slug}`} target="_blank" aria-label={`Preview ${resort.name}`} title={`Preview ${resort.name}`}>
                       <Eye className="admin-icon" />
-                      Preview
                     </Link>
                   ) : null}
                   <form
@@ -1018,26 +1124,24 @@ export function ResortManagerListView({
                   >
                     <input type="hidden" name="id" value={resort.id} />
                     <input type="hidden" name="propertyType" value={propertyType} />
-                    <button className="admin-btn admin-btn--danger" type="submit">
+                    <button className="act-btn act-btn-danger" type="submit" aria-label={`Delete ${resort.name}`} title={`Delete ${resort.name}`}>
                       <Trash2 className="admin-icon" />
-                      Delete
                     </button>
                   </form>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       ) : (
         <div className="admin-empty-panel">
-          <h3>No resorts found</h3>
-          <p>Try a different filter or add your first resort to start building the property collection.</p>
+          <h3>No {labels.plural.toLowerCase()} found</h3>
+          <p>Try a different filter or add your first {labels.singular.toLowerCase()} to start building this collection.</p>
         </div>
       )}
     </div>
   );
 }
-
 export function SeedResortsButton() {
   return (
     <form action={seedResortsAction}>

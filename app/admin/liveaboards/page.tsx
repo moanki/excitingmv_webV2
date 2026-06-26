@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { ResortManagerListView } from "@/app/admin/resorts/forms";
 import { getResortCounts, listAdminResortCards } from "@/lib/services/resort-service";
 
@@ -18,14 +16,6 @@ export default async function AdminLiveaboardsPage() {
 
   return (
     <section className="stack">
-      <div className="admin-page-header admin-page-header--actions-only">
-        <div className="admin-page-header__actions">
-          <Link href="/admin/liveaboards/new" className="admin-btn admin-btn--primary">
-            + Add New Liveaboard
-          </Link>
-        </div>
-      </div>
-
       <div className="dashboard-grid">
         <article className="stat-card">
           <p className="eyebrow">Total Liveaboards</p>
