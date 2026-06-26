@@ -11,8 +11,6 @@
   --container: 1280px;
 }
 
-
-
 /* Final mobile-only public fixes: keep these after legacy overrides. */
 @media (max-width: 900px) {
   html body:not(.admin-body) .mobile-bottom-nav {
@@ -25364,5 +25362,995 @@ html {
     border-top: 1px solid #e9e5df !important;
     color: #8fa2b4 !important;
     font-size: 12px !important;
+  }
+}
+
+/* CMS internal v2 admin portal polish.
+   Scoped only to admin pages so public desktop and mobile website UI stay unchanged. */
+@media (min-width: 981px) {
+  .admin-body {
+    --cms-teal: #234f52;
+    --cms-teal-dark: #1a3d3f;
+    --cms-teal-light: #ebf3f3;
+    --cms-ink: #16201f;
+    --cms-ink-2: #1e2c2b;
+    --cms-page: #f3f6f5;
+    --cms-paper: #ffffff;
+    --cms-mist: #7c8a86;
+    --cms-mist-light: #c4cecc;
+    --cms-hair: #e2e8e6;
+    --cms-green: #1e7a4a;
+    --cms-green-light: #e8f5ee;
+    --cms-amber: #92600a;
+    --cms-amber-light: #fdf3e1;
+    --cms-red: #8b2020;
+    --cms-red-light: #fdeaea;
+    background: var(--cms-page) !important;
+    color: var(--cms-ink) !important;
+    font-family: var(--font-sans), Jost, Inter, system-ui, sans-serif !important;
+    font-size: 13px !important;
+  }
+
+  .admin-body .admin-shell {
+    display: flex !important;
+    min-height: 100vh !important;
+    background: var(--cms-page) !important;
+    color: var(--cms-ink) !important;
+  }
+
+  .admin-body .admin-sidebar {
+    position: sticky !important;
+    top: 0 !important;
+    display: flex !important;
+    width: 240px !important;
+    min-width: 240px !important;
+    height: 100vh !important;
+    flex: 0 0 240px !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    border-right: 0 !important;
+    background: var(--cms-ink-2) !important;
+    box-shadow: none !important;
+  }
+
+  .admin-body .admin-sidebar::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .admin-body .admin-brand-block {
+    min-height: auto !important;
+    padding: 22px 20px 18px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    background: transparent !important;
+  }
+
+  .admin-body .admin-brand-row {
+    min-height: 0 !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    gap: 0 !important;
+  }
+
+  .admin-body .admin-brand-logo {
+    width: auto !important;
+    height: 26px !important;
+    max-width: 160px !important;
+    object-fit: contain !important;
+  }
+
+  .admin-body .admin-brand-mark {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #fff !important;
+  }
+
+  .admin-body .admin-brand-row strong {
+    color: #fff !important;
+    font-family: var(--font-serif), "Cormorant Garamond", Georgia, serif !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .admin-body .admin-brand-block p {
+    margin: 6px 0 0 !important;
+    color: rgba(255, 255, 255, 0.25) !important;
+    font-size: 8.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.18em !important;
+    line-height: 1 !important;
+    text-transform: uppercase !important;
+  }
+
+  .admin-body .admin-nav {
+    flex: 1 1 auto !important;
+    padding: 0 12px 10px !important;
+    overflow-y: auto !important;
+  }
+
+  .admin-body .admin-nav-group,
+  .admin-body .admin-settings-nav {
+    margin: 0 !important;
+    padding: 18px 0 6px !important;
+    border: 0 !important;
+  }
+
+  .admin-body .admin-nav-label {
+    margin: 0 0 6px !important;
+    padding: 0 8px !important;
+    color: rgba(255, 255, 255, 0.22) !important;
+    font-size: 8px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.18em !important;
+    line-height: 1.25 !important;
+    text-transform: uppercase !important;
+  }
+
+  .admin-body .admin-nav-list {
+    display: grid !important;
+    gap: 2px !important;
+  }
+
+  .admin-body .admin-nav-item {
+    display: flex !important;
+    min-height: 34px !important;
+    align-items: center !important;
+    gap: 9px !important;
+    padding: 9px 10px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.45) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 1.1 !important;
+    text-align: left !important;
+    transition: background 0.15s ease, color 0.15s ease !important;
+  }
+
+  .admin-body .admin-nav-item::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  .admin-body .admin-nav-item:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: rgba(255, 255, 255, 0.75) !important;
+  }
+
+  .admin-body .admin-nav-item.is-active {
+    background: rgba(35, 79, 82, 0.5) !important;
+    color: #fff !important;
+  }
+
+  .admin-body .admin-nav-icon {
+    display: inline-flex !important;
+    width: 15px !important;
+    height: 15px !important;
+    flex: 0 0 15px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: currentColor !important;
+  }
+
+  .admin-body .admin-nav-icon .admin-icon,
+  .admin-body .admin-sidebar .admin-icon {
+    width: 15px !important;
+    height: 15px !important;
+    color: currentColor !important;
+    stroke-width: 1.5 !important;
+  }
+
+  .admin-body .admin-nav-copy {
+    display: block !important;
+    min-width: 0 !important;
+  }
+
+  .admin-body .admin-nav-copy strong {
+    display: block !important;
+    overflow: hidden !important;
+    color: inherit !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .admin-body .admin-nav-copy small {
+    display: none !important;
+  }
+
+  .admin-body .admin-logout {
+    margin-top: auto !important;
+    padding: 14px 16px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .admin-body .admin-sidebar-user {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .admin-body .admin-sidebar-avatar {
+    display: inline-flex !important;
+    width: 32px !important;
+    height: 32px !important;
+    flex: 0 0 32px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    background: var(--cms-teal) !important;
+    color: #fff !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+  }
+
+  .admin-body .admin-sidebar-user-copy {
+    display: grid !important;
+    gap: 1px !important;
+    min-width: 0 !important;
+  }
+
+  .admin-body .admin-sidebar-user-copy strong {
+    overflow: hidden !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 11.5px !important;
+    font-weight: 500 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .admin-body .admin-sidebar-user-copy small {
+    color: rgba(255, 255, 255, 0.3) !important;
+    font-size: 9.5px !important;
+  }
+
+  .admin-body .admin-logout-button {
+    width: 100% !important;
+    min-height: 32px !important;
+    justify-content: center !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(255, 255, 255, 0.64) !important;
+  }
+
+  .admin-body .admin-main {
+    display: flex !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    flex-direction: column !important;
+    background: var(--cms-page) !important;
+  }
+
+  .admin-body .admin-topbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 50 !important;
+    display: flex !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0 32px !important;
+    border-bottom: 1px solid var(--cms-hair) !important;
+    background: var(--cms-paper) !important;
+    box-shadow: none !important;
+  }
+
+  .admin-body .admin-topbar-copy {
+    min-width: 0 !important;
+  }
+
+  .admin-body .admin-topbar-copy h2,
+  .admin-body .admin-topbar h2 {
+    margin: 0 !important;
+    color: var(--cms-ink) !important;
+    font-family: var(--font-serif), "Cormorant Garamond", Georgia, serif !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.1 !important;
+  }
+
+  .admin-body .admin-topbar-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+  }
+
+  .admin-body .admin-topbar-search {
+    display: flex !important;
+    height: 32px !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 0 12px !important;
+    border: 1px solid var(--cms-hair) !important;
+    border-radius: 6px !important;
+    background: var(--cms-page) !important;
+    color: var(--cms-mist-light) !important;
+  }
+
+  .admin-body .admin-topbar-search .admin-icon {
+    width: 13px !important;
+    height: 13px !important;
+    color: var(--cms-mist-light) !important;
+    stroke-width: 1.5 !important;
+  }
+
+  .admin-body .admin-topbar-search input {
+    width: 160px !important;
+    border: 0 !important;
+    outline: none !important;
+    background: transparent !important;
+    color: var(--cms-ink) !important;
+    font: inherit !important;
+    font-size: 12px !important;
+  }
+
+  .admin-body .admin-topbar-search input::placeholder {
+    color: var(--cms-mist-light) !important;
+  }
+
+  .admin-body .admin-topbar-primary {
+    display: inline-flex !important;
+    height: 32px !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 0 16px !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: var(--cms-teal) !important;
+    color: #fff !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: background 0.15s ease !important;
+  }
+
+  .admin-body .admin-topbar-primary:hover {
+    background: var(--cms-teal-dark) !important;
+  }
+
+  .admin-body .admin-topbar-primary .admin-icon {
+    width: 13px !important;
+    height: 13px !important;
+    color: #fff !important;
+    stroke-width: 2 !important;
+  }
+
+  .admin-body .admin-icon-button {
+    position: relative !important;
+    display: inline-flex !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 1px solid var(--cms-hair) !important;
+    border-radius: 6px !important;
+    background: var(--cms-paper) !important;
+    color: var(--cms-mist) !important;
+  }
+
+  .admin-body .admin-topbar-actions > .admin-icon-button[aria-label="Search"] {
+    display: none !important;
+  }
+
+  .admin-body .admin-icon-button .admin-icon {
+    width: 15px !important;
+    height: 15px !important;
+    color: currentColor !important;
+    stroke-width: 1.5 !important;
+  }
+
+  .admin-body .admin-notification-dot {
+    position: absolute !important;
+    top: 6px !important;
+    right: 6px !important;
+    width: 6px !important;
+    height: 6px !important;
+    border: 2px solid var(--cms-paper) !important;
+    border-radius: 50% !important;
+    background: var(--cms-teal) !important;
+  }
+
+  .admin-body .admin-user-chip {
+    height: 32px !important;
+    gap: 8px !important;
+    padding: 0 10px 0 4px !important;
+    border: 1px solid var(--cms-hair) !important;
+    border-radius: 999px !important;
+    background: var(--cms-paper) !important;
+    color: var(--cms-ink) !important;
+  }
+
+  .admin-body .admin-user-chip span {
+    width: 24px !important;
+    height: 24px !important;
+    background: var(--cms-teal) !important;
+    color: #fff !important;
+    font-size: 10px !important;
+  }
+
+  .admin-body .admin-user-chip strong {
+    color: var(--cms-ink) !important;
+    font-size: 11.5px !important;
+    font-weight: 500 !important;
+  }
+
+  .admin-body .admin-user-chevron {
+    width: 12px !important;
+    height: 12px !important;
+    color: var(--cms-mist-light) !important;
+  }
+
+  .admin-body .admin-canvas {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    padding: 28px 32px !important;
+    overflow-y: auto !important;
+    background: var(--cms-page) !important;
+  }
+
+  .admin-body .admin-page-intro {
+    margin: 0 0 20px !important;
+  }
+
+  .admin-body .admin-page-intro h1 {
+    margin: 0 !important;
+    color: var(--cms-ink) !important;
+    font-family: var(--font-serif), "Cormorant Garamond", Georgia, serif !important;
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .admin-body .admin-page-intro p {
+    margin: 4px 0 0 !important;
+    color: var(--cms-mist) !important;
+    font-size: 12px !important;
+  }
+
+  .admin-body .dashboard-grid,
+  .admin-body .dashboard-grid-quad {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+    margin-bottom: 28px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+  }
+
+  .admin-body .stat-card {
+    display: block !important;
+    min-height: 132px !important;
+    padding: 20px 22px !important;
+    border: 1px solid var(--cms-hair) !important;
+    border-radius: 10px !important;
+    background: var(--cms-paper) !important;
+    box-shadow: none !important;
+    color: var(--cms-ink) !important;
+    text-decoration: none !important;
+  }
+
+  .admin-body .stat-card:hover {
+    border-color: var(--cms-hair) !important;
+    background: var(--cms-paper) !important;
+    transform: none !important;
+  }
+
+  .admin-body .admin-stat-label,
+  .admin-body .stat-card span {
+    display: flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    margin: 0 0 10px !important;
+    color: var(--cms-mist) !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.12em !important;
+    line-height: 1.2 !important;
+    text-transform: uppercase !important;
+  }
+
+  .admin-body .admin-stat-label .admin-icon {
+    width: 13px !important;
+    height: 13px !important;
+    color: var(--cms-mist) !important;
+    stroke-width: 1.5 !important;
+  }
+
+  .admin-body .stat-card strong {
+    display: block !important;
+    margin: 0 !important;
+    color: var(--cms-ink) !important;
+    font-family: var(--font-serif), "Cormorant Garamond", Georgia, serif !important;
+    font-size: 38px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1 !important;
+  }
+
+  .admin-body .admin-overview-grid,
+  .admin-body .dashboard-grid:not(.dashboard-grid-quad) {
+    display: grid !important;
+    grid-template-columns: 1.6fr 1fr !important;
+    gap: 16px !important;
+  }
+
+  .admin-body .panel,
+  .admin-body .panel-soft,
+  .admin-body .admin-form-card,
+  .admin-body .admin-table-shell,
+  .admin-body .media-manager-panel,
+  .admin-body .media-library-panel {
+    border: 1px solid var(--cms-hair) !important;
+    border-radius: 10px !important;
+    background: var(--cms-paper) !important;
+    box-shadow: none !important;
+  }
+
+  .admin-body .panel,
+  .admin-body .admin-form-card {
+    padding: 22px !important;
+  }
+
+  .admin-body .section-heading,
+  .admin-body .panel-head,
+  .admin-body .admin-form-section__header {
+    margin: 0 0 18px !important;
+    padding: 0 0 14px !important;
+    border-bottom: 1px solid var(--cms-hair) !important;
+  }
+
+  .admin-body .section-heading h2,
+  .admin-body .admin-form-section__title,
+  .admin-body .panel-title {
+    margin: 0 !important;
+    color: var(--cms-ink) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .admin-body .admin-toolbar,
+  .admin-body .resort-manager-toolbar,
+  .admin-body .media-manager-toolbar,
+  .admin-body .table-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    margin: 0 0 20px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .admin-body .admin-search,
+  .admin-body .resort-search-field,
+  .admin-body .media-manager-toolbar .resort-search-field,
+  .admin-body .tbl-search {
+    display: flex !important;
+    width: 280px !important;
+    max-width: 100% !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 0 14px !important;
+    border: 1px solid var(--cms-hair) !important;
+    border-radius: 8px !important;
+    background: var(--cms-paper) !important;
+    color: var(--cms-mist-light) !important;
+    box-shadow: none !important;
+  }
+
+  .admin-body .admin-search input,
+  .admin-body .resort-search-field input,
+  .admin-body .tbl-search input {
+    border: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    color: var(--cms-ink) !important;
+    font-size: 13px !important;
+  }
+
+  .admin-body .admin-filter-pills,
+  .admin-body .admin-filter-pills--below,
+  .admin-body .resort-filter-pills {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin: 0 0 18px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  .admin-body .admin-filter-pill,
+  .admin-body .resort-filter-pills button,
+  .admin-body .tbl-filter {
+    display: inline-flex !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 0 14px !important;
+    border: 1px solid var(--cms-hair) !important;
+    border-radius: 8px !important;
+    background: var(--cms-paper) !important;
+    color: var(--cms-mist) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+  }
+
+  .admin-body .admin-filter-pill.is-active,
+  .admin-body .resort-filter-pills button.is-active {
+    border-color: var(--cms-teal) !important;
+    background: var(--cms-teal-light) !important;
+    color: var(--cms-teal-dark) !important;
+  }
+
+  .admin-body .admin-btn,
+  .admin-body .button,
+  .admin-body .button-muted,
+  .admin-body button.button,
+  .admin-body a.button,
+  .admin-body a.button-muted,
+  .admin-body .tbl-add {
+    display: inline-flex !important;
+    min-height: 36px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 0 18px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    text-decoration: none !important;
+  }
+
+  .admin-body .admin-btn--primary,
+  .admin-body .button,
+  .admin-body .tbl-add {
+    border-color: var(--cms-teal) !important;
+    background: var(--cms-teal) !important;
+    color: #fff !important;
+  }
+
+  .admin-body .admin-btn--primary:hover,
+  .admin-body .button:hover,
+  .admin-body .tbl-add:hover {
+    background: var(--cms-teal-dark) !important;
+  }
+
+  .admin-body .admin-btn--secondary,
+  .admin-body .button-muted {
+    border: 1px solid var(--cms-hair) !important;
+    background: var(--cms-paper) !important;
+    color: var(--cms-mist) !important;
+  }
+
+  .admin-body .admin-btn--danger {
+    border-color: var(--cms-red-light) !important;
+    background: var(--cms-red-light) !important;
+    color: var(--cms-red) !important;
+  }
+
+  .admin-body .admin-table-shell {
+    overflow: hidden !important;
+    border-radius: 12px !important;
+  }
+
+  .admin-body .admin-table-shell .table,
+  .admin-body .table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    background: var(--cms-paper) !important;
+  }
+
+  .admin-body .admin-table-shell .table th,
+  .admin-body .table th {
+    padding: 12px 24px !important;
+    border-bottom: 1px solid var(--cms-hair) !important;
+    background: var(--cms-page) !important;
+    color: var(--cms-mist-light) !important;
+    font-size: 9.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+  }
+
+  .admin-body .admin-table-shell .table td,
+  .admin-body .table td {
+    padding: 14px 24px !important;
+    border-bottom: 1px solid var(--cms-hair) !important;
+    color: var(--cms-ink) !important;
+    font-size: 12px !important;
+  }
+
+  .admin-body .admin-table-shell .table tbody tr:hover,
+  .admin-body .table tbody tr:hover {
+    background: rgba(35, 79, 82, 0.025) !important;
+  }
+
+  .admin-body .admin-status-badge,
+  .admin-body .status-pill,
+  .admin-body .resort-status-badge,
+  .admin-body .admin-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    padding: 4px 10px !important;
+    border-radius: 20px !important;
+    border: 0 !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+    line-height: 1 !important;
+    text-transform: uppercase !important;
+  }
+
+  .admin-body .admin-status-badge::before,
+  .admin-body .resort-status-badge::before,
+  .admin-body .admin-badge::before {
+    content: "" !important;
+    width: 5px !important;
+    height: 5px !important;
+    flex: 0 0 auto !important;
+    border-radius: 50% !important;
+    background: currentColor !important;
+  }
+
+  .admin-body .admin-status-badge.is-success,
+  .admin-body .admin-status-badge.is-approved,
+  .admin-body .admin-status-badge.is-active,
+  .admin-body .resort-status-badge.is-success,
+  .admin-body .resort-status-badge.is-featured {
+    background: var(--cms-green-light) !important;
+    color: var(--cms-green) !important;
+  }
+
+  .admin-body .admin-status-badge.is-draft,
+  .admin-body .admin-status-badge.is-pending,
+  .admin-body .resort-status-badge.is-draft {
+    background: var(--cms-amber-light) !important;
+    color: var(--cms-amber) !important;
+  }
+
+  .admin-body .admin-status-badge.is-muted,
+  .admin-body .admin-status-badge.is-neutral,
+  .admin-body .resort-status-badge.is-muted {
+    background: var(--cms-teal-light) !important;
+    color: var(--cms-teal) !important;
+  }
+
+  .admin-body .admin-status-badge.is-rejected,
+  .admin-body .admin-status-badge.is-error,
+  .admin-body .admin-status-badge.is-inactive {
+    background: var(--cms-red-light) !important;
+    color: var(--cms-red) !important;
+  }
+
+  .admin-body .resort-manager-grid {
+    display: block !important;
+    overflow: hidden !important;
+    border: 1px solid var(--cms-hair) !important;
+    border-radius: 12px !important;
+    background: var(--cms-paper) !important;
+  }
+
+  .admin-body .resort-manager-grid::before {
+    content: "PROPERTY STATUS UPDATED ACTIONS" !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 130px 130px 210px !important;
+    gap: 16px !important;
+    padding: 12px 24px !important;
+    border-bottom: 1px solid var(--cms-hair) !important;
+    background: var(--cms-page) !important;
+    color: var(--cms-mist-light) !important;
+    font-size: 9.5px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.12em !important;
+    white-space: pre !important;
+  }
+
+  .admin-body .resort-manager-card {
+    display: grid !important;
+    grid-template-columns: 52px minmax(0, 1fr) 130px 130px 210px !important;
+    gap: 20px !important;
+    align-items: center !important;
+    min-height: 102px !important;
+    padding: 18px 24px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--cms-hair) !important;
+    border-radius: 0 !important;
+    background: var(--cms-paper) !important;
+    box-shadow: none !important;
+    cursor: default !important;
+    transition: background 0.15s ease !important;
+  }
+
+  .admin-body .resort-manager-card:hover {
+    background: rgba(35, 79, 82, 0.025) !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .admin-body .resort-manager-card:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .admin-body .resort-manager-card__media,
+  .admin-body .resort-manager-card__media img,
+  .admin-body .resort-manager-card__media-placeholder {
+    width: 52px !important;
+    height: 66px !important;
+    border-radius: 6px !important;
+    object-fit: cover !important;
+  }
+
+  .admin-body .resort-manager-card__body {
+    display: contents !important;
+  }
+
+  .admin-body .resort-manager-card__topline {
+    grid-column: 2 !important;
+    display: block !important;
+    min-width: 0 !important;
+  }
+
+  .admin-body .resort-manager-card__topline h2,
+  .admin-body .resort-manager-card__topline h3 {
+    margin: 0 0 4px !important;
+    overflow: hidden !important;
+    color: var(--cms-ink) !important;
+    font-family: var(--font-serif), "Cormorant Garamond", Georgia, serif !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.15 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .admin-body .resort-manager-card__topline p {
+    margin: 0 !important;
+    overflow: hidden !important;
+    color: var(--cms-mist) !important;
+    font-size: 11.5px !important;
+    line-height: 1.45 !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .admin-body .resort-manager-card__badges {
+    grid-column: 3 !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+  }
+
+  .admin-body .resort-manager-card__meta {
+    grid-column: 4 !important;
+    display: block !important;
+    color: var(--cms-mist) !important;
+    font-size: 12px !important;
+  }
+
+  .admin-body .resort-manager-card__meta span:first-child {
+    display: none !important;
+  }
+
+  .admin-body .resort-manager-card__actions {
+    grid-column: 5 !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+  }
+
+  .admin-body .resort-manager-card__actions .admin-btn {
+    min-height: 30px !important;
+    padding: 0 12px !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
+  }
+
+  .admin-body .resort-manager-footer,
+  .admin-body .admin-table-footer {
+    padding: 14px 24px !important;
+    border-top: 1px solid var(--cms-hair) !important;
+    background: var(--cms-paper) !important;
+    color: var(--cms-mist-light) !important;
+    font-size: 12px !important;
+  }
+
+  .admin-body .field,
+  .admin-body .form-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+
+  .admin-body .field__label,
+  .admin-body .form-label {
+    color: var(--cms-mist) !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.1em !important;
+    line-height: 1.2 !important;
+    text-transform: uppercase !important;
+  }
+
+  .admin-body .admin-input,
+  .admin-body .admin-select,
+  .admin-body .admin-textarea,
+  .admin-body .field input,
+  .admin-body .field textarea,
+  .admin-body .field select {
+    min-height: 38px !important;
+    border: 1px solid var(--cms-hair) !important;
+    border-radius: 6px !important;
+    background: var(--cms-page) !important;
+    color: var(--cms-ink) !important;
+    font-family: var(--font-sans), Jost, Inter, system-ui, sans-serif !important;
+    font-size: 13px !important;
+    outline: none !important;
+    padding: 9px 12px !important;
+  }
+
+  .admin-body .admin-input:focus,
+  .admin-body .admin-select:focus,
+  .admin-body .admin-textarea:focus,
+  .admin-body .field input:focus,
+  .admin-body .field textarea:focus,
+  .admin-body .field select:focus {
+    border-color: var(--cms-teal) !important;
+    box-shadow: none !important;
+  }
+
+  .admin-body .admin-textarea,
+  .admin-body .field textarea {
+    min-height: 90px !important;
+    resize: vertical !important;
+  }
+
+  .admin-body .media-grid,
+  .admin-body .media-library-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  .admin-body .media-card,
+  .admin-body .media-library-card {
+    overflow: hidden !important;
+    border: 2px solid transparent !important;
+    border-radius: 8px !important;
+    background: var(--cms-paper) !important;
+    transition: border-color 0.15s ease !important;
+  }
+
+  .admin-body .media-card:hover,
+  .admin-body .media-library-card:hover {
+    border-color: var(--cms-teal) !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .admin-body .admin-topbar-search,
+  .admin-body .admin-topbar-primary,
+  .admin-body .admin-sidebar-user {
+    display: none !important;
   }
 }

@@ -301,7 +301,7 @@ export function AdminShell({
               </>
             )}
           </Link>
-          <p>Admin center</p>
+          <p>Internal CMS</p>
         </div>
 
         <nav className="admin-nav" aria-label="Admin">
@@ -345,6 +345,13 @@ export function AdminShell({
         </nav>
 
         <form action={logoutFromAdmin} className="admin-logout">
+          <div className="admin-sidebar-user">
+            <span className="admin-sidebar-avatar" aria-hidden="true">SA</span>
+            <span className="admin-sidebar-user-copy">
+              <strong>Super Admin</strong>
+              <small>CMS workspace</small>
+            </span>
+          </div>
           <button type="submit" className="admin-btn admin-btn--secondary admin-logout-button">
             <LogOut className="admin-icon" />
             Logout
@@ -358,8 +365,17 @@ export function AdminShell({
             <h2>{current.title}</h2>
           </div>
           <div className="admin-topbar-actions">
+            <label className="admin-topbar-search">
+              <Search className="admin-icon" />
+              <input type="search" placeholder="Search CMS" />
+            </label>
+            <Link href="/admin/resorts/new" className="admin-topbar-primary">
+              <Sparkles className="admin-icon" />
+              New Content
+            </Link>
             <button type="button" className="admin-icon-button" aria-label="Notifications">
               <Bell className="admin-icon" />
+              <span className="admin-notification-dot" aria-hidden="true" />
             </button>
             <button type="button" className="admin-icon-button" aria-label="Search">
               <Search className="admin-icon" />
