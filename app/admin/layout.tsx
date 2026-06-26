@@ -5,6 +5,9 @@ import { getNavbarContent } from "@/lib/site-content";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const headerStore = await headers();
   const pathname = headerStore.get("x-pathname") || "";
