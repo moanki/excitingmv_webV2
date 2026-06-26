@@ -15,13 +15,6 @@ type MobileDestinationsProps = {
   items: ResortSummary[];
 };
 
-const fallbackImages = [
-  "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=900&q=88",
-  "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=900&q=88",
-  "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=85",
-  "https://images.unsplash.com/photo-1566847438217-76e82d383f84?auto=format&fit=crop&w=900&q=86"
-];
-
 const kindDetails = {
   resort: {
     label: "Resorts",
@@ -184,14 +177,16 @@ export function MobileDestinations({ activeKind, items }: MobileDestinationsProp
 
       {visibleItems.length ? (
         <section className="mobile-explore-v8__grid" aria-label={`${details.label} portfolio`}>
-          {visibleItems.map((item, index) => (
+          {visibleItems.map((item) => (
             <Link href={item.slug ? `${details.path}/${item.slug}` : details.path} className="mobile-explore-v8__card" key={item.id}>
               <div className="mobile-explore-v8__photo">
-                <img
-                  src={optimizedImageUrl(item.heroImageUrl || fallbackImages[index % fallbackImages.length], { width: 480, height: 640, quality: 84 })}
-                  alt={item.name}
-                  loading="lazy"
-                />
+                {item.heroImageUrl ? (
+                  <img
+                    src={optimizedImageUrl(item.heroImageUrl, { width: 480, height: 640, quality: 84 })}
+                    alt={item.name}
+                    loading="lazy"
+                  />
+                ) : null}
                 <span className="mobile-explore-v8__badge">{item.category || details.label}</span>
                 <div className="mobile-explore-v8__overlay">
                   <h2>{item.name}</h2>
