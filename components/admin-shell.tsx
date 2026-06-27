@@ -7,6 +7,7 @@ import {
   Bell,
   Building2,
   ChevronDown,
+  ExternalLink,
   FolderKanban,
   Gauge,
   Image,
@@ -50,13 +51,42 @@ const navGroups: NavGroup[] = [
     ]
   },
   {
-    title: "Sales & Relationships",
+    title: "Content",
     items: [
       {
-        href: "/admin/partners",
-        label: "Partners",
-        description: "Queue, approvals, and exports",
+        href: "/admin/resorts",
+        label: "Resorts",
+        description: "Property inventory and publishing",
+        icon: LayoutTemplate
+      },
+      {
+        href: "/admin/hotels",
+        label: "Hotels",
+        description: "Hotel inventory and publishing",
         icon: Building2
+      },
+      {
+        href: "/admin/liveaboards",
+        label: "Liveaboards",
+        description: "Cruise inventory and publishing",
+        icon: Ship
+      },
+      {
+        href: "/admin/imports",
+        label: "AI Import",
+        description: "Import intake and review",
+        icon: Sparkles
+      }
+    ]
+  },
+  {
+    title: "Assets & Comms",
+    items: [
+      {
+        href: "/admin/media",
+        label: "Media Library",
+        description: "Upload, reuse, and delete assets",
+        icon: Image
       },
       {
         href: "/admin/newsletters",
@@ -73,31 +103,13 @@ const navGroups: NavGroup[] = [
     ]
   },
   {
-    title: "Content",
+    title: "Partners",
     items: [
       {
-        href: "/admin/resorts",
-        label: "Resorts",
-        description: "Property inventory and publishing",
-        icon: LayoutTemplate
-      },
-      {
-        href: "/admin/liveaboards",
-        label: "Liveaboards",
-        description: "Cruise inventory and publishing",
-        icon: Ship
-      },
-      {
-        href: "/admin/hotels",
-        label: "Hotels",
-        description: "Hotel inventory and publishing",
+        href: "/admin/partners",
+        label: "Partners",
+        description: "Queue, approvals, and exports",
         icon: Building2
-      },
-      {
-        href: "/admin/media",
-        label: "Media Library",
-        description: "Upload, reuse, and delete assets",
-        icon: Image
       },
       {
         href: "/admin/resources",
@@ -112,15 +124,15 @@ const navGroups: NavGroup[] = [
         icon: KeyRound
       },
       {
-        href: "/admin/imports",
-        label: "AI Import",
-        description: "Import intake and review",
-        icon: Sparkles
+        href: "/partner",
+        label: "Partner Portal",
+        description: "Open the partner-facing workspace",
+        icon: ExternalLink
       }
     ]
   },
   {
-    title: "Access Control",
+    title: "Admin",
     items: [
       {
         href: "/admin/user-access",
@@ -135,6 +147,12 @@ const navGroups: NavGroup[] = [
         icon: Shield
       },
       {
+        href: "/admin/settings",
+        label: "Site Settings",
+        description: "Website content and global settings",
+        icon: Settings2
+      },
+      {
         href: "/admin/settings/admin-login",
         label: "Admin Login Page",
         description: "Sign-in media and logo",
@@ -146,15 +164,15 @@ const navGroups: NavGroup[] = [
 
 const pageMeta: Record<string, { title: string; description: string }> = {
   "/admin": {
-    title: "Admin Dashboard",
+    title: "Dashboard",
     description: ""
   },
   "/admin/partners": {
-    title: "Requests for Partner",
+    title: "Partners",
     description: ""
   },
   "/admin/resorts": {
-    title: "Resort Manager",
+    title: "Resorts",
     description: ""
   },
   "/admin/resorts/new": {
@@ -162,7 +180,7 @@ const pageMeta: Record<string, { title: string; description: string }> = {
     description: "Create a focused property workspace without the rest of the resort list in view."
   },
   "/admin/liveaboards": {
-    title: "Liveaboard Manager",
+    title: "Liveaboards",
     description: ""
   },
   "/admin/liveaboards/new": {
@@ -170,7 +188,7 @@ const pageMeta: Record<string, { title: string; description: string }> = {
     description: "Create a focused liveaboard workspace without the rest of the list in view."
   },
   "/admin/hotels": {
-    title: "Hotel Manager",
+    title: "Hotels",
     description: ""
   },
   "/admin/hotels/new": {
@@ -331,17 +349,6 @@ export function AdminShell({
             </div>
           ))}
 
-          <div className="admin-settings-nav">
-            <p className="admin-nav-label">Site Settings</p>
-            <Link href="/admin/settings" className={pathname.startsWith("/admin/settings") ? "admin-nav-item is-active" : "admin-nav-item"}>
-              <span className="admin-nav-icon">
-                <Settings2 className="admin-icon" />
-              </span>
-              <span className="admin-nav-copy">
-                <strong>Site Settings</strong>
-              </span>
-            </Link>
-          </div>
         </nav>
 
         <form action={logoutFromAdmin} className="admin-logout">

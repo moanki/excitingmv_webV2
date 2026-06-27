@@ -26866,6 +26866,125 @@ html {
   }
 }
 
+/* CMS v3 reference: desktop admin only. Public desktop/mobile share the saved content, not these styles. */
+@media (min-width: 981px) {
+  .admin-body .admin-sidebar {
+    width: 224px !important;
+    min-width: 224px !important;
+    flex-basis: 224px !important;
+  }
+
+  .admin-body .admin-brand-block { padding: 18px 16px 14px !important; }
+  .admin-body .admin-brand-logo { height: 20px !important; }
+  .admin-body .admin-nav { padding: 0 8px 8px !important; }
+  .admin-body .admin-nav-group { padding: 11px 0 3px !important; }
+  .admin-body .admin-nav-label { margin-bottom: 3px !important; padding: 0 8px !important; font-size: 8px !important; }
+  .admin-body .admin-nav-list { gap: 0 !important; }
+  .admin-body .admin-nav-item {
+    min-height: 0 !important;
+    gap: 7px !important;
+    padding: 7px 10px !important;
+    font-size: 11.5px !important;
+  }
+  .admin-body .admin-nav-copy strong { font-size: 11.5px !important; }
+  .admin-body .admin-nav-icon,
+  .admin-body .admin-nav-icon .admin-icon { width: 13px !important; height: 13px !important; flex-basis: 13px !important; }
+  .admin-body .admin-logout { padding: 11px 13px !important; }
+  .admin-body .admin-sidebar-user { margin-bottom: 6px !important; gap: 8px !important; }
+  .admin-body .admin-sidebar-avatar { width: 28px !important; height: 28px !important; flex-basis: 28px !important; font-size: 9px !important; }
+
+  .admin-body .admin-topbar {
+    height: 50px !important;
+    min-height: 50px !important;
+    padding: 0 20px !important;
+  }
+  .admin-body .admin-topbar-copy h2,
+  .admin-body .admin-topbar h2 { font-size: 18px !important; }
+  .admin-body .admin-topbar-actions { gap: 8px !important; }
+  .admin-body .admin-topbar-search { height: 30px !important; padding: 0 9px !important; }
+  .admin-body .admin-topbar-search input { width: 110px !important; font-size: 11.5px !important; }
+  .admin-body .admin-topbar-primary { height: 30px !important; padding: 0 13px !important; }
+  .admin-body .admin-icon-button { width: 30px !important; height: 30px !important; min-width: 30px !important; }
+  .admin-body .admin-user-chip { display: none !important; }
+  .admin-body .admin-canvas { padding: 18px 20px !important; }
+  .admin-body .admin-page-intro { display: none !important; }
+  .admin-body .stack { gap: 14px !important; }
+
+  .admin-body .stat-grid,
+  .admin-body .cms-dashboard-stats { gap: 11px !important; margin-bottom: 2px !important; }
+  .admin-body .cms-stat-card {
+    min-height: 121px !important;
+    padding: 15px 17px !important;
+  }
+  .admin-body .stat-label { font-size: 9.5px !important; letter-spacing: .12em !important; }
+  .admin-body .stat-num { margin-top: 7px !important; font-family: var(--font-serif), Georgia, serif !important; font-size: 32px !important; font-weight: 600 !important; }
+  .admin-body .stat-sub { margin-top: 3px !important; font-size: 10.5px !important; }
+  .admin-body .stat-trend { margin-top: 6px !important; font-size: 9.5px !important; letter-spacing: 0 !important; text-transform: none !important; }
+  .admin-body .dash-grid,
+  .admin-body .cms-dashboard-grid { grid-template-columns: 1.5fr 1fr !important; gap: 11px !important; margin-top: 0 !important; }
+  .admin-body .cms-panel { padding: 16px !important; }
+  .admin-body .panel-head { margin-bottom: 12px !important; padding-bottom: 11px !important; }
+  .admin-body .panel-title { font-size: 12.5px !important; font-weight: 600 !important; }
+  .admin-body .panel-link { font-size: 10.5px !important; }
+  .admin-body .activity-item { grid-template-columns: 7px minmax(0, 1fr) !important; gap: 8px !important; padding: 8px 0 !important; }
+  .admin-body .act-dot { width: 7px !important; height: 7px !important; margin-top: 3px !important; }
+  .admin-body .act-text { font-size: 11.5px !important; }
+  .admin-body .act-time { margin-top: 1px !important; font-size: 10px !important; }
+  .admin-body .cms-quick-stats,
+  .admin-body .cms-transfer-split { gap: 0 !important; }
+  .admin-body .cms-transfer-split { margin-top: 10px !important; padding-top: 10px !important; }
+  .admin-body .qs-row { padding: 7px 0 !important; border-bottom: 1px solid var(--cms-hair) !important; }
+  .admin-body .qs-label { font-size: 11.5px !important; font-weight: 400 !important; }
+  .admin-body .qs-bar { width: 60px !important; height: 4px !important; margin-top: 2px !important; }
+  .admin-body .qs-val { font-size: 12.5px !important; }
+
+  .admin-body .admin-toolbar,
+  .admin-body .resort-manager-toolbar,
+  .admin-body .media-manager-toolbar,
+  .admin-body .table-toolbar { gap: 8px !important; margin-bottom: 14px !important; }
+  .admin-body .admin-search,
+  .admin-body .resort-search-field,
+  .admin-body .tbl-search { width: 190px !important; height: 32px !important; min-height: 32px !important; padding: 0 10px !important; border-radius: 6px !important; }
+  .admin-body .admin-search input,
+  .admin-body .resort-search-field input,
+  .admin-body .tbl-search input { font-size: 12px !important; }
+  .admin-body .admin-btn,
+  .admin-body .button,
+  .admin-body .button-muted,
+  .admin-body .tbl-add { min-height: 32px !important; height: 32px !important; padding: 0 14px !important; border-radius: 6px !important; font-size: 11.5px !important; }
+  .admin-body .admin-table-shell .table th,
+  .admin-body .table th { padding: 10px 14px !important; font-size: 9px !important; }
+  .admin-body .admin-table-shell .table td,
+  .admin-body .table td { padding: 11px 14px !important; font-size: 12px !important; }
+
+  .admin-body .property-list-row { min-height: 70px !important; padding: 12px 16px !important; gap: 12px !important; }
+  .admin-body .property-list-head { padding: 10px 16px !important; }
+  .admin-body .property-list-row,
+  .admin-body .property-list-head { grid-template-columns: 56px minmax(240px, 1fr) minmax(100px, .3fr) 80px 70px !important; }
+  .admin-body .lr-thumb-wrap,
+  .admin-body .lr-thumb,
+  .admin-body .lr-thumb-ph { width: 56px !important; height: 44px !important; border-radius: 6px !important; }
+  .admin-body .lr-name { font-family: var(--font-serif), Georgia, serif !important; font-size: 14px !important; font-weight: 600 !important; }
+  .admin-body .lr-cat { margin-top: 2px !important; font-size: 9.5px !important; color: var(--cms-teal) !important; text-transform: uppercase !important; }
+  .admin-body .lr-meta { margin-top: 5px !important; }
+  .admin-body .lr-meta-item,
+  .admin-body .lr-updated { font-size: 10.5px !important; }
+  .admin-body .act-btn { width: 28px !important; height: 28px !important; border-radius: 6px !important; }
+  .admin-body .act-btn .admin-icon { width: 12px !important; height: 12px !important; }
+
+  .admin-body .admin-form-card,
+  .admin-body .panel { padding: 14px 16px !important; }
+  .admin-body .admin-form-section__header { margin-bottom: 12px !important; padding-bottom: 11px !important; }
+  .admin-body .admin-input,
+  .admin-body .admin-select,
+  .admin-body .admin-textarea,
+  .admin-body .field input,
+  .admin-body .field textarea,
+  .admin-body .field select { min-height: 34px !important; padding: 7px 10px !important; font-size: 12px !important; }
+  .admin-body .admin-textarea,
+  .admin-body .field textarea { min-height: 60px !important; }
+}
+
 /* Partner resources access modal and protected card state. */
 .partner-resources-page {
   display: grid;
