@@ -7,7 +7,6 @@ import {
   Bell,
   Building2,
   ChevronDown,
-  ExternalLink,
   FolderKanban,
   Gauge,
   Image,
@@ -122,12 +121,6 @@ const navGroups: NavGroup[] = [
         label: "Resource Permissions",
         description: "Partner access and assignments",
         icon: KeyRound
-      },
-      {
-        href: "/partner",
-        label: "Partner Portal",
-        description: "Open the partner-facing workspace",
-        icon: ExternalLink
       }
     ]
   },

@@ -576,6 +576,7 @@ export function ResortEditor({
   const [seoDescription, setSeoDescription] = useState(resort.seoDescription ?? resort.summary ?? "");
   const [seoSummary, setSeoSummary] = useState(resort.seoSummary ?? resort.summary ?? "");
   const [seoStatus, setSeoStatus] = useState<{ message?: string; error?: string } | null>(null);
+  const [activeEditorTab, setActiveEditorTab] = useState<"basics" | "details" | "rooms" | "media" | "seo">("basics");
 
   const formId = resort.id ? `resort-editor-form-${resort.id}` : "resort-editor-form-new";
   const previewHref = resort.slug ? `${labels.publicBasePath}/${resort.slug}` : null;
@@ -653,20 +654,27 @@ export function ResortEditor({
       </header>
 
       <nav className="admin-section-tabs" aria-label="Resort editor sections">
-        <a href="#basics">Basics</a>
-        <a href="#details">Details</a>
-        <a href="#rooms">Rooms & Amenities</a>
-        <a href="#media">Media</a>
-        <a href="#seo-publish">SEO & Publish</a>
+        {[
+          ["basics", "Basics"],
+          ["details", "Details"],
+          ["rooms", "Rooms & Villas"],
+          ["media", "Media"],
+          ["seo", "SEO & Publish"]
+        ].map(([id, label]) => (
+          <button key={id} type="button" className={activeEditorTab === id ? "is-active" : ""} onClick={() => setActiveEditorTab(id as typeof activeEditorTab)}>
+            {label}
+          </button>
+        ))}
       </nav>
 
+      <div className="resort-editor-layout">
       <form id={formId} action={action} encType="multipart/form-data" className="stack admin-form-card resort-workspace__form">
         {resort.id ? <input type="hidden" name="id" value={resort.id} /> : null}
         <input type="hidden" name="propertyType" value={propertyType} />
         <input type="hidden" name="roomCount" value={rooms.length} />
         {resort.isFeaturedHomepage ? <input type="hidden" name="isFeaturedHomepage" value="on" /> : null}
 
-        <section className="admin-form-section" id="basics">
+        <section className={`admin-form-section${activeEditorTab !== "basics" ? " is-editor-tab-hidden" : ""}`} id="basics">
           <div className="admin-form-section__header">
             <h3 className="admin-form-section__title">Basics</h3>
             <p className="admin-form-section__help">
@@ -728,7 +736,7 @@ export function ResortEditor({
           </div>
         </section>
 
-        <section className="admin-form-section" id="details">
+        <section className={`admin-form-section${activeEditorTab !== "details" ? " is-editor-tab-hidden" : ""}`} id="details">
           <div className="admin-form-section__header">
             <h3 className="admin-form-section__title">Details</h3>
             <p className="admin-form-section__help">
@@ -769,9 +777,11 @@ export function ResortEditor({
           </div>
         </section>
 
-        <RoomTypeEditor rooms={rooms} setRooms={setRooms} mediaLibrary={mediaLibrary} />
+        <div className={activeEditorTab !== "rooms" ? "is-editor-tab-hidden" : ""}>
+          <RoomTypeEditor rooms={rooms} setRooms={setRooms} mediaLibrary={mediaLibrary} />
+        </div>
 
-        <section className="admin-form-section" id="media">
+        <section className={`admin-form-section${activeEditorTab !== "media" ? " is-editor-tab-hidden" : ""}`} id="media">
           <div className="admin-form-section__header">
             <h3 className="admin-form-section__title">Media</h3>
             <p className="admin-form-section__help">
@@ -803,7 +813,7 @@ export function ResortEditor({
           </div>
         </section>
 
-        <section className="admin-form-section" id="seo-publish">
+        <section className={`admin-form-section${activeEditorTab !== "seo" ? " is-editor-tab-hidden" : ""}`} id="seo-publish">
           <div className="admin-form-section__header">
             <h3 className="admin-form-section__title">SEO & Publish</h3>
             <p className="admin-form-section__help">
@@ -911,6 +921,58 @@ export function ResortEditor({
         <StatusMessage message={state?.message} error={state?.error} />
       </form>
 
+      <aside className="resort-editor-sidebar">
+        <section className="resort-editor-sidecard">
+          <div className="resort-editor-sidecard__head">
+            <span>Status</span>
+            <span className={`badge ${statusTone({ status, isFeaturedHomepage: homepageFeatured })}`}>{statusLabel({ status, isFeaturedHomepage: homepageFeatured })}</span>
+          </div>
+          <button
+            className="admin-btn admin-btn--primary"
+            type="submit"
+            form={formId}
+            name="submitIntent"
+            value={status === "published" ? "updatePublished" : "publish"}
+            disabled={pending || status === "archived"}
+          >
+            {pending ? "Saving..." : status === "published" ? "Save Changes" : `Publish ${labels.singular}`}
+          </button>
+          {status === "published" ? (
+            <button className="admin-btn admin-btn--secondary" type="submit" form={formId} name="submitIntent" value="unpublish" disabled={pending}>
+              Unpublish to Draft
+            </button>
+          ) : status !== "archived" ? (
+            <button className="admin-btn admin-btn--secondary" type="submit" form={formId} name="submitIntent" value="saveDraft" disabled={pending}>
+              Save Draft
+            </button>
+          ) : null}
+          <dl className="resort-editor-summary resort-editor-visibility">
+            <div><dt>Show on website</dt><dd>{status === "published" ? "On" : "Off"}</dd></div>
+            <div><dt>Include in search</dt><dd>{status === "published" ? "On" : "Off"}</dd></div>
+          </dl>
+        </section>
+
+        <section className="resort-editor-sidecard">
+          <h3>Summary</h3>
+          <dl className="resort-editor-summary">
+            <div><dt>Category</dt><dd>{category || "Not set"}</dd></div>
+            <div><dt>Atoll</dt><dd>{location || "Not set"}</dd></div>
+            <div><dt>Transfer</dt><dd>{transferType || "Not set"}</dd></div>
+            <div><dt>Villas</dt><dd>{rooms.length} types</dd></div>
+          </dl>
+        </section>
+
+        <section className="resort-editor-sidecard">
+          <h3>Quick Actions</h3>
+          {previewHref ? <Link className="admin-btn admin-btn--secondary" href={previewHref} target="_blank">Preview on website</Link> : null}
+          <button className="admin-btn admin-btn--secondary" type="button" onClick={handleGenerateSeo} disabled={isGeneratingSeo}>Generate SEO with AI</button>
+          {mode === "edit" && status !== "archived" ? (
+            <button className="admin-btn admin-btn--danger" type="submit" form={formId} name="submitIntent" value="archive" disabled={pending}>Archive {labels.singular}</button>
+          ) : null}
+        </section>
+      </aside>
+      </div>
+
       {resort.id ? (
         <form
           id={`delete-resort-${resort.id}`}
@@ -977,7 +1039,6 @@ export function ResortManagerListView({
     { id: "all", label: "All" },
     { id: "published", label: "Published" },
     { id: "draft", label: "Draft" },
-    ...(propertyType === "resort" ? [{ id: "featured" as ResortFilter, label: "Featured" }] : []),
     { id: "archived", label: "Archived" }
   ];
 
@@ -996,7 +1057,7 @@ export function ResortManagerListView({
             />
           </label>
 
-          <div className="tbl-filter resort-filter-pills" role="tablist" aria-label={`${labels.singular} filters`}>
+          <div className="resort-filter-pills" role="tablist" aria-label={`${labels.singular} filters`}>
             {filterOptions.map((option) => (
               <button
                 key={option.id}
@@ -1012,7 +1073,7 @@ export function ResortManagerListView({
 
         <div className="table-toolbar-right">
           <span className="tbl-count">
-            Showing {filteredResorts.length} of {resorts.length} {labels.plural.toLowerCase()}
+            {filteredResorts.length} {labels.plural.toLowerCase()}
           </span>
           <Link href={`${labels.adminBasePath}/new`} className="tbl-add">
             + Add {labels.singular}

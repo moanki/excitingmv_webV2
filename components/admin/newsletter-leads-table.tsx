@@ -18,7 +18,7 @@ type Props = {
 
 export function NewsletterLeadsTable({ submissions }: Props) {
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [filter, setFilter] = useState<"all" | "pending" | "acknowledged">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [pendingAction, setPendingAction] = useState("");
 
@@ -29,8 +29,7 @@ export function NewsletterLeadsTable({ submissions }: Props) {
       const matchesFilter =
         filter === "all" ||
         (filter === "pending" && ["new", "pending"].includes(normalizedStatus)) ||
-        (filter === "approved" && ["general", "approved"].includes(normalizedStatus)) ||
-        (filter === "rejected" && normalizedStatus === "rejected");
+        (filter === "acknowledged" && ["general", "approved"].includes(normalizedStatus));
       const haystack = [
         submission.email,
         submission.fullName,
@@ -85,50 +84,43 @@ export function NewsletterLeadsTable({ submissions }: Props) {
 
   return (
     <div className="stack">
-      <div className="admin-toolbar">
-        <label className="admin-search admin-search--large">
-          <input
-            className="admin-input"
-            type="search"
-            aria-label="Search newsletter leads"
-            placeholder="Search Subscriber"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </label>
-      </div>
-
-      <div className="admin-filter-pills admin-filter-pills--below">
-        {[
-          ["all", "All"],
-          ["pending", "Pending"],
-          ["approved", "Approved"],
-          ["rejected", "Rejected"]
-        ].map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            className={filter === value ? "admin-filter-pill is-active" : "admin-filter-pill"}
-            onClick={() => setFilter(value as typeof filter)}
-          >
-            {label}
+      <div className="table-toolbar">
+        <div className="table-toolbar-left">
+          <label className="tbl-search">
+            <input
+              type="search"
+              aria-label="Search newsletter leads"
+              placeholder="Search subscribers..."
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+          <div className="resort-filter-pills" role="tablist" aria-label="Newsletter filters">
+            {[
+              ["all", "All"],
+              ["pending", "Pending"],
+              ["acknowledged", "Acknowledged"]
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={filter === value ? "is-active" : ""}
+                onClick={() => setFilter(value as typeof filter)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <span className="tbl-count">{filtered.length} subscribers</span>
+        </div>
+        <div className="table-toolbar-right">
+          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => acknowledge(filtered.map((item) => item.id))} disabled={!filtered.length || Boolean(pendingAction)}>
+            Acknowledge All
           </button>
-        ))}
-      </div>
-
-      <div className="admin-page-actions admin-page-actions--compact">
-        <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={toggleAllVisible}>
-          {allVisibleSelected ? "Clear Visible" : "Select All Subscribers"}
-        </button>
-        <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={() => download(selectedIds)} disabled={!selectedIds.length}>
-          Download Selected
-        </button>
-        <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={() => download()}>
-          Download All
-        </button>
-        <button type="button" className="admin-btn admin-btn--primary admin-btn--small" onClick={() => acknowledge(filtered.map((item) => item.id))} disabled={!filtered.length || Boolean(pendingAction)}>
-          Acknowledge All
-        </button>
+          <button type="button" className="admin-btn admin-btn--primary" onClick={() => download()}>
+            Export CSV
+          </button>
+        </div>
       </div>
 
       {selectedIds.length ? (
@@ -159,8 +151,9 @@ export function NewsletterLeadsTable({ submissions }: Props) {
               </th>
               <th>Email</th>
               <th>Name</th>
+              <th>Agency</th>
               <th>Source</th>
-              <th>Subscription Date</th>
+              <th>Date</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -178,13 +171,15 @@ export function NewsletterLeadsTable({ submissions }: Props) {
                 </td>
                 <td>
                   <strong>{submission.email}</strong>
-                  {submission.agencyName ? <div className="admin-table-subtle">{submission.agencyName}</div> : null}
                 </td>
                 <td>{submission.fullName || "-"}</td>
+                <td>{submission.agencyName || "-"}</td>
                 <td>{submission.source || "-"}</td>
                 <td>{formatDate(submission.createdAt)}</td>
                 <td>
-                  <span className={`admin-status-badge is-neutral`}>{submission.status || "new"}</span>
+                  <span className={`admin-status-badge ${["general", "approved"].includes((submission.status || "new").toLowerCase()) ? "is-approved" : "is-pending"}`}>
+                    {["general", "approved"].includes((submission.status || "new").toLowerCase()) ? "Acknowledged" : "New"}
+                  </span>
                 </td>
                 <td>
                   <div className="admin-row-actions">
@@ -201,7 +196,7 @@ export function NewsletterLeadsTable({ submissions }: Props) {
                       className="admin-btn admin-btn--secondary"
                       onClick={() => download([submission.id])}
                     >
-                      Download CSV
+                          CSV
                     </button>
                   </div>
                 </td>
