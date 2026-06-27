@@ -2,6 +2,7 @@
 
 import { Fragment, useMemo, useState } from "react";
 
+import { createPartnerAction } from "@/app/admin/partners/actions";
 import type { PartnerRequestRecord } from "@/lib/services/partner-service";
 import type { PartnerStatus } from "@/lib/types";
 
@@ -23,6 +24,7 @@ export function PartnerQueueTable({ partners }: Props) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string>("");
+  const [showAddPartner, setShowAddPartner] = useState(false);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -73,47 +75,44 @@ export function PartnerQueueTable({ partners }: Props) {
 
   return (
     <div className="stack">
-      <div className="admin-toolbar">
-        <label className="admin-search admin-search--large">
-          <input
-            className="admin-input"
-            type="search"
-            aria-label="Search partners"
-            placeholder="Search Requests"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </label>
-      </div>
-
-      <div className="admin-filter-pills admin-filter-pills--below">
-        {[
-          ["all", "All"],
-          ["pending", "Pending"],
-          ["approved", "Approved"],
-          ["rejected", "Rejected"]
-        ].map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            className={filter === value ? "admin-filter-pill is-active" : "admin-filter-pill"}
-            onClick={() => setFilter(value as typeof filter)}
-          >
-            {label}
+      <div className="table-toolbar">
+        <div className="table-toolbar-left">
+          <label className="tbl-search">
+            <input
+              type="search"
+              aria-label="Search partners"
+              placeholder="Search partners..."
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+          <div className="resort-filter-pills" role="tablist" aria-label="Partner filters">
+            {[
+              ["all", "All"],
+              ["pending", "Pending"],
+              ["approved", "Approved"],
+              ["rejected", "Rejected"]
+            ].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={filter === value ? "is-active" : ""}
+                onClick={() => setFilter(value as typeof filter)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <span className="tbl-count">{filtered.length} partners</span>
+        </div>
+        <div className="table-toolbar-right">
+          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => download()}>
+            Export CSV
           </button>
-        ))}
-      </div>
-
-      <div className="admin-page-actions admin-page-actions--compact">
-        <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={toggleAllVisible}>
-          {allVisibleSelected ? "Clear Visible" : "Select All Partners"}
-        </button>
-        <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={() => download(selectedIds)} disabled={!selectedIds.length}>
-          Download Selected
-        </button>
-        <button type="button" className="admin-btn admin-btn--secondary admin-btn--small" onClick={() => download()}>
-          Download All
-        </button>
+          <button type="button" className="admin-btn admin-btn--primary" onClick={() => setShowAddPartner(true)}>
+            + Add Partner
+          </button>
+        </div>
       </div>
 
       {selectedIds.length ? (
@@ -149,6 +148,7 @@ export function PartnerQueueTable({ partners }: Props) {
               </th>
               <th>Name</th>
               <th>Company / Agency</th>
+              <th>Market</th>
               <th>Status</th>
               <th>Requested Date</th>
               <th>Actions</th>
@@ -174,6 +174,7 @@ export function PartnerQueueTable({ partners }: Props) {
                       <div className="admin-table-subtle">{partner.email}</div>
                     </td>
                     <td>{partner.agencyName}</td>
+                    <td>{partner.market || "-"}</td>
                     <td>
                       <span className={`admin-status-badge is-${partner.status}`}>{partner.status}</span>
                     </td>
@@ -185,38 +186,25 @@ export function PartnerQueueTable({ partners }: Props) {
                           className="admin-btn admin-btn--ghost"
                           onClick={() => setOpenId(isOpen ? null : partner.id)}
                         >
-                          View Details
+                          Details
                         </button>
-                        <button
-                          type="button"
-                          className="admin-btn admin-btn--primary"
-                          disabled={Boolean(pendingAction)}
-                          onClick={() => updateStatus([partner.id], "approved")}
-                        >
-                          Approve
-                        </button>
-                        <button
-                          type="button"
-                          className="admin-btn admin-btn--danger"
-                          disabled={Boolean(pendingAction)}
-                          onClick={() => updateStatus([partner.id], "rejected")}
-                        >
-                          Reject
-                        </button>
-                        <button
-                          type="button"
-                          className="admin-btn admin-btn--secondary"
-                          onClick={() => download([partner.id])}
-                        >
-                          Download Details CSV
-                        </button>
+                        {partner.status === "pending" ? (
+                          <>
+                            <button type="button" className="admin-btn admin-btn--primary" disabled={Boolean(pendingAction)} onClick={() => updateStatus([partner.id], "approved")}>Approve</button>
+                            <button type="button" className="admin-btn admin-btn--danger" disabled={Boolean(pendingAction)} onClick={() => updateStatus([partner.id], "rejected")}>Reject</button>
+                          </>
+                        ) : partner.status === "rejected" ? (
+                          <button type="button" className="admin-btn admin-btn--primary" disabled={Boolean(pendingAction)} onClick={() => updateStatus([partner.id], "approved")}>Re-approve</button>
+                        ) : (
+                          <button type="button" className="admin-btn admin-btn--secondary" onClick={() => download([partner.id])}>CSV</button>
+                        )}
                       </div>
                     </td>
                   </tr>
                   {isOpen ? (
                     <tr className="admin-detail-row">
                       <td />
-                      <td colSpan={5}>
+                      <td colSpan={6}>
                         <div className="admin-inline-details">
                           <div className="admin-detail-grid">
                             <div>
@@ -247,6 +235,46 @@ export function PartnerQueueTable({ partners }: Props) {
           </tbody>
         </table>
       </div>
+
+      {showAddPartner ? (
+        <div className="admin-modal-backdrop" role="presentation" onClick={() => setShowAddPartner(false)}>
+          <div className="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="add-partner-title" onClick={(event) => event.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div>
+                <h3 id="add-partner-title">Add Partner</h3>
+                <p>Create a partner request for review.</p>
+              </div>
+              <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setShowAddPartner(false)}>Close</button>
+            </div>
+            <form action={createPartnerAction} className="form-grid" onSubmit={() => setShowAddPartner(false)}>
+              <label className="field">
+                <span className="field__label">Contact Name</span>
+                <input className="admin-input" name="contactName" minLength={2} required />
+              </label>
+              <label className="field">
+                <span className="field__label">Agency Name</span>
+                <input className="admin-input" name="agencyName" minLength={2} required />
+              </label>
+              <label className="field">
+                <span className="field__label">Email</span>
+                <input className="admin-input" name="email" type="email" required />
+              </label>
+              <label className="field">
+                <span className="field__label">Market</span>
+                <input className="admin-input" name="market" minLength={2} required />
+              </label>
+              <label className="field field--full">
+                <span className="field__label">Notes</span>
+                <textarea className="admin-textarea" name="notes" />
+              </label>
+              <div className="admin-form-actions field--full">
+                <button type="button" className="admin-btn admin-btn--secondary" onClick={() => setShowAddPartner(false)}>Cancel</button>
+                <button type="submit" className="admin-btn admin-btn--primary">Save Partner</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
