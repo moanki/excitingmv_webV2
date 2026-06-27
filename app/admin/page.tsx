@@ -30,20 +30,20 @@ export default async function AdminDashboardPage() {
       href: "/admin/resorts"
     },
     {
-      label: "Hotels",
-      value: hotelCounts.total,
-      sub: `${hotelCounts.published} published · ${hotelCounts.draft} draft`,
-      trend: hotelCounts.total ? "Active channel" : "Ready to build",
-      trendTone: hotelCounts.total ? "stat-up" : "",
-      href: "/admin/hotels"
+      label: "Partners",
+      value: partners.length,
+      sub: `${partners.filter((partner) => partner.status === "pending").length} pending approval`,
+      trend: "Partner requests",
+      trendTone: "stat-up",
+      href: "/admin/partners"
     },
     {
-      label: "Liveaboards",
-      value: liveaboardCounts.total,
-      sub: `${liveaboardCounts.published} published · ${liveaboardCounts.draft} draft`,
-      trend: liveaboardCounts.total ? "Voyages tracked" : "No change",
-      trendTone: liveaboardCounts.total ? "stat-up" : "",
-      href: "/admin/liveaboards"
+      label: "Subscribers",
+      value: newsletters.length,
+      sub: `${newsletters.filter((submission) => submission.status === "new").length} new`,
+      trend: "Newsletter leads",
+      trendTone: "stat-up",
+      href: "/admin/newsletters"
     },
     {
       label: "Media Assets",
