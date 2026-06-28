@@ -34,16 +34,12 @@ function footerLink(label: string, href: string): FooterLinkItem {
 function footerItemWithOverrides(item: FooterLinkItem, partnerLoginHref: string): FooterLinkItem | null {
   const normalized = item.label.trim().toLowerCase();
 
-  if (normalized === "news & updates") {
+  if (["news & updates", "awards", "dmc services", "marketing hub", "partner support", "resort intelligence", "contact us"].includes(normalized)) {
     return null;
   }
 
-  if (normalized === "awards") {
-    return { ...item, href: "/#prestigious-awards", external: false };
-  }
-
-  if (normalized === "dmc services") {
-    return { ...item, href: "/#destination-management", external: false };
+  if (normalized === "documents") {
+    return { ...item, label: "Resources & Documents", href: "/partner/resources", external: false };
   }
 
   if (normalized === "partner login") {
@@ -123,21 +119,26 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
   const companyItems = withFooterRules(mergeLinks(
     groupByTitle("company"),
     [
-      footerLink("About Us", "/about"),
-      footerLink("DMC Services", "/#destination-management"),
-      footerLink("Resorts", "/resorts"),
-      footerLink("Travel Guide", "/travel-guide"),
-      footerLink("Awards", "/#prestigious-awards"),
-      footerLink("Contact Us", "/contact")
+      footerLink("About Us", "/about")
     ]
-  )).slice(0, 6);
+  ));
 
-  const partnerItems = withFooterRules(mergeLinks(
+  const destinationItems = withFooterRules(mergeLinks(
+    groupByTitle("destination"),
+    [
+      footerLink("Resorts", "/resorts"),
+      footerLink("Hotels", "/hotels"),
+      footerLink("Liveaboards", "/liveaboards"),
+      footerLink("Travel Guide", "/travel-guide")
+    ]
+  ));
+
+  const resourceItems = withFooterRules(mergeLinks(
+    groupByTitle("resource"),
     groupByTitle("partner"),
     [
       footerLink("Partner Login", partnerLoginHref),
-      footerLink("Marketing Hub", "/partner/resources"),
-      footerLink("Documents", "/partner/resources")
+      footerLink("Resources & Documents", "/partner/resources")
     ]
   ));
 
@@ -148,30 +149,12 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
   ];
 
   const mobileFooterGroups = [
-    {
-      title: "Destinations",
-      items: [
-        footerLink("Resorts", "/resorts"),
-        footerLink("Hotels", "/hotels"),
-        footerLink("Liveaboards", "/liveaboards"),
-        footerLink("Travel Guide", "/travel-guide")
-      ]
-    },
-    {
-      title: "Services",
-      items: [
-        footerLink("DMC Services", "/#destination-management"),
-        footerLink("Partner Support", "/contact"),
-        footerLink("Resort Intelligence", "/resorts"),
-        footerLink("Contact Us", "/contact")
-      ]
-    },
-    { title: "Company", items: companyItems.slice(0, 4) },
-    { title: "Resources", items: partnerItems.slice(0, 4) }
-  ];
+    { title: "Destinations", items: destinationItems },
+    { title: "Company", items: companyItems },
+    { title: "Resources", items: resourceItems }
+  ].filter((group) => group.items.length);
 
   const enabledMemberships = footer.memberships.filter((item) => item.enabled && item.name);
-  const enabledAwards = footer.awards.filter((item) => item.enabled && item.name);
   const footerLogoUrl = navbar.primaryLogoUrl || footer.companyLogoUrl || navbar.blackLogoUrl || navbar.whiteLogoUrl;
 
   return (
@@ -215,9 +198,17 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
               </div>
             </div>
             <div className="site-footer__column">
-              <p className="section-kicker">Partner Resources</p>
+              <p className="section-kicker">Destinations</p>
               <div className="site-footer__links">
-                {partnerItems.map((item) => (
+                {destinationItems.map((item) => (
+                  <FooterNavLink item={item} key={`${item.label}-${item.href}`} />
+                ))}
+              </div>
+            </div>
+            <div className="site-footer__column">
+              <p className="section-kicker">Resources</p>
+              <div className="site-footer__links">
+                {resourceItems.map((item) => (
                   <FooterNavLink item={item} key={`${item.label}-${item.href}`} />
                 ))}
               </div>
@@ -268,10 +259,7 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
           </div>
         </div>
 
-        <div className="site-footer__proof">
-          <BadgeGroup title="Affiliates" items={enabledMemberships} />
-          <BadgeGroup title="Awards" items={enabledAwards} />
-        </div>
+        {enabledMemberships.length ? <div className="site-footer__proof"><BadgeGroup title="Affiliates" items={enabledMemberships} /></div> : null}
 
         <div className="site-footer__bottom">
           <p>© {new Date().getFullYear()} Exciting Maldives. All rights reserved.</p>

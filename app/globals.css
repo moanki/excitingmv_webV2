@@ -23732,41 +23732,6 @@ html {
     border: 0 !important;
   }
 
-  html body:not(.admin-body) .mobile-bottom-nav__orb {
-    display: flex !important;
-    width: 44px !important;
-    height: 44px !important;
-    flex: 0 0 44px !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border: 1px solid rgba(255, 255, 255, 0.14) !important;
-    border-radius: 50% !important;
-    background: linear-gradient(145deg, #234f52, #1a3d3f) !important;
-    box-shadow: 0 2px 12px rgba(35, 79, 82, 0.5) !important;
-    color: rgba(255, 255, 255, 0.9) !important;
-    text-decoration: none !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-  }
-
-  html body:not(.admin-body) .mobile-bottom-nav__orb:active {
-    transform: scale(0.93) !important;
-  }
-
-  html body:not(.admin-body) .mobile-bottom-nav__orb img {
-    display: block !important;
-    width: 28px !important;
-    height: 28px !important;
-    object-fit: contain !important;
-    filter: brightness(0) invert(1) opacity(0.9) !important;
-  }
-
-  html body:not(.admin-body) .mobile-bottom-nav__orb span {
-    color: rgba(255, 255, 255, 0.9) !important;
-    font-family: var(--font-serif), "Cormorant Garamond", Georgia, serif;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.08em !important;
-  }
   html body:not(.admin-body) .whatsapp-float {
     position: fixed !important;
     right: 22px !important;
@@ -27562,10 +27527,94 @@ html {
     flex-direction: column;
   }
 
-  .partner-resource-card__actions,
-  .partner-resource-card__actions a,
-  .partner-resource-card__footer button,
-  .resource-modal__actions button {
+.partner-resource-card__actions,
+.partner-resource-card__actions a,
+.partner-resource-card__footer button,
+.resource-modal__actions button {
     width: 100%;
+  }
+}
+
+/* Footer cleanup and five-item mobile navigation. Desktop header remains untouched. */
+@media (min-width: 721px) {
+  .site-footer__columns {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(1rem, 2.2vw, 2.25rem);
+  }
+
+  .site-footer__proof {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  html body:not(.admin-body) .partner-layout {
+    display: block !important;
+    min-width: 0 !important;
+  }
+
+  html body:not(.admin-body) .partner-layout > .sidebar {
+    display: none !important;
+  }
+
+  html body:not(.admin-body) .partner-layout > .dashboard {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body:not(.admin-body) .mobile-bottom-nav {
+    width: min(356px, calc(100vw - 24px)) !important;
+    height: 64px !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    padding: 5px 6px !important;
+  }
+
+  html body:not(.admin-body) .mobile-bottom-nav > .mobile-bottom-nav__item {
+    width: auto !important;
+    height: 52px !important;
+    min-width: 0 !important;
+    min-height: 52px !important;
+    max-width: none !important;
+    flex: 1 1 0 !important;
+    gap: 4px !important;
+    padding: 5px 1px 4px !important;
+  }
+
+  html body:not(.admin-body) .mobile-bottom-nav > .mobile-bottom-nav__item.is-active {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.98) !important;
+  }
+
+  html body:not(.admin-body) .mobile-bottom-nav > .mobile-bottom-nav__item::after {
+    display: none !important;
+  }
+
+  html body:not(.admin-body) .mobile-bottom-nav__label,
+  html body:not(.admin-body) .mobile-bottom-nav__item.is-active .mobile-bottom-nav__label {
+    position: static !important;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    clip: auto !important;
+    color: rgba(255, 255, 255, 0.56) !important;
+    font-family: var(--font-sans), Jost, Inter, system-ui, sans-serif !important;
+    font-size: 7.5px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0 !important;
+    line-height: 1 !important;
+    opacity: 1 !important;
+    transform: none !important;
+    white-space: nowrap !important;
+  }
+
+  html body:not(.admin-body) .mobile-bottom-nav__item.is-active .mobile-bottom-nav__label {
+    color: rgba(255, 255, 255, 0.98) !important;
+    font-size: 8px !important;
+    font-weight: 600 !important;
   }
 }

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpenText, Compass, Home, UserCircle } from "lucide-react";
-import { Fragment, useEffect, useState } from "react";
+import { BookOpenText, Building2, Home, Mail, UserCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { PartnerRegisterForm } from "@/components/partner-register-form";
 import type { NavbarContent } from "@/lib/site-content";
@@ -11,7 +11,6 @@ import type { NavbarContent } from "@/lib/site-content";
 export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const [scrolled, setScrolled] = useState(false);
   const [partnerModalOpen, setPartnerModalOpen] = useState(false);
-  const [activeMobileLabel, setActiveMobileLabel] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
@@ -46,9 +45,10 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const partnerLoginHref = navbar.partnerLoginHref || navbar.ctaHref || "/partner/login";
   const mobileItems = [
     { label: "Home", href: "/", Icon: Home },
-    { label: "Explore", href: "/resorts", Icon: Compass, destinationRoutes: ["/resorts", "/hotels", "/liveaboards"] },
-    { label: "Guide", href: "/travel-guide", Icon: BookOpenText },
-    { label: "Partners", href: partnerLoginHref, Icon: UserCircle }
+    { label: "Explore", href: "/resorts", Icon: Building2, activeRoutes: ["/resorts", "/hotels", "/liveaboards"] },
+    { label: "Travel Guide", href: "/travel-guide", Icon: BookOpenText },
+    { label: "Contact", href: "/contact", Icon: Mail },
+    { label: "Partner Login", href: partnerLoginHref, Icon: UserCircle, activeRoutes: ["/partner"] }
   ];
   const isExploreListing = /^\/(resorts|hotels|liveaboards)$/.test(pathname);
   const hasMobileHero =
@@ -112,46 +112,22 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
       </header>
 
       <nav className="mobile-bottom-nav" aria-label="Mobile primary">
-        {mobileItems.map(({ Icon, ...item }, index) => {
+        {mobileItems.map(({ Icon, ...item }) => {
           const isActive =
             item.href === "/"
               ? pathname === "/"
-              : item.destinationRoutes
-                ? activeMobileLabel === item.label || item.destinationRoutes.some((route) => pathname.startsWith(route))
+              : item.activeRoutes
+                ? item.activeRoutes.some((route) => pathname.startsWith(route))
                 : item.href !== "/#newsletter" && pathname.startsWith(item.href);
           const className = `mobile-bottom-nav__item${isActive ? " is-active" : ""}`;
 
           return (
-            <Fragment key={item.label}>
-              <Link
-                href={item.href}
-                prefetch={false}
-                className={className}
-                onClick={() => setActiveMobileLabel(item.label === "Explore" ? item.label : null)}
-              >
-                <span className="mobile-bottom-nav__frame" aria-hidden="true">
-                  <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--tl" />
-                  <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--tr" />
-                  <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--bl" />
-                  <span className="mobile-bottom-nav__bracket mobile-bottom-nav__bracket--br" />
-                  <Icon className="mobile-bottom-nav__icon" size={18} strokeWidth={1.8} />
-                </span>
-                <span className="mobile-bottom-nav__label">{item.label}</span>
-              </Link>
-              {index === 1 ? (
-                <Link href="/" prefetch={false} className="mobile-bottom-nav__orb" aria-label="Go to home">
-                  {navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl ? (
-                    <img
-                      src={navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl}
-                      alt=""
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <span aria-hidden="true">EM</span>
-                  )}
-                </Link>
-              ) : null}
-            </Fragment>
+            <Link href={item.href} prefetch={false} className={className} key={item.label}>
+              <span className="mobile-bottom-nav__frame" aria-hidden="true">
+                <Icon className="mobile-bottom-nav__icon" size={18} strokeWidth={1.8} />
+              </span>
+              <span className="mobile-bottom-nav__label">{item.label}</span>
+            </Link>
           );
         })}
       </nav>
