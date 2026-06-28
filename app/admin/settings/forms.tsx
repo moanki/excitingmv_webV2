@@ -507,11 +507,7 @@ export function AdminLoginSettingsForm({
     <div className="panel">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Admin Login Page</p>
-          <h2 className="settings-title">Login media and workspace branding.</h2>
-          <p className="admin-page-lede">
-            Choose the full-page login image and logo shown before users enter the admin center.
-          </p>
+          <h2 className="settings-title">Admin Login Page Branding</h2>
         </div>
         <form action={publishAdminLoginAction}>
           <button className="button-muted" type="submit">

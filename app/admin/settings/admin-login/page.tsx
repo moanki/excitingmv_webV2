@@ -10,13 +10,6 @@ export default async function AdminLoginSettingsPage() {
 
   return (
     <section className="stack">
-      <div className="admin-page-header">
-        <div className="admin-page-header__content">
-          <p className="eyebrow">Access and Control</p>
-          <h1 className="section-title">Admin Login Page</h1>
-          <p className="admin-page-lede">Manage the isolated sign-in page media and logo.</p>
-        </div>
-      </div>
       <AdminLoginSettingsForm settings={content} mediaLibrary={mediaLibrary} />
     </section>
   );
