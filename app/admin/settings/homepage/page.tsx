@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { Award, BarChart3, BookOpen, GripVertical, Home, Image, Mail, MessageSquareText, Pencil, ShieldCheck, Sparkles, Star } from "lucide-react";
+import { Award, BarChart3, BookOpen, GripVertical, Home, Image, Mail, MessageSquareText, Pencil, ShieldCheck, Sparkles } from "lucide-react";
 
 const homepageSections = [
   { title: "Hero Banner", description: "Main headline, subtext, media and CTA", href: "/admin/settings/homepage/hero", icon: Image },
-  { title: "Feature Cards", description: "Homepage feature highlights", href: "/admin/settings/homepage/features", icon: Sparkles },
-  { title: "Featured Resorts", description: "Curated resort selection and order", href: "/admin/settings/homepage/featured-resorts", icon: Star },
+  { title: "Featured Retreats", description: "Section copy, selected resorts, and display order", href: "/admin/settings/homepage/features", icon: Sparkles },
   { title: "Stats Bar", description: "Key expertise numbers", href: "/admin/settings/homepage/stats", icon: BarChart3 },
   { title: "CEO Message", description: "Personal note from leadership", href: "/admin/settings/homepage/ceo", icon: MessageSquareText },
   { title: "Our Story", description: "Company introduction", href: "/admin/settings/homepage/story", icon: Home },

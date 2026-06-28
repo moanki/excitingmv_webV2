@@ -725,7 +725,7 @@ export function ResortEditor({
                   <strong>Homepage feature status: {homepageFeatured ? "Featured" : "Not featured"}</strong>
                   <p>
                     Manage homepage placement, order, and featured list membership from{" "}
-                    <Link href="/admin/settings/homepage/featured-resorts">Homepage Featured Resorts</Link>.
+                    <Link href="/admin/settings/homepage/features">Homepage Featured Retreats</Link>.
                   </p>
                 </div>
                 <span className={`badge ${homepageFeatured ? "is-featured" : "is-muted"}`}>

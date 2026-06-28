@@ -43,7 +43,7 @@ export function PartnerQueueTable({ partners }: { partners: PartnerRequestRecord
   };
 
   return (
-    <div className="stack">
+    <div className="stack admin-list-page">
       <div className="stat-grid partner-stat-grid">
         {[["Total Requests", counts.total], ["Approved", counts.approved], ["Pending Review", counts.pending], ["Declined", counts.rejected]].map(([label, value]) => (
           <div className="stat-card cms-stat-card" key={label}><p className="stat-label">{label}</p><strong className="stat-num">{value}</strong></div>

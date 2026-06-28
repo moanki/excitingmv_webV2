@@ -8,7 +8,7 @@ export default async function AdminResourcePermissionsPage() {
   const permissions = await listResourcePermissions();
 
   return (
-    <section className="stack">
+    <section className="stack admin-list-page">
       <div className="table-toolbar">
         <div className="table-toolbar-left"><span className="tbl-count">{permissions.length} partners with access</span></div>
         <Link className="tbl-add" href="/admin/resource-permissions/new">+ Grant Access</Link>

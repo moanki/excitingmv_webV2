@@ -21,7 +21,7 @@ export function ResourceLibraryTable({ resources }: { resources: ResourceRecord[
   }, [query, resources, type]);
 
   return (
-    <>
+    <div className="stack admin-list-page">
       <div className="table-toolbar">
         <div className="table-toolbar-left">
           <label className="tbl-search"><Search className="admin-icon" /><input type="search" placeholder="Search documents..." value={query} onChange={(event) => setQuery(event.target.value)} /></label>
@@ -53,6 +53,6 @@ export function ResourceLibraryTable({ resources }: { resources: ResourceRecord[
       </div>
 
       {viewing ? <div className="admin-modal-backdrop" role="presentation" onClick={() => setViewing(null)}><div className="admin-modal-panel admin-modal-panel--wide" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}><div className="admin-modal-header"><div><h3>{viewing.title}</h3><p>{viewing.resourceType || "Resource"}</p></div><button className="admin-icon-button" type="button" aria-label="Close resource preview" onClick={() => setViewing(null)}><X className="admin-icon" /></button></div><div className="admin-resource-preview">{/\.(png|jpe?g|webp|gif|svg|avif)(\?|#|$)/i.test(viewing.filePath) ? <img src={viewing.filePath} alt={viewing.title} /> : /\.(mp4|webm|mov)(\?|#|$)/i.test(viewing.filePath) ? <video src={viewing.filePath} controls /> : <iframe src={viewing.filePath} title={viewing.title} />}</div></div></div> : null}
-    </>
+    </div>
   );
 }
