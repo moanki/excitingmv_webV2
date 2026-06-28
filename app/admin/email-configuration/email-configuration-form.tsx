@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import {
   saveEmailConfigurationAction,
@@ -9,41 +9,15 @@ import {
 } from "@/app/admin/email-configuration/actions";
 import type { EmailConfiguration, EmailProvider } from "@/lib/email/email-config";
 
-const providerDefaults: Record<EmailProvider, { smtpHost: string; smtpPort: number; smtpSecure: boolean; smtpRequireTls: boolean; description: string }> = {
-  google_workspace: {
-    smtpHost: "smtp.gmail.com",
-    smtpPort: 587,
-    smtpSecure: false,
-    smtpRequireTls: true,
-    description: "Use Google Workspace authenticated SMTP with an app password or mailbox credential to send website notifications from your domain."
-  },
-  microsoft_365: {
-    smtpHost: "smtp.office365.com",
-    smtpPort: 587,
-    smtpSecure: false,
-    smtpRequireTls: true,
-    description: "Use Microsoft 365 SMTP to send website notifications from your organization mailbox."
-  },
-  custom_smtp: {
-    smtpHost: "",
-    smtpPort: 587,
-    smtpSecure: false,
-    smtpRequireTls: true,
-    description: "Use any compatible SMTP server by manually entering SMTP connection details."
-  }
+const providerDefaults: Record<EmailProvider, { smtpHost: string; smtpPort: number; smtpSecure: boolean; smtpRequireTls: boolean }> = {
+  google_workspace: { smtpHost: "smtp.gmail.com", smtpPort: 587, smtpSecure: false, smtpRequireTls: true },
+  microsoft_365: { smtpHost: "smtp.office365.com", smtpPort: 587, smtpSecure: false, smtpRequireTls: true },
+  custom_smtp: { smtpHost: "", smtpPort: 587, smtpSecure: false, smtpRequireTls: true }
 };
 
 function StatusMessage({ message, error }: { message?: string; error?: string }) {
   if (!message && !error) return null;
   return <p className={error ? "form-status error" : "form-status"}>{error || message}</p>;
-}
-
-function statusLabel(config: EmailConfiguration) {
-  if (!config.smtpHost || !config.smtpUsername || !config.fromEmail || !config.hasPassword) return "Not Configured";
-  if (!config.enabled) return "Disabled";
-  if (config.lastTestStatus === "failed") return "Last Test Failed";
-  if (config.lastTestStatus === "success") return "Last Test Successful";
-  return "Enabled";
 }
 
 export function EmailConfigurationForm({ config }: { config: EmailConfiguration }) {
@@ -65,203 +39,96 @@ export function EmailConfigurationForm({ config }: { config: EmailConfiguration 
     setSmtpRequireTls(defaults.smtpRequireTls);
   }, [provider]);
 
-  const badge = useMemo(() => statusLabel(config), [config]);
-
   return (
-    <div className="stack">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">Email Configuration</p>
-          <h2>Configure how website notifications are sent.</h2>
-          <p>Website enquiries, contact messages, partner alerts, and newsletter notifications use this SMTP configuration.</p>
-        </div>
-        <span className="status-pill">{badge}</span>
-      </div>
-
-      <form action={saveAction} className="stack">
-        <div className="panel panel-soft">
-          <div className="section-heading compact">
-            <div>
-              <p className="eyebrow">Email Service Status</p>
-              <h3>Email notifications</h3>
-            </div>
-          </div>
-          <div className="form-grid">
-            <label className="field checkbox-field">
-              <input name="enabled" type="checkbox" defaultChecked={config.enabled} />
-              Enable Email Notifications
-            </label>
+    <div className="email-config-v3">
+      <form action={saveAction} className="email-config-v3__form">
+        <section className="email-section">
+          <h2 className="email-section-title">SMTP Settings</h2>
+          <div className="settings-form-2col">
             <label className="field">
-              Active Provider
+              Provider
               <select name="provider" value={provider} onChange={(event) => setProvider(event.target.value as EmailProvider)}>
                 <option value="google_workspace">Google Workspace</option>
                 <option value="microsoft_365">Microsoft 365</option>
                 <option value="custom_smtp">Custom SMTP</option>
               </select>
             </label>
-          </div>
-          <p className="form-helper">{providerDefaults[provider].description}</p>
-        </div>
-
-        <div className="panel panel-soft">
-          <div className="section-heading compact">
-            <div>
-              <p className="eyebrow">Advanced SMTP Settings</p>
-              <h3>SMTP server settings</h3>
-            </div>
-          </div>
-          <div className="form-grid">
             <label className="field">
               SMTP Host
               <input name="smtpHost" value={smtpHost} onChange={(event) => setSmtpHost(event.target.value)} required />
             </label>
             <label className="field">
-              SMTP Port
+              Port
               <input name="smtpPort" value={smtpPort} onChange={(event) => setSmtpPort(event.target.value)} inputMode="numeric" required />
             </label>
-            <label className="field checkbox-field">
-              <input name="smtpSecure" type="checkbox" checked={smtpSecure} onChange={(event) => setSmtpSecure(event.target.checked)} />
-              Secure SSL
-            </label>
-            <label className="field checkbox-field">
-              <input name="smtpRequireTls" type="checkbox" checked={smtpRequireTls} onChange={(event) => setSmtpRequireTls(event.target.checked)} />
-              Require TLS
-            </label>
-          </div>
-          <p className="form-helper">Port 587 usually uses Secure SSL off and Require TLS on. Port 465 usually uses Secure SSL on.</p>
-        </div>
-
-        <div className="panel panel-soft">
-          <div className="section-heading compact">
-            <div>
-              <p className="eyebrow">Authentication</p>
-              <h3>SMTP mailbox credentials</h3>
-            </div>
-          </div>
-          <div className="form-grid">
             <label className="field">
-              SMTP Username
+              Username
               <input name="smtpUsername" defaultValue={config.smtpUsername} autoComplete="off" required />
             </label>
-            <label className="field">
-              SMTP Password / App Password
+            <label className="field field--full">
+              Password
               <input
                 name="smtpPassword"
                 type="password"
-                placeholder={config.hasPassword ? "Saved password is masked. Enter a new password to change it." : "Enter SMTP password or app password"}
+                placeholder={config.hasPassword ? "Saved - enter a new password only to replace it" : "SMTP password or app password"}
                 autoComplete="new-password"
               />
             </label>
           </div>
-        </div>
+          <div className="email-inline-options">
+            <label><input name="smtpSecure" type="checkbox" checked={smtpSecure} onChange={(event) => setSmtpSecure(event.target.checked)} /> SSL/TLS</label>
+            <label><input name="smtpRequireTls" type="checkbox" checked={smtpRequireTls} onChange={(event) => setSmtpRequireTls(event.target.checked)} /> Require STARTTLS</label>
+          </div>
+        </section>
 
-        <div className="panel panel-soft">
-          <div className="section-heading compact">
-            <div>
-              <p className="eyebrow">Sender Details</p>
-              <h3>From and reply-to</h3>
-            </div>
+        <section className="email-section">
+          <h2 className="email-section-title">Sender Identity</h2>
+          <div className="settings-form-2col">
+            <label className="field">From Name<input name="fromName" defaultValue={config.fromName} required /></label>
+            <label className="field">From Address<input name="fromEmail" type="email" defaultValue={config.fromEmail} required /></label>
+            <label className="field field--full">Reply-To<input name="replyToEmail" type="email" defaultValue={config.replyToEmail} /></label>
           </div>
-          <div className="form-grid">
-            <label className="field">
-              From Name
-              <input name="fromName" defaultValue={config.fromName} required />
-            </label>
-            <label className="field">
-              From Email Address
-              <input name="fromEmail" type="email" defaultValue={config.fromEmail} required />
-            </label>
-            <label className="field">
-              Reply-To Email Address
-              <input name="replyToEmail" type="email" defaultValue={config.replyToEmail} />
-            </label>
-          </div>
-        </div>
+        </section>
 
-        <div className="panel panel-soft">
-          <div className="section-heading compact">
-            <div>
-              <p className="eyebrow">Notification Recipients</p>
-              <h3>Comma-separated email lists</h3>
-            </div>
+        <section className="email-section">
+          <h2 className="email-section-title">Notification Recipients</h2>
+          <label className="settings-row email-enabled-row">
+            <span className="settings-row-info">
+              <strong className="settings-row-label">Enable email notifications</strong>
+              <span className="settings-row-desc">Use this configuration for website and admin notifications.</span>
+            </span>
+            <input name="enabled" type="checkbox" defaultChecked={config.enabled} />
+          </label>
+          <div className="settings-form-2col email-recipient-grid">
+            <label className="field">General<input name="generalRecipients" defaultValue={config.generalRecipients} placeholder="admin@example.com" /></label>
+            <label className="field">Contact Forms<input name="contactRecipients" defaultValue={config.contactRecipients} /></label>
+            <label className="field">Property Enquiries<input name="enquiryRecipients" defaultValue={config.enquiryRecipients} /></label>
+            <label className="field">Newsletter<input name="newsletterRecipients" defaultValue={config.newsletterRecipients} /></label>
+            <label className="field">CC<input name="ccRecipients" defaultValue={config.ccRecipients} /></label>
+            <label className="field">BCC<input name="bccRecipients" defaultValue={config.bccRecipients} /></label>
           </div>
-          <div className="form-grid">
-            <label className="field">
-              General Notification Emails
-              <textarea name="generalRecipients" defaultValue={config.generalRecipients} />
-            </label>
-            <label className="field">
-              Contact Form Recipient Emails
-              <textarea name="contactRecipients" defaultValue={config.contactRecipients} />
-            </label>
-            <label className="field">
-              Resort / Hotel / Liveaboard Enquiry Recipient Emails
-              <textarea name="enquiryRecipients" defaultValue={config.enquiryRecipients} />
-            </label>
-            <label className="field">
-              Newsletter Notification Emails
-              <textarea name="newsletterRecipients" defaultValue={config.newsletterRecipients} />
-            </label>
-            <label className="field">
-              Optional CC Emails
-              <textarea name="ccRecipients" defaultValue={config.ccRecipients} />
-            </label>
-            <label className="field">
-              Optional BCC Emails
-              <textarea name="bccRecipients" defaultValue={config.bccRecipients} />
-            </label>
-          </div>
-        </div>
+        </section>
 
-        <div className="admin-form-actions">
-          <button className="button" type="submit" disabled={savePending}>
-            {savePending ? "Saving..." : "Save Email Configuration"}
-          </button>
+        <div className="email-config-v3__actions">
+          <button className="button" type="submit" disabled={savePending}>{savePending ? "Saving..." : "Save Configuration"}</button>
         </div>
         <StatusMessage message={saveState?.message} error={saveState?.error} />
       </form>
 
-      <div className="panel panel-soft">
-        <div className="section-heading compact">
-          <div>
-            <p className="eyebrow">Test & Verify</p>
-            <h3>SMTP testing</h3>
-          </div>
-        </div>
-        <div className="admin-form-actions">
+      <section className="email-section email-test-section">
+        <h2 className="email-section-title">Test & Verify</h2>
+        <div className="email-test-actions">
           <form action={verifyAction}>
-            <button className="button-muted" type="submit" disabled={verifyPending}>
-              {verifyPending ? "Testing..." : "Test SMTP Connection"}
-            </button>
+            <button className="button-muted" type="submit" disabled={verifyPending}>{verifyPending ? "Testing..." : "Test SMTP Connection"}</button>
           </form>
           <form action={testAction} className="inline-form">
             <input className="admin-input" name="testRecipient" placeholder="Optional test recipient" />
-            <button className="button-muted" type="submit" disabled={testPending}>
-              {testPending ? "Sending..." : "Send Test Email"}
-            </button>
+            <button className="button-muted" type="submit" disabled={testPending}>{testPending ? "Sending..." : "Send Test Email"}</button>
           </form>
         </div>
-        <StatusMessage message={verifyState?.message} error={verifyState?.error} />
-        <StatusMessage message={testState?.message} error={testState?.error} />
-      </div>
-
-      <div className="panel panel-soft">
-        <div className="section-heading compact">
-          <div>
-            <p className="eyebrow">Status and Audit</p>
-            <h3>Recent activity</h3>
-          </div>
-        </div>
-        <div className="admin-detail-list">
-          <span>Last test status</span><strong>{config.lastTestStatus || "Not configured"}</strong>
-          <span>Last test message</span><strong>{config.lastTestMessage || "-"}</strong>
-          <span>Last tested at</span><strong>{config.lastTestedAt || "-"}</strong>
-          <span>Last successful connection</span><strong>{config.lastSuccessfulTestAt || "-"}</strong>
-          <span>Last successful email</span><strong>{config.lastSuccessfulEmailAt || "-"}</strong>
-          <span>Last error</span><strong>{config.lastErrorSummary || "-"}</strong>
-          <span>Updated at</span><strong>{config.updatedAt || "-"}</strong>
-        </div>
-      </div>
+        <StatusMessage message={verifyState?.message || testState?.message} error={verifyState?.error || testState?.error} />
+        <p className="email-audit-line">Last test: {config.lastTestStatus || "Not configured"}{config.lastTestedAt ? ` - ${config.lastTestedAt}` : ""}</p>
+      </section>
     </div>
   );
 }
