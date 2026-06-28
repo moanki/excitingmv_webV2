@@ -32,6 +32,7 @@ async function saveFeaturedResorts(items: HomepageFeaturedResortItem[]) {
   await saveSiteSettingDraft("homepage.featuredResorts", defaultHomepageFeaturedResorts, normalized);
   await publishSiteSetting("homepage.featuredResorts", defaultHomepageFeaturedResorts);
   revalidatePath("/");
+  revalidatePath("/admin/settings/homepage/features");
   revalidatePath("/admin/settings/homepage/featured-resorts");
   revalidateTag("resorts-public", "max");
   updateTag("resorts-public");

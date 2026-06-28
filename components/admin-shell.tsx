@@ -144,12 +144,6 @@ const navGroups: NavGroup[] = [
         label: "Site Settings",
         description: "Website content and global settings",
         icon: Settings2
-      },
-      {
-        href: "/admin/settings/admin-login",
-        label: "Admin Login Page",
-        description: "Sign-in media and logo",
-        icon: Image
       }
     ]
   }

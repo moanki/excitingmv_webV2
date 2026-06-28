@@ -849,12 +849,12 @@ export function FeaturesSettingsForm({
     <div className="panel">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Featured Retreats</p>
-          <h2>Edit the homepage Featured Retreats section heading.</h2>
+          <p className="eyebrow">Retreat Highlights</p>
+          <h2>Section heading and supporting copy</h2>
         </div>
         <form action={publishFeaturesAction}>
           <button className="button-muted" type="submit">
-            Publish Featured Retreats Heading
+            Publish Section Copy
           </button>
         </form>
       </div>
@@ -862,7 +862,7 @@ export function FeaturesSettingsForm({
         <div className="stack">
           {features.slice(0, 1).map((feature, index) => (
             <div className="panel panel-soft" key={`${feature.title}-${index}`}>
-              <p className="eyebrow">Section heading</p>
+              <p className="eyebrow">Homepage copy</p>
               <div className="form-grid">
                 <label className="field" style={index === 0 ? { display: "none" } : undefined}>
                   Eyebrow

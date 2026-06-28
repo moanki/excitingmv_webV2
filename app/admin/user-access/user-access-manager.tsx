@@ -130,13 +130,10 @@ export function UserAccessManager({ users, roles }: { users: AdminUserRecord[]; 
   }
 
   return (
-    <div className="stack">
-      <div className="admin-page-header admin-page-header--actions-only">
-        <div className="admin-page-header__actions">
-          <button className="admin-btn admin-btn--primary" type="button" onClick={() => openUserModal("create")}>
-            Create User
-          </button>
-        </div>
+    <div className="stack admin-list-page">
+      <div className="table-toolbar">
+        <div className="table-toolbar-left"><span className="tbl-count">{users.length} users</span></div>
+        <button className="tbl-add" type="button" onClick={() => openUserModal("create")}>+ Create User</button>
       </div>
 
       <div className="admin-table-shell">
