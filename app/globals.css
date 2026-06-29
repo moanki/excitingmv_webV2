@@ -27640,3 +27640,103 @@ html {
 .admin-body .admin-list-page > .table-toolbar {
   margin-bottom: 0 !important;
 }
+
+/* Mobile-only featured retreats: desktop card design in a touch carousel. */
+@media (max-width: 768px) {
+  .mobile-v2-home #mobile-featured-retreats.mv2-focus-retreats {
+    padding: 18px 0 44px !important;
+    overflow: hidden !important;
+  }
+
+  .mobile-v2-home #mobile-featured-retreats .mv2-focus-retreats__head {
+    padding: 0 22px 16px !important;
+  }
+
+  .mobile-featured-carousel__track {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    padding: 4px 8vw 8px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-padding-inline: 8vw;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    touch-action: pan-x;
+  }
+
+  .mobile-featured-carousel__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-featured-carousel__track .lux-retreat-card,
+  .mobile-featured-carousel__track .lux-retreat-card:first-child,
+  .mobile-featured-carousel__track .lux-retreat-card:nth-child(2),
+  .mobile-featured-carousel__track .lux-retreat-card:nth-child(n + 3) {
+    flex: 0 0 84vw;
+    min-height: 330px;
+    border: 0;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
+
+  .mobile-featured-carousel__track.is-bouncing-start {
+    animation: mobile-carousel-bounce-start 0.34s ease-out;
+  }
+
+  .mobile-featured-carousel__track.is-bouncing-end {
+    animation: mobile-carousel-bounce-end 0.34s ease-out;
+  }
+
+  .mobile-featured-carousel__dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    margin-top: 10px;
+  }
+
+  .mobile-featured-carousel__dots button {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .mobile-featured-carousel__dots button::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #c8c2b5;
+    transform: translate(-50%, -50%);
+    transition: width 0.18s ease, background-color 0.18s ease;
+  }
+
+  .mobile-featured-carousel__dots button.is-active::after {
+    width: 18px;
+    background: #234f52;
+  }
+}
+
+@keyframes mobile-carousel-bounce-start {
+  35% { transform: translateX(12px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes mobile-carousel-bounce-end {
+  35% { transform: translateX(-12px); }
+  100% { transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-featured-carousel__track.is-bouncing-start,
+  .mobile-featured-carousel__track.is-bouncing-end {
+    animation: none;
+  }
+}

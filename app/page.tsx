@@ -3,6 +3,7 @@ import { ArrowRight, Building2, Clock3, Globe2, Headphones, MapPin, Search, Star
 
 import { GlobalMarketMap } from "@/components/global-market-map";
 import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
+import { MobileFeaturedRetreatsCarousel } from "@/components/mobile-featured-retreats-carousel";
 import { PartnerModalButton } from "@/components/partner-modal-button";
 import { ServicesParallax } from "@/components/services-parallax";
 import { WhyUsParallax } from "@/components/why-us-parallax";
@@ -347,30 +348,25 @@ function MobileHomeV2({
         href: `/resorts/${resort.slug}`,
         image: resort.heroImageUrl || pickResortImage(index),
         title: resort.name,
-        tag: resort.category || resort.transferType || "Luxury Resort",
-        atoll: formatAtoll(resort.location),
-        location: [formatAtoll(resort.location), resort.category || resort.transferType || "Luxury"].filter(Boolean).join(" â€” ")
+        type: resort.category || resort.transferType || "Luxury Resort",
+        atoll: formatAtoll(resort.location)
       }))
     : [
         {
           href: "/resorts",
           image: pickResortImage(0),
           title: "Curated Private-Island Retreats",
-          tag: "Luxury Resort",
-          atoll: "Maldives",
-          location: "Maldives â€” Luxury"
+          type: "Luxury Resort",
+          atoll: "Maldives"
         },
         {
           href: "/resorts",
           image: pickResortImage(1),
           title: "Partner-Ready Island Escapes",
-          tag: "Trade Intelligence",
-          atoll: "Maldives",
-          location: "Maldives â€” Trade Intelligence"
+          type: "Trade Intelligence",
+          atoll: "Maldives"
         }
       ];
-  const primaryResort = displayResorts[0];
-  const secondaryResorts = displayResorts.slice(1, 7);
   const configuredLogos = (hero.featuredResortLogos ?? []).filter((item) => item.enabled && (item.imageUrl || item.name));
   const tickerLogos = configuredLogos.length
     ? configuredLogos
@@ -459,67 +455,8 @@ function MobileHomeV2({
       </section>
 
       <section className="mv2-section mv2-section--white mv2-focus-retreats" id="mobile-featured-retreats">
-        <div className="mv2-focus-retreats__head">
-          <span>Featured Retreats</span>
-          <span><b>01</b> / {String(featuredCarouselItems.length).padStart(2, "0")}</span>
-        </div>
+        <MobileFeaturedRetreatsCarousel items={featuredCarouselItems.map((item) => ({ ...item, image: optimizedImageUrl(item.image, { width: 760, height: 980, quality: 84 }) }))} />
 
-        <div className="mv2-focus-retreats__track" aria-label="Featured resort carousel">
-          <span className="mv2-focus-retreats__spacer" aria-hidden="true" />
-          {featuredCarouselItems.map((retreat, index) => (
-            <Link href={retreat.href} className="mv2-focus-retreat" key={`${retreat.href}-${retreat.title}-${index}`}>
-              <div className="mv2-focus-retreat__frame">
-                <img
-                  src={optimizedImageUrl(retreat.image, { width: 760, height: 980, quality: 84 })}
-                  alt={retreat.title}
-                  loading="lazy"
-                />
-              </div>
-              <span className="mv2-focus-retreat__tag">{retreat.tag}</span>
-              <h3>{retreat.title}</h3>
-              <p>
-                <MapPin size={9} aria-hidden="true" />
-                <span>{retreat.atoll}</span>
-              </p>
-              <span className="mv2-focus-retreat__cta">Enquire about this retreat</span>
-            </Link>
-          ))}
-          <span className="mv2-focus-retreats__spacer" aria-hidden="true" />
-        </div>
-
-        {primaryResort ? (
-          <Link href={`/resorts/${primaryResort.slug}`} className="mv2-big-card">
-            <div
-              className="mv2-big-card__bg"
-              style={{ backgroundImage: `url(${optimizedImageUrl(primaryResort.heroImageUrl || pickResortImage(0), { width: 800, height: 620, quality: 88 })})` }}
-            />
-            <div className="mv2-big-card__shade" />
-            <div className="mv2-big-card__body">
-              <span>â˜… {primaryResort.category || "Luxury Resort"}</span>
-              <strong>{primaryResort.name}</strong>
-              <p>{[formatAtoll(primaryResort.location), primaryResort.transferType].filter(Boolean).join(" Â· ")}</p>
-            </div>
-          </Link>
-        ) : null}
-
-        <div className="mv2-card-scroll">
-          {secondaryResorts.map((resort, index) => (
-            <Link href={`/resorts/${resort.slug}`} className="mv2-property-card" key={resort.id}>
-              <div
-                className="mv2-property-card__bg"
-                style={{ backgroundImage: `url(${optimizedImageUrl(resort.heroImageUrl || pickResortImage(index + 1), { width: 620, height: 520, quality: 86 })})` }}
-                role="img"
-                aria-label={resort.name}
-              />
-              <div className="mv2-property-card__shade" />
-              <div className="mv2-property-card__body">
-                <span>{resort.category || "Luxury Resort"}</span>
-                <strong>{resort.name}</strong>
-                <p>{[formatAtoll(resort.location), resort.transferType].filter(Boolean).join(" Â· ")}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
       </section>
 
       <section className="mv2-section mv2-section--paper">
