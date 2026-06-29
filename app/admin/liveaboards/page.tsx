@@ -1,5 +1,5 @@
 import { ResortManagerListView } from "@/app/admin/resorts/forms";
-import { getResortCounts, listAdminResortCards } from "@/lib/services/resort-service";
+import { listAdminResortCards } from "@/lib/services/resort-service";
 
 const labels = {
   singular: "Liveaboard",
@@ -9,31 +9,15 @@ const labels = {
 };
 
 export default async function AdminLiveaboardsPage() {
-  const [liveaboards, counts] = await Promise.all([
-    listAdminResortCards("liveaboards"),
-    getResortCounts("liveaboards")
-  ]);
+  const liveaboardsResult = await listAdminResortCards("liveaboards").then(
+    (liveaboards) => ({ liveaboards, error: "" }),
+    (error) => ({ liveaboards: [], error: error instanceof Error ? error.message : "Failed to load liveaboards." })
+  );
+  const { liveaboards, error } = liveaboardsResult;
 
   return (
     <section className="stack">
-      <div className="dashboard-grid">
-        <article className="stat-card">
-          <p className="eyebrow">Total Liveaboards</p>
-          <strong>{counts.total}</strong>
-        </article>
-        <article className="stat-card">
-          <p className="eyebrow">Published</p>
-          <strong>{counts.published}</strong>
-        </article>
-        <article className="stat-card">
-          <p className="eyebrow">Featured On Homepage</p>
-          <strong>{counts.featured}</strong>
-        </article>
-        <article className="stat-card">
-          <p className="eyebrow">Draft</p>
-          <strong>{counts.draft}</strong>
-        </article>
-      </div>
+      {error ? <p className="admin-alert admin-alert--error">{error}</p> : null}
 
       <ResortManagerListView resorts={liveaboards} propertyType="liveaboards" labels={labels} />
     </section>
