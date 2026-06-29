@@ -1,31 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { FileText, Image as ImageIcon, Search, Trash2, Upload, Video } from "lucide-react";
 
 import { deleteMediaLibraryAssetAction } from "@/app/admin/media/actions";
 import type { MediaLibraryItem } from "@/components/media-field";
-import {
-  formatUploadBytes,
-  isRasterAdminImage,
-  uploadAdminMediaFile,
-  validateAdminMediaFile
-} from "@/lib/admin-media-client-upload";
+import { isRasterAdminImage, uploadAdminMediaFile, validateAdminMediaFile } from "@/lib/admin-media-client-upload";
 import { optimizedImageUrl } from "@/lib/image-urls";
-
-function StatusMessage({ message, error }: { message?: string; error?: string }) {
-  if (error) {
-    return <p className="admin-alert admin-alert--error">{error}</p>;
-  }
-
-  if (message) {
-    return <p className="admin-alert admin-alert--success">{message}</p>;
-  }
-
-  return null;
-}
 
 function typeIcon(type: MediaLibraryItem["type"]) {
   if (type === "video") return <Video className="admin-icon" />;
@@ -33,271 +15,61 @@ function typeIcon(type: MediaLibraryItem["type"]) {
   return <ImageIcon className="admin-icon" />;
 }
 
-function typeLabel(type: MediaLibraryItem["type"]) {
-  if (type === "video") return "Video";
-  if (type === "file") return "File";
-  return "Image";
-}
-
-function formatBytes(bytes: number) {
-  return formatUploadBytes(bytes);
-}
-
 export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploadState, setUploadState] = useState<{ pending: boolean; message?: string; error?: string }>({
-    pending: false
-  });
-  const [compressionState, setCompressionState] = useState<{ pending: boolean; message?: string; error?: string }>({
-    pending: false
-  });
+  const [uploadState, setUploadState] = useState<{ pending: boolean; message?: string; error?: string }>({ pending: false });
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | MediaLibraryItem["type"]>("all");
-  const [visibleCount, setVisibleCount] = useState(6);
+  const [visibleCount, setVisibleCount] = useState(15);
 
   const visibleItems = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const needle = query.trim().toLowerCase();
+    return items.filter((item) => !needle || item.name.toLowerCase().includes(needle) || item.url.toLowerCase().includes(needle));
+  }, [items, query]);
 
-    return items.filter((item) => {
-      const matchesType = filter === "all" || item.type === filter;
-      const matchesQuery =
-        !normalizedQuery ||
-        item.name.toLowerCase().includes(normalizedQuery) ||
-        item.url.toLowerCase().includes(normalizedQuery);
+  useEffect(() => setVisibleCount(15), [query]);
 
-      return matchesType && matchesQuery;
-    });
-  }, [filter, items, query]);
-
-  useEffect(() => {
-    setVisibleCount(6);
-  }, [filter, query]);
-
-  const pagedItems = visibleItems.slice(0, visibleCount);
-
-  async function uploadSelectedFile(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!selectedFile) {
-      setUploadState({ pending: false, error: "Choose an image, video, or file to upload." });
-      return;
-    }
-
-    const validationError = validateAdminMediaFile(selectedFile);
+  async function upload(file: File) {
+    const validationError = validateAdminMediaFile(file);
     if (validationError) {
       setUploadState({ pending: false, error: validationError });
       return;
     }
 
-    const isOptimizable = isRasterAdminImage(selectedFile);
-    setUploadState({
-      pending: true,
-      message: isOptimizable ? "Uploading and optimizing image..." : "Uploading media..."
-    });
-
+    setUploadState({ pending: true, message: isRasterAdminImage(file) ? "Uploading and optimizing image..." : "Uploading media..." });
     try {
-      const result = await uploadAdminMediaFile(selectedFile, {
+      const result = await uploadAdminMediaFile(file, {
         folder: "media-library",
         onStatus: (_, message) => setUploadState({ pending: true, message })
       });
-
-      setSelectedFile(null);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-      setUploadState({
-        pending: false,
-        message: result.compressed
-          ? `${selectedFile.name} uploaded and optimized.`
-          : `${selectedFile.name} uploaded.`
-      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      setUploadState({ pending: false, message: `${file.name} uploaded${result.compressed ? " and optimized" : ""}.` });
       router.refresh();
     } catch (error) {
-      setUploadState({
-        pending: false,
-        error: error instanceof Error ? error.message : "Failed to upload media."
-      });
+      setUploadState({ pending: false, error: error instanceof Error ? error.message : "Failed to upload media." });
     }
   }
 
-  async function compressExistingImages() {
-    setCompressionState({ pending: true, message: "Compressing existing images..." });
-
-    try {
-      const response = await fetch("/api/admin/media", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ mode: "compress-existing-images" })
-      });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            ok?: boolean;
-            error?: string;
-            data?: {
-              scanned: number;
-              compressed: number;
-              skipped: number;
-              failed: number;
-              savedBytes: number;
-            };
-          }
-        | null;
-
-      if (!response.ok || !payload?.ok || !payload.data) {
-        throw new Error(payload?.error || "Could not compress existing images.");
-      }
-
-      const savedMb = (payload.data.savedBytes / (1024 * 1024)).toFixed(2);
-      setCompressionState({
-        pending: false,
-        message: `Compressed ${payload.data.compressed} image${payload.data.compressed === 1 ? "" : "s"} and saved ${savedMb} MB. ${payload.data.failed ? `${payload.data.failed} failed.` : ""}`.trim()
-      });
-      router.refresh();
-    } catch (error) {
-      setCompressionState({
-        pending: false,
-        error: error instanceof Error ? error.message : "Failed to compress existing images."
-      });
-    }
-  }
-
-  return (
-    <div className="stack">
-      <form onSubmit={uploadSelectedFile} className="admin-form-card media-manager-upload">
-        <div>
-          <h3>Upload Media</h3>
-          <p>New uploads appear in resort media pickers immediately after save.</p>
-        </div>
-        <div className="form-grid">
-          <label className="field field--full">
-            <span className="field__label">Media File</span>
-            <input
-              ref={fileInputRef}
-              className="admin-input"
-              type="file"
-              name="mediaFile"
-              accept="image/png,image/jpeg,image/webp,image/svg+xml,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/csv,video/mp4,video/webm,video/quicktime"
-              onChange={(event) => {
-                const file = event.target.files?.[0] ?? null;
-                setSelectedFile(file);
-                if (!file) {
-                  setUploadState({ pending: false });
-                  return;
-                }
-                const validationError = validateAdminMediaFile(file);
-                setUploadState({
-                  pending: false,
-                  message: validationError ? undefined : `${file.name} selected (${formatUploadBytes(file.size)}, ${file.type || "unknown type"}).`,
-                  error: validationError || undefined
-                });
-              }}
-            />
-            {selectedFile ? (
-              <span className="field__help">
-                Selected: {selectedFile.name} · {formatBytes(selectedFile.size)} · {selectedFile.type || "unknown type"}
-              </span>
-            ) : null}
-          </label>
-        </div>
-        <div className="admin-form-actions admin-form-actions--start">
-          <button className="admin-btn admin-btn--primary" type="submit" disabled={uploadState.pending}>
-            <Upload className="admin-icon" />
-            {uploadState.pending ? "Uploading..." : "Upload To Library"}
-          </button>
-          <button
-            className="admin-btn admin-btn--secondary"
-            type="button"
-            disabled={compressionState.pending}
-            onClick={compressExistingImages}
-          >
-            {compressionState.pending ? "Compressing..." : "Compress Current Images"}
-          </button>
-        </div>
-        <StatusMessage message={uploadState.message} error={uploadState.error} />
-        <StatusMessage message={compressionState.message} error={compressionState.error} />
-      </form>
-
-      <section className="admin-form-card media-manager-library">
-        <div className="media-manager-toolbar">
-          <label className="resort-search-field" htmlFor="media-search">
-            <Search className="admin-icon" />
-            <input
-              id="media-search"
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search media..."
-            />
-          </label>
-          <div className="resort-filter-pills" role="tablist" aria-label="Media filters">
-            {(["all", "image", "video", "file"] as const).map((option) => (
-              <button
-                key={option}
-                type="button"
-                className={filter === option ? "is-active" : ""}
-                onClick={() => setFilter(option)}
-              >
-                {option === "all" ? "All" : typeLabel(option)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {visibleItems.length ? (
-          <div className="media-manager-grid">
-            {pagedItems.map((item) => (
-              <article className="media-manager-card" key={item.url}>
-                <a className="media-manager-preview" href={item.url} target="_blank" rel="noreferrer">
-                  {item.type === "video" ? (
-                    <video src={item.url} muted playsInline preload="metadata" />
-                  ) : item.type === "image" ? (
-                    <img
-                      src={optimizedImageUrl(item.url, { width: 360, height: 270, quality: 72 })}
-                      alt={item.name}
-                      width={360}
-                      height={270}
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="media-manager-file">{typeIcon(item.type)}</div>
-                  )}
-                </a>
-                <div className="media-manager-card__body">
-                  <div>
-                    <span>
-                      {typeIcon(item.type)}
-                      {typeLabel(item.type)}
-                    </span>
-                    <strong>{item.name}</strong>
-                  </div>
-                  <form action={deleteMediaLibraryAssetAction}>
-                    <input type="hidden" name="url" value={item.url} />
-                    <button className="admin-btn admin-btn--danger admin-icon-only" type="submit" aria-label={`Delete ${item.name}`}>
-                      <Trash2 className="admin-icon" />
-                    </button>
-                  </form>
-                </div>
-              </article>
-            ))}
-            {visibleCount < visibleItems.length ? (
-              <button
-                className="admin-btn admin-btn--secondary media-library-load-more"
-                type="button"
-                onClick={() => setVisibleCount((count) => count + 6)}
-              >
-                Load 6 More
-              </button>
-            ) : null}
-          </div>
-        ) : (
-          <div className="admin-empty-panel">
-            <h3>No media found</h3>
-            <p>Upload a file or adjust the search and filter.</p>
-          </div>
-        )}
-      </section>
+  return <div className="stack admin-list-page">
+    <div className="table-toolbar media-manager-toolbar">
+      <div className="table-toolbar-left">
+        <label className="tbl-search" htmlFor="media-search"><Search className="admin-icon" /><input id="media-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search media..." /></label>
+        <span className="tbl-count">{visibleItems.length} assets</span>
+      </div>
+      <input ref={fileInputRef} hidden type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/csv,video/mp4,video/webm,video/quicktime" onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); }} />
+      <button className="tbl-add" type="button" disabled={uploadState.pending} onClick={() => fileInputRef.current?.click()}><Upload className="admin-icon" />{uploadState.pending ? "Uploading..." : "Upload"}</button>
     </div>
-  );
+
+    {uploadState.error ? <p className="admin-alert admin-alert--error">{uploadState.error}</p> : uploadState.message ? <p className="admin-alert admin-alert--success">{uploadState.message}</p> : null}
+
+    {visibleItems.length ? <div className="media-manager-grid">
+      {visibleItems.slice(0, visibleCount).map((item) => <article className="media-manager-card" key={item.url}>
+        <a className="media-manager-preview" href={item.url} target="_blank" rel="noreferrer">
+          {item.type === "video" ? <video src={item.url} muted playsInline preload="metadata" /> : item.type === "image" ? <img src={optimizedImageUrl(item.url, { width: 360, height: 270, quality: 72 })} alt={item.name} width={360} height={270} loading="lazy" /> : <div className="media-manager-file">{typeIcon(item.type)}</div>}
+        </a>
+        <div className="media-manager-card__body"><div><strong>{item.name}</strong></div><form action={deleteMediaLibraryAssetAction}><input type="hidden" name="url" value={item.url} /><button className="admin-icon-button admin-icon-button--danger" type="submit" aria-label={`Delete ${item.name}`}><Trash2 className="admin-icon" /></button></form></div>
+      </article>)}
+      {visibleCount < visibleItems.length ? <button className="admin-btn admin-btn--secondary media-library-load-more" type="button" onClick={() => setVisibleCount((count) => count + 15)}>Load 15 More</button> : null}
+    </div> : <div className="admin-empty-panel"><h3>No media found</h3><p>Upload a file or adjust the search.</p></div>}
+  </div>;
 }

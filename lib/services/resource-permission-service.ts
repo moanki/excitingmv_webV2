@@ -242,6 +242,15 @@ export async function deleteResourcePermission(agentId: string) {
   }
 }
 
+export async function enableResourcePermission(agentId: string) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.from("agents").update({ status: "approved" }).eq("id", agentId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function validateActiveResourcePassword(password: string) {
   const candidate = password.trim();
   if (!candidate) {

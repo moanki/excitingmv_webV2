@@ -26937,6 +26937,19 @@ html {
   .admin-body .act-btn { width: 28px !important; height: 28px !important; border-radius: 6px !important; }
   .admin-body .act-btn .admin-icon { width: 12px !important; height: 12px !important; }
 
+  .admin-body .media-manager-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+  .admin-body .media-manager-card {
+    border: 2px solid transparent !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+  }
+  .admin-body .media-manager-card:hover { border-color: var(--cms-teal) !important; }
+  .admin-body .media-manager-card__body { min-height: 34px !important; padding: 5px 7px !important; }
+  .admin-body .media-manager-card__body strong { margin: 0 !important; font-size: 10.5px !important; font-weight: 500 !important; }
+
   .admin-body .admin-form-card,
   .admin-body .panel { padding: 14px 16px !important; }
   .admin-body .admin-form-section__header { margin-bottom: 12px !important; padding-bottom: 11px !important; }
