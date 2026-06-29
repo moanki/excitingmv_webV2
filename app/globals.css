@@ -27740,3 +27740,11 @@ html {
     animation: none;
   }
 }
+
+/* Admin sidebar brand: larger website link. */
+.admin-body .admin-brand-logo {
+  width: min(190px, 100%) !important;
+  max-width: 190px !important;
+  height: auto !important;
+  max-height: 64px !important;
+}

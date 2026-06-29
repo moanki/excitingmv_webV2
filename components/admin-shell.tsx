@@ -306,7 +306,7 @@ export function AdminShell({
               </>
             )}
           </Link>
-          <p>Internal CMS</p>
+          <p>Admin Portal</p>
         </div>
 
         <nav className="admin-nav" aria-label="Admin">
