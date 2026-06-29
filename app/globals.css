@@ -27634,6 +27634,7 @@ html {
 
 /* Compact shared rhythm for admin list pages. */
 .admin-body .admin-list-page {
+  align-content: start !important;
   gap: 10px !important;
 }
 
