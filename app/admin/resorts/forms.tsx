@@ -1056,15 +1056,13 @@ export function ResortManagerListView({
             />
           </label>
 
-          {propertyType === "resort" ? (
-            <div className="resort-filter-pills" role="tablist" aria-label={`${labels.singular} filters`}>
-              {filterOptions.map((option) => (
-                <button key={option.id} type="button" className={filter === option.id ? "is-active" : ""} onClick={() => setFilter(option.id)}>
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
+          <div className="resort-filter-pills" role="tablist" aria-label={`${labels.singular} filters`}>
+            {filterOptions.map((option) => (
+              <button key={option.id} type="button" className={filter === option.id ? "is-active" : ""} onClick={() => setFilter(option.id)}>
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="table-toolbar-right">

@@ -1,5 +1,5 @@
 import { ResortManagerListView } from "@/app/admin/resorts/forms";
-import { getResortCounts, listAdminResortCards } from "@/lib/services/resort-service";
+import { listAdminResortCards } from "@/lib/services/resort-service";
 
 const labels = {
   singular: "Hotel",
@@ -9,28 +9,15 @@ const labels = {
 };
 
 export default async function AdminHotelsPage() {
-  const [hotels, counts] = await Promise.all([listAdminResortCards("hotels"), getResortCounts("hotels")]);
+  const hotelsResult = await listAdminResortCards("hotels").then(
+    (hotels) => ({ hotels, error: "" }),
+    (error) => ({ hotels: [], error: error instanceof Error ? error.message : "Failed to load hotels." })
+  );
+  const { hotels, error } = hotelsResult;
 
   return (
     <section className="stack">
-      <div className="dashboard-grid">
-        <article className="stat-card">
-          <p className="eyebrow">Total Hotels</p>
-          <strong>{counts.total}</strong>
-        </article>
-        <article className="stat-card">
-          <p className="eyebrow">Published</p>
-          <strong>{counts.published}</strong>
-        </article>
-        <article className="stat-card">
-          <p className="eyebrow">Featured On Homepage</p>
-          <strong>{counts.featured}</strong>
-        </article>
-        <article className="stat-card">
-          <p className="eyebrow">Draft</p>
-          <strong>{counts.draft}</strong>
-        </article>
-      </div>
+      {error ? <p className="admin-alert admin-alert--error">{error}</p> : null}
 
       <ResortManagerListView resorts={hotels} propertyType="hotels" labels={labels} />
     </section>
