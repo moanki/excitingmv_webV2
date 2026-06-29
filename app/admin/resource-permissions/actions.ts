@@ -7,6 +7,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import {
   deleteResourcePermission,
   disableResourcePermission,
+  enableResourcePermission,
   saveResourcePermission,
   type ResourcePermissionStatus
 } from "@/lib/services/resource-permission-service";
@@ -37,6 +38,15 @@ export async function disableResourcePermissionAction(formData: FormData) {
   }
 
   await disableResourcePermission(agentId);
+  revalidatePath("/admin/resource-permissions");
+}
+
+export async function enableResourcePermissionAction(formData: FormData) {
+  await requireAdmin();
+  const agentId = String(formData.get("agentId") ?? "").trim();
+  if (!agentId) return;
+
+  await enableResourcePermission(agentId);
   revalidatePath("/admin/resource-permissions");
 }
 

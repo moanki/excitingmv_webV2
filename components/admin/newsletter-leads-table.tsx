@@ -83,7 +83,7 @@ export function NewsletterLeadsTable({ submissions }: Props) {
   }
 
   return (
-    <div className="stack">
+    <div className="stack admin-list-page">
       <div className="table-toolbar">
         <div className="table-toolbar-left">
           <label className="tbl-search">
