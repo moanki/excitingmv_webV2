@@ -115,7 +115,10 @@ export async function createPartnerRegistration(
 export async function listPartnerRequests() {
   try {
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase.from("agents").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("agents")
+      .select("id,agency_name,contact_name,email,market,notes,status,approved_at,created_at")
+      .order("created_at", { ascending: false });
 
     if (error) {
       throw new Error(error.message);

@@ -180,10 +180,17 @@ export async function createNewsletterSubmission(
 export async function listNewsletterSubmissions() {
   try {
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase
+    const fields = "id,email,source,status,exported_at,created_at,full_name,agency_name,country_of_origin,contact_number,primary_market,additional_notes";
+    const firstAttempt = await supabase
       .from("newsletter_submissions")
-      .select("*")
+      .select(fields)
       .order("created_at", { ascending: false });
+    const { data, error } = firstAttempt.error
+      ? await supabase
+          .from("newsletter_submissions")
+          .select("id,email,source,status,exported_at,created_at")
+          .order("created_at", { ascending: false })
+      : firstAttempt;
 
     if (error) {
       throw new Error(error.message);

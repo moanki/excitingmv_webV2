@@ -53,7 +53,7 @@ async function ensureDefaultRoles() {
 export async function listRoles() {
   try {
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase.from("roles").select("*").order("name");
+    const { data, error } = await supabase.from("roles").select("id,name,description").order("name");
 
     if (error) {
       throw new Error(error.message);
@@ -76,7 +76,7 @@ export async function listRoles() {
 export async function listAdminUsers() {
   try {
     const supabase = createSupabaseAdminClient();
-    const { data: profiles, error: profileError } = await supabase.from("profiles").select("*");
+    const { data: profiles, error: profileError } = await supabase.from("profiles").select("id,email,full_name");
 
     if (profileError) {
       throw new Error(profileError.message);

@@ -1599,7 +1599,7 @@ export async function listImportBatches(): Promise<ImportBatchRecord[]> {
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase
       .from("import_batches")
-      .select("*")
+      .select("id,batch_name,source_type,file_path,status,created_at")
       .order("created_at", { ascending: false });
 
     if (error) {
