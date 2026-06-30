@@ -1097,12 +1097,51 @@ export async function seedSampleResorts() {
   }
 }
 
-export async function getResortCounts(propertyType: PropertyType = "resort") {
-  const resorts = await listAdminResortCards(propertyType, 1000);
-  return {
-    total: resorts.length,
-    published: resorts.filter((resort) => resort.status === "published").length,
-    featured: resorts.filter((resort) => resort.status === "published" && resort.isFeaturedHomepage).length,
-    draft: resorts.filter((resort) => resort.status === "draft").length
+async function countProperties(tableName: string, propertyType: PropertyType, filterByType = true) {
+  const supabase = createSupabaseAdminClient();
+  const countQuery = () => {
+    const query = supabase.from(tableName).select("id", { count: "exact", head: true });
+    return filterByType ? query.in("property_type", propertyTypeAliases(propertyType)) : query;
   };
+  const [total, published, featured, draft] = await Promise.all([
+    countQuery(),
+    countQuery().eq("status", "published"),
+    countQuery().eq("status", "published").eq("is_featured_homepage", true),
+    countQuery().eq("status", "draft")
+  ]);
+  const error = total.error ?? published.error ?? draft.error;
+  if (error) throw error;
+  if (featured.error && !isMissingFeaturedHomepageColumnError(featured.error)) throw featured.error;
+
+  return {
+    total: total.count ?? 0,
+    published: published.count ?? 0,
+    featured: featured.error ? 0 : featured.count ?? 0,
+    draft: draft.count ?? 0
+  };
+}
+
+export async function getResortCounts(propertyType: PropertyType = "resort") {
+  try {
+    for (const tableName of PROPERTY_TABLES) {
+      try {
+        const counts = await countProperties(tableName, propertyType);
+        if (counts.total) return counts;
+      } catch (error) {
+        if (isMissingPropertyTableError(error)) continue;
+        if (isMissingPropertyTypeColumnError(error)) {
+          if (propertyType === "resort") {
+            const counts = await countProperties(tableName, propertyType, false);
+            if (counts.total) return counts;
+          }
+          continue;
+        }
+        throw error;
+      }
+    }
+  } catch {
+    // Preserve the dashboard's existing zero-count fallback on database errors.
+  }
+
+  return { total: 0, published: 0, featured: 0, draft: 0 };
 }
