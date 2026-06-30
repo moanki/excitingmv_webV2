@@ -1,11 +1,12 @@
 "use client";
 
-import { Bell, Building2, Contact, Globe2, Home, KeyRound, Menu, MessageCircle, PanelBottom } from "lucide-react";
+import { Bell, Building2, Contact, Globe2, Home, Image as ImageIcon, KeyRound, Menu, MessageCircle, PanelBottom } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const sections = [
   { label: "Homepage", href: "/admin/settings/homepage", icon: Home },
+  { label: "Catalogue", href: "/admin/settings/catalogue", icon: ImageIcon },
   { label: "About", href: "/admin/settings/about", icon: Building2 },
   { label: "Navbar", href: "/admin/settings/navbar", icon: Menu },
   { label: "Footer", href: "/admin/settings/footer", icon: PanelBottom },
