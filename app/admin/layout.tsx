@@ -1,7 +1,6 @@
 import { AdminShell } from "@/components/admin-shell";
 import { ADMIN_LOGIN_PATH } from "@/lib/auth/bootstrap-admin";
 import { getCurrentAdminUser } from "@/lib/auth/require-admin";
-import { getNavbarContent } from "@/lib/site-content";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -20,11 +19,5 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
     }
   }
 
-  const { content: navbar } = await getNavbarContent("published");
-
-  return (
-    <AdminShell logoUrl={navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl}>
-      {children}
-    </AdminShell>
-  );
+  return <AdminShell>{children}</AdminShell>;
 }
