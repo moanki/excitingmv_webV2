@@ -2,22 +2,18 @@ import { listAdminUsers } from "@/lib/services/admin-user-service";
 import { listNewsletterSubmissions } from "@/lib/services/newsletter-service";
 import { listPartnerRequests } from "@/lib/services/partner-service";
 import { listResourcePermissions } from "@/lib/services/resource-permission-service";
-import { listAdminResources } from "@/lib/services/resource-service";
 import { getResortCounts, listAdminResortCards } from "@/lib/services/resort-service";
-import { listSiteAssets } from "@/lib/storage/site-assets";
 
 export default async function AdminDashboardPage() {
-  const [resortCounts, hotelCounts, liveaboardCounts, recentResorts, partners, newsletters, resources, users, permissions, mediaAssets] = await Promise.all([
+  const [resortCounts, hotelCounts, liveaboardCounts, recentResorts, partners, newsletters, users, permissions] = await Promise.all([
     getResortCounts(),
     getResortCounts("hotels"),
     getResortCounts("liveaboards"),
     listAdminResortCards("resort", 6),
     listPartnerRequests().catch(() => []),
     listNewsletterSubmissions().catch(() => []),
-    listAdminResources().catch(() => []),
     listAdminUsers().catch(() => []),
-    listResourcePermissions().catch(() => []),
-    listSiteAssets().catch(() => [])
+    listResourcePermissions().catch(() => [])
   ]);
 
   const stats = [
@@ -46,10 +42,10 @@ export default async function AdminDashboardPage() {
       href: "/admin/newsletters"
     },
     {
-      label: "Media Assets",
-      value: mediaAssets.length,
-      sub: "Images & videos",
-      trend: `${resources.length} resources`,
+      label: "Media Library",
+      value: "Open",
+      sub: "Images, videos & documents",
+      trend: "Manage assets",
       trendTone: "stat-up",
       href: "/admin/media"
     }
