@@ -1,8 +1,10 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useActionState, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { createPartnerAction } from "@/app/admin/partners/actions";
+import { ActionMessage, SubmitButton } from "@/components/admin/action-feedback";
 import type { PartnerRequestRecord } from "@/lib/services/partner-service";
 import type { PartnerStatus } from "@/lib/types";
 
@@ -11,12 +13,15 @@ function formatDate(value: string) {
 }
 
 export function PartnerQueueTable({ partners }: { partners: PartnerRequestRecord[] }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PartnerStatus>();
+  const [feedback, setFeedback] = useState<{ message?: string; error?: string }>();
   const [showAddPartner, setShowAddPartner] = useState(false);
+  const [createState, createAction] = useActionState(createPartnerAction, undefined);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -30,14 +35,24 @@ export function PartnerQueueTable({ partners }: { partners: PartnerRequestRecord
 
   async function updateStatus(ids: string[], status: PartnerStatus) {
     if (!ids.length) return;
-    setPending(true);
-    const response = await fetch("/api/admin/partners/status", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids, status })
-    });
-    setPending(false);
-    if (response.ok) window.location.reload();
+    setPendingAction(status);
+    setFeedback(undefined);
+    try {
+      const response = await fetch("/api/admin/partners/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, status })
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(body?.error ?? `Failed to ${status} partner request.`);
+      setFeedback({ message: `${ids.length} partner request${ids.length === 1 ? "" : "s"} ${status}.` });
+      setSelectedIds([]);
+      router.refresh();
+    } catch (error) {
+      setFeedback({ error: error instanceof Error ? error.message : "Failed to update partner request." });
+    } finally {
+      setPendingAction(undefined);
+    }
   }
 
   function toggleSelected(id: string) {
@@ -75,12 +90,14 @@ export function PartnerQueueTable({ partners }: { partners: PartnerRequestRecord
         </div>
       </div>
 
+      <ActionMessage state={feedback} />
+
       {selectedIds.length ? (
         <div className="admin-bulk-bar">
           <strong>Selected: {selectedIds.length}</strong>
           <div className="admin-row-actions">
-            <button type="button" className="admin-btn admin-btn--primary admin-btn--small" disabled={pending} onClick={() => updateStatus(selectedIds, "approved")}>Approve Selected</button>
-            <button type="button" className="admin-btn admin-btn--danger admin-btn--small" disabled={pending} onClick={() => updateStatus(selectedIds, "rejected")}>Reject Selected</button>
+            <button type="button" className="admin-btn admin-btn--primary admin-btn--small" disabled={Boolean(pendingAction)} onClick={() => updateStatus(selectedIds, "approved")}>{pendingAction === "approved" ? "Approving..." : "Approve Selected"}</button>
+            <button type="button" className="admin-btn admin-btn--danger admin-btn--small" disabled={Boolean(pendingAction)} onClick={() => updateStatus(selectedIds, "rejected")}>{pendingAction === "rejected" ? "Rejecting..." : "Reject Selected"}</button>
           </div>
         </div>
       ) : null}
@@ -100,7 +117,7 @@ export function PartnerQueueTable({ partners }: { partners: PartnerRequestRecord
                   <td>{formatDate(partner.createdAt)}</td>
                   <td><div className="admin-row-actions">
                     <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setOpenId(isOpen ? null : partner.id)}>Details</button>
-                    {partner.status === "pending" ? <><button type="button" className="admin-btn admin-btn--primary" disabled={pending} onClick={() => updateStatus([partner.id], "approved")}>Approve</button><button type="button" className="admin-btn admin-btn--danger" disabled={pending} onClick={() => updateStatus([partner.id], "rejected")}>Reject</button></> : null}
+                    {partner.status === "pending" ? <><button type="button" className="admin-btn admin-btn--primary" disabled={Boolean(pendingAction)} onClick={() => updateStatus([partner.id], "approved")}>{pendingAction === "approved" ? "Approving..." : "Approve"}</button><button type="button" className="admin-btn admin-btn--danger" disabled={Boolean(pendingAction)} onClick={() => updateStatus([partner.id], "rejected")}>{pendingAction === "rejected" ? "Rejecting..." : "Reject"}</button></> : null}
                   </div></td>
                 </tr>
                 {isOpen ? <tr className="admin-detail-row"><td /><td colSpan={6}><div className="admin-inline-details"><strong>{partner.agencyName}</strong><p>{partner.notes || "No notes provided."}</p></div></td></tr> : null}
@@ -114,13 +131,14 @@ export function PartnerQueueTable({ partners }: { partners: PartnerRequestRecord
         <div className="admin-modal-backdrop" role="presentation" onClick={() => setShowAddPartner(false)}>
           <div className="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="add-partner-title" onClick={(event) => event.stopPropagation()}>
             <div className="admin-modal-header"><div><h3 id="add-partner-title">Add Partner</h3><p>Create a partner request for review.</p></div><button type="button" className="admin-btn admin-btn--ghost" onClick={() => setShowAddPartner(false)}>Close</button></div>
-            <form action={createPartnerAction} className="form-grid">
+            <form action={createAction} className="form-grid">
               <label className="field"><span className="field__label">Contact Name</span><input className="admin-input" name="contactName" minLength={2} required /></label>
               <label className="field"><span className="field__label">Agency Name</span><input className="admin-input" name="agencyName" minLength={2} required /></label>
               <label className="field"><span className="field__label">Email</span><input className="admin-input" name="email" type="email" required /></label>
               <label className="field"><span className="field__label">Market</span><input className="admin-input" name="market" minLength={2} required /></label>
               <label className="field field--full"><span className="field__label">Notes</span><textarea className="admin-textarea" name="notes" /></label>
-              <div className="admin-form-actions field--full"><button type="button" className="admin-btn admin-btn--secondary" onClick={() => setShowAddPartner(false)}>Cancel</button><button type="submit" className="admin-btn admin-btn--primary">Save Partner</button></div>
+              <div className="admin-form-actions field--full"><button type="button" className="admin-btn admin-btn--secondary" onClick={() => setShowAddPartner(false)}>Cancel</button><SubmitButton idleLabel="Save Partner" pendingLabel="Saving Partner..." /></div>
+              <div className="field--full"><ActionMessage state={createState} /></div>
             </form>
           </div>
         </div>

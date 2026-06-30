@@ -2,7 +2,7 @@ import { listAdminUsers } from "@/lib/services/admin-user-service";
 import { listNewsletterSubmissions } from "@/lib/services/newsletter-service";
 import { listPartnerRequests } from "@/lib/services/partner-service";
 import { listResourcePermissions } from "@/lib/services/resource-permission-service";
-import { listResources } from "@/lib/services/resource-service";
+import { listAdminResources } from "@/lib/services/resource-service";
 import { getResortCounts, listAdminResortCards } from "@/lib/services/resort-service";
 import { listSiteAssets } from "@/lib/storage/site-assets";
 
@@ -12,11 +12,11 @@ export default async function AdminDashboardPage() {
     getResortCounts("hotels"),
     getResortCounts("liveaboards"),
     listAdminResortCards("resort", 6),
-    listPartnerRequests(),
-    listNewsletterSubmissions(),
-    listResources(),
-    listAdminUsers(),
-    listResourcePermissions(),
+    listPartnerRequests().catch(() => []),
+    listNewsletterSubmissions().catch(() => []),
+    listAdminResources().catch(() => []),
+    listAdminUsers().catch(() => []),
+    listResourcePermissions().catch(() => []),
     listSiteAssets().catch(() => [])
   ]);
 

@@ -1,8 +1,13 @@
 import { ResourceLibraryTable } from "@/app/admin/resources/resource-library-table";
-import { listResources } from "@/lib/services/resource-service";
+import { listAdminResources } from "@/lib/services/resource-service";
 
 export default async function AdminResourcesPage() {
-  const resources = await listResources();
+  let resources;
+  try {
+    resources = await listAdminResources();
+  } catch (error) {
+    return <p className="admin-alert admin-alert--error">{error instanceof Error ? error.message : "Failed to load resources."}</p>;
+  }
 
   return (
     <section className="stack">

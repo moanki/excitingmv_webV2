@@ -1,7 +1,11 @@
+"use client";
+
+import { useActionState } from "react";
 import type { ResourceRecord } from "@/lib/services/resource-service";
 
 import { saveResourceAction } from "@/app/admin/resources/actions";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
+import { ActionMessage, SubmitButton } from "@/components/admin/action-feedback";
 
 type Props = {
   resource?: ResourceRecord | null;
@@ -10,9 +14,10 @@ type Props = {
 
 export function ResourceEditorForm({ resource, mediaLibrary = [] }: Props) {
   const isEditing = Boolean(resource);
+  const [state, action] = useActionState(saveResourceAction, undefined);
 
   return (
-    <form action={saveResourceAction} className="stack admin-form-card">
+    <form action={action} className="stack admin-form-card">
       {resource ? <input type="hidden" name="id" value={resource.id} /> : null}
 
       <section className="admin-form-section">
@@ -71,10 +76,12 @@ export function ResourceEditorForm({ resource, mediaLibrary = [] }: Props) {
       </section>
 
       <div className="admin-form-actions">
-        <button className="admin-btn admin-btn--primary" type="submit">
-          {isEditing ? "Save Resource" : "Add Resource"}
-        </button>
+        <SubmitButton
+          idleLabel={isEditing ? "Save Resource" : "Add Resource"}
+          pendingLabel={isEditing ? "Saving Resource..." : "Adding Resource..."}
+        />
       </div>
+      <ActionMessage state={state} />
     </form>
   );
 }

@@ -23,21 +23,20 @@ export function NewsletterSignupForm({ markets }: { markets: string[] }) {
       source: "homepage"
     };
 
-    const response = await fetch("/api/newsletter", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const json = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      setError(json?.error ?? "Failed to submit the form.");
+    try {
+      const response = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const json = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(json?.error ?? "Failed to submit the form.");
+      setMessage("Thank you. Your details have been saved for the Exciting Maldives team.");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to submit the form.");
+    } finally {
       setPending(false);
-      return;
     }
-
-    setMessage("Thank you. Your details have been saved for the Exciting Maldives team.");
-    setPending(false);
   }
 
   return (

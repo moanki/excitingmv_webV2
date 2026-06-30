@@ -37,14 +37,15 @@ export async function uploadMediaLibraryAssetAction(
   }
 }
 
-export async function deleteMediaLibraryAssetAction(formData: FormData) {
-  await requireAdmin();
-  const url = String(formData.get("url") ?? "").trim();
-
-  if (!url) {
-    return;
+export async function deleteMediaLibraryAssetAction(_: MediaActionState, formData: FormData): Promise<MediaActionState> {
+  try {
+    await requireAdmin();
+    const url = String(formData.get("url") ?? "").trim();
+    if (!url) return { error: "Media URL is required." };
+    await deleteSiteAsset(url);
+    revalidateMediaLibrary();
+    return { message: "Media asset deleted successfully." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to delete media asset." };
   }
-
-  await deleteSiteAsset(url);
-  revalidateMediaLibrary();
 }

@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
+import { ActionForm, type ActionState } from "@/components/admin/action-feedback";
 import {
   publishAboutAction,
   publishAdminLoginAction,
@@ -82,6 +83,10 @@ function StatusMessage({ message, error }: { message?: string; error?: string })
   return null;
 }
 
+function PublishAction({ action, label }: { action: (state: ActionState, formData: FormData) => Promise<ActionState>; label: string }) {
+  return <ActionForm action={action} idleLabel={label} pendingLabel="Publishing..." variant="secondary" buttonClassName="button-muted" />;
+}
+
 export function AboutSettingsForm({
   about,
   mediaLibrary
@@ -106,11 +111,7 @@ export function AboutSettingsForm({
             Manage the About page hero, introduction, services, hospitality network, philosophy, brand ecosystem, partner types, CTA, and SEO.
           </p>
         </div>
-        <form action={publishAboutAction}>
-          <button className="button-muted" type="submit">
-            Publish Current Draft
-          </button>
-        </form>
+        <PublishAction action={publishAboutAction} label="Publish Current Draft" />
       </div>
 
       <form action={action} className="stack">
@@ -509,11 +510,7 @@ export function AdminLoginSettingsForm({
         <div>
           <h2 className="settings-title">Admin Login Page Branding</h2>
         </div>
-        <form action={publishAdminLoginAction}>
-          <button className="button-muted" type="submit">
-            Publish Current Draft
-          </button>
-        </form>
+        <PublishAction action={publishAdminLoginAction} label="Publish Current Draft" />
       </div>
 
       <form action={action} className="stack">
@@ -748,11 +745,7 @@ export function HeroSettingsForm({
           <p className="eyebrow">Homepage Hero</p>
           <h2>Control the premium first impression.</h2>
         </div>
-        <form action={publishHeroAction}>
-          <button className="button-muted" type="submit">
-            Publish Hero
-          </button>
-        </form>
+        <PublishAction action={publishHeroAction} label="Publish Hero" />
       </div>
       <form action={action} className="stack">
         <div className="form-grid">
@@ -852,11 +845,7 @@ export function FeaturesSettingsForm({
           <p className="eyebrow">Retreat Highlights</p>
           <h2>Section heading and supporting copy</h2>
         </div>
-        <form action={publishFeaturesAction}>
-          <button className="button-muted" type="submit">
-            Publish Section Copy
-          </button>
-        </form>
+        <PublishAction action={publishFeaturesAction} label="Publish Section Copy" />
       </div>
       <form action={action} className="stack">
         <div className="stack">
@@ -1050,11 +1039,7 @@ export function FooterSettingsForm({
           <p className="eyebrow">Footer & Contact</p>
           <h2>Publish brand copy, footer links, and trust signals to the front end.</h2>
         </div>
-        <form action={publishFooterAction}>
-          <button className="button-muted" type="submit">
-            Publish Footer
-          </button>
-        </form>
+        <PublishAction action={publishFooterAction} label="Publish Footer" />
       </div>
       <form action={action} className="stack">
         <div className="form-grid">
@@ -1155,11 +1140,7 @@ export function ContactSettingsForm({
           <p className="eyebrow">Contact Us</p>
           <h2>Manage regional contact entries for the public contact registry.</h2>
         </div>
-        <form action={publishContactAction}>
-          <button className="button-muted" type="submit">
-            Publish Contact Us
-          </button>
-        </form>
+        <PublishAction action={publishContactAction} label="Publish Contact Us" />
       </div>
       <form action={action} className="stack">
         <div className="form-grid">
@@ -1287,11 +1268,7 @@ export function WhatsAppSettingsForm({ whatsApp }: { whatsApp: WhatsAppSettings 
           <p className="eyebrow">WhatsApp Touchpoint</p>
           <h2>Control the floating business contact CTA without touching code.</h2>
         </div>
-        <form action={publishWhatsAppAction}>
-          <button className="button-muted" type="submit">
-            Publish WhatsApp
-          </button>
-        </form>
+        <PublishAction action={publishWhatsAppAction} label="Publish WhatsApp" />
       </div>
       <form action={action} className="stack">
         <ToggleField name="enabled" label="Enable WhatsApp on the frontend" defaultChecked={whatsApp.enabled} />
@@ -1368,11 +1345,7 @@ export function NotificationSettingsForm({
           <p className="eyebrow">Notification Routing</p>
           <h2>Control partner request and newsletter recipients from the admin portal.</h2>
         </div>
-        <form action={publishNotificationAction}>
-          <button className="button-muted" type="submit">
-            Publish Notifications
-          </button>
-        </form>
+        <PublishAction action={publishNotificationAction} label="Publish Notifications" />
       </div>
       <form action={action} className="stack">
         <div className="form-grid">
@@ -1418,11 +1391,7 @@ export function MarketSettingsForm({ markets }: { markets: MarketSettings }) {
           <p className="eyebrow">Primary Markets</p>
           <h2>Manage the markets shown on the homepage map section and lead forms.</h2>
         </div>
-        <form action={publishMarketAction}>
-          <button className="button-muted" type="submit">
-            Publish Markets
-          </button>
-        </form>
+        <PublishAction action={publishMarketAction} label="Publish Markets" />
       </div>
       <form action={action} className="stack">
         <div className="form-grid">
@@ -1531,11 +1500,7 @@ export function HomepageStatsForm({ stats }: { stats: HomepageStat[] }) {
           <p className="eyebrow">Homepage Stats</p>
           <h2>Control the expertise counters shown on the homepage.</h2>
         </div>
-        <form action={publishStatsAction}>
-          <button className="button-muted" type="submit">
-            Publish Stats
-          </button>
-        </form>
+        <PublishAction action={publishStatsAction} label="Publish Stats" />
       </div>
       <form action={action} className="stack">
         {stats.map((item, index) => (
@@ -1582,11 +1547,7 @@ export function HomepageCeoForm({
           <p className="eyebrow">CEO Message</p>
           <h2>Manage the CEO section content and image from admin.</h2>
         </div>
-        <form action={publishCeoAction}>
-          <button className="button-muted" type="submit">
-            Publish CEO Section
-          </button>
-        </form>
+        <PublishAction action={publishCeoAction} label="Publish CEO Section" />
       </div>
       <form action={action} className="stack">
         <div className="form-grid">
@@ -1649,11 +1610,7 @@ export function HomepageStoryForm({
           <p className="eyebrow">Our Story</p>
           <h2>Manage the story title, description, and image.</h2>
         </div>
-        <form action={publishStoryAction}>
-          <button className="button-muted" type="submit">
-            Publish Story
-          </button>
-        </form>
+        <PublishAction action={publishStoryAction} label="Publish Story" />
       </div>
       <form action={action} className="stack">
         <div className="form-grid">
@@ -1711,11 +1668,7 @@ export function HomepageServicesForm({
           <p className="eyebrow">Homepage Services</p>
           <h2>Manage the DMC services cards shown on the homepage.</h2>
         </div>
-        <form action={publishServicesAction}>
-          <button className="button-muted" type="submit">
-            Publish Services
-          </button>
-        </form>
+        <PublishAction action={publishServicesAction} label="Publish Services" />
       </div>
       <form action={action} className="stack">
         <div className="panel panel-soft">
@@ -1818,11 +1771,7 @@ export function HomepageWhyUsForm({ items }: { items: HomepageWhyUsItem[] }) {
           <p className="eyebrow">Why Us</p>
           <h2>Manage the homepage value proposition items.</h2>
         </div>
-        <form action={publishWhyUsAction}>
-          <button className="button-muted" type="submit">
-            Publish Why Us
-          </button>
-        </form>
+        <PublishAction action={publishWhyUsAction} label="Publish Why Us" />
       </div>
       <form action={action} className="stack">
         <input type="hidden" name="why_count" value={rows.length} />
@@ -1888,11 +1837,7 @@ export function HomepageGuideForm({
           <p className="eyebrow">Travel Guide</p>
           <h2>Manage tourist and partner guide articles.</h2>
         </div>
-        <form action={publishGuideAction}>
-          <button className="button-muted" type="submit">
-            Publish Guide
-          </button>
-        </form>
+        <PublishAction action={publishGuideAction} label="Publish Guide" />
       </div>
       <form action={action} className="stack">
         <input type="hidden" name="guide_count" value={guideRows.length} />
@@ -2049,11 +1994,7 @@ export function HomepageNewsletterContentForm({
         <div>
           <p className="eyebrow">Homepage Newsletter</p>
         </div>
-        <form action={publishNewsletterContentAction}>
-          <button className="button-muted" type="submit">
-            Publish Newsletter Section
-          </button>
-        </form>
+        <PublishAction action={publishNewsletterContentAction} label="Publish Newsletter Section" />
       </div>
       <form action={action} className="stack">
         <div className="form-grid">
@@ -2111,11 +2052,7 @@ export function HomepageAwardsForm({
           <p className="eyebrow">Homepage Awards</p>
           <h2>Manage the awards block shown on the homepage.</h2>
         </div>
-        <form action={publishAwardsAction}>
-          <button className="button-muted" type="submit">
-            Publish Awards
-          </button>
-        </form>
+        <PublishAction action={publishAwardsAction} label="Publish Awards" />
       </div>
       <form action={action} className="stack">
         <div className="form-grid">
