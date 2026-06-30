@@ -27779,7 +27779,9 @@ html {
 }
 
 .admin-skeleton,
-.admin-skeleton-table {
+.admin-skeleton-table,
+.admin-skeleton-card,
+.admin-skeleton-row {
   border-radius: 10px;
   background: linear-gradient(90deg, rgba(148, 163, 184, 0.12), rgba(148, 163, 184, 0.28), rgba(148, 163, 184, 0.12));
   background-size: 200% 100%;
@@ -27787,8 +27789,10 @@ html {
 }
 
 .admin-skeleton--title { width: min(360px, 65%); height: 38px; }
+.admin-skeleton-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.admin-skeleton-card { min-height: 104px; }
 .admin-skeleton-table { display: grid; gap: 1px; padding: 1px; }
-.admin-skeleton-table .admin-skeleton { height: 58px; border-radius: 0; }
+.admin-skeleton-row { height: 58px; border-radius: 0; }
 
 @keyframes admin-spin { to { transform: rotate(360deg); } }
 @keyframes admin-skeleton-pulse { to { background-position: -200% 0; } }
@@ -27796,5 +27800,11 @@ html {
 @media (prefers-reduced-motion: reduce) {
   .admin-button-spinner,
   .admin-skeleton,
-  .admin-skeleton-table { animation: none; }
+  .admin-skeleton-table,
+  .admin-skeleton-card,
+  .admin-skeleton-row { animation: none; }
+}
+
+@media (max-width: 720px) {
+  .admin-skeleton-cards { grid-template-columns: 1fr; }
 }
