@@ -12,6 +12,7 @@ type SortOption = "recommended" | "az";
 
 type MobileDestinationsProps = {
   activeKind: DestinationKind;
+  bannerImageUrl: string;
   items: ResortSummary[];
 };
 
@@ -21,24 +22,21 @@ const kindDetails = {
     singular: "resort",
     path: "/resorts",
     title: "Discover More Than Paradise",
-    subtitle: "Curated for confident partner conversations.",
-    banner: "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/resorts/1777890426234-ff89c105-42a8-44b1-a1a3-f33fe8289e09.jpg"
+    subtitle: "Curated for confident partner conversations."
   },
   hotels: {
     label: "Hotels",
     singular: "hotel",
     path: "/hotels",
     title: "City & Island Hotels",
-    subtitle: "Carefully selected hotel partners across the Maldives.",
-    banner: "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/media-library/1779012223137-b55962de-de0d-41f4-8478-34a7aef74fb5.jpg"
+    subtitle: "Carefully selected hotel partners across the Maldives."
   },
   liveaboards: {
     label: "Liveaboards",
     singular: "liveaboard",
     path: "/liveaboards",
     title: "Liveaboard Charters",
-    subtitle: "Exclusive voyages across the Maldivian archipelago.",
-    banner: "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/media-library/1780215750661-ab0bf4cc-9341-4789-aee5-71065630abef.webp"
+    subtitle: "Exclusive voyages across the Maldivian archipelago."
   }
 } satisfies Record<DestinationKind, {
   label: string;
@@ -46,7 +44,6 @@ const kindDetails = {
   path: string;
   title: string;
   subtitle: string;
-  banner: string;
 }>;
 
 const tabOrder: DestinationKind[] = ["resort", "hotels", "liveaboards"];
@@ -65,7 +62,7 @@ function TransferIcon({ label }: { label: string }) {
   return /seaplane|airport|domestic/i.test(label) ? <Plane aria-hidden="true" /> : <Ship aria-hidden="true" />;
 }
 
-export function MobileDestinations({ activeKind, items }: MobileDestinationsProps) {
+export function MobileDestinations({ activeKind, bannerImageUrl, items }: MobileDestinationsProps) {
   const details = kindDetails[activeKind];
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
@@ -114,7 +111,7 @@ export function MobileDestinations({ activeKind, items }: MobileDestinationsProp
     <main className={`mobile-screen mobile-resorts mobile-explore-v8 mobile-explore-v8--${activeKind}`}>
       <section
         className="mobile-explore-v8__hero"
-        style={{ backgroundImage: `url(${optimizedImageUrl(details.banner, { width: 900, height: 520, quality: 88 })})` }}
+        style={{ backgroundImage: `url(${optimizedImageUrl(bannerImageUrl, { width: 900, height: 520, quality: 88 })})` }}
       >
         <div className="mobile-explore-v8__hero-shade" />
         <div className="mobile-explore-v8__hero-copy">

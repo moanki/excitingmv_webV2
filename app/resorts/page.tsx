@@ -14,7 +14,7 @@ export default async function ResortsPage() {
       <div className="desktop-screen">
         <DestinationIndex activeKind="resort" catalogue={catalogue} items={resorts} />
       </div>
-      <MobileDestinations activeKind="resort" items={resorts} />
+      <MobileDestinations activeKind="resort" bannerImageUrl={catalogue.heroImageUrl} items={resorts} />
     </>
   );
 }
