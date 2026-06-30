@@ -27808,3 +27808,34 @@ html {
 @media (max-width: 720px) {
   .admin-skeleton-cards { grid-template-columns: 1fr; }
 }
+
+@media (min-width: 721px) {
+  html body:not(.admin-body) .portfolio-page .portfolio-hero {
+    padding-top: 0;
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-hero .destination-hero__content {
+    box-sizing: border-box;
+    padding-top: clamp(120px, 14vh, 180px);
+    padding-bottom: clamp(48px, 8vh, 90px);
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-filter-row__desktop {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(170px, 1fr);
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-select--sort {
+    min-width: 170px;
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-select--sort > button,
+  html body:not(.admin-body) .portfolio-page .portfolio-select--sort > button span {
+    white-space: nowrap;
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-select--sort > button span {
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+  }
+}

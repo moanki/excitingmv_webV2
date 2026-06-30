@@ -20,6 +20,7 @@ import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
+import type { CatalogueContent } from "@/lib/site-content";
 import type { ResortSummary } from "@/lib/types";
 
 type DestinationKind = "resort" | "hotels" | "liveaboards";
@@ -44,6 +45,7 @@ type PortfolioItem = {
 
 type DestinationIndexProps = {
   activeKind: DestinationKind;
+  catalogue: CatalogueContent;
   items: ResortSummary[];
 };
 
@@ -141,7 +143,7 @@ const kindConfig = {
   }
 } satisfies Record<DestinationKind, PortfolioConfig>;
 
-const heroFallbacks = {
+const cardImageFallbacks = {
   resort: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=2200&q=92",
   hotels: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=2200&q=92",
   liveaboards: "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=2200&q=92"
@@ -855,7 +857,7 @@ function PortfolioGrid({ children }: { children: ReactNode }) {
 }
 
 function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem; config: PortfolioConfig; priority?: boolean }) {
-  const image = item.image || heroFallbacks[item.type];
+  const image = item.image || cardImageFallbacks[item.type];
   const TransferIcon = transferIcon(item.primaryTransferDisplay);
   const detailLabel = `View ${item.name} ${config.singular} details`;
 
@@ -1033,7 +1035,7 @@ function DestinationMobileTabs({ activeKind }: { activeKind: DestinationKind }) 
   );
 }
 
-export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
+export function DestinationIndex({ activeKind, catalogue, items }: DestinationIndexProps) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [filters, setFilters] = useState<PortfolioFiltersState>(initialFilters);
@@ -1043,7 +1045,7 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
   const [visibleCount, setVisibleCount] = useState(initialVisibleCount);
   const hasMounted = useRef(false);
   const config = kindConfig[activeKind];
-  const heroImage = items.find((item) => item.heroImageUrl)?.heroImageUrl || heroFallbacks[activeKind];
+  const heroImage = catalogue.heroImageUrl;
 
   const portfolioItems = useMemo(() => normalizePortfolioItems(activeKind, items), [activeKind, items]);
 
@@ -1112,9 +1114,9 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
         <div className="site-container destination-hero__content">
           <div className="destination-hero__copy">
             <p className="lux-eyebrow">{activeKind === "resort" ? "Our Resort Portfolio" : config.eyebrow}</p>
-            <h1>{config.title}</h1>
+            <h1>{catalogue.title || config.title}</h1>
             <span className="destination-title-rule" aria-hidden="true" />
-            <p>{config.body}</p>
+            <p>{catalogue.body || config.body}</p>
             <div className="destination-hero__actions">
               <a href="#destination-results" className="destination-primary-action">
                 {config.cta}

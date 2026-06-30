@@ -115,6 +115,14 @@ export type NavbarContent = {
   ctaEnabled: boolean;
 };
 
+export type CatalogueKind = "resorts" | "hotels" | "liveaboards";
+
+export type CatalogueContent = {
+  heroImageUrl: string;
+  title?: string;
+  body?: string;
+};
+
 export type AdminLoginContent = {
   backgroundImageUrl: string;
   logoImageUrl: string;
@@ -580,6 +588,24 @@ export const defaultNavbarContent: NavbarContent = {
   ctaLabel: "Login to Partner Portal",
   ctaHref: "/partner/login",
   ctaEnabled: true
+};
+
+export const defaultCatalogueContent: Record<CatalogueKind, CatalogueContent> = {
+  resorts: {
+    heroImageUrl: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=2200&q=92",
+    title: "Discover More Than Paradise",
+    body: "From private island sanctuaries to trade-ready luxury escapes, explore curated Maldives resorts shaped for confident partner conversations."
+  },
+  hotels: {
+    heroImageUrl: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=2200&q=92",
+    title: "Maldives Hotels With Island Ease",
+    body: "Browse hotels and hospitality stays selected for practical access, partner clarity, and polished Maldives itineraries."
+  },
+  liveaboards: {
+    heroImageUrl: "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=2200&q=92",
+    title: "Luxury Voyages Across The Maldives",
+    body: "A focused collection of liveaboards for diving, private charters, and ocean-led itineraries across the Maldives."
+  }
 };
 
 export const defaultAdminLoginContent: AdminLoginContent = {
@@ -1363,6 +1389,15 @@ export async function getFooterContent(mode: "draft" | "published" = "published"
   return {
     ...entry,
     content: normalizeFooterContent(entry.content)
+  };
+}
+
+export async function getCatalogueContent(kind: CatalogueKind, mode: "draft" | "published" = "published") {
+  const fallback = defaultCatalogueContent[kind];
+  const entry = await getSiteSettingMode(`catalogue.${kind}`, fallback, mode);
+  return {
+    ...entry,
+    content: { ...fallback, ...entry.content }
   };
 }
 
