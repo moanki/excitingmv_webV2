@@ -39,15 +39,17 @@ export async function createAdminUserAction(
   }
 }
 
-export async function deleteAdminUserAction(formData: FormData) {
-  await requireAdminRole(["super_admin"]);
-  const id = String(formData.get("id") ?? "");
-  if (!id) {
-    return;
+export async function deleteAdminUserAction(_: UserAccessActionState, formData: FormData): Promise<UserAccessActionState> {
+  try {
+    await requireAdminRole(["super_admin"]);
+    const id = String(formData.get("id") ?? "");
+    if (!id) return { error: "User ID is required." };
+    await deleteAdminUser(id);
+    revalidatePath("/admin/user-access");
+    return { message: "Admin user deleted successfully." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to delete admin user." };
   }
-
-  await deleteAdminUser(id);
-  revalidatePath("/admin/user-access");
 }
 
 export async function updateAdminUserEmailAction(

@@ -9,6 +9,7 @@ import {
   resetAdminUserPasswordAction,
   updateAdminUserEmailAction
 } from "@/app/admin/user-access/actions";
+import { ActionForm } from "@/components/admin/action-feedback";
 import type { AdminRoleRecord, AdminUserRecord } from "@/lib/services/admin-user-service";
 
 type ModalMode = "create" | "edit-email" | "reset-password" | null;
@@ -170,12 +171,7 @@ export function UserAccessManager({ users, roles }: { users: AdminUserRecord[]; 
                     >
                       <KeyRound className="admin-icon" />
                     </button>
-                    <form action={deleteAdminUserAction}>
-                      <input type="hidden" name="id" value={user.id} />
-                      <button className="admin-icon-button admin-icon-button--danger" type="submit" aria-label={`Delete ${user.email}`}>
-                        <Trash2 className="admin-icon" />
-                      </button>
-                    </form>
+                    <ActionForm action={deleteAdminUserAction} hidden={{ id: user.id }} idleLabel="" pendingLabel="" icon={<Trash2 className="admin-icon" />} variant="icon" buttonClassName="admin-icon-button--danger" ariaLabel={`Delete ${user.email}`} confirmMessage={`Delete ${user.email}?`} />
                   </div>
                 </td>
               </tr>

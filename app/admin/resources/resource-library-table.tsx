@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Download, Eye, Pencil, Search, Trash2, X } from "lucide-react";
 
 import { deleteResourceAction } from "@/app/admin/resources/actions";
+import { ActionForm } from "@/components/admin/action-feedback";
 import type { ResourceRecord } from "@/lib/services/resource-service";
 
 export function ResourceLibraryTable({ resources }: { resources: ResourceRecord[] }) {
@@ -29,7 +30,7 @@ export function ResourceLibraryTable({ resources }: { resources: ResourceRecord[
           <td><button className="admin-link-button" type="button" onClick={() => setViewing(resource)}>View file</button></td>
           <td><div className="admin-chip-row"><span className={`admin-status-badge ${resource.status === "published" ? "is-approved" : resource.status === "archived" ? "is-suspended" : "is-pending"}`}>{resource.status === "published" ? "Active" : resource.status === "archived" ? "Disabled" : "Draft"}</span><span className="admin-resource-chip">{resource.audienceType === "selected_partners" ? "Selected Partners" : "All Partners"}</span></div></td>
           <td>{resource.createdAt ? new Date(resource.createdAt).toLocaleDateString("en") : "-"}</td>
-          <td><div className="admin-row-actions"><button className="admin-icon-button" type="button" onClick={() => setViewing(resource)} aria-label={`View ${resource.title}`}><Eye className="admin-icon" /></button><Link className="admin-icon-button" href={`/admin/resources/${resource.id}/edit`} aria-label={`Edit ${resource.title}`}><Pencil className="admin-icon" /></Link><a className="admin-icon-button" href={resource.filePath} download aria-label={`Download ${resource.title}`}><Download className="admin-icon" /></a><form action={deleteResourceAction}><input type="hidden" name="id" value={resource.id} /><button className="admin-icon-button admin-icon-button--danger" type="submit" aria-label={`Delete ${resource.title}`}><Trash2 className="admin-icon" /></button></form></div></td>
+          <td><div className="admin-row-actions"><button className="admin-icon-button" type="button" onClick={() => setViewing(resource)} aria-label={`View ${resource.title}`}><Eye className="admin-icon" /></button><Link className="admin-icon-button" href={`/admin/resources/${resource.id}/edit`} aria-label={`Edit ${resource.title}`}><Pencil className="admin-icon" /></Link><a className="admin-icon-button" href={resource.filePath} download aria-label={`Download ${resource.title}`}><Download className="admin-icon" /></a><ActionForm action={deleteResourceAction} hidden={{ id: resource.id }} idleLabel="" pendingLabel="" icon={<Trash2 className="admin-icon" />} variant="icon" buttonClassName="admin-icon-button--danger" ariaLabel={`Delete ${resource.title}`} confirmMessage={`Delete ${resource.title}?`} /></div></td>
         </tr>)}</tbody>
       </table>
     </div>

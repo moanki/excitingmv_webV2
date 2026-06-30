@@ -1,7 +1,11 @@
+"use client";
+
+import { useActionState } from "react";
 import type { ResourceRecord } from "@/lib/services/resource-service";
 import type { ResourcePermissionRecord } from "@/lib/services/resource-permission-service";
 
 import { saveResourcePermissionAction } from "@/app/admin/resource-permissions/actions";
+import { ActionMessage, SubmitButton } from "@/components/admin/action-feedback";
 
 type Props = {
   permission?: ResourcePermissionRecord | null;
@@ -10,9 +14,10 @@ type Props = {
 
 export function ResourcePermissionForm({ permission, resources }: Props) {
   const selected = new Set(permission?.resources.map((resource) => resource.id) ?? []);
+  const [state, action] = useActionState(saveResourcePermissionAction, undefined);
 
   return (
-    <form action={saveResourcePermissionAction} className="stack admin-form-card">
+    <form action={action} className="stack admin-form-card">
       {permission ? <input type="hidden" name="agentId" value={permission.agentId} /> : null}
 
       <section className="admin-form-section">
@@ -73,10 +78,12 @@ export function ResourcePermissionForm({ permission, resources }: Props) {
       </section>
 
       <div className="admin-form-actions">
-        <button className="admin-btn admin-btn--primary" type="submit">
-          {permission ? "Save Permission" : "Create Permission"}
-        </button>
+        <SubmitButton
+          idleLabel={permission ? "Save Permission" : "Create Permission"}
+          pendingLabel={permission ? "Saving Permission..." : "Creating Permission..."}
+        />
       </div>
+      <ActionMessage state={state} />
     </form>
   );
 }

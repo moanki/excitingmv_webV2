@@ -20,21 +20,20 @@ export function PartnerRegisterForm() {
       notes: String(formData.get("notes") ?? "")
     };
 
-    const response = await fetch("/api/partner-registration", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const json = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      setError(json?.error ?? "Failed to submit partner request.");
+    try {
+      const response = await fetch("/api/partner-registration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const json = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(json?.error ?? "Failed to submit partner request.");
+      setMessage("Partner request submitted. Our team will review it shortly.");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to submit partner request.");
+    } finally {
       setPending(false);
-      return;
     }
-
-    setMessage("Partner request submitted. Our team will review it shortly.");
-    setPending(false);
   }
 
   return (

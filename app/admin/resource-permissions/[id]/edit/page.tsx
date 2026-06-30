@@ -2,12 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ResourcePermissionForm } from "@/components/admin/resource-permission-form";
-import { listResources } from "@/lib/services/resource-service";
+import { listAdminResources } from "@/lib/services/resource-service";
 import { getResourcePermission } from "@/lib/services/resource-permission-service";
 
 export default async function AdminResourcePermissionEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [permission, resources] = await Promise.all([getResourcePermission(id), listResources()]);
+  const [permission, resources] = await Promise.all([getResourcePermission(id), listAdminResources()]);
 
   if (!permission) {
     notFound();

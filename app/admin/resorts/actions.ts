@@ -248,22 +248,29 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
   }
 }
 
-export async function deleteResortAction(formData: FormData) {
-  await requireAdminRole(["super_admin", "admin", "content_manager"]);
-  const id = String(formData.get("id") ?? "");
-  const propertyType = normalizePropertyType(formData.get("propertyType"));
-  if (!id) {
-    return;
+export async function deleteResortAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
+    const id = String(formData.get("id") ?? "");
+    const propertyType = normalizePropertyType(formData.get("propertyType"));
+    if (!id) return { error: "Property ID is required." };
+    await deleteResort(id);
+    revalidateResortPaths(propertyType);
+    return { message: "Property deleted successfully." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to delete property." };
   }
-
-  await deleteResort(id);
-  revalidateResortPaths(propertyType);
 }
 
-export async function seedResortsAction() {
-  await requireAdminRole(["super_admin"]);
-  await seedSampleResorts();
-  revalidateResortPaths();
+export async function seedResortsAction(_: ActionState, _formData: FormData): Promise<ActionState> {
+  try {
+    await requireAdminRole(["super_admin"]);
+    await seedSampleResorts();
+    revalidateResortPaths();
+    return { message: "Starter properties added successfully." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to seed starter properties." };
+  }
 }
 
 export async function generateResortSeoAction(input: ResortSeoGenerationInput) {

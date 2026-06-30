@@ -5,6 +5,7 @@ import {
   moveHomepageFeaturedResortAction,
   removeHomepageFeaturedResortAction
 } from "@/app/admin/settings/homepage/featured-resorts/actions";
+import { ActionForm } from "@/components/admin/action-feedback";
 import { getHomepageFeaturedResortsSetting } from "@/lib/site-content";
 import { listAdminResortCards, type ResortRecord } from "@/lib/services/resort-service";
 
@@ -42,7 +43,7 @@ export async function FeaturedRetreatsManager() {
           </div>
           <span className="badge">{featuredItems.length}/5 selected</span>
         </div>
-        <form action={addHomepageFeaturedResortAction} className="form-grid">
+        <ActionForm action={addHomepageFeaturedResortAction} className="form-grid" buttonClassName="field--full" idleLabel="Add Retreat" pendingLabel="Adding Retreat..." disabled={!canAdd}>
           <label className="field field--full">
             Published resort
             <select className="admin-select" name="resortId" disabled={!canAdd} required>
@@ -58,10 +59,7 @@ export async function FeaturedRetreatsManager() {
               ))}
             </select>
           </label>
-          <div className="admin-form-actions field--full">
-            <button className="admin-btn admin-btn--primary" type="submit" disabled={!canAdd}>Add Retreat</button>
-          </div>
-        </form>
+        </ActionForm>
       </section>
 
       <section className="panel stack">
@@ -87,18 +85,9 @@ export async function FeaturedRetreatsManager() {
                       <td>{warnings.length ? <div className="admin-resource-chip-list">{warnings.map((warning) => <span className="admin-resource-chip" key={warning}>{warning}</span>)}</div> : <span className="admin-table-subtle">Ready</span>}</td>
                       <td>
                         <div className="admin-row-actions">
-                          <form action={moveHomepageFeaturedResortAction}>
-                            <input type="hidden" name="resortId" value={item.resortId} /><input type="hidden" name="direction" value="up" />
-                            <button className="admin-icon-button" type="submit" disabled={index === 0} aria-label={`Move ${name} up`}><ChevronUp className="admin-icon" /></button>
-                          </form>
-                          <form action={moveHomepageFeaturedResortAction}>
-                            <input type="hidden" name="resortId" value={item.resortId} /><input type="hidden" name="direction" value="down" />
-                            <button className="admin-icon-button" type="submit" disabled={index === selected.length - 1} aria-label={`Move ${name} down`}><ChevronDown className="admin-icon" /></button>
-                          </form>
-                          <form action={removeHomepageFeaturedResortAction}>
-                            <input type="hidden" name="resortId" value={item.resortId} />
-                            <button className="admin-icon-button admin-icon-button--danger" type="submit" aria-label={`Remove ${name}`}><Trash2 className="admin-icon" /></button>
-                          </form>
+                          <ActionForm action={moveHomepageFeaturedResortAction} hidden={{ resortId: item.resortId, direction: "up" }} idleLabel="" pendingLabel="" icon={<ChevronUp className="admin-icon" />} variant="icon" disabled={index === 0} ariaLabel={`Move ${name} up`} />
+                          <ActionForm action={moveHomepageFeaturedResortAction} hidden={{ resortId: item.resortId, direction: "down" }} idleLabel="" pendingLabel="" icon={<ChevronDown className="admin-icon" />} variant="icon" disabled={index === selected.length - 1} ariaLabel={`Move ${name} down`} />
+                          <ActionForm action={removeHomepageFeaturedResortAction} hidden={{ resortId: item.resortId }} idleLabel="" pendingLabel="" icon={<Trash2 className="admin-icon" />} variant="icon" buttonClassName="admin-icon-button--danger" ariaLabel={`Remove ${name}`} confirmMessage={`Remove ${name} from the homepage?`} />
                         </div>
                       </td>
                     </tr>

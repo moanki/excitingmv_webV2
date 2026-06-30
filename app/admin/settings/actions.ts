@@ -72,6 +72,16 @@ function revalidateSiteContent() {
   revalidatePath("/admin/settings");
 }
 
+async function publishSettingAction<T>(key: string, fallback: T, message: string): Promise<ActionState> {
+  try {
+    await publishSiteSetting(key, fallback);
+    revalidateSiteContent();
+    return { message };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to publish settings." };
+  }
+}
+
 function booleanValue(formData: FormData, name: string) {
   return formData.get(name) === "on";
 }
@@ -155,9 +165,8 @@ export async function saveAdminLoginDraftAction(_: ActionState, formData: FormDa
   }
 }
 
-export async function publishAdminLoginAction() {
-  await publishSiteSetting("admin.login", defaultAdminLoginContent);
-  revalidateSiteContent();
+export async function publishAdminLoginAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("admin.login", defaultAdminLoginContent, "Admin login page published.");
 }
 
 async function parseAboutStats(formData: FormData): Promise<AboutStatCard[]> {
@@ -311,9 +320,8 @@ export async function saveAboutDraftAction(_: ActionState, formData: FormData): 
   }
 }
 
-export async function publishAboutAction() {
-  await publishSiteSetting("site.about", defaultAboutPageContent);
-  revalidateSiteContent();
+export async function publishAboutAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("site.about", defaultAboutPageContent, "About Us page published.");
 }
 
 async function parseFooterBadges(formData: FormData, prefix: "membership" | "award"): Promise<FooterBadge[]> {
@@ -424,9 +432,8 @@ export async function saveContactDraftAction(_: ActionState, formData: FormData)
   }
 }
 
-export async function publishContactAction() {
-  await publishSiteSetting("site.contact", defaultContactPageContent);
-  revalidateSiteContent();
+export async function publishContactAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("site.contact", defaultContactPageContent, "Contact Us page published.");
 }
 
 export async function saveHeroDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -482,9 +489,8 @@ export async function saveHeroDraftAction(_: ActionState, formData: FormData): P
   }
 }
 
-export async function publishHeroAction() {
-  await publishSiteSetting("homepage.hero", defaultHeroContent);
-  revalidateSiteContent();
+export async function publishHeroAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("homepage.hero", defaultHeroContent, "Hero published.");
 }
 
 export async function saveFeaturesDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -517,9 +523,8 @@ export async function saveFeaturesDraftAction(_: ActionState, formData: FormData
   }
 }
 
-export async function publishFeaturesAction() {
-  await publishSiteSetting("homepage.features", defaultHomepageFeatures);
-  revalidateSiteContent();
+export async function publishFeaturesAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("homepage.features", defaultHomepageFeatures, "Feature section published.");
 }
 
 export async function saveStatsDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -541,9 +546,8 @@ export async function saveStatsDraftAction(_: ActionState, formData: FormData): 
   }
 }
 
-export async function publishStatsAction() {
-  await publishSiteSetting("homepage.stats", defaultHomepageStats);
-  revalidateSiteContent();
+export async function publishStatsAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("homepage.stats", defaultHomepageStats, "Homepage stats published.");
 }
 
 export async function saveCeoDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -572,9 +576,8 @@ export async function saveCeoDraftAction(_: ActionState, formData: FormData): Pr
   }
 }
 
-export async function publishCeoAction() {
-  await publishSiteSetting("homepage.ceo", defaultHomepageCeoContent);
-  revalidateSiteContent();
+export async function publishCeoAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("homepage.ceo", defaultHomepageCeoContent, "CEO section published.");
 }
 
 export async function saveStoryDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -601,9 +604,8 @@ export async function saveStoryDraftAction(_: ActionState, formData: FormData): 
   }
 }
 
-export async function publishStoryAction() {
-  await publishSiteSetting("homepage.story", defaultHomepageStoryContent);
-  revalidateSiteContent();
+export async function publishStoryAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("homepage.story", defaultHomepageStoryContent, "Story section published.");
 }
 
 export async function saveServicesDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -640,9 +642,8 @@ export async function saveServicesDraftAction(_: ActionState, formData: FormData
   }
 }
 
-export async function publishServicesAction() {
-  await publishSiteSetting("homepage.services", defaultHomepageServices);
-  revalidateSiteContent();
+export async function publishServicesAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("homepage.services", defaultHomepageServices, "Services published.");
 }
 
 export async function saveWhyUsDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -664,9 +665,8 @@ export async function saveWhyUsDraftAction(_: ActionState, formData: FormData): 
   }
 }
 
-export async function publishWhyUsAction() {
-  await publishSiteSetting("homepage.whyus", defaultHomepageWhyUs);
-  revalidateSiteContent();
+export async function publishWhyUsAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("homepage.whyus", defaultHomepageWhyUs, "Why Us published.");
 }
 
 export async function saveGuideDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -716,9 +716,8 @@ export async function saveGuideDraftAction(_: ActionState, formData: FormData): 
   }
 }
 
-export async function publishGuideAction() {
-  await publishSiteSetting("homepage.guide", defaultHomepageGuide);
-  revalidateSiteContent();
+export async function publishGuideAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("homepage.guide", defaultHomepageGuide, "Travel guide published.");
 }
 
 export async function saveNewsletterContentDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -745,9 +744,8 @@ export async function saveNewsletterContentDraftAction(_: ActionState, formData:
   }
 }
 
-export async function publishNewsletterContentAction() {
-  await publishSiteSetting("homepage.newsletter", defaultHomepageNewsletterContent);
-  revalidateSiteContent();
+export async function publishNewsletterContentAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("homepage.newsletter", defaultHomepageNewsletterContent, "Newsletter section published.");
 }
 
 export async function saveAwardsDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -766,9 +764,8 @@ export async function saveAwardsDraftAction(_: ActionState, formData: FormData):
   }
 }
 
-export async function publishAwardsAction() {
-  await publishSiteSetting("homepage.awards", defaultHomepageAwardsContent);
-  revalidateSiteContent();
+export async function publishAwardsAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("homepage.awards", defaultHomepageAwardsContent, "Awards published.");
 }
 
 export async function saveNavbarDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -814,14 +811,7 @@ export async function saveNavbarDraftAction(_: ActionState, formData: FormData):
 }
 
 export async function publishNavbarAction(_: ActionState, _formData: FormData): Promise<ActionState> {
-  try {
-    await publishSiteSetting("site.navbar", defaultNavbarContent);
-    revalidateSiteContent();
-    return { message: "Navbar published." };
-  } catch (error) {
-    console.error("Navbar publish failed", error);
-    return { error: error instanceof Error ? error.message : "Failed to publish navbar." };
-  }
+  return publishSettingAction("site.navbar", defaultNavbarContent, "Navbar published.");
 }
 
 export async function saveFooterDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -856,9 +846,8 @@ export async function saveFooterDraftAction(_: ActionState, formData: FormData):
   }
 }
 
-export async function publishFooterAction() {
-  await publishSiteSetting("site.footer", defaultFooterContent);
-  revalidateSiteContent();
+export async function publishFooterAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("site.footer", defaultFooterContent, "Footer published.");
 }
 
 export async function saveWhatsAppDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -884,9 +873,8 @@ export async function saveWhatsAppDraftAction(_: ActionState, formData: FormData
   }
 }
 
-export async function publishWhatsAppAction() {
-  await publishSiteSetting("site.whatsapp", defaultWhatsAppSettings);
-  revalidateSiteContent();
+export async function publishWhatsAppAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("site.whatsapp", defaultWhatsAppSettings, "WhatsApp settings published.");
 }
 
 export async function saveNotificationDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -912,9 +900,8 @@ export async function saveNotificationDraftAction(_: ActionState, formData: Form
   }
 }
 
-export async function publishNotificationAction() {
-  await publishSiteSetting("site.notifications", defaultNotificationSettings);
-  revalidateSiteContent();
+export async function publishNotificationAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("site.notifications", defaultNotificationSettings, "Notification settings published.");
 }
 
 export async function saveMarketDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -947,7 +934,6 @@ export async function saveMarketDraftAction(_: ActionState, formData: FormData):
   }
 }
 
-export async function publishMarketAction() {
-  await publishSiteSetting("site.markets", defaultMarketSettings);
-  revalidateSiteContent();
+export async function publishMarketAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("site.markets", defaultMarketSettings, "Primary markets published.");
 }

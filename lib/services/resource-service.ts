@@ -54,20 +54,25 @@ function mapResourceRow(row: ResourceRow): ResourceRecord {
   };
 }
 
+async function queryResources() {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("resources")
+    .select("id,title,description,file_path,resource_type,audience_type,status,sort_order,created_at")
+    .order("sort_order")
+    .limit(200);
+  if (error) throw error;
+  return (data as ResourceRow[] | null)?.map(mapResourceRow) ?? [];
+}
+
+export async function listAdminResources() {
+  return queryResources();
+}
+
 export async function listResources() {
   try {
-    const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase.from("resources").select("*").order("sort_order");
-
-    if (error) {
-      throw error;
-    }
-
-    if (!data?.length) {
-      return fallbackResources();
-    }
-
-    return (data as ResourceRow[]).map(mapResourceRow);
+    const resources = await queryResources();
+    return resources.length ? resources : fallbackResources();
   } catch {
     return fallbackResources();
   }

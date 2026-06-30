@@ -27749,3 +27749,52 @@ html {
   height: auto !important;
   max-height: 64px !important;
 }
+/* Shared admin action and route feedback. */
+.admin-button-spinner {
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: admin-spin 0.65s linear infinite;
+}
+
+.admin-action-form {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-action-form .admin-alert {
+  width: 100%;
+  margin: 0;
+}
+
+.admin-route-loading {
+  display: grid;
+  gap: 20px;
+  padding: 8px 0;
+}
+
+.admin-skeleton,
+.admin-skeleton-table {
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(148, 163, 184, 0.12), rgba(148, 163, 184, 0.28), rgba(148, 163, 184, 0.12));
+  background-size: 200% 100%;
+  animation: admin-skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+.admin-skeleton--title { width: min(360px, 65%); height: 38px; }
+.admin-skeleton-table { display: grid; gap: 1px; padding: 1px; }
+.admin-skeleton-table .admin-skeleton { height: 58px; border-radius: 0; }
+
+@keyframes admin-spin { to { transform: rotate(360deg); } }
+@keyframes admin-skeleton-pulse { to { background-position: -200% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-button-spinner,
+  .admin-skeleton,
+  .admin-skeleton-table { animation: none; }
+}

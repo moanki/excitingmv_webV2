@@ -23,6 +23,7 @@ import {
   seedResortsAction
 } from "@/app/admin/resorts/actions";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
+import { ActionForm, ActionMessage, SubmitButton } from "@/components/admin/action-feedback";
 import { optimizedImageUrl } from "@/lib/image-urls";
 import type { PublishStatus } from "@/lib/types";
 import type { PropertyType, ResortRecord } from "@/lib/services/resort-service";
@@ -548,6 +549,7 @@ export function ResortEditor({
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(saveResortAction, undefined);
+  const [deleteState, deleteAction, deletePending] = useActionState(deleteResortAction, undefined);
   const [isGeneratingSeo, startSeoGeneration] = useTransition();
   const [rooms, setRooms] = useState<EditableRoom[]>(
     (resort.roomTypes ?? []).map((room) => ({
@@ -881,8 +883,8 @@ export function ResortEditor({
           {status === "archived" ? (
             <>
               {resort.id ? (
-                <button className="admin-btn admin-btn--danger" type="submit" form={`delete-resort-${resort.id}`}>
-                  Delete {labels.singular}
+                <button className="admin-btn admin-btn--danger" type="submit" form={`delete-resort-${resort.id}`} disabled={deletePending}>
+                  {deletePending ? `Deleting ${labels.singular}...` : `Delete ${labels.singular}`}
                 </button>
               ) : null}
               <button className="admin-btn admin-btn--primary" type="submit" name="submitIntent" value="restoreDraft" disabled={pending}>
@@ -976,7 +978,7 @@ export function ResortEditor({
       {resort.id ? (
         <form
           id={`delete-resort-${resort.id}`}
-          action={deleteResortAction}
+          action={deleteAction}
           onSubmit={(event) => {
             if (!window.confirm(`Delete ${resort.name || labels.singular}? This permanently removes the property. Archiving is usually safer.`)) {
               event.preventDefault();
@@ -987,6 +989,7 @@ export function ResortEditor({
           <input type="hidden" name="propertyType" value={propertyType} />
         </form>
       ) : null}
+      <ActionMessage state={deleteState} />
     </section>
   );
 }
@@ -1149,20 +1152,7 @@ export function ResortManagerListView({
                       <Eye className="admin-icon" />
                     </Link>
                   ) : null}
-                  <form
-                    action={deleteResortAction}
-                    onSubmit={(event) => {
-                      if (!window.confirm(`Delete ${resort.name}? This permanently removes the property. Archiving is usually safer.`)) {
-                        event.preventDefault();
-                      }
-                    }}
-                  >
-                    <input type="hidden" name="id" value={resort.id} />
-                    <input type="hidden" name="propertyType" value={propertyType} />
-                    <button className="act-btn act-btn-danger" type="submit" aria-label={`Delete ${resort.name}`} title={`Delete ${resort.name}`}>
-                      <Trash2 className="admin-icon" />
-                    </button>
-                  </form>
+                  <ActionForm action={deleteResortAction} hidden={{ id: resort.id, propertyType }} idleLabel="" pendingLabel="" icon={<Trash2 className="admin-icon" />} variant="icon" buttonClassName="act-btn act-btn-danger" ariaLabel={`Delete ${resort.name}`} confirmMessage={`Delete ${resort.name}? This permanently removes the property. Archiving is usually safer.`} />
                 </div>
               </article>
             );
@@ -1178,11 +1168,11 @@ export function ResortManagerListView({
   );
 }
 export function SeedResortsButton() {
+  const [state, action] = useActionState(seedResortsAction, undefined);
   return (
-    <form action={seedResortsAction}>
-      <button className="admin-btn admin-btn--secondary" type="submit">
-        Seed Starter Properties
-      </button>
+    <form action={action}>
+      <SubmitButton idleLabel="Seed Starter Properties" pendingLabel="Seeding..." variant="secondary" />
+      <ActionMessage state={state} />
     </form>
   );
 }

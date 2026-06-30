@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FileText, Image as ImageIcon, Search, Trash2, Upload, Video } from "lucide-react";
 
 import { deleteMediaLibraryAssetAction } from "@/app/admin/media/actions";
+import { ActionForm } from "@/components/admin/action-feedback";
 import type { MediaLibraryItem } from "@/components/media-field";
 import { isRasterAdminImage, uploadAdminMediaFile, validateAdminMediaFile } from "@/lib/admin-media-client-upload";
 import { optimizedImageUrl } from "@/lib/image-urls";
@@ -67,7 +68,7 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
         <a className="media-manager-preview" href={item.url} target="_blank" rel="noreferrer">
           {item.type === "video" ? <video src={item.url} muted playsInline preload="metadata" /> : item.type === "image" ? <img src={optimizedImageUrl(item.url, { width: 360, height: 270, quality: 72 })} alt={item.name} width={360} height={270} loading="lazy" /> : <div className="media-manager-file">{typeIcon(item.type)}</div>}
         </a>
-        <div className="media-manager-card__body"><div><strong>{item.name}</strong></div><form action={deleteMediaLibraryAssetAction}><input type="hidden" name="url" value={item.url} /><button className="admin-icon-button admin-icon-button--danger" type="submit" aria-label={`Delete ${item.name}`}><Trash2 className="admin-icon" /></button></form></div>
+        <div className="media-manager-card__body"><div><strong>{item.name}</strong></div><ActionForm action={deleteMediaLibraryAssetAction} hidden={{ url: item.url }} idleLabel="" pendingLabel="" icon={<Trash2 className="admin-icon" />} variant="icon" buttonClassName="admin-icon-button--danger" ariaLabel={`Delete ${item.name}`} confirmMessage={`Delete ${item.name}?`} /></div>
       </article>)}
       {visibleCount < visibleItems.length ? <button className="admin-btn admin-btn--secondary media-library-load-more" type="button" onClick={() => setVisibleCount((count) => count + 15)}>Load 15 More</button> : null}
     </div> : <div className="admin-empty-panel"><h3>No media found</h3><p>Upload a file or adjust the search.</p></div>}

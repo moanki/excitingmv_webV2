@@ -22,6 +22,7 @@ import {
   LogOut,
   Waves
 } from "lucide-react";
+import { SubmitButton } from "@/components/admin/action-feedback";
 
 import { logoutFromAdmin } from "@/app/admin/login/actions";
 
@@ -346,10 +347,7 @@ export function AdminShell({
               <small>CMS workspace</small>
             </span>
           </div>
-          <button type="submit" className="admin-btn admin-btn--secondary admin-logout-button">
-            <LogOut className="admin-icon" />
-            Logout
-          </button>
+          <SubmitButton idleLabel="Logout" pendingLabel="Logging out..." icon={<LogOut className="admin-icon" />} variant="secondary" className="admin-logout-button" />
         </form>
       </aside>
 

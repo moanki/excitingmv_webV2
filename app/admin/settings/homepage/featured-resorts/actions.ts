@@ -38,48 +38,44 @@ async function saveFeaturedResorts(items: HomepageFeaturedResortItem[]) {
   updateTag("resorts-public");
 }
 
-export async function addHomepageFeaturedResortAction(formData: FormData) {
-  const resortId = String(formData.get("resortId") ?? "").trim();
+type FeaturedActionState = { message?: string; error?: string } | undefined;
 
-  if (!resortId) {
-    return;
+async function updateFeatured(
+  formData: FormData,
+  update: (items: HomepageFeaturedResortItem[], resortId: string) => HomepageFeaturedResortItem[],
+  message: string
+): Promise<FeaturedActionState> {
+  try {
+    const resortId = String(formData.get("resortId") ?? "").trim();
+    if (!resortId) return { error: "Choose a resort." };
+    const { content } = await getHomepageFeaturedResortsSetting("draft");
+    await saveFeaturedResorts(update(content, resortId));
+    return { message };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to update featured retreats." };
   }
-
-  const { content } = await getHomepageFeaturedResortsSetting("draft");
-
-  if (content.some((item) => item.resortId === resortId)) {
-    return;
-  }
-
-  if (content.length >= 5) {
-    return;
-  }
-
-  await saveFeaturedResorts([...content, { resortId, sortOrder: content.length + 1 }]);
 }
 
-export async function removeHomepageFeaturedResortAction(formData: FormData) {
-  const resortId = String(formData.get("resortId") ?? "").trim();
-  const { content } = await getHomepageFeaturedResortsSetting("draft");
-  await saveFeaturedResorts(content.filter((item) => item.resortId !== resortId));
+export async function addHomepageFeaturedResortAction(_: FeaturedActionState, formData: FormData) {
+  return updateFeatured(formData, (content, resortId) => {
+    if (content.some((item) => item.resortId === resortId) || content.length >= 5) return content;
+    return [...content, { resortId, sortOrder: content.length + 1 }];
+  }, "Retreat added successfully.");
 }
 
-export async function moveHomepageFeaturedResortAction(formData: FormData) {
+export async function removeHomepageFeaturedResortAction(_: FeaturedActionState, formData: FormData) {
+  return updateFeatured(formData, (content, resortId) => content.filter((item) => item.resortId !== resortId), "Retreat removed successfully.");
+}
+
+export async function moveHomepageFeaturedResortAction(_: FeaturedActionState, formData: FormData): Promise<FeaturedActionState> {
   const resortId = String(formData.get("resortId") ?? "").trim();
   const direction = String(formData.get("direction") ?? "");
-  const { content } = await getHomepageFeaturedResortsSetting("draft");
-  const index = content.findIndex((item) => item.resortId === resortId);
-
-  if (index === -1) {
-    return;
-  }
-
-  const targetIndex = direction === "up" ? index - 1 : index + 1;
-  if (targetIndex < 0 || targetIndex >= content.length) {
-    return;
-  }
-
-  const next = [...content];
-  [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
-  await saveFeaturedResorts(next);
+  return updateFeatured(formData, (content) => {
+    const index = content.findIndex((item) => item.resortId === resortId);
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (index === -1 || targetIndex < 0 || targetIndex >= content.length) return content;
+    const next = [...content];
+    [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+    return next;
+  }, "Display order updated.");
 }

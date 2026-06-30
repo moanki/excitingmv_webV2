@@ -18,21 +18,20 @@ export function ContactRequestForm() {
       message: String(formData.get("message") ?? "")
     };
 
-    const response = await fetch("/api/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-    const json = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      setError(json?.error ?? "Failed to send your message.");
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const json = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(json?.error ?? "Failed to send your message.");
+      setMessage("Thank you. Your message has been sent to the Exciting Maldives team.");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to send your message.");
+    } finally {
       setPending(false);
-      return;
     }
-
-    setMessage("Thank you. Your message has been sent to the Exciting Maldives team.");
-    setPending(false);
   }
 
   return (

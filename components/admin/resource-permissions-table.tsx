@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import { ActionForm } from "@/components/admin/action-feedback";
 
 import {
   deleteResourcePermissionAction,
@@ -34,8 +35,8 @@ export function ResourcePermissionsTable({ permissions }: { permissions: Resourc
         <td><span className={`admin-status-badge ${permission.status === "disabled" ? "is-suspended" : "is-approved"}`}>{permission.status}</span></td>
         <td><div className="admin-row-actions">
           <Link href={`/admin/resource-permissions/${permission.agentId}/edit`} className="admin-btn admin-btn--secondary">Edit</Link>
-          <form action={permission.status === "disabled" ? enableResourcePermissionAction : disableResourcePermissionAction}><input type="hidden" name="agentId" value={permission.agentId} /><button className="admin-btn admin-btn--ghost" type="submit">{permission.status === "disabled" ? "Enable" : "Disable"}</button></form>
-          <form action={deleteResourcePermissionAction}><input type="hidden" name="agentId" value={permission.agentId} /><button className="admin-btn admin-btn--danger" type="submit">Delete</button></form>
+          <ActionForm action={permission.status === "disabled" ? enableResourcePermissionAction : disableResourcePermissionAction} hidden={{ agentId: permission.agentId }} idleLabel={permission.status === "disabled" ? "Enable" : "Disable"} pendingLabel={permission.status === "disabled" ? "Enabling..." : "Disabling..."} variant="secondary" />
+          <ActionForm action={deleteResourcePermissionAction} hidden={{ agentId: permission.agentId }} idleLabel="Delete" pendingLabel="Deleting..." variant="danger" confirmMessage={`Delete permission for ${permission.agencyName}?`} />
         </div></td>
       </tr>)}</tbody>
     </table></div> : <div className="empty-state"><strong>No resource permissions found.</strong></div>}

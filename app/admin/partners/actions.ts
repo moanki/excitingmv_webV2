@@ -21,18 +21,24 @@ export async function updatePartnerStatusAction(formData: FormData) {
   revalidatePath("/admin/partners");
 }
 
-export async function createPartnerAction(formData: FormData) {
-  await requireAdmin();
-  const parsed = partnerRegistrationSchema.safeParse({
-    agencyName: String(formData.get("agencyName") ?? ""),
-    contactName: String(formData.get("contactName") ?? ""),
-    email: String(formData.get("email") ?? "").trim().toLowerCase(),
-    market: String(formData.get("market") ?? ""),
-    notes: String(formData.get("notes") ?? "") || undefined
-  });
+type PartnerActionState = { message?: string; error?: string } | undefined;
 
-  if (!parsed.success) return;
+export async function createPartnerAction(_: PartnerActionState, formData: FormData): Promise<PartnerActionState> {
+  try {
+    await requireAdmin();
+    const parsed = partnerRegistrationSchema.safeParse({
+      agencyName: String(formData.get("agencyName") ?? ""),
+      contactName: String(formData.get("contactName") ?? ""),
+      email: String(formData.get("email") ?? "").trim().toLowerCase(),
+      market: String(formData.get("market") ?? ""),
+      notes: String(formData.get("notes") ?? "") || undefined
+    });
+    if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the partner details." };
 
-  await createPartnerRegistration(parsed.data);
-  revalidatePath("/admin/partners");
+    await createPartnerRegistration(parsed.data);
+    revalidatePath("/admin/partners");
+    return { message: "Partner added successfully." };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to add partner." };
+  }
 }

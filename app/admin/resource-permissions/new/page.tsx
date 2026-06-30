@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 import { ResourcePermissionForm } from "@/components/admin/resource-permission-form";
-import { listResources } from "@/lib/services/resource-service";
+import { listAdminResources } from "@/lib/services/resource-service";
 
 export default async function AdminResourcePermissionNewPage() {
-  const resources = await listResources();
+  const resources = await listAdminResources();
 
   return (
     <section className="stack">
