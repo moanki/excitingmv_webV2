@@ -659,6 +659,7 @@ function ResortDesktopControls({
   onSortChange: (sort: SortOption) => void;
   onReset: () => void;
 }) {
+  const label = config.label.toLowerCase();
   const activeFilters = [
     filters.category ? { key: "category", label: filters.category } : null,
     filters.selection ? { key: "selection", label: filters.selection } : null,
@@ -668,7 +669,7 @@ function ResortDesktopControls({
 
   const filterGroups = [
     { key: "location" as const, label: "Location", options: config.locationOptions },
-    { key: "category" as const, label: "Resort Category", options: config.categoryOptions },
+    { key: "category" as const, label: config.categoryLabel, options: config.categoryOptions },
     { key: "selection" as const, label: "Experience", options: config.selectionOptions },
     { key: "transfer" as const, label: "Transfer", options: config.transferOptions }
   ];
@@ -681,10 +682,10 @@ function ResortDesktopControls({
           <label>
             <Search aria-hidden="true" />
             <input
-              aria-label="Search resorts"
+              aria-label={`Search ${label}`}
               value={query}
               onChange={(event) => onQueryChange(event.target.value)}
-              placeholder="Resort name, atoll, or experience..."
+              placeholder={`${config.singular[0].toUpperCase()}${config.singular.slice(1)} name, location, or experience...`}
             />
             {query ? <button type="button" onClick={() => onQueryChange("")}>Clear</button> : null}
           </label>
@@ -693,7 +694,7 @@ function ResortDesktopControls({
 
       <div className="resort-v6-toolbar">
         <div className="resort-v6-toolbar__left">
-          <span>Showing <strong>{resultCount}</strong> resorts</span>
+          <span>Showing <strong>{resultCount}</strong> {label}</span>
           <div className="resort-v6-tags">
             {activeFilters.map((filter) => (
               <button
@@ -718,7 +719,7 @@ function ResortDesktopControls({
       </div>
 
       {open ? (
-        <div className="resort-v6-modal" role="dialog" aria-modal="true" aria-label="Refine resorts">
+        <div className="resort-v6-modal" role="dialog" aria-modal="true" aria-label={`Refine ${label}`}>
           <button type="button" className="resort-v6-modal__scrim" aria-label="Close filters" onClick={() => onOpenChange(false)} />
           <div className="resort-v6-modal__card">
             <header>
@@ -752,7 +753,7 @@ function ResortDesktopControls({
               ))}
             </div>
             <footer>
-              <em>Showing <strong>{resultCount}</strong> resorts</em>
+              <em>Showing <strong>{resultCount}</strong> {label}</em>
               <div>
                 <button type="button" onClick={onReset}>Reset all</button>
                 <button type="button" onClick={() => onOpenChange(false)}>Apply filters</button>
@@ -873,30 +874,19 @@ function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem
             width={560}
             height={700}
           />
-          {item.type === "resort" ? (
-            <>
-              <span className="portfolio-card__overlay portfolio-card__overlay--resort">
-                <span className="portfolio-card__title portfolio-card__title--image">{item.name}</span>
-                <span className="portfolio-card__meta portfolio-card__meta--image">
-                  <span><MapPin size={12} />{item.location}</span>
-                  <span><TransferIcon size={12} />{item.primaryTransferDisplay}</span>
-                </span>
-              </span>
-              <span className="portfolio-card__drawer">
-                <span>View resort <ArrowRight aria-hidden="true" /></span>
-              </span>
-            </>
-          ) : (
-            <span className="portfolio-card__overlay">
-              <span className="portfolio-card__description">{item.summary}</span>
-              <span className="portfolio-card__view">View {config.singular}</span>
+          <span className="portfolio-card__overlay portfolio-card__overlay--resort">
+            <span className="portfolio-card__title portfolio-card__title--image">{item.name}</span>
+            <span className="portfolio-card__meta portfolio-card__meta--image">
+              <span><MapPin size={12} />{item.location}</span>
+              <span><TransferIcon size={12} />{item.primaryTransferDisplay}</span>
             </span>
-          )}
-          {item.type === "resort" ? (
-            <span className="portfolio-card__badge portfolio-card__badge--image">
-              {item.category}
-            </span>
-          ) : null}
+          </span>
+          <span className="portfolio-card__drawer">
+            <span>View {config.singular} <ArrowRight aria-hidden="true" /></span>
+          </span>
+          <span className="portfolio-card__badge portfolio-card__badge--image">
+            {item.category}
+          </span>
         </span>
         <span className="portfolio-card__text">
           <span className="portfolio-card__badge portfolio-card__badge--text">
@@ -914,12 +904,10 @@ function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem
               {item.primaryTransferDisplay}
             </span>
           </span>
-          {item.type === "resort" ? (
-            <span className="portfolio-card__selection-tags">
-              <span>{item.selectionTag}</span>
-              {item.featured ? <span>Featured</span> : null}
-            </span>
-          ) : null}
+          <span className="portfolio-card__selection-tags">
+            <span>{item.selectionTag}</span>
+            {item.featured ? <span>Featured</span> : null}
+          </span>
         </span>
       </Link>
     </article>
@@ -1093,7 +1081,6 @@ export function DestinationIndex({ activeKind, catalogue, items }: DestinationIn
   }, [debouncedQuery, filters, sort]);
 
   const visibleItems = filteredItems.slice(0, visibleCount);
-  const hasActive = hasActiveFilters(query, filters, sort);
 
   function resetFilters() {
     setQuery("");
@@ -1104,7 +1091,7 @@ export function DestinationIndex({ activeKind, catalogue, items }: DestinationIn
   }
 
   return (
-    <main className={`destination-page portfolio-page portfolio-page--${activeKind}`}>
+    <main className={`destination-page portfolio-page portfolio-page--resort portfolio-page--${activeKind}`}>
       <section className="destination-hero portfolio-hero">
         <div
           className="destination-hero__image"
@@ -1137,45 +1124,21 @@ export function DestinationIndex({ activeKind, catalogue, items }: DestinationIn
             </div>
           </div>
 
-          <div className={activeKind === "resort" ? "resort-desktop-layout" : undefined}>
+          <div className="resort-desktop-layout">
             <div className="portfolio-results-main">
-              {activeKind === "resort" ? (
-                <ResortDesktopControls
-                  config={config}
-                  query={query}
-                  filters={filters}
-                  sort={sort}
-                  resultCount={filteredItems.length}
-                  open={filtersOpen}
-                  onOpenChange={setFiltersOpen}
-                  onQueryChange={setQuery}
-                  onFiltersChange={setFilters}
-                  onSortChange={setSort}
-                  onReset={resetFilters}
-                />
-              ) : (
-                <>
-                  <PortfolioFilters
-                    config={config}
-                    query={query}
-                    filters={filters}
-                    sort={sort}
-                    mobileOpen={filtersOpen}
-                    onMobileOpenChange={setFiltersOpen}
-                    onQueryChange={setQuery}
-                    onFiltersChange={setFilters}
-                    onSortChange={setSort}
-                    onReset={resetFilters}
-                  />
-                  <PortfolioResultsBar
-                    config={config}
-                    resultCount={filteredItems.length}
-                    total={portfolioItems.length}
-                    hasActive={hasActive}
-                    onReset={resetFilters}
-                  />
-                </>
-              )}
+              <ResortDesktopControls
+                config={config}
+                query={query}
+                filters={filters}
+                sort={sort}
+                resultCount={filteredItems.length}
+                open={filtersOpen}
+                onOpenChange={setFiltersOpen}
+                onQueryChange={setQuery}
+                onFiltersChange={setFilters}
+                onSortChange={setSort}
+                onReset={resetFilters}
+              />
 
               {isFiltering ? (
                 <PortfolioGrid>
