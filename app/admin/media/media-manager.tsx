@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { FileText, Image as ImageIcon, Search, Trash2, Upload, Video } from "lucide-react";
 
 import { deleteMediaLibraryAssetAction } from "@/app/admin/media/actions";
-import { ActionForm } from "@/components/admin/action-feedback";
+import { ActionForm, InlineSpinner } from "@/components/admin/action-feedback";
+import { useAdminActionFeedback } from "@/components/admin/admin-action-feedback";
 import type { MediaLibraryItem } from "@/components/media-field";
 import { isRasterAdminImage, uploadAdminMediaFile, validateAdminMediaFile } from "@/lib/admin-media-client-upload";
 import { optimizedImageUrl } from "@/lib/image-urls";
@@ -18,6 +19,7 @@ function typeIcon(type: MediaLibraryItem["type"]) {
 
 export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
   const router = useRouter();
+  const { finishAction, notifyError, startAction, updateAction } = useAdminActionFeedback();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadState, setUploadState] = useState<{ pending: boolean; message?: string; error?: string }>({ pending: false });
   const [query, setQuery] = useState("");
@@ -34,20 +36,33 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
     const validationError = validateAdminMediaFile(file);
     if (validationError) {
       setUploadState({ pending: false, error: validationError });
+      notifyError("Upload failed.", validationError);
       return;
     }
 
+    const actionId = startAction({ title: "Preparing upload...", type: "upload", progress: null });
     setUploadState({ pending: true, message: isRasterAdminImage(file) ? "Uploading and optimizing image..." : "Uploading media..." });
     try {
       const result = await uploadAdminMediaFile(file, {
         folder: "media-library",
-        onStatus: (_, message) => setUploadState({ pending: true, message })
+        onStatus: (status, message) => {
+          setUploadState({ pending: true, message });
+          updateAction(actionId, { title: message, progress: status === "uploading" ? 0 : null });
+        },
+        onProgress: (progress) => updateAction(actionId, {
+          title: progress < 100 ? `Uploading... ${progress}%` : "Processing upload...",
+          progress: progress < 100 ? progress : null
+        })
       });
       if (fileInputRef.current) fileInputRef.current.value = "";
-      setUploadState({ pending: false, message: `${file.name} uploaded${result.compressed ? " and optimized" : ""}.` });
+      const message = `${file.name} uploaded${result.compressed ? " and optimized" : ""}.`;
+      setUploadState({ pending: false, message });
+      finishAction(actionId, { title: "Upload complete.", message, status: "success" });
       router.refresh();
     } catch (error) {
-      setUploadState({ pending: false, error: error instanceof Error ? error.message : "Failed to upload media." });
+      const message = error instanceof Error ? error.message : "Failed to upload media.";
+      setUploadState({ pending: false, error: message });
+      finishAction(actionId, { title: "Upload failed.", message, status: "error" });
     }
   }
 
@@ -58,10 +73,10 @@ export function MediaManager({ items }: { items: MediaLibraryItem[] }) {
         <span className="tbl-count">{visibleItems.length} assets</span>
       </div>
       <input ref={fileInputRef} hidden type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/csv,video/mp4,video/webm,video/quicktime" onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); }} />
-      <button className="tbl-add" type="button" disabled={uploadState.pending} onClick={() => fileInputRef.current?.click()}><Upload className="admin-icon" />{uploadState.pending ? "Uploading..." : "Upload"}</button>
+      <button className="tbl-add" type="button" disabled={uploadState.pending} onClick={() => fileInputRef.current?.click()}>{uploadState.pending ? <InlineSpinner /> : <Upload className="admin-icon" />}{uploadState.pending ? "Uploading..." : "Upload"}</button>
     </div>
 
-    {uploadState.error ? <p className="admin-alert admin-alert--error">{uploadState.error}</p> : uploadState.message ? <p className="admin-alert admin-alert--success">{uploadState.message}</p> : null}
+    {uploadState.error ? <p className="admin-alert admin-alert--error" data-admin-feedback-ignore="true">{uploadState.error}</p> : uploadState.message ? <p className="admin-alert admin-alert--success" data-admin-feedback-ignore="true">{uploadState.message}</p> : null}
 
     {visibleItems.length ? <div className="media-manager-grid">
       {visibleItems.slice(0, visibleCount).map((item) => <article className="media-manager-card" key={item.url}>

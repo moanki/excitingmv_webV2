@@ -78,7 +78,8 @@ export function ResourceEditorForm({ resource, mediaLibrary = [] }: Props) {
       <div className="admin-form-actions">
         <SubmitButton
           idleLabel={isEditing ? "Save Resource" : "Add Resource"}
-          pendingLabel={isEditing ? "Saving Resource..." : "Adding Resource..."}
+          pendingLabel={isEditing ? "Saving..." : "Adding..."}
+          feedbackTitle={isEditing ? "Saving resource..." : "Adding resource..."}
         />
       </div>
       <ActionMessage state={state} />

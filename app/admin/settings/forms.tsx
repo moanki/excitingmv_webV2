@@ -3,7 +3,8 @@
 import { useActionState, useState } from "react";
 
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
-import { ActionForm, type ActionState } from "@/components/admin/action-feedback";
+import { ActionForm, ActionMessage, type ActionState } from "@/components/admin/action-feedback";
+import { useAdminActionFeedback } from "@/components/admin/admin-action-feedback";
 import {
   publishAboutAction,
   publishAdminLoginAction,
@@ -72,15 +73,7 @@ import type {
 } from "@/lib/site-content";
 
 function StatusMessage({ message, error }: { message?: string; error?: string }) {
-  if (error) {
-    return <p className="auth-error">{error}</p>;
-  }
-
-  if (message) {
-    return <p className="auth-note">{message}</p>;
-  }
-
-  return null;
+  return <ActionMessage state={error || message ? { error, message } : undefined} />;
 }
 
 function PublishAction({ action, label }: { action: (state: ActionState, formData: FormData) => Promise<ActionState>; label: string }) {
@@ -1309,12 +1302,14 @@ export function NotificationSettingsForm({
 }: {
   notifications: NotificationSettings;
 }) {
+  const { startAction } = useAdminActionFeedback();
   const [state, action, pending] = useActionState(saveNotificationDraftAction, undefined);
   const [testState, setTestState] = useState<{ pending: boolean; message?: string; error?: string }>({
     pending: false
   });
 
   async function sendTestEmail() {
+    startAction({ title: "Sending test email..." });
     setTestState({ pending: true });
 
     try {

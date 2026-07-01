@@ -1,6 +1,6 @@
 "use client";
 
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { env } from "@/lib/env";
 
 const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
 const API_UPLOAD_SOFT_LIMIT = 3.5 * 1024 * 1024;
@@ -146,35 +146,59 @@ async function compressRasterImage(file: File) {
   return new File([fallbackBlob], safeWebpName(file), { type: "image/webp", lastModified: Date.now() });
 }
 
-async function postThroughMediaRoute(file: File, folder: string) {
+function uploadRequest<T>(
+  url: string,
+  method: "POST" | "PUT",
+  body: FormData,
+  headers: Record<string, string>,
+  onProgress?: (progress: number) => void
+) {
+  return new Promise<{ status: number; payload: T | null }>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url);
+    Object.entries(headers).forEach(([name, value]) => xhr.setRequestHeader(name, value));
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && event.total > 0) {
+        onProgress?.(Math.round((event.loaded / event.total) * 100));
+      }
+    };
+    xhr.onerror = () => reject(new Error("The upload connection failed. Please try again."));
+    xhr.onload = () => {
+      let payload: T | null = null;
+      try {
+        payload = JSON.parse(xhr.responseText) as T;
+      } catch {
+        payload = null;
+      }
+      resolve({ status: xhr.status, payload });
+    };
+    xhr.send(body);
+  });
+}
+
+async function postThroughMediaRoute(file: File, folder: string, onProgress?: (progress: number) => void) {
   const formData = new FormData();
   formData.set("mode", "upload-media");
   formData.set("folder", folder);
   formData.set("mediaFile", file);
 
-  const response = await fetch("/api/admin/media", {
-    method: "POST",
-    body: formData
-  });
-  const payload = (await response.json().catch(() => null)) as
-    | {
+  const { status, payload } = await uploadRequest<{
         ok?: boolean;
         error?: string;
         data?: {
           publicUrl: string;
           compressed?: boolean;
         };
-      }
-    | null;
+      }>("/api/admin/media", "POST", formData, {}, onProgress);
 
-  if (!response.ok || !payload?.ok || !payload.data) {
-    throw new Error(payload?.error || (response.status === 413 ? "The selected file is too large for this upload path." : "Could not upload the selected media."));
+  if (status < 200 || status >= 300 || !payload?.ok || !payload.data) {
+    throw new Error(payload?.error || (status === 413 ? "The selected file is too large for this upload path." : "Could not upload the selected media."));
   }
 
   return payload.data.publicUrl;
 }
 
-async function uploadWithSignedUrl(file: File, folder: string) {
+async function uploadWithSignedUrl(file: File, folder: string, onProgress?: (progress: number) => void) {
   const signedResponse = await fetch("/api/admin/media", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -193,6 +217,7 @@ async function uploadWithSignedUrl(file: File, folder: string) {
           bucket: string;
           path: string;
           token: string;
+          signedUrl: string;
           publicUrl: string;
           contentType: string;
         };
@@ -203,17 +228,23 @@ async function uploadWithSignedUrl(file: File, folder: string) {
     throw new Error(signedPayload?.error || "Could not prepare a direct media upload.");
   }
 
-  const supabase = createSupabaseBrowserClient();
-  const uploaded = await supabase.storage
-    .from(signedPayload.data.bucket)
-    .uploadToSignedUrl(signedPayload.data.path, signedPayload.data.token, file, {
-      cacheControl: "31536000",
-      contentType: signedPayload.data.contentType,
-      upsert: true
-    });
+  const uploadBody = new FormData();
+  uploadBody.append("cacheControl", "31536000");
+  uploadBody.append("", file);
+  const uploaded = await uploadRequest<{ error?: string; message?: string }>(
+    signedPayload.data.signedUrl,
+    "PUT",
+    uploadBody,
+    {
+      apikey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}`,
+      "x-upsert": "true"
+    },
+    onProgress
+  );
 
-  if (uploaded.error) {
-    throw new Error(uploaded.error.message || "Storage upload failed. Please try again.");
+  if (uploaded.status < 200 || uploaded.status >= 300) {
+    throw new Error(uploaded.payload?.message || uploaded.payload?.error || "Storage upload failed. Please try again.");
   }
 
   return signedPayload.data.publicUrl;
@@ -224,6 +255,7 @@ export async function uploadAdminMediaFile(
   options: {
     folder?: string;
     onStatus?: (status: UploadStatus, message: string) => void;
+    onProgress?: (progress: number) => void;
   } = {}
 ): Promise<AdminMediaUploadResult> {
   const folder = options.folder ?? "media-library";
@@ -257,7 +289,7 @@ export async function uploadAdminMediaFile(
   if (uploadFile.size <= API_UPLOAD_SOFT_LIMIT) {
     try {
       options.onStatus?.("uploading", compressed ? "Uploading optimized image..." : "Uploading media...");
-      const publicUrl = await postThroughMediaRoute(uploadFile, folder);
+      const publicUrl = await postThroughMediaRoute(uploadFile, folder, options.onProgress);
       return { publicUrl, compressed, direct: false };
     } catch (error) {
       if (!(error instanceof Error) || !/large|413|payload/i.test(error.message)) {
@@ -267,6 +299,7 @@ export async function uploadAdminMediaFile(
   }
 
   options.onStatus?.("preparing", "Preparing direct storage upload...");
-  const publicUrl = await uploadWithSignedUrl(uploadFile, folder);
+  options.onStatus?.("uploading", "Uploading media directly to storage...");
+  const publicUrl = await uploadWithSignedUrl(uploadFile, folder, options.onProgress);
   return { publicUrl, compressed, direct: true };
 }

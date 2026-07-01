@@ -1,7 +1,10 @@
 "use client";
 
-import { useActionState, type ButtonHTMLAttributes, type ReactNode } from "react";
-import { useFormStatus } from "react-dom";
+import { useActionState, useEffect, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+
+import { useAdminActionFeedback } from "@/components/admin/admin-action-feedback";
+import { SubmitButton as AdminSubmitButton } from "@/components/admin/submit-button";
 
 export type ActionState = { message?: string; error?: string } | undefined;
 
@@ -10,8 +13,20 @@ export function InlineSpinner() {
 }
 
 export function ActionMessage({ state }: { state: ActionState }) {
-  if (state?.error) return <p className="admin-alert admin-alert--error" role="alert">{state.error}</p>;
-  if (state?.message) return <p className="admin-alert admin-alert--success" role="status">{state.message}</p>;
+  const router = useRouter();
+  const { finishLatestAction } = useAdminActionFeedback();
+
+  useEffect(() => {
+    if (state?.error) {
+      finishLatestAction({ title: state.error, status: "error" });
+    } else if (state?.message) {
+      finishLatestAction({ title: state.message, status: "success" });
+      router.refresh();
+    }
+  }, [finishLatestAction, router, state?.error, state?.message]);
+
+  if (state?.error) return <p className="admin-alert admin-alert--error" role="alert" data-admin-feedback-handled="true">{state.error}</p>;
+  if (state?.message) return <p className="admin-alert admin-alert--success" role="status" data-admin-feedback-handled="true">{state.message}</p>;
   return null;
 }
 
@@ -20,17 +35,23 @@ type SubmitButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children
   pendingLabel: string;
   icon?: ReactNode;
   variant?: "primary" | "secondary" | "danger" | "icon";
+  feedbackTitle?: string;
+  feedbackMessage?: string;
 };
 
-export function SubmitButton({ idleLabel, pendingLabel, icon, variant = "primary", className = "", ...props }: SubmitButtonProps) {
-  const { pending } = useFormStatus();
+export function SubmitButton({ idleLabel, pendingLabel, icon, variant = "primary", className = "", feedbackTitle, feedbackMessage, ...props }: SubmitButtonProps) {
   const variantClass = variant === "icon" ? "admin-icon-button" : `admin-btn admin-btn--${variant}`;
 
   return (
-    <button {...props} type="submit" disabled={pending || props.disabled} className={`${variantClass} ${className}`.trim()}>
-      {pending ? <InlineSpinner /> : icon}
-      {pending ? pendingLabel : idleLabel}
-    </button>
+    <AdminSubmitButton
+      {...props}
+      idleLabel={idleLabel}
+      pendingLabel={pendingLabel}
+      icon={icon}
+      feedbackTitle={feedbackTitle}
+      feedbackMessage={feedbackMessage}
+      className={`${variantClass} ${className}`.trim()}
+    />
   );
 }
 
@@ -46,7 +67,9 @@ export function ActionForm({
   buttonClassName,
   ariaLabel,
   children,
-  disabled
+  disabled,
+  feedbackTitle,
+  feedbackMessage
 }: {
   action: (state: ActionState, formData: FormData) => Promise<ActionState>;
   idleLabel: string;
@@ -60,6 +83,8 @@ export function ActionForm({
   ariaLabel?: string;
   children?: ReactNode;
   disabled?: boolean;
+  feedbackTitle?: string;
+  feedbackMessage?: string;
 }) {
   const [state, formAction] = useActionState(action, undefined);
 
@@ -81,6 +106,8 @@ export function ActionForm({
         className={buttonClassName}
         aria-label={ariaLabel}
         disabled={disabled}
+        feedbackTitle={feedbackTitle}
+        feedbackMessage={feedbackMessage}
       />
       <ActionMessage state={state} />
     </form>

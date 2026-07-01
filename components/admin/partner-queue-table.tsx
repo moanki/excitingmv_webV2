@@ -4,7 +4,8 @@ import { Fragment, useActionState, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { createPartnerAction } from "@/app/admin/partners/actions";
-import { ActionMessage, SubmitButton } from "@/components/admin/action-feedback";
+import { ActionMessage, InlineSpinner, SubmitButton } from "@/components/admin/action-feedback";
+import { useAdminActionFeedback } from "@/components/admin/admin-action-feedback";
 import type { PartnerRequestRecord } from "@/lib/services/partner-service";
 import type { PartnerStatus } from "@/lib/types";
 
@@ -14,6 +15,7 @@ function formatDate(value: string) {
 
 export function PartnerQueueTable({ partners }: { partners: PartnerRequestRecord[] }) {
   const router = useRouter();
+  const { notifySuccess, startAction } = useAdminActionFeedback();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -35,6 +37,7 @@ export function PartnerQueueTable({ partners }: { partners: PartnerRequestRecord
 
   async function updateStatus(ids: string[], status: PartnerStatus) {
     if (!ids.length) return;
+    startAction({ title: status === "approved" ? "Approving partner request..." : "Rejecting partner request..." });
     setPendingAction(status);
     setFeedback(undefined);
     try {
@@ -66,6 +69,7 @@ export function PartnerQueueTable({ partners }: { partners: PartnerRequestRecord
   }
 
   function download(ids?: string[]) {
+    notifySuccess("Partner export started.");
     const suffix = ids?.length ? `?ids=${encodeURIComponent(ids.join(","))}` : "";
     window.location.href = `/api/admin/partners/export${suffix}`;
   }
@@ -96,8 +100,8 @@ export function PartnerQueueTable({ partners }: { partners: PartnerRequestRecord
         <div className="admin-bulk-bar">
           <strong>Selected: {selectedIds.length}</strong>
           <div className="admin-row-actions">
-            <button type="button" className="admin-btn admin-btn--primary admin-btn--small" disabled={Boolean(pendingAction)} onClick={() => updateStatus(selectedIds, "approved")}>{pendingAction === "approved" ? "Approving..." : "Approve Selected"}</button>
-            <button type="button" className="admin-btn admin-btn--danger admin-btn--small" disabled={Boolean(pendingAction)} onClick={() => updateStatus(selectedIds, "rejected")}>{pendingAction === "rejected" ? "Rejecting..." : "Reject Selected"}</button>
+            <button type="button" className="admin-btn admin-btn--primary admin-btn--small" disabled={Boolean(pendingAction)} onClick={() => updateStatus(selectedIds, "approved")}>{pendingAction === "approved" ? <><InlineSpinner />Approving...</> : "Approve Selected"}</button>
+            <button type="button" className="admin-btn admin-btn--danger admin-btn--small" disabled={Boolean(pendingAction)} onClick={() => updateStatus(selectedIds, "rejected")}>{pendingAction === "rejected" ? <><InlineSpinner />Rejecting...</> : "Reject Selected"}</button>
           </div>
         </div>
       ) : null}
@@ -117,7 +121,7 @@ export function PartnerQueueTable({ partners }: { partners: PartnerRequestRecord
                   <td>{formatDate(partner.createdAt)}</td>
                   <td><div className="admin-row-actions">
                     <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setOpenId(isOpen ? null : partner.id)}>Details</button>
-                    {partner.status === "pending" ? <><button type="button" className="admin-btn admin-btn--primary" disabled={Boolean(pendingAction)} onClick={() => updateStatus([partner.id], "approved")}>{pendingAction === "approved" ? "Approving..." : "Approve"}</button><button type="button" className="admin-btn admin-btn--danger" disabled={Boolean(pendingAction)} onClick={() => updateStatus([partner.id], "rejected")}>{pendingAction === "rejected" ? "Rejecting..." : "Reject"}</button></> : null}
+                    {partner.status === "pending" ? <><button type="button" className="admin-btn admin-btn--primary" disabled={Boolean(pendingAction)} onClick={() => updateStatus([partner.id], "approved")}>{pendingAction === "approved" ? <><InlineSpinner />Approving...</> : "Approve"}</button><button type="button" className="admin-btn admin-btn--danger" disabled={Boolean(pendingAction)} onClick={() => updateStatus([partner.id], "rejected")}>{pendingAction === "rejected" ? <><InlineSpinner />Rejecting...</> : "Reject"}</button></> : null}
                   </div></td>
                 </tr>
                 {isOpen ? <tr className="admin-detail-row"><td /><td colSpan={6}><div className="admin-inline-details"><strong>{partner.agencyName}</strong><p>{partner.notes || "No notes provided."}</p></div></td></tr> : null}

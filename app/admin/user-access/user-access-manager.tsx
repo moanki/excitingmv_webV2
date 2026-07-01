@@ -9,15 +9,13 @@ import {
   resetAdminUserPasswordAction,
   updateAdminUserEmailAction
 } from "@/app/admin/user-access/actions";
-import { ActionForm } from "@/components/admin/action-feedback";
+import { ActionForm, ActionMessage, InlineSpinner } from "@/components/admin/action-feedback";
 import type { AdminRoleRecord, AdminUserRecord } from "@/lib/services/admin-user-service";
 
 type ModalMode = "create" | "edit-email" | "reset-password" | null;
 
 function StatusMessage({ message, error }: { message?: string; error?: string }) {
-  if (error) return <p className="admin-alert admin-alert--error">{error}</p>;
-  if (message) return <p className="admin-alert admin-alert--success">{message}</p>;
-  return null;
+  return <ActionMessage state={error || message ? { error, message } : undefined} />;
 }
 
 function CreateUserForm({ roles, onClose }: { roles: AdminRoleRecord[]; onClose: () => void }) {
@@ -35,7 +33,7 @@ function CreateUserForm({ roles, onClose }: { roles: AdminRoleRecord[]; onClose:
     return (
       <div className="admin-modal-success">
         <h3>Admin user created</h3>
-        <p>{state.message}</p>
+        <ActionMessage state={state} />
         <button type="button" className="admin-btn admin-btn--primary" onClick={onClose}>
           Go Back
         </button>
@@ -75,6 +73,7 @@ function CreateUserForm({ roles, onClose }: { roles: AdminRoleRecord[]; onClose:
       </div>
       <div className="admin-form-actions">
         <button className="admin-btn admin-btn--primary" type="submit" disabled={pending || !hasRoles}>
+          {pending ? <InlineSpinner /> : null}
           {pending ? "Creating..." : "Create User"}
         </button>
       </div>
@@ -94,6 +93,7 @@ function EmailForm({ user }: { user: AdminUserRecord }) {
       </label>
       <div className="admin-form-actions">
         <button className="admin-btn admin-btn--primary" type="submit" disabled={pending}>
+          {pending ? <InlineSpinner /> : null}
           {pending ? "Saving..." : "Change User"}
         </button>
       </div>
@@ -113,6 +113,7 @@ function ResetPasswordForm({ user }: { user: AdminUserRecord }) {
       </label>
       <div className="admin-form-actions">
         <button className="admin-btn admin-btn--primary" type="submit" disabled={pending}>
+          {pending ? <InlineSpinner /> : null}
           {pending ? "Resetting..." : "Reset Password"}
         </button>
       </div>
