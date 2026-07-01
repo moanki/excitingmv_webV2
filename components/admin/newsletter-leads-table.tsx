@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
+import { InlineSpinner } from "@/components/admin/action-feedback";
+import { useAdminActionFeedback } from "@/components/admin/admin-action-feedback";
 import type { NewsletterRecord } from "@/lib/services/newsletter-service";
 
 function formatDate(value: string) {
@@ -17,6 +20,8 @@ type Props = {
 };
 
 export function NewsletterLeadsTable({ submissions }: Props) {
+  const router = useRouter();
+  const { finishAction, notifySuccess, startAction } = useAdminActionFeedback();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "pending" | "acknowledged">("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -60,6 +65,7 @@ export function NewsletterLeadsTable({ submissions }: Props) {
   }
 
   function download(ids?: string[]) {
+    notifySuccess("Newsletter export started.");
     const suffix = ids?.length ? `?ids=${encodeURIComponent(ids.join(","))}` : "";
     window.location.href = `/api/admin/newsletters/export${suffix}`;
   }
@@ -69,16 +75,24 @@ export function NewsletterLeadsTable({ submissions }: Props) {
       return;
     }
 
-    setPendingAction(ids.join(","));
-    const response = await fetch("/api/admin/newsletters/status", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids, status: "general" })
-    });
-    setPendingAction("");
-
-    if (response.ok) {
-      window.location.reload();
+    const pendingKey = ids.join(",");
+    const actionId = startAction({ title: "Acknowledging newsletter leads..." });
+    setPendingAction(pendingKey);
+    try {
+      const response = await fetch("/api/admin/newsletters/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, status: "general" })
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(body?.error || "Failed to acknowledge newsletter leads.");
+      finishAction(actionId, { title: "Newsletter leads acknowledged.", status: "success" });
+      setSelectedIds([]);
+      router.refresh();
+    } catch (error) {
+      finishAction(actionId, { title: error instanceof Error ? error.message : "Failed to acknowledge newsletter leads.", status: "error" });
+    } finally {
+      setPendingAction("");
     }
   }
 
@@ -115,7 +129,7 @@ export function NewsletterLeadsTable({ submissions }: Props) {
         </div>
         <div className="table-toolbar-right">
           <button type="button" className="admin-btn admin-btn--secondary" onClick={() => acknowledge(filtered.map((item) => item.id))} disabled={!filtered.length || Boolean(pendingAction)}>
-            Acknowledge All
+            {pendingAction === filtered.map((item) => item.id).join(",") ? <InlineSpinner /> : null}Acknowledge All
           </button>
           <button type="button" className="admin-btn admin-btn--primary" onClick={() => download()}>
             Export CSV
@@ -133,7 +147,7 @@ export function NewsletterLeadsTable({ submissions }: Props) {
               disabled={Boolean(pendingAction)}
               onClick={() => acknowledge(selectedIds)}
             >
-              Acknowledge Selected
+              {pendingAction === selectedIds.join(",") ? <InlineSpinner /> : null}Acknowledge Selected
             </button>
             <button type="button" className="admin-btn admin-btn--ghost" onClick={() => setSelectedIds([])}>
               Clear Selection
@@ -189,7 +203,7 @@ export function NewsletterLeadsTable({ submissions }: Props) {
                       disabled={Boolean(pendingAction) || submission.status === "general"}
                       onClick={() => acknowledge([submission.id])}
                     >
-                      Acknowledge
+                      {pendingAction === submission.id ? <InlineSpinner /> : null}Acknowledge
                     </button>
                     <button
                       type="button"

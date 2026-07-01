@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
+import { useActionState, useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -23,7 +23,7 @@ import {
   seedResortsAction
 } from "@/app/admin/resorts/actions";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
-import { ActionForm, ActionMessage, SubmitButton } from "@/components/admin/action-feedback";
+import { ActionForm, ActionMessage, InlineSpinner, SubmitButton } from "@/components/admin/action-feedback";
 import { optimizedImageUrl } from "@/lib/image-urls";
 import type { PublishStatus } from "@/lib/types";
 import type { PropertyType, ResortRecord } from "@/lib/services/resort-service";
@@ -579,6 +579,7 @@ export function ResortEditor({
   const [seoSummary, setSeoSummary] = useState(resort.seoSummary ?? resort.summary ?? "");
   const [seoStatus, setSeoStatus] = useState<{ message?: string; error?: string } | null>(null);
   const [activeEditorTab, setActiveEditorTab] = useState<"basics" | "details" | "rooms" | "media" | "seo">("basics");
+  const [pendingIntent, setPendingIntent] = useState("");
 
   const formId = resort.id ? `resort-editor-form-${resort.id}` : "resort-editor-form-new";
   const previewHref = resort.slug ? `${labels.publicBasePath}/${resort.slug}` : null;
@@ -589,6 +590,15 @@ export function ResortEditor({
       router.refresh();
     }
   }, [router, state?.message]);
+
+  useEffect(() => {
+    if (!pending) setPendingIntent("");
+  }, [pending]);
+
+  function trackSubmitIntent(event: FormEvent<HTMLFormElement>) {
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    setPendingIntent(submitter?.value || "saveDraft");
+  }
 
   function handleGenerateSeo() {
     startSeoGeneration(async () => {
@@ -636,7 +646,9 @@ export function ResortEditor({
             name="submitIntent"
             value={status === "published" ? "updatePublished" : "saveDraft"}
             disabled={pending || status === "archived"}
+            data-admin-feedback-title={mode === "create" ? `Adding ${labels.singular.toLowerCase()}...` : `Saving ${labels.singular.toLowerCase()}...`}
           >
+            {pending && pendingIntent === (status === "published" ? "updatePublished" : "saveDraft") ? <InlineSpinner /> : null}
             {pending ? "Saving..." : status === "published" ? `Update Published ${labels.singular}` : "Save Draft"}
           </button>
         </div>
@@ -670,7 +682,7 @@ export function ResortEditor({
       </nav>
 
       <div className="resort-editor-layout">
-      <form id={formId} action={action} encType="multipart/form-data" className="stack admin-form-card resort-workspace__form">
+      <form id={formId} action={action} onSubmit={trackSubmitIntent} encType="multipart/form-data" className="stack admin-form-card resort-workspace__form">
         {resort.id ? <input type="hidden" name="id" value={resort.id} /> : null}
         <input type="hidden" name="propertyType" value={propertyType} />
         <input type="hidden" name="roomCount" value={rooms.length} />
@@ -884,22 +896,24 @@ export function ResortEditor({
             <>
               {resort.id ? (
                 <button className="admin-btn admin-btn--danger" type="submit" form={`delete-resort-${resort.id}`} disabled={deletePending}>
+                  {deletePending ? <InlineSpinner /> : null}
                   {deletePending ? `Deleting ${labels.singular}...` : `Delete ${labels.singular}`}
                 </button>
               ) : null}
               <button className="admin-btn admin-btn--primary" type="submit" name="submitIntent" value="restoreDraft" disabled={pending}>
-                Restore to Draft
+                {pending && pendingIntent === "restoreDraft" ? <InlineSpinner /> : null}Restore to Draft
               </button>
             </>
           ) : status === "published" ? (
             <>
               <button className="admin-btn admin-btn--secondary" type="submit" name="submitIntent" value="unpublish" disabled={pending}>
-                Unpublish to Draft
+                {pending && pendingIntent === "unpublish" ? <InlineSpinner /> : null}Unpublish to Draft
               </button>
               <button className="admin-btn admin-btn--danger" type="submit" name="submitIntent" value="archive" disabled={pending}>
-                Archive
+                {pending && pendingIntent === "archive" ? <InlineSpinner /> : null}Archive
               </button>
               <button className="admin-btn admin-btn--primary" type="submit" name="submitIntent" value="updatePublished" disabled={pending}>
+                {pending && pendingIntent === "updatePublished" ? <InlineSpinner /> : null}
                 {pending ? "Saving..." : `Update Published ${labels.singular}`}
               </button>
             </>
@@ -907,13 +921,14 @@ export function ResortEditor({
             <>
               {mode === "edit" ? (
                 <button className="admin-btn admin-btn--danger" type="submit" name="submitIntent" value="archive" disabled={pending}>
-                  Archive
+                  {pending && pendingIntent === "archive" ? <InlineSpinner /> : null}Archive
                 </button>
               ) : null}
               <button className="admin-btn admin-btn--secondary" type="submit" name="submitIntent" value="saveDraft" disabled={pending}>
-                Save Draft
+                {pending && pendingIntent === "saveDraft" ? <InlineSpinner /> : null}Save Draft
               </button>
-              <button className="admin-btn admin-btn--primary" type="submit" name="submitIntent" value="publish" disabled={pending}>
+              <button className="admin-btn admin-btn--primary" type="submit" name="submitIntent" value="publish" disabled={pending} data-admin-feedback-title={`Publishing ${labels.singular.toLowerCase()}...`}>
+                {pending && pendingIntent === "publish" ? <InlineSpinner /> : null}
                 {pending ? "Publishing..." : `Publish ${labels.singular}`}
               </button>
             </>
@@ -936,16 +951,18 @@ export function ResortEditor({
             name="submitIntent"
             value={status === "published" ? "updatePublished" : "publish"}
             disabled={pending || status === "archived"}
+            data-admin-feedback-title={status === "published" ? `Saving ${labels.singular.toLowerCase()}...` : `Publishing ${labels.singular.toLowerCase()}...`}
           >
+            {pending && pendingIntent === (status === "published" ? "updatePublished" : "publish") ? <InlineSpinner /> : null}
             {pending ? "Saving..." : status === "published" ? "Save Changes" : `Publish ${labels.singular}`}
           </button>
           {status === "published" ? (
             <button className="admin-btn admin-btn--secondary" type="submit" form={formId} name="submitIntent" value="unpublish" disabled={pending}>
-              Unpublish to Draft
+              {pending && pendingIntent === "unpublish" ? <InlineSpinner /> : null}Unpublish to Draft
             </button>
           ) : status !== "archived" ? (
             <button className="admin-btn admin-btn--secondary" type="submit" form={formId} name="submitIntent" value="saveDraft" disabled={pending}>
-              Save Draft
+              {pending && pendingIntent === "saveDraft" ? <InlineSpinner /> : null}Save Draft
             </button>
           ) : null}
           <dl className="resort-editor-summary resort-editor-visibility">
@@ -969,7 +986,7 @@ export function ResortEditor({
           {previewHref ? <Link className="admin-btn admin-btn--secondary" href={previewHref} target="_blank">Preview on website</Link> : null}
           <button className="admin-btn admin-btn--secondary" type="button" onClick={handleGenerateSeo} disabled={isGeneratingSeo}>Generate SEO with AI</button>
           {mode === "edit" && status !== "archived" ? (
-            <button className="admin-btn admin-btn--danger" type="submit" form={formId} name="submitIntent" value="archive" disabled={pending}>Archive {labels.singular}</button>
+            <button className="admin-btn admin-btn--danger" type="submit" form={formId} name="submitIntent" value="archive" disabled={pending}>{pending && pendingIntent === "archive" ? <InlineSpinner /> : null}Archive {labels.singular}</button>
           ) : null}
         </section>
       </aside>

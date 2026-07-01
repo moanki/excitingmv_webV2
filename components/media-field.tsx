@@ -5,6 +5,7 @@ import type { ChangeEvent, DragEvent } from "react";
 import { FileText, Image as ImageIcon, Library, Upload, Video } from "lucide-react";
 
 import { uploadAdminMediaFile } from "@/lib/admin-media-client-upload";
+import { useAdminActionFeedback } from "@/components/admin/admin-action-feedback";
 import { optimizedImageUrl } from "@/lib/image-urls";
 import { safeMediaUrlError } from "@/lib/validations";
 
@@ -72,6 +73,7 @@ export function MediaField({
   helper,
   onChange
 }: MediaFieldProps) {
+  const { finishAction, notifyError, startAction, updateAction } = useAdminActionFeedback();
   const inputId = useId();
   const [selectedUrl, setSelectedUrl] = useState(value);
   const [selectedFileName, setSelectedFileName] = useState("");
@@ -155,10 +157,12 @@ export function MediaField({
     const validationError = validateMediaFieldFile(file, accept);
     if (validationError) {
       setUploadState({ pending: false, error: validationError });
+      notifyError("Upload failed.", validationError);
       clearNativeFileInput();
       return;
     }
 
+    const actionId = startAction({ title: "Preparing upload...", type: "upload", progress: null });
     const isOptimizable = ["image/png", "image/jpeg", "image/webp"].includes(file.type) || ["png", "jpg", "jpeg", "webp"].includes(fileExtension(file));
     setUploadState({ pending: true, message: isOptimizable ? "Uploading and optimizing image..." : "Uploading media..." });
     clearNativeFileInput();
@@ -166,16 +170,27 @@ export function MediaField({
     try {
       const result = await uploadAdminMediaFile(file, {
         folder: "media-library",
-        onStatus: (_, message) => setUploadState({ pending: true, message })
+        onStatus: (status, message) => {
+          setUploadState({ pending: true, message });
+          updateAction(actionId, { title: message, progress: status === "uploading" ? 0 : null });
+        },
+        onProgress: (progress) => updateAction(actionId, {
+          title: progress < 100 ? `Uploading... ${progress}%` : "Processing upload...",
+          progress: progress < 100 ? progress : null
+        })
       });
 
       updateSelectedUrl(result.publicUrl);
-      setUploadState({ pending: false, message: `${file.name} uploaded and ready to save.` });
+      const message = `${file.name} uploaded and ready to save.`;
+      setUploadState({ pending: false, message });
+      finishAction(actionId, { title: "Upload complete.", message, status: "success" });
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Media upload failed.";
       setUploadState({
         pending: false,
-        error: error instanceof Error ? error.message : "Media upload failed."
+        error: message
       });
+      finishAction(actionId, { title: "Upload failed.", message, status: "error" });
     }
   }
 

@@ -7,6 +7,7 @@ import {
   sendTestEmailAction,
   testSmtpConnectionAction
 } from "@/app/admin/email-configuration/actions";
+import { ActionMessage } from "@/components/admin/action-feedback";
 import type { EmailConfiguration, EmailProvider } from "@/lib/email/email-config";
 
 const providerDefaults: Record<EmailProvider, { smtpHost: string; smtpPort: number; smtpSecure: boolean; smtpRequireTls: boolean }> = {
@@ -16,8 +17,7 @@ const providerDefaults: Record<EmailProvider, { smtpHost: string; smtpPort: numb
 };
 
 function StatusMessage({ message, error }: { message?: string; error?: string }) {
-  if (!message && !error) return null;
-  return <p className={error ? "form-status error" : "form-status"}>{error || message}</p>;
+  return <ActionMessage state={error || message ? { error, message } : undefined} />;
 }
 
 export function EmailConfigurationForm({ config }: { config: EmailConfiguration }) {

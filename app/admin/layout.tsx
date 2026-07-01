@@ -1,4 +1,5 @@
 import { AdminShell } from "@/components/admin-shell";
+import { AdminActionFeedbackProvider } from "@/components/admin/admin-action-feedback";
 import { ADMIN_LOGIN_PATH } from "@/lib/auth/bootstrap-admin";
 import { getCurrentAdminUser } from "@/lib/auth/require-admin";
 import { headers } from "next/headers";
@@ -19,5 +20,5 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
     }
   }
 
-  return <AdminShell>{children}</AdminShell>;
+  return <AdminActionFeedbackProvider><AdminShell>{children}</AdminShell></AdminActionFeedbackProvider>;
 }
