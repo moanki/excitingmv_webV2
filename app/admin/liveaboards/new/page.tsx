@@ -15,7 +15,7 @@ export default async function NewAdminLiveaboardPage() {
     <ResortEditor
       resort={{ status: "draft", isFeaturedHomepage: false, roomTypes: [] }}
       title="Add New Liveaboard"
-      description="Create a liveaboard workspace with content, media, cabins, SEO, and publishing controls."
+      description="Create a focused property workspace with liveaboard basics, room types, media, and publishing controls."
       mediaLibrary={mediaLibrary}
       mode="create"
       propertyType="liveaboards"

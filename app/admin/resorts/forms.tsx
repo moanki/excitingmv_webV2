@@ -125,46 +125,16 @@ function listStatusClass(status: PublishStatus) {
   return "s-draft";
 }
 
-function propertyCategoryFallback(propertyType: PropertyType) {
-  if (propertyType === "hotels") {
-    return "City Hotel";
-  }
-
-  if (propertyType === "liveaboards") {
-    return "Charter Vessel";
-  }
-
+function propertyCategoryFallback() {
   return "Luxury Resort";
 }
 
-function propertyTransferFallback(propertyType: PropertyType) {
-  if (propertyType === "hotels") {
-    return "Island access";
-  }
-
-  if (propertyType === "liveaboards") {
-    return "Cruise route";
-  }
-
+function propertyTransferFallback() {
   return "Transfer TBC";
 }
 
-function propertyUnitLabel(propertyType: PropertyType, count: number) {
-  const unit = propertyType === "liveaboards" ? "cabin type" : "room type";
-
-  return `${count} ${unit}${count === 1 ? "" : "s"}`;
-}
-
-function propertyPlaceholderLabel(propertyType: PropertyType) {
-  if (propertyType === "hotels") {
-    return "Hotel image";
-  }
-
-  if (propertyType === "liveaboards") {
-    return "Vessel image";
-  }
-
-  return "Resort image";
+function propertyUnitLabel(count: number) {
+  return `${count} room type${count === 1 ? "" : "s"}`;
 }
 
 function propertyListTags(resort: ResortRecord) {
@@ -296,11 +266,13 @@ function AmenityListEditor({
 function RoomTypeEditor({
   rooms,
   setRooms,
-  mediaLibrary
+  mediaLibrary,
+  propertyLabel
 }: {
   rooms: EditableRoom[];
   setRooms: React.Dispatch<React.SetStateAction<EditableRoom[]>>;
   mediaLibrary: MediaLibraryItem[];
+  propertyLabel: string;
 }) {
   const [expandedRoomIndex, setExpandedRoomIndex] = useState<number | null>(rooms.length ? 0 : null);
 
@@ -339,7 +311,7 @@ function RoomTypeEditor({
       <div className="admin-form-section__header">
         <h3 className="admin-form-section__title">Rooms & Amenities</h3>
         <p className="admin-form-section__help">
-          Manage each room type like a premium hotel profile with its own image, copy, facts, and amenities.
+          Manage each room type like a premium {propertyLabel.toLowerCase()} profile with its own image, copy, facts, and amenities.
         </p>
       </div>
 
@@ -583,7 +555,7 @@ export function ResortEditor({
 
   const formId = resort.id ? `resort-editor-form-${resort.id}` : "resort-editor-form-new";
   const previewHref = resort.slug ? `${labels.publicBasePath}/${resort.slug}` : null;
-  const homepageFeatured = propertyType === "resort" && Boolean(isHomepageFeatured ?? resort.isFeaturedHomepage);
+  const homepageFeatured = Boolean(isHomepageFeatured ?? resort.isFeaturedHomepage);
 
   useEffect(() => {
     if (state?.message) {
@@ -657,7 +629,7 @@ export function ResortEditor({
       <header className="resort-workspace__header">
         <div className="resort-workspace__header-copy">
           <p className="eyebrow">{title}</p>
-          <h1 className="section-title">{resort.name || "New resort workspace"}</h1>
+          <h1 className="section-title">{resort.name || `New ${labels.singular.toLowerCase()} workspace`}</h1>
           <p className="admin-page-lede">{description}</p>
         </div>
         <div className="resort-workspace__meta">
@@ -667,7 +639,7 @@ export function ResortEditor({
         </div>
       </header>
 
-      <nav className="admin-section-tabs" aria-label="Resort editor sections">
+      <nav className="admin-section-tabs" aria-label={`${labels.singular} editor sections`}>
         {[
           ["basics", "Basics"],
           ["details", "Details"],
@@ -792,7 +764,7 @@ export function ResortEditor({
         </section>
 
         <div className={activeEditorTab !== "rooms" ? "is-editor-tab-hidden" : ""}>
-          <RoomTypeEditor rooms={rooms} setRooms={setRooms} mediaLibrary={mediaLibrary} />
+          <RoomTypeEditor rooms={rooms} setRooms={setRooms} mediaLibrary={mediaLibrary} propertyLabel={labels.singular} />
         </div>
 
         <section className={`admin-form-section${activeEditorTab !== "media" ? " is-editor-tab-hidden" : ""}`} id="media">
@@ -811,7 +783,7 @@ export function ResortEditor({
             accept="image/png,image/jpeg,image/webp"
             value={heroImageUrl}
             library={mediaLibrary}
-            helper="Primary hero image for the resort listing, homepage feature, and property page."
+            helper={`Primary hero image for the ${labels.singular.toLowerCase()} listing, homepage feature, and property page.`}
             onChange={setHeroImageUrl}
           />
 
@@ -875,7 +847,7 @@ export function ResortEditor({
           <div className="admin-checklist-card">
             <h4>Content Checklist</h4>
             <ul>
-              <li>{name.trim() ? "✓" : "•"} Resort name added</li>
+              <li>{name.trim() ? "✓" : "•"} {labels.singular} name added</li>
               <li>{heroImageUrl.trim() ? "✓" : "•"} Banner image added</li>
               <li>{descriptionValue.trim() ? "✓" : "•"} Description added</li>
               <li>{rooms.length ? "✓" : "•"} Room types added</li>
@@ -1044,7 +1016,7 @@ export function ResortManagerListView({
       }
 
       if (filter === "featured") {
-        return propertyType === "resort" && resort.status === "published" && resort.isFeaturedHomepage;
+        return resort.status === "published" && resort.isFeaturedHomepage;
       }
 
       if (filter === "archived") {
@@ -1053,22 +1025,23 @@ export function ResortManagerListView({
 
       return true;
     });
-  }, [filter, propertyType, query, resorts]);
+  }, [filter, query, resorts]);
 
   const filterOptions: Array<{ id: ResortFilter; label: string }> = [
     { id: "all", label: "All" },
     { id: "published", label: "Published" },
-    { id: "draft", label: "Draft" }
+    { id: "draft", label: "Draft" },
+    { id: "featured", label: "Featured" }
   ];
 
   return (
     <div className="stack">
       <div className="table-toolbar resort-manager-toolbar">
         <div className="table-toolbar-left">
-          <label className="tbl-search resort-search-field" htmlFor={`${propertyType}-search`}>
+          <label className="tbl-search resort-search-field" htmlFor="property-search">
             <Search className="admin-icon" />
             <input
-              id={`${propertyType}-search`}
+              id="property-search"
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -1122,21 +1095,21 @@ export function ResortManagerListView({
                   ) : (
                     <div className="lr-thumb-ph">
                       <ImageIcon className="admin-icon" />
-                      <span>{propertyPlaceholderLabel(propertyType)}</span>
+                      <span>{labels.singular} image</span>
                     </div>
                   )}
                 </div>
 
                 <div className="lr-info">
                   <div className="lr-name">{resort.name}</div>
-                  <div className="lr-cat">{resort.category || propertyCategoryFallback(propertyType)}</div>
+                  <div className="lr-cat">{resort.category || propertyCategoryFallback()}</div>
                   <div className="lr-meta">
                     <span className="lr-meta-item">
                       <MapPin className="admin-icon" />
                       {resort.location || "Maldives"}
                     </span>
-                    <span className="lr-meta-item">{resort.transferType || propertyTransferFallback(propertyType)}</span>
-                    <span className="lr-meta-item">{propertyUnitLabel(propertyType, resort.roomCount ?? resort.roomTypes.length)}</span>
+                    <span className="lr-meta-item">{resort.transferType || propertyTransferFallback()}</span>
+                    <span className="lr-meta-item">{propertyUnitLabel(resort.roomCount ?? resort.roomTypes.length)}</span>
                   </div>
 
                   {tags.length ? (
@@ -1150,7 +1123,7 @@ export function ResortManagerListView({
 
                 <div className="lr-status">
                   <span className={`status-pill ${listStatusClass(resort.status)}`}>{listStatusLabel(resort.status)}</span>
-                  {propertyType === "resort" && resort.isFeaturedHomepage ? (
+                  {resort.isFeaturedHomepage ? (
                     <span className="lr-tag lr-tag-featured">
                       <Star className="admin-icon" />
                       Featured

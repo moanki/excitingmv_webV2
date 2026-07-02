@@ -15,7 +15,7 @@ export default async function NewAdminHotelPage() {
     <ResortEditor
       resort={{ status: "draft", isFeaturedHomepage: false, roomTypes: [] }}
       title="Add New Hotel"
-      description="Create a hotel workspace with content, media, rooms, SEO, and publishing controls."
+      description="Create a focused property workspace with hotel basics, room types, media, and publishing controls."
       mediaLibrary={mediaLibrary}
       mode="create"
       propertyType="hotels"
