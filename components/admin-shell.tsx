@@ -19,8 +19,7 @@ import {
   Ship,
   Sparkles,
   UserCog,
-  LogOut,
-  Waves
+  LogOut
 } from "lucide-react";
 import { SubmitButton } from "@/components/admin/action-feedback";
 
@@ -284,7 +283,7 @@ export function AdminShell({
   logoUrl
 }: {
   children: React.ReactNode;
-  logoUrl?: string;
+  logoUrl: string;
 }) {
   const pathname = usePathname();
   const current = getCurrentPageMeta(pathname);
@@ -298,14 +297,7 @@ export function AdminShell({
       <aside className="admin-sidebar">
         <div className="admin-brand-block">
           <Link href="/" className="admin-brand-row" aria-label="Go to Exciting Maldives website">
-            {logoUrl ? (
-              <img src={logoUrl} alt="Exciting Maldives" className="admin-brand-logo" />
-            ) : (
-              <>
-                <span className="admin-brand-mark"><Waves className="admin-icon" /></span>
-                <strong>Exciting Maldives</strong>
-              </>
-            )}
+            <img src={logoUrl} alt="Exciting Maldives" className="admin-brand-logo" />
           </Link>
           <p>Admin Portal</p>
         </div>

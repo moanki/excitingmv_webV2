@@ -27884,6 +27884,10 @@ html {
   height: auto !important;
   max-height: 64px !important;
 }
+
+.admin-body .admin-brand-block > p {
+  text-align: center !important;
+}
 /* Shared admin action and route feedback. */
 .admin-button-spinner {
   width: 1em;
