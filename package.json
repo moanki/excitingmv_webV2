@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "echo \"ESLint is temporarily disabled during bootstrap\"",
+    "lint": "npm run typecheck",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

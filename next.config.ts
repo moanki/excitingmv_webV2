@@ -4,9 +4,9 @@ function getSupabaseHost() {
   try {
     return process.env.NEXT_PUBLIC_SUPABASE_URL
       ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname
-      : "ddelyhoaflwtlzjwtihq.supabase.co";
+      : null;
   } catch {
-    return "ddelyhoaflwtlzjwtihq.supabase.co";
+    return null;
   }
 }
 
@@ -19,12 +19,12 @@ const nextConfig: NextConfig = {
     }
   },
   images: {
-    remotePatterns: [
+    remotePatterns: supabaseHost ? [
       {
         protocol: "https",
         hostname: supabaseHost
       }
-    ]
+    ] : []
   },
   async headers() {
     const csp = [

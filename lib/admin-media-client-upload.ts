@@ -1,6 +1,6 @@
 "use client";
 
-import { env } from "@/lib/env";
+import { publicEnv } from "@/lib/public-env";
 
 const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
 const API_UPLOAD_SOFT_LIMIT = 3.5 * 1024 * 1024;
@@ -236,8 +236,8 @@ async function uploadWithSignedUrl(file: File, folder: string, onProgress?: (pro
     "PUT",
     uploadBody,
     {
-      apikey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-      Authorization: `Bearer ${env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}`,
+      apikey: publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
       "x-upsert": "true"
     },
     onProgress

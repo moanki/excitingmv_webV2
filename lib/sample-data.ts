@@ -1,5 +1,10 @@
 import type { PartnerSummary, ResourceSummary, ResortSummary } from "@/lib/types";
 
+function supabaseStorageUrl(path: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
+  return baseUrl ? `${baseUrl}${path}` : "";
+}
+
 export const homepageHighlights = [
   {
     eyebrow: "Protected Access",
@@ -43,7 +48,7 @@ export const sampleResorts: ResortSummary[] = [
     transferType: "Seaplane",
     summary: "Art-led island hospitality with curated wellness, refined dining, and elevated design.",
     heroImageUrl:
-      "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/resorts/1777890426234-ff89c105-42a8-44b1-a1a3-f33fe8289e09.jpg?width=1200&height=800&resize=cover&quality=90",
+      supabaseStorageUrl("/storage/v1/render/image/public/site-assets/resorts/1777890426234-ff89c105-42a8-44b1-a1a3-f33fe8289e09.jpg?width=1200&height=800&resize=cover&quality=90"),
     status: "published"
   },
   {
@@ -67,7 +72,7 @@ export const sampleResorts: ResortSummary[] = [
     transferType: "Speedboat",
     summary: "Three private islands, expansive pool villas, and exceptional destination dining.",
     heroImageUrl:
-      "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/resorts/1777887197118-55eee71b-a9d2-4d21-8028-84b4b9a1de14.jpg?width=1200&height=800&resize=cover&quality=90",
+      supabaseStorageUrl("/storage/v1/render/image/public/site-assets/resorts/1777887197118-55eee71b-a9d2-4d21-8028-84b4b9a1de14.jpg?width=1200&height=800&resize=cover&quality=90"),
     status: "published"
   },
   {
@@ -79,7 +84,7 @@ export const sampleResorts: ResortSummary[] = [
     transferType: "Speedboat",
     summary: "A polished island retreat with private pools, family experiences, and easy access from Male.",
     heroImageUrl:
-      "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/media-library/1780221773862-5459d356-30b3-4950-adc1-27405f131657.webp?width=1200&height=800&resize=cover&quality=90",
+      supabaseStorageUrl("/storage/v1/render/image/public/site-assets/media-library/1780221773862-5459d356-30b3-4950-adc1-27405f131657.webp?width=1200&height=800&resize=cover&quality=90"),
     status: "published"
   }
 ];

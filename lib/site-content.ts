@@ -1,6 +1,11 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminRole } from "@/lib/auth/require-admin";
 
+function supabaseStorageUrl(path: string) {
+  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
+  return baseUrl ? `${baseUrl}${path}` : "";
+}
+
 export type HomepageHeroContent = {
   eyebrow: string;
   title: string;
@@ -572,11 +577,11 @@ export const defaultNavbarContent: NavbarContent = {
   brandKicker: "",
   brandLabel: "Exciting Maldives",
   primaryLogoUrl:
-    "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/site/logos/1776842917743-8bc93591-d284-42e9-a65c-c40c96b1306e.png?width=360&height=160&resize=contain&quality=92",
+    supabaseStorageUrl("/storage/v1/render/image/public/site-assets/site/logos/1776842917743-8bc93591-d284-42e9-a65c-c40c96b1306e.png?width=360&height=160&resize=contain&quality=92"),
   whiteLogoUrl:
-    "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/object/public/site-assets/site/logos/1776846432195-7f847ccd-81da-424c-bbf2-0e0fd733850f.png",
+    supabaseStorageUrl("/storage/v1/object/public/site-assets/site/logos/1776846432195-7f847ccd-81da-424c-bbf2-0e0fd733850f.png"),
   blackLogoUrl:
-    "https://ddelyhoaflwtlzjwtihq.supabase.co/storage/v1/render/image/public/site-assets/site/logos/1776842917743-8bc93591-d284-42e9-a65c-c40c96b1306e.png?width=360&height=160&resize=contain&quality=92",
+    supabaseStorageUrl("/storage/v1/render/image/public/site-assets/site/logos/1776842917743-8bc93591-d284-42e9-a65c-c40c96b1306e.png?width=360&height=160&resize=contain&quality=92"),
   navItems: [
     { label: "Resort", href: "/resorts", enabled: true, external: false },
     { label: "Hotels", href: "/hotels", enabled: true, external: false },
