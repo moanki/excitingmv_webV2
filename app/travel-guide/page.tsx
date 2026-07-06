@@ -11,16 +11,27 @@ const readingSerif = Cormorant_Garamond({
   variable: "--font-reading-serif"
 });
 
-export default async function TravelGuidePage() {
-  const [{ content: guide }, resorts] = await Promise.all([
+export default async function TravelGuidePage({
+  searchParams
+}: {
+  searchParams: Promise<{ article?: string | string[] }>;
+}) {
+  const [{ content: guide }, resorts, params] = await Promise.all([
     getHomepageGuide("published"),
-    listPublishedResorts()
+    listPublishedResorts(),
+    searchParams
   ]);
   const publishedGuides = guide.filter((item) => item.published && item.title);
+  const requestedSlug = typeof params.article === "string" ? params.article : undefined;
+  const initialArticleSlug = publishedGuides.some((item) => item.slug === requestedSlug) ? requestedSlug : undefined;
 
   return (
     <main className={`${readingSerif.variable} reading-room`}>
-      <TravelGuideDirectory guides={publishedGuides} resorts={resorts.slice(0, 4)} />
+      <TravelGuideDirectory
+        guides={publishedGuides}
+        resorts={resorts.slice(0, 4)}
+        initialArticleSlug={initialArticleSlug}
+      />
     </main>
   );
 }

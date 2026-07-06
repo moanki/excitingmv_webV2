@@ -38,12 +38,10 @@ function articleNumber(index: number) {
   return String(index + 1).padStart(2, "0");
 }
 
-function ReaderArticle({ guide, titleId }: { guide: HomepageGuideItem; titleId?: string }) {
+function ReaderArticle({ guide }: { guide: HomepageGuideItem }) {
   return (
     <>
-      <h2 id={titleId}>{guide.title}</h2>
-      {guide.summary ? <p className="reading-room__article-intro">{guide.summary}</p> : null}
-      {guide.mainContent && guide.mainContent !== guide.summary ? <p>{guide.mainContent}</p> : null}
+      {guide.mainContent ? <p>{guide.mainContent}</p> : null}
 
       {guide.tips.length ? (
         <aside className="reading-room__tips">
@@ -76,10 +74,18 @@ function ReaderArticle({ guide, titleId }: { guide: HomepageGuideItem; titleId?:
   );
 }
 
-export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuideItem[]; resorts: ResortSummary[] }) {
+export function TravelGuideDirectory({
+  guides,
+  resorts,
+  initialArticleSlug
+}: {
+  guides: HomepageGuideItem[];
+  resorts: ResortSummary[];
+  initialArticleSlug?: string;
+}) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
-  const [activeSlug, setActiveSlug] = useState<string>();
+  const [activeSlug, setActiveSlug] = useState(initialArticleSlug);
   const [page, setPage] = useState(0);
   const [isDesktop, setIsDesktop] = useState(false);
   const [readerOpen, setReaderOpen] = useState(false);
@@ -116,6 +122,10 @@ export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuid
   const heroTint = activeGuide
     ? categoryTints[activeGuide.category.toLowerCase()] ?? "radial-gradient(circle at 72% 32%, #315a64, transparent 62%)"
     : "radial-gradient(circle at 76% 32%, #24506b, transparent 60%)";
+  const heroImageUrl = optimizedImageUrl(
+    activeGuide?.imageUrl || guides.find((guide) => guide.imageUrl)?.imageUrl,
+    { width: 1920, height: 900, quality: 90 }
+  );
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 821px)");
@@ -126,11 +136,10 @@ export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuid
   }, []);
 
   useEffect(() => {
-    if (!isDesktop) return;
     const slug = new URLSearchParams(window.location.search).get("article");
     if (slug && guides.some((guide) => guide.slug === slug)) {
       setActiveSlug(slug);
-      setReaderOpen(true);
+      if (isDesktop) setReaderOpen(true);
     }
   }, [guides, isDesktop]);
 
@@ -194,11 +203,16 @@ export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuid
   function openArticle(slug: string, event: ReactMouseEvent<HTMLButtonElement>) {
     clearTimeout(closeTimerRef.current);
     setActiveSlug(slug);
+    setProgress(0);
+    updateArticleUrl(slug);
     if (!isDesktop) return;
     triggerRef.current = event.currentTarget;
-    setProgress(0);
     setReaderOpen(true);
-    updateArticleUrl(slug);
+  }
+
+  function closeInlineArticle() {
+    setActiveSlug(undefined);
+    updateArticleUrl();
   }
 
   function closeReader() {
@@ -227,13 +241,17 @@ export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuid
   return (
     <>
       <section className="reading-room__hero" style={{ "--reading-tint": heroTint } as CSSProperties}>
+        <div
+          className="reading-room__hero-image"
+          style={heroImageUrl ? { backgroundImage: `url(${JSON.stringify(heroImageUrl)})` } : undefined}
+        />
         <div className="reading-room__hero-tint" />
         <div className="reading-room__wrap reading-room__hero-content">
           <p>{activeGuide?.category ?? "Maldives travel guide"}</p>
           <h1>{activeGuide?.title ?? "Practical Maldives information for tourists and partners"}</h1>
           <span>
             {activeGuide
-              ? `No. ${articleNumber(activeIndex)} — ${readTime(activeGuide)} read`
+              ? activeGuide.summary || `No. ${articleNumber(activeIndex)} — ${readTime(activeGuide)} read`
               : "Arrivals, transfers, money, and resort fit — curated for those who sell it beautifully."}
           </span>
         </div>
@@ -321,7 +339,7 @@ export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuid
                 <div className="reading-room__panel-article">
                   <div className="reading-room__panel-meta">
                     <span>{activeGuide.category} · {readTime(activeGuide)} read</span>
-                    <button type="button" onClick={() => setActiveSlug(undefined)}>
+                    <button type="button" onClick={closeInlineArticle}>
                       Close <X aria-hidden="true" size={14} />
                     </button>
                   </div>
@@ -414,9 +432,21 @@ export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuid
               <span>{activeGuide.category} · {readTime(activeGuide)} read</span>
             </header>
 
+            <div
+              className="reading-room__reader-hero"
+              style={heroImageUrl ? { backgroundImage: `url(${JSON.stringify(heroImageUrl)})` } : undefined}
+            >
+              <div className="reading-room__reader-hero-overlay" />
+              <div className="reading-room__reader-hero-copy">
+                <p>{activeGuide.category}</p>
+                <h2 id="travel-guide-reader-title">{activeGuide.title}</h2>
+                {activeGuide.summary ? <span>{activeGuide.summary}</span> : null}
+              </div>
+            </div>
+
             <article className="reading-room__reader-article">
               <div>
-                <ReaderArticle guide={activeGuide} titleId="travel-guide-reader-title" />
+                <ReaderArticle guide={activeGuide} />
               </div>
 
               <nav className="reading-room__reader-nav" aria-label="Travel guide article navigation">

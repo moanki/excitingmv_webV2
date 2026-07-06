@@ -56,9 +56,13 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     || pathname.startsWith("/resorts")
     || pathname.startsWith("/hotels")
     || pathname.startsWith("/liveaboards")
-    || pathname === "/about";
+    || pathname === "/about"
+    || pathname === "/travel-guide";
   const usesHeroOverlayNav =
-    pathname === "/" || isExploreListing || /^\/(resorts|hotels|liveaboards)\/[^/]+/.test(pathname);
+    pathname === "/"
+    || pathname === "/travel-guide"
+    || isExploreListing
+    || /^\/(resorts|hotels|liveaboards)\/[^/]+/.test(pathname);
   const useLightNav = isMobile && isExploreListing ? scrolled : !usesHeroOverlayNav || scrolled;
   const navClassName = `site-nav${usesHeroOverlayNav ? " is-overlay-route" : ""}${isExploreListing ? " is-explore-listing" : ""}${hasMobileHero ? " has-mobile-hero" : ""}${useLightNav ? " is-scrolled is-light" : ""}`;
   const activeLogoUrl = isMobile
