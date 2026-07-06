@@ -120,12 +120,13 @@ export type NavbarContent = {
   ctaEnabled: boolean;
 };
 
-export type CatalogueKind = "resorts" | "hotels" | "liveaboards";
+export type CatalogueKind = "resorts" | "hotels" | "liveaboards" | "contact" | "travel-guide";
 
 export type CatalogueContent = {
   heroImageUrl: string;
   title?: string;
   body?: string;
+  eyebrow?: string;
 };
 
 export type AdminLoginContent = {
@@ -599,17 +600,32 @@ export const defaultCatalogueContent: Record<CatalogueKind, CatalogueContent> = 
   resorts: {
     heroImageUrl: "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=2200&q=92",
     title: "Discover More Than Paradise",
-    body: "From private island sanctuaries to trade-ready luxury escapes, explore curated Maldives resorts shaped for confident partner conversations."
+    body: "From private island sanctuaries to trade-ready luxury escapes, explore curated Maldives resorts shaped for confident partner conversations.",
+    eyebrow: "Our Resort Portfolio"
   },
   hotels: {
     heroImageUrl: "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?auto=format&fit=crop&w=2200&q=92",
     title: "Maldives Hotels With Island Ease",
-    body: "Browse hotels and hospitality stays selected for practical access, partner clarity, and polished Maldives itineraries."
+    body: "Browse hotels and hospitality stays selected for practical access, partner clarity, and polished Maldives itineraries.",
+    eyebrow: "Maldives Hotels"
   },
   liveaboards: {
     heroImageUrl: "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=2200&q=92",
     title: "Luxury Voyages Across The Maldives",
-    body: "A focused collection of liveaboards for diving, private charters, and ocean-led itineraries across the Maldives."
+    body: "A focused collection of liveaboards for diving, private charters, and ocean-led itineraries across the Maldives.",
+    eyebrow: "Maldives Liveaboards"
+  },
+  contact: {
+    heroImageUrl: "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=2200&q=92",
+    title: "Contact",
+    body: "Connect with our destination experts and regional teams for tailored Maldives support.",
+    eyebrow: "Partner Support"
+  },
+  "travel-guide": {
+    heroImageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2200&q=92",
+    title: "Travel Guide",
+    body: "Partner-focused destination insights, selling tips, and practical Maldives travel knowledge.",
+    eyebrow: "Destination Insights"
   }
 };
 
@@ -1400,9 +1416,20 @@ export async function getFooterContent(mode: "draft" | "published" = "published"
 export async function getCatalogueContent(kind: CatalogueKind, mode: "draft" | "published" = "published") {
   const fallback = defaultCatalogueContent[kind];
   const entry = await getSiteSettingMode(`catalogue.${kind}`, fallback, mode);
+  const saved = entry.content as CatalogueContent & {
+    bannerImageUrl?: string;
+    bannerTitle?: string;
+    bannerSubtitle?: string;
+    subtitle?: string;
+  };
   return {
     ...entry,
-    content: { ...fallback, ...entry.content }
+    content: {
+      heroImageUrl: saved.heroImageUrl?.trim() || saved.bannerImageUrl?.trim() || fallback.heroImageUrl,
+      title: saved.title?.trim() || saved.bannerTitle?.trim() || fallback.title,
+      body: saved.body?.trim() || saved.bannerSubtitle?.trim() || saved.subtitle?.trim() || fallback.body,
+      eyebrow: saved.eyebrow?.trim() || fallback.eyebrow
+    }
   };
 }
 

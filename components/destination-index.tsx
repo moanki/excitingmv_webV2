@@ -1100,7 +1100,7 @@ export function DestinationIndex({ activeKind, catalogue, items }: DestinationIn
         />
         <div className="site-container destination-hero__content">
           <div className="destination-hero__copy">
-            <p className="lux-eyebrow">{activeKind === "resort" ? "Our Resort Portfolio" : config.eyebrow}</p>
+            <p className="lux-eyebrow">{catalogue.eyebrow || config.eyebrow}</p>
             <h1>{catalogue.title || config.title}</h1>
             <span className="destination-title-rule" aria-hidden="true" />
             <p>{catalogue.body || config.body}</p>

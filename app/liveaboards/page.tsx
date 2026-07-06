@@ -14,7 +14,7 @@ export default async function LiveaboardsPage() {
       <div className="desktop-screen">
         <DestinationIndex activeKind="liveaboards" catalogue={catalogue} items={liveaboards} />
       </div>
-      <MobileDestinations activeKind="liveaboards" bannerImageUrl={catalogue.heroImageUrl} items={liveaboards} />
+      <MobileDestinations activeKind="liveaboards" catalogue={catalogue} items={liveaboards} />
     </>
   );
 }

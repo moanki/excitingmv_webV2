@@ -58,7 +58,8 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     || pathname.startsWith("/hotels")
     || pathname.startsWith("/liveaboards")
     || pathname === "/about"
-    || pathname === "/travel-guide";
+    || pathname === "/travel-guide"
+    || isContactPage;
   const usesHeroOverlayNav =
     pathname === "/"
     || pathname === "/travel-guide"

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
+import type { CatalogueContent } from "@/lib/site-content";
 import type { ResortSummary } from "@/lib/types";
 
 type DestinationKind = "resort" | "hotels" | "liveaboards";
@@ -12,7 +13,7 @@ type SortOption = "recommended" | "az";
 
 type MobileDestinationsProps = {
   activeKind: DestinationKind;
-  bannerImageUrl: string;
+  catalogue: CatalogueContent;
   items: ResortSummary[];
 };
 
@@ -62,7 +63,7 @@ function TransferIcon({ label }: { label: string }) {
   return /seaplane|airport|domestic/i.test(label) ? <Plane aria-hidden="true" /> : <Ship aria-hidden="true" />;
 }
 
-export function MobileDestinations({ activeKind, bannerImageUrl, items }: MobileDestinationsProps) {
+export function MobileDestinations({ activeKind, catalogue, items }: MobileDestinationsProps) {
   const details = kindDetails[activeKind];
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
@@ -111,13 +112,13 @@ export function MobileDestinations({ activeKind, bannerImageUrl, items }: Mobile
     <main className={`mobile-screen mobile-resorts mobile-explore-v8 mobile-explore-v8--${activeKind}`}>
       <section
         className="mobile-explore-v8__hero"
-        style={{ backgroundImage: `url(${optimizedImageUrl(bannerImageUrl, { width: 900, height: 520, quality: 88 })})` }}
+        style={{ backgroundImage: `url(${optimizedImageUrl(catalogue.heroImageUrl, { width: 900, height: 520, quality: 88 })})` }}
       >
         <div className="mobile-explore-v8__hero-shade" />
         <div className="mobile-explore-v8__hero-copy">
-          <span>{details.label}</span>
-          <h1>{details.title}</h1>
-          <p>{details.subtitle}</p>
+          <span>{catalogue.eyebrow || details.label}</span>
+          <h1>{catalogue.title || details.title}</h1>
+          <p>{catalogue.body || details.subtitle}</p>
         </div>
       </section>
 

@@ -12,7 +12,7 @@ import {
 } from "react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
-import type { HomepageGuideItem } from "@/lib/site-content";
+import type { CatalogueContent, HomepageGuideItem } from "@/lib/site-content";
 import type { ResortSummary } from "@/lib/types";
 
 const guidesPerPage = 5;
@@ -76,10 +76,12 @@ function ReaderArticle({ guide }: { guide: HomepageGuideItem }) {
 
 export function TravelGuideDirectory({
   guides,
+  catalogue,
   resorts,
   initialArticleSlug
 }: {
   guides: HomepageGuideItem[];
+  catalogue: CatalogueContent;
   resorts: ResortSummary[];
   initialArticleSlug?: string;
 }) {
@@ -123,7 +125,7 @@ export function TravelGuideDirectory({
     ? categoryTints[activeGuide.category.toLowerCase()] ?? "radial-gradient(circle at 72% 32%, #315a64, transparent 62%)"
     : "radial-gradient(circle at 76% 32%, #24506b, transparent 60%)";
   const heroImageUrl = optimizedImageUrl(
-    activeGuide?.imageUrl || guides.find((guide) => guide.imageUrl)?.imageUrl,
+    activeGuide?.imageUrl || catalogue.heroImageUrl,
     { width: 1920, height: 900, quality: 90 }
   );
 
@@ -256,14 +258,14 @@ export function TravelGuideDirectory({
           ) : (
             <>
               <div className="reading-room__hero-default">
-                <p>Maldives travel guide</p>
-                <h1>Practical Maldives information for tourists and partners</h1>
-                <span>Arrivals, transfers, money, and resort fit — curated for those who sell it beautifully.</span>
+                <p>{catalogue.eyebrow}</p>
+                <h1>{catalogue.title}</h1>
+                <span>{catalogue.body}</span>
               </div>
               <div className="reading-room__hero-desktop-default">
-                <p>Destination intelligence</p>
-                <h1>Travel Guide</h1>
-                <span>Partner-focused destination insights, selling tips, and practical Maldives travel knowledge.</span>
+                <p>{catalogue.eyebrow}</p>
+                <h1>{catalogue.title}</h1>
+                <span>{catalogue.body}</span>
               </div>
             </>
           )}

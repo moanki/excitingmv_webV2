@@ -28895,10 +28895,10 @@ html {
     max-width: 760px;
     color: #fff !important;
     font-family: var(--font-serif), Georgia, serif !important;
-    font-size: clamp(3.7rem, 5.3vw, 5.65rem) !important;
-    font-weight: 100 !important;
-    letter-spacing: -0.035em !important;
-    line-height: 0.98 !important;
+    font-size: clamp(2.75rem, 4.2vw, 3.5rem) !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.08 !important;
   }
 
   html body:not(.admin-body) .portfolio-page .portfolio-hero .destination-hero__copy p:not(.lux-eyebrow),
@@ -29565,5 +29565,77 @@ html {
 
   .admin-body .media-library-page .media-manager-grid {
     grid-template-columns: 1fr !important;
+  }
+}
+
+/* Catalogue-managed public banners. */
+.admin-body .catalogue-banner-preview {
+  display: block;
+  width: min(100%, 640px);
+  height: 160px;
+  margin-bottom: 12px;
+  border: 1px solid var(--cms-hair);
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+@media (max-width: 900px) {
+  html body:not(.admin-body) .mobile-explore-v8__hero h1,
+  html body:not(.admin-body) .reading-room__hero h1,
+  html body:not(.admin-body) .contact-registry-hero h1 {
+    max-width: 760px;
+    font-size: clamp(2.25rem, 5vw, 2.75rem) !important;
+    font-weight: 500 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.1 !important;
+  }
+
+  html body:not(.admin-body) .contact-registry-hero {
+    position: relative;
+    display: flex;
+    min-height: clamp(360px, 50vh, 480px);
+    align-items: flex-end;
+    overflow: hidden;
+    padding: 112px 0 48px !important;
+    background: #0c1a2b !important;
+  }
+
+  html body:not(.admin-body) .contact-registry-hero__image,
+  html body:not(.admin-body) .contact-registry-hero__overlay {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  html body:not(.admin-body) .contact-registry-hero__image {
+    background-position: center;
+    background-size: cover;
+  }
+
+  html body:not(.admin-body) .contact-registry-hero__overlay {
+    background: linear-gradient(180deg, rgb(5 14 24 / 30%), rgb(5 14 24 / 72%));
+  }
+
+  html body:not(.admin-body) .contact-registry-hero .lux-container {
+    position: relative;
+    z-index: 1;
+  }
+
+  html body:not(.admin-body) .contact-registry-hero h1,
+  html body:not(.admin-body) .contact-registry-hero p:not(.lux-eyebrow) {
+    color: #fff !important;
+  }
+
+  html body:not(.admin-body) .site-nav.is-contact-route:not(.is-scrolled) {
+    border-bottom-color: transparent !important;
+    background: transparent !important;
+  }
+}
+
+@media (max-width: 520px) {
+  html body:not(.admin-body) .mobile-explore-v8__hero h1,
+  html body:not(.admin-body) .reading-room__hero h1,
+  html body:not(.admin-body) .contact-registry-hero h1 {
+    font-size: clamp(1.875rem, 8vw, 2.25rem) !important;
   }
 }

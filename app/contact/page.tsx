@@ -22,7 +22,7 @@ function initials(value: string) {
 export default async function ContactPage() {
   const [{ content }, { content: catalogue }] = await Promise.all([
     getContactPageContent("published"),
-    getCatalogueContent("resorts")
+    getCatalogueContent("contact")
   ]);
   const regions = content.regions.filter((region) => region.enabled);
   const heroImageUrl = optimizedImageUrl(catalogue.heroImageUrl, { width: 2200, height: 1100, quality: 92 });
@@ -37,9 +37,9 @@ export default async function ContactPage() {
         />
         <div className="contact-registry-hero__overlay" aria-hidden="true" />
         <div className="lux-container">
-          <p className="lux-eyebrow">Contact</p>
-          <h1>{content.title}</h1>
-          <p>{content.subtitle}</p>
+          <p className="lux-eyebrow">{catalogue.eyebrow || "Partner Support"}</p>
+          <h1>{catalogue.title || content.title}</h1>
+          <p>{catalogue.body || content.subtitle}</p>
         </div>
       </section>
 

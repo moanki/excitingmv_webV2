@@ -2,7 +2,7 @@ import { Cormorant_Garamond } from "next/font/google";
 
 import { TravelGuideDirectory } from "@/components/travel-guide-directory";
 import { listPublishedResorts } from "@/lib/services/resort-service";
-import { getHomepageGuide } from "@/lib/site-content";
+import { getCatalogueContent, getHomepageGuide } from "@/lib/site-content";
 
 const readingSerif = Cormorant_Garamond({
   subsets: ["latin"],
@@ -16,8 +16,9 @@ export default async function TravelGuidePage({
 }: {
   searchParams: Promise<{ article?: string | string[] }>;
 }) {
-  const [{ content: guide }, resorts, params] = await Promise.all([
+  const [{ content: guide }, { content: catalogue }, resorts, params] = await Promise.all([
     getHomepageGuide("published"),
+    getCatalogueContent("travel-guide"),
     listPublishedResorts(),
     searchParams
   ]);
@@ -29,6 +30,7 @@ export default async function TravelGuidePage({
     <main className={`${readingSerif.variable} reading-room`}>
       <TravelGuideDirectory
         guides={publishedGuides}
+        catalogue={catalogue}
         resorts={resorts.slice(0, 4)}
         initialArticleSlug={initialArticleSlug}
       />
