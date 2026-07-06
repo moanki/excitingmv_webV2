@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
-import type { CatalogueContent } from "@/lib/site-content";
 import type { ResortSummary } from "@/lib/types";
 
 type DestinationKind = "resort" | "hotels" | "liveaboards";
@@ -13,7 +12,6 @@ type SortOption = "recommended" | "az";
 
 type MobileDestinationsProps = {
   activeKind: DestinationKind;
-  catalogue: CatalogueContent;
   items: ResortSummary[];
 };
 
@@ -21,30 +19,22 @@ const kindDetails = {
   resort: {
     label: "Resorts",
     singular: "resort",
-    path: "/resorts",
-    title: "Discover More Than Paradise",
-    subtitle: "Curated for confident partner conversations."
+    path: "/resorts"
   },
   hotels: {
     label: "Hotels",
     singular: "hotel",
-    path: "/hotels",
-    title: "City & Island Hotels",
-    subtitle: "Carefully selected hotel partners across the Maldives."
+    path: "/hotels"
   },
   liveaboards: {
     label: "Liveaboards",
     singular: "liveaboard",
-    path: "/liveaboards",
-    title: "Liveaboard Charters",
-    subtitle: "Exclusive voyages across the Maldivian archipelago."
+    path: "/liveaboards"
   }
 } satisfies Record<DestinationKind, {
   label: string;
   singular: string;
   path: string;
-  title: string;
-  subtitle: string;
 }>;
 
 const tabOrder: DestinationKind[] = ["resort", "hotels", "liveaboards"];
@@ -63,7 +53,7 @@ function TransferIcon({ label }: { label: string }) {
   return /seaplane|airport|domestic/i.test(label) ? <Plane aria-hidden="true" /> : <Ship aria-hidden="true" />;
 }
 
-export function MobileDestinations({ activeKind, catalogue, items }: MobileDestinationsProps) {
+export function MobileDestinations({ activeKind, items }: MobileDestinationsProps) {
   const details = kindDetails[activeKind];
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
@@ -110,18 +100,6 @@ export function MobileDestinations({ activeKind, catalogue, items }: MobileDesti
 
   return (
     <main className={`mobile-screen mobile-resorts mobile-explore-v8 mobile-explore-v8--${activeKind}`}>
-      <section
-        className="mobile-explore-v8__hero"
-        style={{ backgroundImage: `url(${optimizedImageUrl(catalogue.heroImageUrl, { width: 900, height: 520, quality: 88 })})` }}
-      >
-        <div className="mobile-explore-v8__hero-shade" />
-        <div className="mobile-explore-v8__hero-copy">
-          <span>{catalogue.eyebrow || details.label}</span>
-          <h1>{catalogue.title || details.title}</h1>
-          <p>{catalogue.body || details.subtitle}</p>
-        </div>
-      </section>
-
       <nav className="mobile-explore-v8__tabs" aria-label="Destination categories">
         {tabOrder.map((kind) => {
           const tab = kindDetails[kind];

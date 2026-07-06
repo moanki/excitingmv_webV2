@@ -1,3 +1,4 @@
+import { CatalogueBanner } from "@/components/catalogue-banner";
 import { DestinationIndex } from "@/components/destination-index";
 import { MobileDestinations } from "@/components/mobile-destinations";
 import { listPublishedProperties } from "@/lib/services/resort-service";
@@ -11,10 +12,11 @@ export default async function HotelsPage() {
 
   return (
     <>
+      <CatalogueBanner activeKind="hotels" catalogue={catalogue} />
       <div className="desktop-screen">
-        <DestinationIndex activeKind="hotels" catalogue={catalogue} items={hotels} />
+        <DestinationIndex activeKind="hotels" items={hotels} />
       </div>
-      <MobileDestinations activeKind="hotels" catalogue={catalogue} items={hotels} />
+      <MobileDestinations activeKind="hotels" items={hotels} />
     </>
   );
 }

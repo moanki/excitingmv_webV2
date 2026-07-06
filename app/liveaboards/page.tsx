@@ -1,3 +1,4 @@
+import { CatalogueBanner } from "@/components/catalogue-banner";
 import { DestinationIndex } from "@/components/destination-index";
 import { MobileDestinations } from "@/components/mobile-destinations";
 import { listPublishedProperties } from "@/lib/services/resort-service";
@@ -11,10 +12,11 @@ export default async function LiveaboardsPage() {
 
   return (
     <>
+      <CatalogueBanner activeKind="liveaboards" catalogue={catalogue} />
       <div className="desktop-screen">
-        <DestinationIndex activeKind="liveaboards" catalogue={catalogue} items={liveaboards} />
+        <DestinationIndex activeKind="liveaboards" items={liveaboards} />
       </div>
-      <MobileDestinations activeKind="liveaboards" catalogue={catalogue} items={liveaboards} />
+      <MobileDestinations activeKind="liveaboards" items={liveaboards} />
     </>
   );
 }
