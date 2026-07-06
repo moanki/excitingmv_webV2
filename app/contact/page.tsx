@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Mail, MessageCircle } from "lucide-react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
 import { getCatalogueContent, getContactPageContent } from "@/lib/site-content";
@@ -68,9 +69,13 @@ export default async function ContactPage() {
                   </div>
                 </div>
                 <div className="contact-registry-entry__links">
-                  <a href={`mailto:${region.email}`}>{region.email}</a>
+                  <a href={`mailto:${region.email}`}>
+                    <Mail className="contact-registry-entry__link-icon" aria-hidden="true" />
+                    <span>{region.email}</span>
+                  </a>
                   <a href={whatsappHref(region.whatsapp)} target="_blank" rel="noreferrer">
-                    {region.whatsapp} WhatsApp
+                    <MessageCircle className="contact-registry-entry__link-icon" aria-hidden="true" />
+                    <span>{region.whatsapp} WhatsApp</span>
                   </a>
                 </div>
               </article>
