@@ -28391,7 +28391,9 @@ html {
   .reading-room__reader-backdrop {
     position: absolute;
     inset: 0;
-    background: rgb(8 18 28 / 48%);
+    background: rgb(8 20 30 / 28%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     opacity: 0;
     transition: opacity 280ms ease;
   }
