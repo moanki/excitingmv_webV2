@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, Search, X } from "lucide-react";
-import { useMemo, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent
+} from "react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
 import type { HomepageGuideItem } from "@/lib/site-content";
@@ -31,11 +38,56 @@ function articleNumber(index: number) {
   return String(index + 1).padStart(2, "0");
 }
 
+function ReaderArticle({ guide, titleId }: { guide: HomepageGuideItem; titleId?: string }) {
+  return (
+    <>
+      <h2 id={titleId}>{guide.title}</h2>
+      {guide.summary ? <p className="reading-room__article-intro">{guide.summary}</p> : null}
+      {guide.mainContent && guide.mainContent !== guide.summary ? <p>{guide.mainContent}</p> : null}
+
+      {guide.tips.length ? (
+        <aside className="reading-room__tips">
+          <h3>Tips</h3>
+          <ul>
+            {guide.tips.map((tip) => <li key={tip}>{tip}</li>)}
+          </ul>
+        </aside>
+      ) : null}
+
+      {guide.sections.map((section) => (
+        <section key={section.heading}>
+          <h3>{section.heading}</h3>
+          <p>{section.body}</p>
+        </section>
+      ))}
+
+      {guide.faq.length ? (
+        <section className="reading-room__faq">
+          <h3>FAQ</h3>
+          {guide.faq.map((item) => (
+            <details key={item.question}>
+              <summary><ChevronDown aria-hidden="true" size={15} />{item.question}</summary>
+              <p>{item.answer}</p>
+            </details>
+          ))}
+        </section>
+      ) : null}
+    </>
+  );
+}
+
 export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuideItem[]; resorts: ResortSummary[] }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [activeSlug, setActiveSlug] = useState<string>();
   const [page, setPage] = useState(0);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [readerOpen, setReaderOpen] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const readerRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const categories = useMemo(() => {
     const available = Array.from(new Set(guides.map((guide) => guide.category).filter(Boolean)));
@@ -65,6 +117,63 @@ export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuid
     ? categoryTints[activeGuide.category.toLowerCase()] ?? "radial-gradient(circle at 72% 32%, #315a64, transparent 62%)"
     : "radial-gradient(circle at 76% 32%, #24506b, transparent 60%)";
 
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 821px)");
+    const update = () => setIsDesktop(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
+    if (!isDesktop) return;
+    const slug = new URLSearchParams(window.location.search).get("article");
+    if (slug && guides.some((guide) => guide.slug === slug)) {
+      setActiveSlug(slug);
+      setReaderOpen(true);
+    }
+  }, [guides, isDesktop]);
+
+  useEffect(() => {
+    if (!isDesktop || !readerOpen || !activeGuide) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeReader();
+        return;
+      }
+      if (event.key !== "Tab" || !readerRef.current) return;
+
+      const focusable = Array.from(
+        readerRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], details summary, [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [activeGuide, isDesktop, readerOpen]);
+
+  useEffect(() => () => clearTimeout(closeTimerRef.current), []);
+
   function chooseCategory(nextCategory: string) {
     setCategory(nextCategory);
     setPage(0);
@@ -73,6 +182,46 @@ export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuid
   function updateQuery(value: string) {
     setQuery(value);
     setPage(0);
+  }
+
+  function updateArticleUrl(slug?: string) {
+    const url = new URL(window.location.href);
+    if (slug) url.searchParams.set("article", slug);
+    else url.searchParams.delete("article");
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }
+
+  function openArticle(slug: string, event: ReactMouseEvent<HTMLButtonElement>) {
+    clearTimeout(closeTimerRef.current);
+    setActiveSlug(slug);
+    if (!isDesktop) return;
+    triggerRef.current = event.currentTarget;
+    setProgress(0);
+    setReaderOpen(true);
+    updateArticleUrl(slug);
+  }
+
+  function closeReader() {
+    setReaderOpen(false);
+    updateArticleUrl();
+    closeTimerRef.current = setTimeout(() => {
+      setActiveSlug(undefined);
+      triggerRef.current?.focus();
+    }, 280);
+  }
+
+  function selectReaderArticle(slug: string) {
+    setActiveSlug(slug);
+    setProgress(0);
+    readerRef.current?.scrollTo({ top: 0 });
+    updateArticleUrl(slug);
+  }
+
+  function updateProgress() {
+    const reader = readerRef.current;
+    if (!reader) return;
+    const available = reader.scrollHeight - reader.clientHeight;
+    setProgress(available > 0 ? (reader.scrollTop / available) * 100 : 100);
   }
 
   return (
@@ -128,7 +277,7 @@ export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuid
                         type="button"
                         className={isActive ? "reading-room__row is-active" : "reading-room__row"}
                         aria-pressed={isActive}
-                        onClick={() => setActiveSlug(guide.slug)}
+                        onClick={(event) => openArticle(guide.slug, event)}
                         key={guide.slug}
                       >
                         <span className="reading-room__number">No. {articleNumber(guideIndex)}</span>
@@ -169,7 +318,7 @@ export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuid
 
             <article className="reading-room__panel">
               {activeGuide ? (
-                <>
+                <div className="reading-room__panel-article">
                   <div className="reading-room__panel-meta">
                     <span>{activeGuide.category} · {readTime(activeGuide)} read</span>
                     <button type="button" onClick={() => setActiveSlug(undefined)}>
@@ -206,7 +355,7 @@ export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuid
                       ))}
                     </section>
                   ) : null}
-                </>
+                </div>
               ) : (
                 <div className="reading-room__empty">
                   <span><BookOpen aria-hidden="true" size={23} /></span>
@@ -241,6 +390,53 @@ export function TravelGuideDirectory({ guides, resorts }: { guides: HomepageGuid
           ) : null}
         </div>
       </section>
+
+      {isDesktop && activeGuide ? (
+        <div
+          className={readerOpen ? "reading-room__reader is-open" : "reading-room__reader"}
+        >
+          <div className="reading-room__reader-backdrop" aria-hidden="true" onMouseDown={closeReader} />
+          <div
+            className="reading-room__reader-shell"
+            ref={readerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="travel-guide-reader-title"
+            onScroll={updateProgress}
+          >
+            <div className="reading-room__reader-progress" aria-hidden="true">
+              <span style={{ width: `${progress}%` }} />
+            </div>
+            <header className="reading-room__reader-header">
+              <button ref={closeRef} type="button" onClick={closeReader} aria-label="Close article and return to guides">
+                <ArrowLeft aria-hidden="true" size={17} /> Back to guides
+              </button>
+              <span>{activeGuide.category} · {readTime(activeGuide)} read</span>
+            </header>
+
+            <article className="reading-room__reader-article">
+              <div>
+                <ReaderArticle guide={activeGuide} titleId="travel-guide-reader-title" />
+              </div>
+
+              <nav className="reading-room__reader-nav" aria-label="Travel guide article navigation">
+                {activeIndex > 0 ? (
+                  <button type="button" onClick={() => selectReaderArticle(guides[activeIndex - 1].slug)}>
+                    <ArrowLeft aria-hidden="true" size={16} />
+                    <span><small>Previous</small>{guides[activeIndex - 1].title}</span>
+                  </button>
+                ) : <span />}
+                {activeIndex < guides.length - 1 ? (
+                  <button type="button" onClick={() => selectReaderArticle(guides[activeIndex + 1].slug)}>
+                    <span><small>Next</small>{guides[activeIndex + 1].title}</span>
+                    <ArrowRight aria-hidden="true" size={16} />
+                  </button>
+                ) : null}
+              </nav>
+            </article>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

@@ -28273,7 +28273,7 @@ html {
   text-transform: uppercase;
 }
 
-.reading-room__panel > h2,
+.reading-room__panel-article > h2,
 .reading-room__empty h2,
 .reading-room__panel h3,
 .reading-room__properties h2,
@@ -28281,14 +28281,14 @@ html {
   font-family: var(--font-reading-serif), var(--font-serif), serif;
 }
 
-.reading-room__panel > h2 {
+.reading-room__panel-article > h2 {
   margin: 12px 0 0;
   font-size: 32px;
   font-weight: 500;
   line-height: 1.18;
 }
 
-.reading-room__panel > p,
+.reading-room__panel-article > p,
 .reading-room__panel section > p {
   margin: 22px 0 0;
   color: #6a675f;
@@ -28348,6 +28348,250 @@ html {
   font-size: 11.5px;
   font-weight: 300;
   line-height: 1.85;
+}
+
+.reading-room__reader {
+  display: none;
+}
+
+@media (min-width: 821px) {
+  .reading-room__panel-article {
+    display: none;
+  }
+
+  .reading-room__reader {
+    position: fixed;
+    z-index: 1200;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+  }
+
+  .reading-room__reader.is-open {
+    pointer-events: auto;
+  }
+
+  .reading-room__reader-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgb(8 18 28 / 48%);
+    opacity: 0;
+    transition: opacity 280ms ease;
+  }
+
+  .reading-room__reader.is-open .reading-room__reader-backdrop {
+    opacity: 1;
+  }
+
+  .reading-room__reader-shell {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: min(1080px, 86vw);
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: #fbfaf6;
+    box-shadow: -24px 0 70px rgb(4 12 20 / 20%);
+    transform: translateX(100%);
+    transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .reading-room__reader.is-open .reading-room__reader-shell {
+    transform: translateX(0);
+  }
+
+  .reading-room__reader-progress {
+    position: sticky;
+    z-index: 4;
+    top: 0;
+    height: 2px;
+    background: #ebe7dd;
+  }
+
+  .reading-room__reader-progress span {
+    display: block;
+    height: 100%;
+    background: #b99850;
+    transition: width 80ms linear;
+  }
+
+  .reading-room__reader-header {
+    position: sticky;
+    z-index: 3;
+    top: 2px;
+    display: flex;
+    min-height: 64px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 0 clamp(32px, 6vw, 88px);
+    border-bottom: 1px solid rgb(218 213 202 / 72%);
+    background: rgb(251 250 246 / 94%);
+    backdrop-filter: blur(14px);
+  }
+
+  .reading-room__reader-header button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    border: 0;
+    background: transparent;
+    color: #292822;
+    cursor: pointer;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .reading-room__reader-header > span {
+    color: #0f6e56;
+    font-size: 9px;
+    letter-spacing: 0.17em;
+    text-transform: uppercase;
+  }
+
+  .reading-room__reader-article {
+    width: min(100%, 820px);
+    margin: 0 auto;
+    padding: clamp(58px, 8vh, 92px) 30px 72px;
+  }
+
+  .reading-room__reader-article h2,
+  .reading-room__reader-article h3 {
+    font-family: var(--font-reading-serif), var(--font-serif), serif;
+    color: #1a1a18;
+  }
+
+  .reading-room__reader-article h2 {
+    max-width: 730px;
+    margin: 0;
+    font-size: clamp(48px, 5vw, 68px);
+    font-weight: 500;
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+  }
+
+  .reading-room__reader-article h3 {
+    margin: 52px 0 0;
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .reading-room__reader-article p,
+  .reading-room__reader-article li {
+    color: #57544d;
+    font-size: 17px;
+    font-weight: 300;
+    line-height: 1.9;
+  }
+
+  .reading-room__reader-article p {
+    margin: 28px 0 0;
+  }
+
+  .reading-room__reader-article .reading-room__article-intro {
+    margin-top: 30px;
+    color: #333129;
+    font-family: var(--font-reading-serif), var(--font-serif), serif;
+    font-size: 24px;
+    font-style: italic;
+    line-height: 1.55;
+  }
+
+  .reading-room__reader-article .reading-room__tips {
+    margin: 42px 0 4px;
+    padding: 28px 32px;
+    border-left: 2px solid #b99850;
+    background: #f1eee6;
+  }
+
+  .reading-room__reader-article .reading-room__tips h3 {
+    margin: 0 0 10px;
+    font-size: 22px;
+  }
+
+  .reading-room__reader-article .reading-room__tips ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  .reading-room__reader-article .reading-room__faq {
+    margin-top: 58px;
+  }
+
+  .reading-room__reader-article .reading-room__faq > h3 {
+    margin-top: 0;
+  }
+
+  .reading-room__reader-article .reading-room__faq details {
+    margin: 0;
+    padding: 22px 0;
+    border-top: 1px solid #e2ded4;
+  }
+
+  .reading-room__reader-article .reading-room__faq details:last-child {
+    border-bottom: 1px solid #e2ded4;
+  }
+
+  .reading-room__reader-article .reading-room__faq summary {
+    font-size: 15px;
+  }
+
+  .reading-room__reader-article .reading-room__faq details p {
+    margin-top: 14px;
+    padding-left: 23px;
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  .reading-room__reader-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+    margin-top: 72px;
+    padding-top: 30px;
+    border-top: 1px solid #ddd8cc;
+  }
+
+  .reading-room__reader-nav button {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 12px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #292822;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .reading-room__reader-nav button:last-child {
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .reading-room__reader-nav button span {
+    overflow: hidden;
+    font-family: var(--font-reading-serif), var(--font-serif), serif;
+    font-size: 17px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .reading-room__reader-nav small {
+    display: block;
+    margin-bottom: 5px;
+    color: #999386;
+    font-family: var(--font-sans), Inter, sans-serif;
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
 }
 
 .reading-room__empty {
@@ -28557,7 +28801,7 @@ html {
     font-size: 20px;
   }
 
-  .reading-room__panel > h2 {
+  .reading-room__panel-article > h2 {
     font-size: 29px;
   }
 
