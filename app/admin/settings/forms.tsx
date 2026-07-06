@@ -1891,6 +1891,7 @@ export function HomepageGuideForm({
               accept="image/png,image/jpeg,image/webp,image/svg+xml"
               value={item.imageUrl}
               library={mediaLibrary}
+              folder="media-library/travel-guide"
             />
             <label className="field">
               Featured Image Alt Text

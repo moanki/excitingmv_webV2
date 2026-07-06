@@ -176,10 +176,11 @@ function uploadRequest<T>(
   });
 }
 
-async function postThroughMediaRoute(file: File, folder: string, onProgress?: (progress: number) => void) {
+async function postThroughMediaRoute(file: File, folder: string, originalName: string, onProgress?: (progress: number) => void) {
   const formData = new FormData();
   formData.set("mode", "upload-media");
   formData.set("folder", folder);
+  formData.set("originalName", originalName);
   formData.set("mediaFile", file);
 
   const { status, payload } = await uploadRequest<{
@@ -198,13 +199,14 @@ async function postThroughMediaRoute(file: File, folder: string, onProgress?: (p
   return payload.data.publicUrl;
 }
 
-async function uploadWithSignedUrl(file: File, folder: string, onProgress?: (progress: number) => void) {
+async function uploadWithSignedUrl(file: File, folder: string, originalName: string, onProgress?: (progress: number) => void) {
   const signedResponse = await fetch("/api/admin/media", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       mode: "create-upload-url",
       filename: file.name,
+      originalName,
       contentType: file.type || "application/octet-stream",
       folder
     })
@@ -220,6 +222,7 @@ async function uploadWithSignedUrl(file: File, folder: string, onProgress?: (pro
           signedUrl: string;
           publicUrl: string;
           contentType: string;
+          metadata: { originalName: string; category: string };
         };
       }
     | null;
@@ -230,6 +233,7 @@ async function uploadWithSignedUrl(file: File, folder: string, onProgress?: (pro
 
   const uploadBody = new FormData();
   uploadBody.append("cacheControl", "31536000");
+  uploadBody.append("metadata", JSON.stringify(signedPayload.data.metadata));
   uploadBody.append("", file);
   const uploaded = await uploadRequest<{ error?: string; message?: string }>(
     signedPayload.data.signedUrl,
@@ -289,7 +293,7 @@ export async function uploadAdminMediaFile(
   if (uploadFile.size <= API_UPLOAD_SOFT_LIMIT) {
     try {
       options.onStatus?.("uploading", compressed ? "Uploading optimized image..." : "Uploading media...");
-      const publicUrl = await postThroughMediaRoute(uploadFile, folder, options.onProgress);
+      const publicUrl = await postThroughMediaRoute(uploadFile, folder, file.name, options.onProgress);
       return { publicUrl, compressed, direct: false };
     } catch (error) {
       if (!(error instanceof Error) || !/large|413|payload/i.test(error.message)) {
@@ -300,6 +304,6 @@ export async function uploadAdminMediaFile(
 
   options.onStatus?.("preparing", "Preparing direct storage upload...");
   options.onStatus?.("uploading", "Uploading media directly to storage...");
-  const publicUrl = await uploadWithSignedUrl(uploadFile, folder, options.onProgress);
+  const publicUrl = await uploadWithSignedUrl(uploadFile, folder, file.name, options.onProgress);
   return { publicUrl, compressed, direct: true };
 }

@@ -267,12 +267,14 @@ function RoomTypeEditor({
   rooms,
   setRooms,
   mediaLibrary,
-  propertyLabel
+  propertyLabel,
+  mediaFolder
 }: {
   rooms: EditableRoom[];
   setRooms: React.Dispatch<React.SetStateAction<EditableRoom[]>>;
   mediaLibrary: MediaLibraryItem[];
   propertyLabel: string;
+  mediaFolder: string;
 }) {
   const [expandedRoomIndex, setExpandedRoomIndex] = useState<number | null>(rooms.length ? 0 : null);
 
@@ -454,6 +456,7 @@ function RoomTypeEditor({
                       accept="image/png,image/jpeg,image/webp"
                       value={room.photoUrl}
                       library={mediaLibrary}
+                      folder={mediaFolder}
                       helper="This room photo appears on the public room card."
                       onChange={(url) => updateRoom(index, { photoUrl: url })}
                     />
@@ -764,7 +767,13 @@ export function ResortEditor({
         </section>
 
         <div className={activeEditorTab !== "rooms" ? "is-editor-tab-hidden" : ""}>
-          <RoomTypeEditor rooms={rooms} setRooms={setRooms} mediaLibrary={mediaLibrary} propertyLabel={labels.singular} />
+          <RoomTypeEditor
+            rooms={rooms}
+            setRooms={setRooms}
+            mediaLibrary={mediaLibrary}
+            propertyLabel={labels.singular}
+            mediaFolder={`media-library/${propertyType === "resort" ? "resorts" : propertyType}`}
+          />
         </div>
 
         <section className={`admin-form-section${activeEditorTab !== "media" ? " is-editor-tab-hidden" : ""}`} id="media">
@@ -783,6 +792,7 @@ export function ResortEditor({
             accept="image/png,image/jpeg,image/webp"
             value={heroImageUrl}
             library={mediaLibrary}
+            folder={`media-library/${propertyType === "resort" ? "resorts" : propertyType}`}
             helper={`Primary hero image for the ${labels.singular.toLowerCase()} listing, homepage feature, and property page.`}
             onChange={setHeroImageUrl}
           />

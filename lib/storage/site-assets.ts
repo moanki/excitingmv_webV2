@@ -91,9 +91,55 @@ const SITE_ASSET_PREFIXES = [
   "site/award",
   "admin/login",
   "media-library",
+  "media-library/general",
+  "media-library/resorts",
+  "media-library/hotels",
+  "media-library/liveaboards",
+  "media-library/travel-guide",
+  "media-library/documents",
+  "media-library/files",
   "imports",
-  "resorts"
+  "resorts",
+  "hotels",
+  "liveaboards"
 ];
+
+const SITE_ASSET_CATEGORIES = ["general", "resorts", "hotels", "liveaboards", "travel-guide", "documents", "files"] as const;
+export type SiteAssetCategory = (typeof SITE_ASSET_CATEGORIES)[number];
+
+export type SiteAssetListItem = {
+  name: string;
+  storedName: string;
+  url: string;
+  type: "image" | "video" | "file";
+  category: SiteAssetCategory;
+  contentType: string;
+  size: number | null;
+  createdAt: string;
+};
+
+function siteAssetCategory(path: string): SiteAssetCategory {
+  const normalized = path.toLowerCase();
+  const mediaCategory = normalized.match(/^media-library\/(general|resorts|hotels|liveaboards|travel-guide|documents|files)(?:\/|$)/)?.[1];
+  if (mediaCategory && SITE_ASSET_CATEGORIES.includes(mediaCategory as SiteAssetCategory)) return mediaCategory as SiteAssetCategory;
+  if (normalized.startsWith("homepage/guide")) return "travel-guide";
+  if (normalized.startsWith("liveaboards")) return "liveaboards";
+  if (normalized.startsWith("hotels")) return "hotels";
+  if (normalized.startsWith("resorts")) return "resorts";
+  return "general";
+}
+
+function storedOriginalName(metadata: Record<string, unknown> | null) {
+  const candidates = [
+    metadata?.originalName,
+    metadata?.original_name,
+    metadata?.originalFilename,
+    metadata?.original_filename,
+    metadata?.displayName,
+    metadata?.display_name
+  ];
+  return candidates.find((value): value is string => typeof value === "string" && Boolean(value.trim()))?.trim() || "";
+}
 
 function slugSegment(value: string) {
   return value
@@ -260,7 +306,12 @@ async function ensureBucket() {
   return supabase;
 }
 
-export async function uploadSiteAsset(file: File, folder: string, usage: SiteAssetUsage = "full") {
+export async function uploadSiteAsset(
+  file: File,
+  folder: string,
+  usage: SiteAssetUsage = "full",
+  metadata: { originalName?: string } = {}
+) {
   await requireAdminRole(["super_admin", "admin", "content_manager"]);
   validateSiteAssetFile(file);
 
@@ -273,6 +324,8 @@ export async function uploadSiteAsset(file: File, folder: string, usage: SiteAss
   }
   const shouldOptimize = isOptimizableImage(file);
   const assetId = `${Date.now()}-${crypto.randomUUID()}`;
+  const originalName = metadata.originalName?.trim() || file.name;
+  const category = siteAssetCategory(safeFolder);
   let body: Buffer | File = file;
   let contentType = file.type || undefined;
   let extension = fileExtension(file);
@@ -300,6 +353,7 @@ export async function uploadSiteAsset(file: File, folder: string, usage: SiteAss
   const uploaded = await supabase.storage.from(SITE_ASSET_BUCKET).upload(path, body, {
     cacheControl: "31536000",
     contentType,
+    metadata: { originalName, category },
     upsert: true
   });
 
@@ -321,6 +375,7 @@ export async function uploadSiteAsset(file: File, folder: string, usage: SiteAss
         const variantUpload = await supabase.storage.from(SITE_ASSET_BUCKET).upload(variantPath, variantBody, {
           cacheControl: "31536000",
           contentType: "image/webp",
+          metadata: { originalName, category, variant },
           upsert: true
         });
 
@@ -345,7 +400,7 @@ export async function uploadSiteAsset(file: File, folder: string, usage: SiteAss
   return publicUrl.data.publicUrl;
 }
 
-export async function createSignedSiteAssetUpload(filename: string, contentType: string, folder: string) {
+export async function createSignedSiteAssetUpload(filename: string, contentType: string, folder: string, originalName = filename) {
   await requireAdminRole(["super_admin", "admin", "content_manager"]);
   validateSiteAssetType(filename, contentType);
   const supabase = await ensureBucket();
@@ -353,6 +408,7 @@ export async function createSignedSiteAssetUpload(filename: string, contentType:
   const extension = fileExtension({ name: filename, type: contentType } as File);
   const assetId = `${Date.now()}-${crypto.randomUUID()}`;
   const path = `${safeFolder}/${assetId}.${extension}`;
+  const category = siteAssetCategory(safeFolder);
   const signed = await supabase.storage.from(SITE_ASSET_BUCKET).createSignedUploadUrl(path, {
     upsert: true
   });
@@ -369,7 +425,8 @@ export async function createSignedSiteAssetUpload(filename: string, contentType:
     token: signed.data.token,
     signedUrl: signed.data.signedUrl,
     publicUrl: publicUrl.data.publicUrl,
-    contentType
+    contentType,
+    metadata: { originalName: originalName.trim() || filename, category }
   };
 }
 
@@ -477,17 +534,19 @@ export async function compressExistingSiteImages() {
   };
 }
 
-function fileType(path: string) {
+function fileType(path: string, contentType = "") {
+  if (contentType.startsWith("video/")) return "video" as const;
+  if (contentType.startsWith("image/")) return "image" as const;
   const lower = path.toLowerCase();
   if (/\.(mp4|webm|mov)$/.test(lower)) return "video" as const;
   if (/\.(png|jpg|jpeg|webp|svg|gif|avif)$/.test(lower)) return "image" as const;
   return "file" as const;
 }
 
-export async function listSiteAssets({ limitPerPrefix = 24 }: { limitPerPrefix?: number } = {}) {
+export async function listSiteAssets({ limitPerPrefix = 100 }: { limitPerPrefix?: number } = {}) {
   try {
     const supabase = await ensureBucket();
-    const items: { name: string; url: string; type: "image" | "video" | "file" }[] = [];
+    const items: SiteAssetListItem[] = [];
 
     for (const prefix of SITE_ASSET_PREFIXES) {
       const { data, error } = await supabase.storage.from(SITE_ASSET_BUCKET).list(prefix, {
@@ -506,15 +565,27 @@ export async function listSiteAssets({ limitPerPrefix = 24 }: { limitPerPrefix?:
 
         const path = `${prefix}/${entry.name}`;
         const publicUrl = supabase.storage.from(SITE_ASSET_BUCKET).getPublicUrl(path);
+        const metadata = entry.metadata as Record<string, unknown> | null;
+        const originalName = storedOriginalName(metadata);
+        const storedCategory = typeof metadata?.category === "string" ? metadata.category : "";
+        const category = SITE_ASSET_CATEGORIES.includes(storedCategory as SiteAssetCategory)
+          ? storedCategory as SiteAssetCategory
+          : siteAssetCategory(path);
+        const contentType = typeof metadata?.mimetype === "string" ? metadata.mimetype : "";
         items.push({
-          name: entry.name,
+          name: originalName || entry.name || "Untitled media",
+          storedName: entry.name,
           url: publicUrl.data.publicUrl,
-          type: fileType(path)
+          type: fileType(path, contentType),
+          category,
+          contentType,
+          size: typeof metadata?.size === "number" ? metadata.size : null,
+          createdAt: entry.created_at || ""
         });
       }
     }
 
-    return items;
+    return items.sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   } catch {
     return [];
   }
