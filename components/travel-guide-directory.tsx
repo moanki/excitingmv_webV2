@@ -247,13 +247,26 @@ export function TravelGuideDirectory({
         />
         <div className="reading-room__hero-tint" />
         <div className="reading-room__wrap reading-room__hero-content">
-          <p>{activeGuide?.category ?? "Maldives travel guide"}</p>
-          <h1>{activeGuide?.title ?? "Practical Maldives information for tourists and partners"}</h1>
-          <span>
-            {activeGuide
-              ? activeGuide.summary || `No. ${articleNumber(activeIndex)} — ${readTime(activeGuide)} read`
-              : "Arrivals, transfers, money, and resort fit — curated for those who sell it beautifully."}
-          </span>
+          {activeGuide ? (
+            <div>
+              <p>{activeGuide.category}</p>
+              <h1>{activeGuide.title}</h1>
+              <span>{activeGuide.summary || `No. ${articleNumber(activeIndex)} — ${readTime(activeGuide)} read`}</span>
+            </div>
+          ) : (
+            <>
+              <div className="reading-room__hero-default">
+                <p>Maldives travel guide</p>
+                <h1>Practical Maldives information for tourists and partners</h1>
+                <span>Arrivals, transfers, money, and resort fit — curated for those who sell it beautifully.</span>
+              </div>
+              <div className="reading-room__hero-desktop-default">
+                <p>Destination intelligence</p>
+                <h1>Travel Guide</h1>
+                <span>Partner-focused destination insights, selling tips, and practical Maldives travel knowledge.</span>
+              </div>
+            </>
+          )}
         </div>
       </section>
 

@@ -51,6 +51,7 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     { label: "Partner Login", href: partnerLoginHref, Icon: UserCircle, activeRoutes: ["/partner"] }
   ];
   const isExploreListing = /^\/(resorts|hotels|liveaboards)$/.test(pathname);
+  const isContactPage = pathname === "/contact";
   const hasMobileHero =
     pathname === "/"
     || pathname.startsWith("/resorts")
@@ -61,10 +62,11 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const usesHeroOverlayNav =
     pathname === "/"
     || pathname === "/travel-guide"
+    || isContactPage
     || isExploreListing
     || /^\/(resorts|hotels|liveaboards)\/[^/]+/.test(pathname);
   const useLightNav = isMobile && isExploreListing ? scrolled : !usesHeroOverlayNav || scrolled;
-  const navClassName = `site-nav${usesHeroOverlayNav ? " is-overlay-route" : ""}${isExploreListing ? " is-explore-listing" : ""}${hasMobileHero ? " has-mobile-hero" : ""}${useLightNav ? " is-scrolled is-light" : ""}`;
+  const navClassName = `site-nav${usesHeroOverlayNav ? " is-overlay-route" : ""}${isExploreListing ? " is-explore-listing" : ""}${isContactPage ? " is-contact-route" : ""}${hasMobileHero ? " has-mobile-hero" : ""}${useLightNav ? " is-scrolled is-light" : ""}`;
   const activeLogoUrl = isMobile
     ? hasMobileHero && !scrolled
       ? navbar.whiteLogoUrl || navbar.primaryLogoUrl || navbar.blackLogoUrl

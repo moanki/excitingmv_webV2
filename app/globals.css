@@ -28032,6 +28032,10 @@ html {
   max-width: 560px;
 }
 
+.reading-room__hero-desktop-default {
+  display: none;
+}
+
 .reading-room__hero p,
 .reading-room__tabs button,
 .reading-room__row-copy small,
@@ -28857,5 +28861,103 @@ html {
 
   .reading-room__property > span {
     height: 190px;
+  }
+}
+
+/* Desktop-only branded public page banners. */
+@media (min-width: 901px) {
+  html body:not(.admin-body) .portfolio-page .portfolio-hero,
+  html body:not(.admin-body) .reading-room__hero,
+  html body:not(.admin-body) .contact-registry-hero {
+    min-height: clamp(560px, 64vh, 700px);
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-hero .destination-hero__content {
+    min-height: clamp(560px, 64vh, 700px);
+  }
+
+  html body:not(.admin-body) .reading-room__hero {
+    padding-top: 148px;
+    padding-bottom: 72px;
+  }
+
+  html body:not(.admin-body) .reading-room__hero-default {
+    display: none;
+  }
+
+  html body:not(.admin-body) .reading-room__hero-desktop-default {
+    display: block;
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-hero .destination-hero__copy h1,
+  html body:not(.admin-body) .reading-room__hero h1,
+  html body:not(.admin-body) .contact-registry-hero h1 {
+    max-width: 760px;
+    color: #fff !important;
+    font-family: var(--font-serif), Georgia, serif !important;
+    font-size: clamp(3.7rem, 5.3vw, 5.65rem) !important;
+    font-weight: 100 !important;
+    letter-spacing: -0.035em !important;
+    line-height: 0.98 !important;
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-hero .destination-hero__copy p:not(.lux-eyebrow),
+  html body:not(.admin-body) .reading-room__hero span,
+  html body:not(.admin-body) .contact-registry-hero p:not(.lux-eyebrow) {
+    max-width: 620px;
+    color: rgb(255 255 255 / 84%) !important;
+    font-size: clamp(1rem, 1.15vw, 1.12rem) !important;
+    font-weight: 300 !important;
+    line-height: 1.72 !important;
+  }
+
+  html body:not(.admin-body) .portfolio-page .portfolio-hero .lux-eyebrow,
+  html body:not(.admin-body) .reading-room__hero p,
+  html body:not(.admin-body) .contact-registry-hero .lux-eyebrow {
+    color: #dfbd70 !important;
+  }
+
+  html body:not(.admin-body) .contact-registry-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding: 148px 0 72px;
+    border: 0;
+    background: #0c1a2b;
+  }
+
+  html body:not(.admin-body) .contact-registry-hero__image,
+  html body:not(.admin-body) .contact-registry-hero__overlay {
+    position: absolute;
+    inset: 0;
+  }
+
+  html body:not(.admin-body) .contact-registry-hero__image {
+    background-position: center;
+    background-size: cover;
+  }
+
+  html body:not(.admin-body) .contact-registry-hero__overlay {
+    background:
+      linear-gradient(90deg, rgb(5 14 24 / 84%) 0%, rgb(7 19 31 / 60%) 52%, rgb(7 18 29 / 30%) 100%),
+      linear-gradient(180deg, rgb(5 14 24 / 22%), rgb(5 14 24 / 54%));
+  }
+
+  html body:not(.admin-body) .contact-registry-hero .lux-container {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  html body:not(.admin-body) .contact-registry-hero__image,
+  html body:not(.admin-body) .contact-registry-hero__overlay {
+    display: none;
+  }
+
+  html body:not(.admin-body) .site-nav.is-contact-route:not(.is-scrolled) {
+    background: #fff !important;
+    border-bottom: 1px solid rgb(19 32 43 / 8%) !important;
   }
 }
