@@ -1,3 +1,5 @@
+import "server-only";
+
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { cookies } from "next/headers";
@@ -63,4 +65,3 @@ export async function hasResourceAccessSession() {
   const store = await cookies();
   return verifyResourceAccessToken(store.get(RESOURCE_ACCESS_COOKIE)?.value);
 }
-

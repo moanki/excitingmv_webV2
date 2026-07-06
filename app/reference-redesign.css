@@ -4,7 +4,7 @@
 @media (min-width:769px){
 body:not(.admin-body) .portfolio-page--resort{--rd-teal:#234f52;--rd-teal-light:#ebf2f2;--rd-ink:#16201f;--rd-page:#f7f9f8;--rd-mist:#7c8a86;--rd-mist-light:#dce2e0;--rd-line:#e4e8e6;background:var(--rd-page)}
 body:not(.admin-body) .portfolio-page--resort .portfolio-hero{height:420px;min-height:420px;padding:0;background:linear-gradient(105deg,#0c2629 0%,#1a3d3f 42%,#234f52 72%,#2d6469 100%)}
-body:not(.admin-body) .portfolio-page--resort .portfolio-hero .destination-hero__image{display:none}
+body:not(.admin-body) .portfolio-page--resort .portfolio-hero .destination-hero__image{display:block}
 body:not(.admin-body) .portfolio-page--resort .portfolio-hero::after{content:"";position:absolute;inset:0;opacity:.08;background-image:repeating-linear-gradient(0deg,transparent,transparent 60px,rgba(255,255,255,.08) 60px,rgba(255,255,255,.08) 61px),repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(255,255,255,.08) 60px,rgba(255,255,255,.08) 61px)}
 body:not(.admin-body) .portfolio-page--resort .portfolio-hero .destination-hero__content{position:relative;z-index:2;min-height:420px;align-items:flex-end;max-width:none;padding:0 48px 48px}
 body:not(.admin-body) .portfolio-page--resort .portfolio-hero .destination-hero__copy{max-width:760px}
@@ -180,9 +180,9 @@ body:not(.admin-body) .portfolio-page--resort .portfolio-filter-row{overflow-x:a
 /* Resorts v6: desktop-only portfolio treatment. Mobile, site navigation and footer stay untouched. */
 @media (min-width:769px){
 body:not(.admin-body) .portfolio-page--resort{--rd-page:#f4f6f5;--rd-teal:#234f52;--rd-teal-light:#eaf1f0;--rd-ink:#16201f;--rd-mist:#74817e;--rd-line:#dfe5e3;background:var(--rd-page)}
-body:not(.admin-body) .portfolio-page--resort .portfolio-hero{height:auto;min-height:0;background:linear-gradient(112deg,#0d292c 0%,#173b3e 48%,#285b5e 100%)}
+body:not(.admin-body) .portfolio-page--resort .portfolio-hero{height:auto;min-height:clamp(560px,64vh,700px);background:#0c1a2b}
 body:not(.admin-body) .portfolio-page--resort .portfolio-hero::after{display:none}
-body:not(.admin-body) .portfolio-page--resort .portfolio-hero .destination-hero__content{min-height:0;align-items:flex-start;width:min(100%,1520px);margin:0 auto;padding:88px 80px 80px}
+body:not(.admin-body) .portfolio-page--resort .portfolio-hero .destination-hero__content{min-height:clamp(560px,64vh,700px);align-items:center;width:min(100%,1520px);margin:0 auto;padding:148px 80px 72px}
 body:not(.admin-body) .portfolio-page--resort .portfolio-hero .destination-hero__copy{width:100%;max-width:640px}
 body:not(.admin-body) .portfolio-page--resort .portfolio-hero .lux-eyebrow{display:flex;align-items:center;gap:14px;margin:0 0 20px;color:rgba(255,255,255,.48);font-size:10px;font-weight:500;letter-spacing:.25em}
 body:not(.admin-body) .portfolio-page--resort .portfolio-hero .lux-eyebrow::after{width:36px;background:rgba(255,255,255,.25)}
@@ -347,4 +347,17 @@ body:has(.mobile-explore-v8) .site-nav.is-explore-listing.is-scrolled{background
 .mobile-explore-v8__toolbar>div{gap:5px}
 .mobile-explore-v8__sort{padding-right:7px;padding-left:7px}.mobile-explore-v8__sort strong{max-width:58px;font-size:9px}
 .mobile-explore-v8__refine{padding-right:8px;padding-left:8px;font-size:9px}
+}
+
+/* One CMS-driven banner shared by desktop and mobile catalogue layouts. */
+@media (max-width:768px){
+.catalogue-banner-shell .portfolio-hero{position:relative;min-height:320px;margin-top:-82px;overflow:hidden;padding:0!important;background:#0c2629}
+.catalogue-banner-shell .destination-hero__image{display:block!important;background-position:center;background-size:cover}
+.catalogue-banner-shell .destination-hero__image::after{background:linear-gradient(180deg,rgba(8,24,22,.2),rgba(8,24,22,.3) 40%,rgba(8,24,22,.76))!important}
+.catalogue-banner-shell .destination-hero__content{min-height:320px;align-items:flex-end;padding:188px 20px 31px!important}
+.catalogue-banner-shell .destination-hero__copy{max-width:330px}
+.catalogue-banner-shell .destination-hero__copy .lux-eyebrow{margin:0 0 12px;color:rgba(255,255,255,.5)!important;font-size:9.5px!important;font-weight:500!important;letter-spacing:.22em!important}
+.catalogue-banner-shell .destination-hero__copy h1{max-width:330px;margin:0 0 10px;color:#fff!important;font-family:var(--font-serif),Georgia,serif!important;font-size:32px!important;font-weight:600!important;letter-spacing:-.01em!important;line-height:1.1!important}
+.catalogue-banner-shell .destination-hero__copy p:not(.lux-eyebrow){max-width:300px;margin:0;color:rgba(255,255,255,.72)!important;font-size:13px!important;line-height:1.6!important}
+.catalogue-banner-shell .destination-title-rule{display:none}
 }

@@ -14,16 +14,14 @@ Production starter for the Exciting Maldives luxury B2B website and partner port
 
 Copy `.env.example` to `.env.local` and set:
 
+- `APP_ENV`
+- `NEXT_PUBLIC_APP_ENV`
+- `NEXT_PUBLIC_APP_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN`
-- `AI_GATEWAY_PREFERRED_MODELS` (optional)
-- `AI_GATEWAY_IMPORT_MODELS` (optional)
-- `RESEND_API_KEY`
-- `EMAIL_FROM`
-- `NOTIFICATION_EMAIL`
-- `SAMOA_EXTERNAL_URL`
+
+See `ENVIRONMENT_VARIABLES.md` for optional integrations and the separate staging/production values.
 
 ## Current scaffold
 
@@ -36,10 +34,7 @@ Copy `.env.example` to `.env.local` and set:
 
 ## Deployment targets
 
-- GitHub: `https://github.com/moanki/excitingmv_webV2`
-- Vercel: `https://excitingmv-web-v2.vercel.app`
-- Vercel deployment: `https://excitingmv-web-v2-m55z1vanl-monkeemoan-4647s-projects.vercel.app`
-- Supabase: `https://ddelyhoaflwtlzjwtihq.supabase.co`
+The same GitHub repository deploys to separate staging and production Vercel projects. See `DEPLOYMENT_WORKFLOW.md` and `ENVIRONMENT_VARIABLES.md` for the required project-specific configuration.
 
 ## Important security note
 

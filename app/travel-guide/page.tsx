@@ -1,27 +1,39 @@
-import { TravelGuideDirectory } from "@/components/travel-guide-directory";
-import { getHomepageGuide } from "@/lib/site-content";
+import { Cormorant_Garamond } from "next/font/google";
 
-export default async function TravelGuidePage() {
-  const { content: guide } = await getHomepageGuide("published");
+import { TravelGuideDirectory } from "@/components/travel-guide-directory";
+import { listPublishedResorts } from "@/lib/services/resort-service";
+import { getCatalogueContent, getHomepageGuide } from "@/lib/site-content";
+
+const readingSerif = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  variable: "--font-reading-serif"
+});
+
+export default async function TravelGuidePage({
+  searchParams
+}: {
+  searchParams: Promise<{ article?: string | string[] }>;
+}) {
+  const [{ content: guide }, { content: catalogue }, resorts, params] = await Promise.all([
+    getHomepageGuide("published"),
+    getCatalogueContent("travel-guide"),
+    listPublishedResorts(),
+    searchParams
+  ]);
   const publishedGuides = guide.filter((item) => item.published && item.title);
+  const requestedSlug = typeof params.article === "string" ? params.article : undefined;
+  const initialArticleSlug = publishedGuides.some((item) => item.slug === requestedSlug) ? requestedSlug : undefined;
 
   return (
-    <main className="guide-directory">
-      <section className="guide-directory__hero">
-        <div className="lux-container">
-          <p className="lux-eyebrow">Maldives Travel Guide</p>
-          <h1>Practical Maldives information for tourists and travel partners.</h1>
-          <p>
-            Search destination guidance on arrivals, transfers, money, packing, culture, resort fit, and planning
-            details that shape better Maldives itineraries.
-          </p>
-        </div>
-      </section>
-      <section className="guide-directory__body">
-        <div className="lux-container">
-          <TravelGuideDirectory guides={publishedGuides} />
-        </div>
-      </section>
+    <main className={`${readingSerif.variable} reading-room`}>
+      <TravelGuideDirectory
+        guides={publishedGuides}
+        catalogue={catalogue}
+        resorts={resorts.slice(0, 4)}
+        initialArticleSlug={initialArticleSlug}
+      />
     </main>
   );
 }

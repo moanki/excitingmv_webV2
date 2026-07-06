@@ -189,7 +189,7 @@ export async function resetAdminUserPassword(userId: string, password: string) {
 }
 
 export async function authenticateAdminUser(email: string, password: string) {
-  const client = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+  const client = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
     auth: { autoRefreshToken: false, persistSession: false }
   });
 

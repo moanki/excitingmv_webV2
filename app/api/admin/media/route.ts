@@ -27,13 +27,14 @@ export async function POST(request: Request) {
 
     const upload = formData.get("mediaFile");
     const folder = String(formData.get("folder") ?? "media-library").trim() || "media-library";
+    const originalName = String(formData.get("originalName") ?? "").trim();
 
     if (!(upload instanceof File) || upload.size === 0) {
       return NextResponse.json({ ok: false, error: "Choose a file to upload." }, { status: 400 });
     }
 
     try {
-      const publicUrl = await uploadSiteAsset(upload, folder, "full");
+      const publicUrl = await uploadSiteAsset(upload, folder, "full", { originalName: originalName || upload.name });
       return NextResponse.json({
         ok: true,
         data: {
@@ -81,6 +82,7 @@ export async function POST(request: Request) {
   }
 
   const filename = String(json?.filename ?? "").trim();
+  const originalName = String(json?.originalName ?? filename).trim() || filename;
   const contentType = String(json?.contentType ?? "").trim() || "application/octet-stream";
   const folder = String(json?.folder ?? "media-library").trim() || "media-library";
 
@@ -89,7 +91,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const data = await createSignedSiteAssetUpload(filename, contentType, folder);
+    const data = await createSignedSiteAssetUpload(filename, contentType, folder, originalName);
     return NextResponse.json({ ok: true, data });
   } catch (error) {
     console.error("Signed media upload preparation failed", { filename, contentType, folder, error });

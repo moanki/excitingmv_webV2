@@ -5,12 +5,15 @@ import { useActionState } from "react";
 import { saveCatalogueSettingsAction } from "@/app/admin/settings/catalogue/actions";
 import { ActionMessage, SubmitButton } from "@/components/admin/action-feedback";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
+import { optimizedImageUrl } from "@/lib/image-urls";
 import type { CatalogueContent, CatalogueKind } from "@/lib/site-content";
 
 const catalogueLabels: Record<CatalogueKind, string> = {
-  resorts: "Resort Catalogue",
-  hotels: "Hotel Catalogue",
-  liveaboards: "Liveaboard Catalogue"
+  resorts: "Resorts Banner",
+  hotels: "Hotels Banner",
+  liveaboards: "Liveaboards Banner",
+  contact: "Contact Banner",
+  "travel-guide": "Travel Guide Banner"
 };
 
 export function CatalogueSettingsForm({
@@ -36,6 +39,10 @@ export function CatalogueSettingsForm({
           </div>
           <div className="form-grid">
             <label className="field field--full">
+              <span className="field__label">Eyebrow</span>
+              <input className="admin-input" name={`${kind}Eyebrow`} defaultValue={catalogues[kind].eyebrow ?? ""} />
+            </label>
+            <label className="field field--full">
               <span className="field__label">Banner Title</span>
               <input className="admin-input" name={`${kind}Title`} defaultValue={catalogues[kind].title ?? ""} />
             </label>
@@ -44,6 +51,13 @@ export function CatalogueSettingsForm({
               <textarea className="admin-textarea" name={`${kind}Body`} defaultValue={catalogues[kind].body ?? ""} />
             </label>
           </div>
+          <img
+            className="catalogue-banner-preview"
+            src={optimizedImageUrl(catalogues[kind].heroImageUrl, { width: 640, height: 240, quality: 82 })}
+            alt={`${catalogueLabels[kind]} preview`}
+            width={640}
+            height={240}
+          />
           <MediaField
             label="Catalogue Banner Image"
             inputName={`${kind}HeroImageUrl`}
@@ -52,6 +66,7 @@ export function CatalogueSettingsForm({
             value={catalogues[kind].heroImageUrl}
             library={mediaLibrary}
             helper="Upload an image, choose one from the Media Library, or paste an image URL."
+            folder={kind === "travel-guide" ? "media-library/travel-guide" : kind === "contact" ? "media-library/general" : `media-library/${kind}`}
           />
         </section>
       ))}

@@ -11,8 +11,13 @@ import { safeMediaUrlError } from "@/lib/validations";
 
 export type MediaLibraryItem = {
   name: string;
+  storedName?: string;
   url: string;
   type: "image" | "video" | "file";
+  category?: "general" | "resorts" | "hotels" | "liveaboards" | "travel-guide" | "documents" | "files";
+  contentType?: string;
+  size?: number | null;
+  createdAt?: string;
 };
 
 type MediaFieldProps = {
@@ -24,6 +29,7 @@ type MediaFieldProps = {
   library?: MediaLibraryItem[];
   helper?: string;
   onChange?: (url: string) => void;
+  folder?: string;
 };
 
 const MAX_UPLOAD_SIZE = 50 * 1024 * 1024;
@@ -71,7 +77,8 @@ export function MediaField({
   value = "",
   library = [],
   helper,
-  onChange
+  onChange,
+  folder = "media-library/general"
 }: MediaFieldProps) {
   const { finishAction, notifyError, startAction, updateAction } = useAdminActionFeedback();
   const inputId = useId();
@@ -169,7 +176,7 @@ export function MediaField({
 
     try {
       const result = await uploadAdminMediaFile(file, {
-        folder: "media-library",
+        folder,
         onStatus: (status, message) => {
           setUploadState({ pending: true, message });
           updateAction(actionId, { title: message, progress: status === "uploading" ? 0 : null });

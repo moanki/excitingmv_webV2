@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { Mail, MessageCircle } from "lucide-react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
-import { getContactPageContent } from "@/lib/site-content";
+import { getCatalogueContent, getContactPageContent } from "@/lib/site-content";
 
 function whatsappHref(value: string) {
   const digits = value.replace(/[^\d]/g, "");
@@ -19,16 +20,26 @@ function initials(value: string) {
 }
 
 export default async function ContactPage() {
-  const { content } = await getContactPageContent("published");
+  const [{ content }, { content: catalogue }] = await Promise.all([
+    getContactPageContent("published"),
+    getCatalogueContent("contact")
+  ]);
   const regions = content.regions.filter((region) => region.enabled);
+  const heroImageUrl = optimizedImageUrl(catalogue.heroImageUrl, { width: 2200, height: 1100, quality: 92 });
 
   return (
     <main className="public-lux-page contact-registry-page">
       <section className="contact-registry-hero">
+        <div
+          className="contact-registry-hero__image"
+          style={heroImageUrl ? { backgroundImage: `url(${JSON.stringify(heroImageUrl)})` } : undefined}
+          aria-hidden="true"
+        />
+        <div className="contact-registry-hero__overlay" aria-hidden="true" />
         <div className="lux-container">
-          <p className="lux-eyebrow">Contact</p>
-          <h1>{content.title}</h1>
-          <p>{content.subtitle}</p>
+          <p className="lux-eyebrow">{catalogue.eyebrow || "Partner Support"}</p>
+          <h1>{catalogue.title || content.title}</h1>
+          <p>{catalogue.body || content.subtitle}</p>
         </div>
       </section>
 
@@ -58,9 +69,13 @@ export default async function ContactPage() {
                   </div>
                 </div>
                 <div className="contact-registry-entry__links">
-                  <a href={`mailto:${region.email}`}>{region.email}</a>
+                  <a href={`mailto:${region.email}`}>
+                    <Mail className="contact-registry-entry__link-icon" aria-hidden="true" />
+                    <span>{region.email}</span>
+                  </a>
                   <a href={whatsappHref(region.whatsapp)} target="_blank" rel="noreferrer">
-                    {region.whatsapp} WhatsApp
+                    <MessageCircle className="contact-registry-entry__link-icon" aria-hidden="true" />
+                    <span>{region.whatsapp} WhatsApp</span>
                   </a>
                 </div>
               </article>

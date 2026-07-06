@@ -20,7 +20,6 @@ import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
-import type { CatalogueContent } from "@/lib/site-content";
 import type { ResortSummary } from "@/lib/types";
 
 type DestinationKind = "resort" | "hotels" | "liveaboards";
@@ -45,19 +44,14 @@ type PortfolioItem = {
 
 type DestinationIndexProps = {
   activeKind: DestinationKind;
-  catalogue: CatalogueContent;
   items: ResortSummary[];
 };
 
 type PortfolioConfig = {
-  eyebrow: string;
   label: string;
   singular: string;
   path: string;
   placeholder: string;
-  title: string;
-  body: string;
-  cta: string;
   portfolioTitle: string;
   categoryLabel: string;
   categoryAllLabel: string;
@@ -77,14 +71,10 @@ type PortfolioFiltersState = {
 
 const kindConfig = {
   resort: {
-    eyebrow: "Our Resorts",
     label: "Resorts",
     singular: "resort",
     path: "/resorts",
     placeholder: "Search resorts...",
-    title: "Discover More Than Paradise",
-    body: "From private island sanctuaries to trade-ready luxury escapes, explore curated Maldives resorts shaped for confident partner conversations.",
-    cta: "Explore Resorts",
     portfolioTitle: "Resort Portfolio",
     categoryLabel: "Resort Category",
     categoryAllLabel: "All Resort Categories",
@@ -106,14 +96,10 @@ const kindConfig = {
     emptyTitle: "No resorts found"
   },
   hotels: {
-    eyebrow: "Our Hotels",
     label: "Hotels",
     singular: "hotel",
     path: "/hotels",
     placeholder: "Search hotels...",
-    title: "Maldives Hotels With Island Ease",
-    body: "Browse hotels and hospitality stays selected for practical access, partner clarity, and polished Maldives itineraries.",
-    cta: "Explore Hotels",
     portfolioTitle: "Hotel Portfolio",
     categoryLabel: "Hotel Category",
     categoryAllLabel: "All Hotel Categories",
@@ -124,14 +110,10 @@ const kindConfig = {
     emptyTitle: "No hotels found"
   },
   liveaboards: {
-    eyebrow: "Our Liveaboards",
     label: "Liveaboards",
     singular: "liveaboard",
     path: "/liveaboards",
     placeholder: "Search liveaboards...",
-    title: "Luxury Voyages Across The Maldives",
-    body: "A focused collection of liveaboards for diving, private charters, and ocean-led itineraries across the Maldives.",
-    cta: "Explore Liveaboards",
     portfolioTitle: "Liveaboard Portfolio",
     categoryLabel: "Liveaboard Category",
     categoryAllLabel: "All Liveaboard Categories",
@@ -1023,7 +1005,7 @@ function DestinationMobileTabs({ activeKind }: { activeKind: DestinationKind }) 
   );
 }
 
-export function DestinationIndex({ activeKind, catalogue, items }: DestinationIndexProps) {
+export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [filters, setFilters] = useState<PortfolioFiltersState>(initialFilters);
@@ -1033,8 +1015,6 @@ export function DestinationIndex({ activeKind, catalogue, items }: DestinationIn
   const [visibleCount, setVisibleCount] = useState(initialVisibleCount);
   const hasMounted = useRef(false);
   const config = kindConfig[activeKind];
-  const heroImage = catalogue.heroImageUrl;
-
   const portfolioItems = useMemo(() => normalizePortfolioItems(activeKind, items), [activeKind, items]);
 
   useEffect(() => {
@@ -1092,28 +1072,6 @@ export function DestinationIndex({ activeKind, catalogue, items }: DestinationIn
 
   return (
     <main className={`destination-page portfolio-page portfolio-page--resort portfolio-page--${activeKind}`}>
-      <section className="destination-hero portfolio-hero">
-        <div
-          className="destination-hero__image"
-          style={{ backgroundImage: `url(${optimizedImageUrl(heroImage, { width: 2200, height: 980, quality: 94 })})` }}
-          aria-hidden="true"
-        />
-        <div className="site-container destination-hero__content">
-          <div className="destination-hero__copy">
-            <p className="lux-eyebrow">{activeKind === "resort" ? "Our Resort Portfolio" : config.eyebrow}</p>
-            <h1>{catalogue.title || config.title}</h1>
-            <span className="destination-title-rule" aria-hidden="true" />
-            <p>{catalogue.body || config.body}</p>
-            <div className="destination-hero__actions">
-              <a href="#destination-results" className="destination-primary-action">
-                {config.cta}
-                <span aria-hidden="true">→</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section className="destination-results portfolio-results" id="destination-results">
         <div className="site-container">
           <DestinationMobileTabs activeKind={activeKind} />
