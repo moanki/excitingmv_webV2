@@ -287,6 +287,13 @@ export function AdminShell({
 }) {
   const pathname = usePathname();
   const current = getCurrentPageMeta(pathname);
+  const propertyAction = pathname === "/admin/resorts"
+    ? { href: "/admin/resorts/new", label: "Add Resort" }
+    : pathname === "/admin/hotels"
+      ? { href: "/admin/hotels/new", label: "Add Hotel" }
+      : pathname === "/admin/liveaboards"
+        ? { href: "/admin/liveaboards/new", label: "Add Liveaboard" }
+        : { href: "/admin/resorts/new", label: "New Content" };
 
   if (pathname.startsWith("/admin/login")) {
     return <>{children}</>;
@@ -353,9 +360,9 @@ export function AdminShell({
               <Search className="admin-icon" />
               <input type="search" placeholder="Search CMS" />
             </label>
-            <Link href="/admin/resorts/new" className="admin-topbar-primary">
+            <Link href={propertyAction.href} className="admin-topbar-primary">
               <Sparkles className="admin-icon" />
-              New Content
+              {propertyAction.label}
             </Link>
             <button type="button" className="admin-icon-button" aria-label="Notifications">
               <Bell className="admin-icon" />

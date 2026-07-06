@@ -1035,7 +1035,7 @@ export function ResortManagerListView({
   ];
 
   return (
-    <div className="stack">
+    <div className="stack admin-list-page property-list-page">
       <div className="table-toolbar resort-manager-toolbar">
         <div className="table-toolbar-left">
           <label className="tbl-search resort-search-field" htmlFor="property-search">
