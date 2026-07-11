@@ -60,10 +60,6 @@ export type GatewayGenerationResult<T> = {
   fallbackUsed: boolean;
 };
 
-type GatewayModelListResponse = {
-  data?: Array<{ id?: string }>;
-};
-
 type GatewayResponsesPayload = {
   output_text?: string;
   output?: Array<{
@@ -212,8 +208,6 @@ const importedResortJsonSchema = {
   }
 } as const;
 
-let availableModelsPromise: Promise<Set<string>> | null = null;
-
 function getGatewayToken() {
   const token = env.AI_GATEWAY_API_KEY || env.VERCEL_OIDC_TOKEN;
   if (!token) {
@@ -278,39 +272,18 @@ function extractAnthropicText(payload: GatewayAnthropicPayload) {
     .trim();
 }
 
-async function getAvailableGatewayModels() {
-  if (!availableModelsPromise) {
-    availableModelsPromise = (async () => {
-      const response = await fetch("https://ai-gateway.vercel.sh/v1/models", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${getGatewayToken()}`
-        },
-        cache: "no-store"
-      });
+function getActiveModelChain(purpose: GatewayPurpose) {
+  const configured = gatewayModelConfig[purpose];
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch the Vercel AI Gateway model catalog.");
-      }
-
-      const payload = (await response.json()) as GatewayModelListResponse;
-      return new Set((payload.data ?? []).map((model) => model.id).filter((id): id is string => Boolean(id)));
-    })();
+  if (configured.length === 0) {
+    throw new Error(`No Vercel AI Gateway models are configured for ${purpose}.`);
   }
 
-  return availableModelsPromise;
+  return configured;
 }
 
-async function getActiveModelChain(purpose: GatewayPurpose) {
-  const configured = gatewayModelConfig[purpose];
-  const available = await getAvailableGatewayModels();
-  const active = configured.filter((model) => available.has(model));
-
-  if (active.length === 0) {
-    throw new Error(`No configured Vercel AI Gateway models are currently available for ${purpose}.`);
-  }
-
-  return active;
+function gatewayFailureMessage(purpose: GatewayPurpose, attemptedModels: string[], message: string) {
+  return `Vercel AI Gateway request failed for ${purpose} using model chain ${attemptedModels.join(" -> ")}. ${message}`;
 }
 
 async function parseGatewayStructuredOutput<T>(options: {
@@ -325,7 +298,7 @@ async function parseGatewayStructuredOutput<T>(options: {
   try {
     return options.schema.parse(JSON.parse(candidate));
   } catch (error) {
-    const attemptedModels = await getActiveModelChain(options.purpose);
+    const attemptedModels = getActiveModelChain(options.purpose);
     const repairResponse = await fetch("https://ai-gateway.vercel.sh/v1/responses", {
       method: "POST",
       headers: {
@@ -371,8 +344,11 @@ async function parseGatewayStructuredOutput<T>(options: {
     const repairPayload = (await repairResponse.json()) as GatewayResponsesPayload;
     if (!repairResponse.ok) {
       throw new Error(
-        repairPayload.error?.message ||
-          (error instanceof Error ? error.message : "Failed to parse structured AI output.")
+        gatewayFailureMessage(
+          options.purpose,
+          attemptedModels,
+          repairPayload.error?.message || (error instanceof Error ? error.message : "Failed to parse structured AI output.")
+        )
       );
     }
 
@@ -401,7 +377,7 @@ function logGatewayOutcome(feature: string, result: { usedModel: string; attempt
 export async function generateResortSeoCopy(
   input: ResortSeoGenerationInput
 ): Promise<GatewayGenerationResult<ResortSeoGenerationOutput>> {
-  const attemptedModels = await getActiveModelChain("resortSeo");
+  const attemptedModels = getActiveModelChain("resortSeo");
   const response = await fetch("https://ai-gateway.vercel.sh/v1/responses", {
     method: "POST",
     headers: {
@@ -459,7 +435,13 @@ Resort input:
 
   const payload = (await response.json()) as GatewayResponsesPayload;
   if (!response.ok) {
-    throw new Error(payload.error?.message || "Vercel AI Gateway could not generate resort SEO copy.");
+    throw new Error(
+      gatewayFailureMessage(
+        "resortSeo",
+        attemptedModels,
+        payload.error?.message || "Vercel AI Gateway could not generate resort SEO copy."
+      )
+    );
   }
 
   const outputText = extractOutputText(payload);
@@ -496,7 +478,7 @@ Resort input:
 export async function extractImportedResortsFromPdf(
   document: GatewayDocumentInput
 ): Promise<GatewayGenerationResult<ImportedResortPayload>> {
-  const attemptedModels = await getActiveModelChain("importCenter");
+  const attemptedModels = getActiveModelChain("importCenter");
   const response = await fetch("https://ai-gateway.vercel.sh/v1/messages", {
     method: "POST",
     headers: {
@@ -573,7 +555,13 @@ Source file: ${document.filename}`
 
   const payload = (await response.json()) as GatewayAnthropicPayload;
   if (!response.ok) {
-    throw new Error(payload.error?.message || "Vercel AI Gateway could not extract the resort fact sheet.");
+    throw new Error(
+      gatewayFailureMessage(
+        "importCenter",
+        attemptedModels,
+        payload.error?.message || "Vercel AI Gateway could not extract the resort fact sheet."
+      )
+    );
   }
 
   const outputText = extractAnthropicText(payload);
