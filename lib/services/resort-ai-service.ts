@@ -124,6 +124,8 @@ const importedResortPayloadSchema = z.object({
   notes: z.string()
 });
 
+const GATEWAY_TIMEOUT_MS = 85_000;
+
 const resortSeoJsonSchema = {
   type: "object",
   additionalProperties: false,
@@ -272,6 +274,26 @@ function extractAnthropicText(payload: GatewayAnthropicPayload) {
     .trim();
 }
 
+async function fetchGateway(path: "/v1/messages" | "/v1/responses", body: object) {
+  try {
+    return await fetch(`https://ai-gateway.vercel.sh${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getGatewayToken()}`
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(GATEWAY_TIMEOUT_MS)
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "TimeoutError") {
+      throw new Error(`Vercel AI Gateway timed out after ${Math.round(GATEWAY_TIMEOUT_MS / 1000)} seconds.`);
+    }
+
+    throw error;
+  }
+}
+
 function getActiveModelChain(purpose: GatewayPurpose) {
   const configured = gatewayModelConfig[purpose];
 
@@ -299,13 +321,7 @@ async function parseGatewayStructuredOutput<T>(options: {
     return options.schema.parse(JSON.parse(candidate));
   } catch (error) {
     const attemptedModels = getActiveModelChain(options.purpose);
-    const repairResponse = await fetch("https://ai-gateway.vercel.sh/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getGatewayToken()}`
-      },
-      body: JSON.stringify({
+    const repairResponse = await fetchGateway("/v1/responses", {
         model: attemptedModels[0],
         input: [
           {
@@ -338,8 +354,7 @@ async function parseGatewayStructuredOutput<T>(options: {
             tags: ["feature:structured-json-repair", `surface:${options.purpose}`]
           }
         }
-      })
-    });
+      });
 
     const repairPayload = (await repairResponse.json()) as GatewayResponsesPayload;
     if (!repairResponse.ok) {
@@ -378,13 +393,7 @@ export async function generateResortSeoCopy(
   input: ResortSeoGenerationInput
 ): Promise<GatewayGenerationResult<ResortSeoGenerationOutput>> {
   const attemptedModels = getActiveModelChain("resortSeo");
-  const response = await fetch("https://ai-gateway.vercel.sh/v1/responses", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${getGatewayToken()}`
-    },
-    body: JSON.stringify({
+  const response = await fetchGateway("/v1/responses", {
       model: attemptedModels[0],
       input: [
         {
@@ -430,8 +439,7 @@ Resort input:
           tags: ["feature:resort-seo", "surface:admin-resorts"]
         }
       }
-    })
-  });
+    });
 
   const payload = (await response.json()) as GatewayResponsesPayload;
   if (!response.ok) {
@@ -479,13 +487,7 @@ export async function extractImportedResortsFromPdf(
   document: GatewayDocumentInput
 ): Promise<GatewayGenerationResult<ImportedResortPayload>> {
   const attemptedModels = getActiveModelChain("importCenter");
-  const response = await fetch("https://ai-gateway.vercel.sh/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${getGatewayToken()}`
-    },
-    body: JSON.stringify({
+  const response = await fetchGateway("/v1/messages", {
       model: attemptedModels[0],
       max_tokens: 4096,
       providerOptions: {
@@ -550,8 +552,7 @@ Source file: ${document.filename}`
           ]
         }
       ]
-    })
-  });
+    });
 
   const payload = (await response.json()) as GatewayAnthropicPayload;
   if (!response.ok) {
