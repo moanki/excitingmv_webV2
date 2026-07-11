@@ -26,6 +26,15 @@ const nextConfig: NextConfig = {
       }
     ] : []
   },
+  async redirects() {
+    return [
+      {
+        source: "/favicon.ico",
+        destination: "/icon.svg",
+        permanent: true
+      }
+    ];
+  },
   async headers() {
     const csp = [
       "default-src 'self'",
