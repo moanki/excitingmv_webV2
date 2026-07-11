@@ -38,8 +38,8 @@ Set these values only inside the Exciting Maldives production Vercel project.
 | --- | --- | --- |
 | `AI_GATEWAY_API_KEY` | Server | Vercel AI Gateway authentication when OIDC is unavailable. |
 | `VERCEL_OIDC_TOKEN` | Server | Vercel-managed AI Gateway authentication. |
-| `AI_GATEWAY_PREFERRED_MODELS` | Server | Optional ordered AI model list. |
-| `AI_GATEWAY_IMPORT_MODELS` | Server | Optional import-processing model list. |
+| `AI_GATEWAY_PREFERRED_MODELS` | Server | Optional comma-separated ordered AI model list. |
+| `AI_GATEWAY_IMPORT_MODELS` | Server | Optional comma-separated import-processing model list. |
 | `EMAIL_CONFIG_ENCRYPTION_KEY` | Server | Encrypts saved SMTP credentials. |
 | `EMAIL_PROVIDER` | Server | Selects the email configuration source. |
 | `SAMOA_EXTERNAL_URL` | Server | Optional Samoa integration URL. |
