@@ -6,4 +6,6 @@ dist
 coverage
 *.log
 *.tsbuildinfo
+__pycache__/
+*.py[cod]
 next-env.d.ts

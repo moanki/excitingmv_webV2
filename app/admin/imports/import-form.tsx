@@ -9,6 +9,8 @@ import {
 import type { ImportCheckpointRecord, ImportExecutionResult, ImportLogEntry } from "@/lib/services/import-service";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
+type UploadStage = "idle" | "uploading" | "processing" | "complete" | "error";
+
 type DriveImportProgress = {
   totalSources: number;
   processedSources: number;
@@ -282,6 +284,84 @@ function ImportRunSummary({ state }: { state: ImportActionState }) {
   );
 }
 
+function UploadPipeline({ stage, filename }: { stage: UploadStage; filename: string }) {
+  if (stage === "idle") return null;
+  const complete = stage === "complete";
+  const failed = stage === "error";
+  const steps = [
+    { label: "Upload", status: stage === "uploading" ? "In progress" : "100%" },
+    { label: "Microsoft MarkItDown", status: complete ? "100%" : stage === "processing" ? "In progress" : "Waiting" },
+    { label: "AI processing", status: complete ? "100%" : "Waiting" }
+  ];
+
+  return (
+    <section className="admin-import-run stack" aria-live="polite" aria-label="PDF processing timeline">
+      <strong>📄 {filename}</strong>
+      {steps.map((step) => {
+        const done = step.status === "100%";
+        return (
+        <div className="admin-import-progress" key={step.label}>
+          <div className="admin-import-progress__header">
+            <strong>{done ? "✓" : failed ? "✕" : "⏳"} {step.label}</strong>
+            <span>{failed && !done ? "Stopped" : step.status}</span>
+          </div>
+          <div className="admin-import-progress__track" aria-hidden="true">
+            <div className={`admin-import-progress__bar${done ? "" : " is-pending"}`} style={{ width: done ? "100%" : "0%" }} />
+          </div>
+        </div>
+        );
+      })}
+      <p className={failed ? "admin-alert admin-alert--error" : "admin-import-progress__meta"}>
+        {stage === "uploading" && "Uploading and validating the PDF. Please keep this window open."}
+        {stage === "processing" && "Microsoft MarkItDown is converting the PDF to Markdown before AI analysis."}
+        {complete && "Microsoft MarkItDown conversion, Markdown validation, and AI analysis completed successfully."}
+        {failed && "Processing stopped. Review the error below and retry when ready."}
+      </p>
+    </section>
+  );
+}
+
+function ConversionDetails({ result }: { result: ImportExecutionResult }) {
+  const conversion = result.conversion;
+  if (!conversion) return null;
+  const { stats } = conversion;
+  const download = () => {
+    const url = URL.createObjectURL(new Blob([conversion.markdown], { type: "text/markdown;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = conversion.filename.replace(/\.pdf$/i, "") + ".md";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <article className="panel admin-form-card stack">
+      <div className="admin-form-section__header">
+        <h3 className="admin-form-section__title">Conversion Details</h3>
+        <p className="admin-form-section__help">Processed by Microsoft MarkItDown in {(stats.conversionDurationMs / 1000).toFixed(1)} seconds. AI analysis took {((stats.aiProcessingDurationMs ?? 0) / 1000).toFixed(1)} seconds.</p>
+      </div>
+      <div className="dashboard-grid dashboard-grid-quad">
+        <div className="stat-card"><p className="eyebrow">Pages / Markdown</p><strong>{stats.pageCount} / {(stats.markdownSize / 1024).toFixed(1)} KB</strong></div>
+        <div className="stat-card"><p className="eyebrow">Characters</p><strong>{stats.markdownCharacters.toLocaleString()}</strong></div>
+        <div className="stat-card"><p className="eyebrow">Headings / Tables</p><strong>{stats.headingsDetected} / {stats.tablesDetected}</strong></div>
+        <div className="stat-card"><p className="eyebrow">Lists / Images</p><strong>{stats.listsDetected} / {stats.imagesReferenced}</strong></div>
+      </div>
+      <details>
+        <summary>Technical Details</summary>
+        <p className="field__help">UTF-8 · GitHub Flavored Markdown · OCR: {stats.ocrUsed ? "Yes" : "No"} · Fallback: {stats.fallbackUsed ? "Yes" : "No"} · {stats.chunkStrategy}</p>
+      </details>
+      <details>
+        <summary>Markdown Preview</summary>
+        <pre className="admin-import-markdown-preview">{conversion.markdown}</pre>
+      </details>
+      <div className="admin-form-actions">
+        <button type="button" className="admin-btn admin-btn--secondary" onClick={() => navigator.clipboard.writeText(conversion.markdown)}>Copy Markdown</button>
+        <button type="button" className="admin-btn admin-btn--secondary" onClick={download}>Download Markdown</button>
+      </div>
+    </article>
+  );
+}
+
 function ImportDrivePanel() {
   const [state, setState] = useState<ImportActionState>(undefined);
   const [pending, setPending] = useState(false);
@@ -490,11 +570,14 @@ function ImportUploadPanel() {
   const [state, setState] = useState<ImportActionState>(undefined);
   const [pending, setPending] = useState(false);
   const [propertyType, setPropertyType] = useState("resort");
+  const [uploadStage, setUploadStage] = useState<UploadStage>("idle");
+  const [filename, setFilename] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true);
     setState(undefined);
+    setUploadStage("uploading");
 
     try {
       const formData = new FormData(event.currentTarget);
@@ -502,12 +585,14 @@ function ImportUploadPanel() {
       const selectedPropertyType = String(formData.get("propertyType") ?? "resort");
 
       if (!(upload instanceof File) || upload.size === 0) {
+        setUploadStage("error");
         setState({
           ok: false,
           error: "Upload a PDF fact sheet to start the import."
         });
         return;
       }
+      setFilename(upload.name);
 
       const supabase = createSupabaseBrowserClient();
       const signedUploadResponse = await fetch("/api/admin/imports", {
@@ -538,6 +623,7 @@ function ImportUploadPanel() {
         | null;
 
       if (!signedUploadResponse.ok || !signedUploadPayload?.ok || !signedUploadPayload.data) {
+        setUploadStage("error");
         setState({
           ok: false,
           error: signedUploadPayload?.error || "Could not prepare PDF upload."
@@ -554,12 +640,15 @@ function ImportUploadPanel() {
         });
 
       if (uploadResult.error) {
+        setUploadStage("error");
         setState({
           ok: false,
           error: uploadResult.error.message
         });
         return;
       }
+
+      setUploadStage("processing");
 
       const response = await fetch("/api/admin/imports", {
         method: "POST",
@@ -579,6 +668,7 @@ function ImportUploadPanel() {
         | null;
 
       if (!response.ok || !payload?.ok || !payload.data || !payload.message) {
+        setUploadStage("error");
         setState({
           ok: false,
           error: payload?.error || "Uploaded PDF import failed."
@@ -591,7 +681,9 @@ function ImportUploadPanel() {
         message: payload.message,
         result: payload.data
       });
+      setUploadStage("complete");
     } catch (error) {
+      setUploadStage("error");
       setState({
         ok: false,
         error: error instanceof Error ? error.message : "Uploaded PDF import failed."
@@ -624,7 +716,7 @@ function ImportUploadPanel() {
           </label>
         </div>
 
-        <ImportProgress pending={pending} state={state} pendingLabel="Importing uploaded fact sheet" />
+        <UploadPipeline stage={uploadStage} filename={filename || "PDF document"} />
 
         <div className="admin-form-actions">
           <button className="admin-btn admin-btn--secondary" type="submit" disabled={pending}>
@@ -636,6 +728,7 @@ function ImportUploadPanel() {
         {state?.ok === false ? <p className="admin-alert admin-alert--error">{state.error}</p> : null}
 
         <ImportRunSummary state={state} />
+        {state?.ok ? <ConversionDetails result={state.result} /> : null}
       </form>
     </article>
   );
