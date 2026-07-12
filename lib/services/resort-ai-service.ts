@@ -84,6 +84,34 @@ type GatewayDocumentInput = {
   bytes: Uint8Array;
 };
 
+export type MarkItDownStats = {
+  processor: string;
+  outputFormat: string;
+  encoding: string;
+  markdownVersion: string;
+  originalFileSize: number;
+  pageCount: number;
+  markdownSize: number;
+  markdownCharacters: number;
+  markdownLines: number;
+  headingsDetected: number;
+  tablesDetected: number;
+  listsDetected: number;
+  imagesReferenced: number;
+  averageCharactersPerPage: number | null;
+  chunksCreated: number;
+  chunkStrategy: string;
+  ocrUsed: boolean;
+  fallbackUsed: boolean;
+  conversionDurationMs: number;
+  aiProcessingDurationMs?: number;
+};
+
+export type MarkItDownResult = {
+  markdown: string;
+  stats: MarkItDownStats;
+};
+
 const resortSeoOutputSchema = z.object({
   seoTitle: z.string().min(1),
   seoDescription: z.string().min(1),
@@ -125,6 +153,31 @@ const importedResortPayloadSchema = z.object({
 });
 
 const GATEWAY_TIMEOUT_MS = 85_000;
+
+async function convertPdfToMarkdown(document: GatewayDocumentInput): Promise<MarkItDownResult> {
+  const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for Microsoft MarkItDown conversion.");
+
+  const origin = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : env.NEXT_PUBLIC_APP_URL;
+  const response = await fetch(`${origin}/api/markitdown_convert`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${serviceRoleKey}`
+    },
+    body: JSON.stringify(
+      document.sourceUrl.startsWith("https://")
+        ? { sourceUrl: document.sourceUrl }
+        : { contentBase64: Buffer.from(document.bytes).toString("base64") }
+    ),
+    signal: AbortSignal.timeout(GATEWAY_TIMEOUT_MS)
+  });
+  const payload = (await response.json().catch(() => null)) as (MarkItDownResult & { ok?: boolean; error?: string }) | null;
+  if (!response.ok || !payload?.ok || !payload.markdown?.trim()) {
+    throw new Error(payload?.error || "Microsoft MarkItDown conversion failed.");
+  }
+  return { markdown: payload.markdown, stats: payload.stats };
+}
 
 const resortSeoJsonSchema = {
   type: "object",
@@ -485,8 +538,10 @@ Resort input:
 
 export async function extractImportedResortsFromPdf(
   document: GatewayDocumentInput
-): Promise<GatewayGenerationResult<ImportedResortPayload>> {
+): Promise<GatewayGenerationResult<ImportedResortPayload> & { preprocessing: MarkItDownResult }> {
+  const preprocessing = await convertPdfToMarkdown(document);
   const attemptedModels = getActiveModelChain("importCenter");
+  const aiStartedAt = Date.now();
   const response = await fetchGateway("/v1/messages", {
       model: attemptedModels[0],
       max_tokens: 4096,
@@ -507,16 +562,8 @@ export async function extractImportedResortsFromPdf(
           role: "user",
           content: [
             {
-              type: "document",
-              source: {
-                type: "base64",
-                media_type: "application/pdf",
-                data: Buffer.from(document.bytes).toString("base64")
-              }
-            },
-            {
               type: "text",
-              text: `This PDF is one Maldives resort fact sheet from the Import Center.
+              text: `The following Markdown was generated from one PDF by Microsoft MarkItDown. It is one Maldives resort fact sheet from the Import Center.
 
 Extract publish-ready structured data for exactly one resort when possible.
 
@@ -547,7 +594,11 @@ Rules:
 - Use "published_featured" only if the document clearly indicates flagship/homepage-worthy positioning. Do not overuse featured.
 - If the PDF is not a resort fact sheet, return an empty resorts array and explain why in notes.
 
-Source file: ${document.filename}`
+Source file: ${document.filename}
+
+MARKDOWN START
+${preprocessing.markdown}
+MARKDOWN END`
             }
           ]
         }
@@ -578,12 +629,14 @@ Source file: ${document.filename}`
     purpose: "importCenter"
   });
   const usedModel = payload.model || attemptedModels[0];
+  preprocessing.stats.aiProcessingDurationMs = Date.now() - aiStartedAt;
   const result = {
     data: parsed,
     usedModel,
     usedProvider: providerFromModel(usedModel),
     attemptedModels,
-    fallbackUsed: usedModel !== attemptedModels[0]
+    fallbackUsed: usedModel !== attemptedModels[0],
+    preprocessing
   };
 
   logGatewayOutcome("import_center", result);

@@ -29641,3 +29641,13 @@ html {
     font-size: clamp(1.875rem, 8vw, 2.25rem) !important;
   }
 }
+.admin-import-markdown-preview {
+  max-height: 28rem;
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid var(--admin-border, #d9e1df);
+  border-radius: 0.75rem;
+  background: var(--admin-surface-muted, #f6f8f7);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

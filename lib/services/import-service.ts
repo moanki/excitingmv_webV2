@@ -1,7 +1,8 @@
 import {
   extractImportedResortsFromPdf,
   type ImportedResort,
-  type ImportedResortPayload
+  type ImportedResortPayload,
+  type MarkItDownStats
 } from "@/lib/services/resort-ai-service";
 import { listAdminResorts, normalizePropertyType, saveResort, type PropertyType } from "@/lib/services/resort-service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -22,6 +23,11 @@ export type ImportExecutionResult = {
   providerUsed: string;
   message: string;
   logs: ImportLogEntry[];
+  conversion?: {
+    filename: string;
+    markdown: string;
+    stats: MarkItDownStats;
+  };
 };
 
 export type DriveImportStartResult = {
@@ -1120,6 +1126,7 @@ export async function importUploadedFactSheet(
     let warningCount = 0;
     let errorCount = 0;
     const modelUsage = new Set<string>();
+    let conversion: ImportExecutionResult["conversion"];
     const logs: ImportLogEntry[] = [
       {
         sourceUrl: downloadedPdf.sourceUrl,
@@ -1165,7 +1172,12 @@ export async function importUploadedFactSheet(
 
     try {
       const extraction = await extractImportedResortsFromPdf(downloadedPdf);
-      const { data: extracted, usedModel, usedProvider } = extraction;
+      const { data: extracted, usedModel, usedProvider, preprocessing } = extraction;
+      conversion = {
+        filename: downloadedPdf.filename,
+        markdown: preprocessing.markdown,
+        stats: preprocessing.stats
+      };
       modelUsage.add(`${usedProvider}:${usedModel}`);
       stagedPayloads.push({ sourceUrl: downloadedPdf.sourceUrl, extracted });
 
@@ -1225,7 +1237,8 @@ export async function importUploadedFactSheet(
           source: "upload",
           filename: downloadedPdf.filename,
           sourceUrl: downloadedPdf.sourceUrl,
-          propertyType
+          propertyType,
+          conversion
         },
         buildCheckpointPayload(downloadedPdf.sourceUrl, downloadedPdf.filename, stagedPayloads[0].extracted, propertyType)
       );
@@ -1258,6 +1271,7 @@ export async function importUploadedFactSheet(
         warningCount,
         errorCount,
         providerUsed,
+        conversion,
         message: `Processed uploaded PDF: imported ${importedCount}, skipped ${skippedCount}, warnings ${warningCount}, errors ${errorCount}.`,
         logs: compactLogs(logs)
       }
@@ -1316,6 +1330,7 @@ export async function importStoredFactSheet(input: {
     let warningCount = 0;
     let errorCount = 0;
     const modelUsage = new Set<string>();
+    let conversion: ImportExecutionResult["conversion"];
     const logs: ImportLogEntry[] = [
       {
         sourceUrl: downloadedPdf.sourceUrl,
@@ -1361,7 +1376,12 @@ export async function importStoredFactSheet(input: {
 
     try {
       const extraction = await extractImportedResortsFromPdf(downloadedPdf);
-      const { data: extracted, usedModel, usedProvider } = extraction;
+      const { data: extracted, usedModel, usedProvider, preprocessing } = extraction;
+      conversion = {
+        filename: downloadedPdf.filename,
+        markdown: preprocessing.markdown,
+        stats: preprocessing.stats
+      };
       modelUsage.add(`${usedProvider}:${usedModel}`);
       stagedPayloads.push({ sourceUrl: downloadedPdf.sourceUrl, extracted });
 
@@ -1421,7 +1441,8 @@ export async function importStoredFactSheet(input: {
           source: "stored-upload",
           filename: downloadedPdf.filename,
           sourceUrl: downloadedPdf.sourceUrl,
-          propertyType
+          propertyType,
+          conversion
         },
         buildCheckpointPayload(downloadedPdf.sourceUrl, downloadedPdf.filename, stagedPayloads[0].extracted, propertyType)
       );
@@ -1454,6 +1475,7 @@ export async function importStoredFactSheet(input: {
         warningCount,
         errorCount,
         providerUsed,
+        conversion,
         message: `Processed uploaded PDF: imported ${importedCount}, skipped ${skippedCount}, warnings ${warningCount}, errors ${errorCount}.`,
         logs: compactLogs(logs)
       }
