@@ -9,6 +9,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { PublishStatus, ServiceResult } from "@/lib/types";
 import { aiImportRequestSchema } from "@/lib/validations";
 import type { z } from "zod";
+import { toErrorMessage } from "@/lib/error-message";
 
 type AiImportRequestInput = z.infer<typeof aiImportRequestSchema>;
 
@@ -1226,7 +1227,7 @@ export async function importUploadedFactSheet(
         filename: downloadedPdf.filename,
         status: "error",
         provider: "none",
-        message: error instanceof Error ? error.message : "Import failed for the uploaded file."
+        message: toErrorMessage(error, "Import failed for the uploaded file.")
       });
     }
 
@@ -1280,7 +1281,7 @@ export async function importUploadedFactSheet(
     await supabase.from("import_batches").update({ status: "failed" }).eq("id", (batchData as ImportBatchRow).id);
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "The uploaded PDF import failed."
+      error: toErrorMessage(error, "The uploaded PDF import failed.")
     };
   }
 }
@@ -1430,7 +1431,7 @@ export async function importStoredFactSheet(input: {
         filename: downloadedPdf.filename,
         status: "error",
         provider: "none",
-        message: error instanceof Error ? error.message : "Import failed for the uploaded file."
+        message: toErrorMessage(error, "Import failed for the uploaded file.")
       });
     }
 
@@ -1484,7 +1485,7 @@ export async function importStoredFactSheet(input: {
     await supabase.from("import_batches").update({ status: "failed" }).eq("id", (batchData as ImportBatchRow).id);
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "The stored PDF import failed."
+      error: toErrorMessage(error, "The stored PDF import failed.")
     };
   }
 }
