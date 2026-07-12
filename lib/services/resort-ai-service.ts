@@ -1,5 +1,6 @@
 import { gatewayModelConfig } from "@/lib/ai/gateway-model-config";
 import { env } from "@/lib/env";
+import { toErrorMessage } from "@/lib/error-message";
 import { z } from "zod";
 
 export type ImportedRoom = {
@@ -158,7 +159,7 @@ async function convertPdfToMarkdown(document: GatewayDocumentInput): Promise<Mar
   const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceRoleKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for Microsoft MarkItDown conversion.");
 
-  const origin = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : env.NEXT_PUBLIC_APP_URL;
+  const origin = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
   const response = await fetch(`${origin}/api/markitdown_convert`, {
     method: "POST",
     headers: {
@@ -172,9 +173,11 @@ async function convertPdfToMarkdown(document: GatewayDocumentInput): Promise<Mar
     ),
     signal: AbortSignal.timeout(GATEWAY_TIMEOUT_MS)
   });
-  const payload = (await response.json().catch(() => null)) as (MarkItDownResult & { ok?: boolean; error?: string }) | null;
+  const payload = (await response.json().catch(() => null)) as (MarkItDownResult & { ok?: boolean; error?: unknown }) | null;
   if (!response.ok || !payload?.ok || !payload.markdown?.trim()) {
-    throw new Error(payload?.error || "Microsoft MarkItDown conversion failed.");
+    const message = toErrorMessage(payload?.error, `Microsoft MarkItDown conversion failed (HTTP ${response.status}).`);
+    console.error("[markitdown] conversion request failed", { status: response.status, message });
+    throw new Error(message);
   }
   return { markdown: payload.markdown, stats: payload.stats };
 }

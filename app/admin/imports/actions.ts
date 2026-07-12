@@ -19,6 +19,7 @@ export type ImportActionState =
   | {
       ok: false;
       error: string;
+      result?: ImportExecutionResult;
     }
   | undefined;
 
@@ -44,6 +45,11 @@ export async function createImportBatchAction(_: ImportActionState, formData: Fo
     return { ok: false, error: result.error };
   }
 
+  if (result.data.errorCount > 0) {
+    const error = [...result.data.logs].reverse().find((entry) => entry.status === "error")?.message;
+    return { ok: false, error: error || "PDF import failed.", result: result.data };
+  }
+
   revalidatePath("/admin/imports");
   revalidateImportTargets();
   return { ok: true, message: result.data.message, result: result.data };
@@ -59,6 +65,11 @@ export async function createImportUploadAction(_: ImportActionState, formData: F
 
   if (!result.ok) {
     return { ok: false, error: result.error };
+  }
+
+  if (result.data.errorCount > 0) {
+    const error = [...result.data.logs].reverse().find((entry) => entry.status === "error")?.message;
+    return { ok: false, error: error || "PDF import failed.", result: result.data };
   }
 
   revalidatePath("/admin/imports");

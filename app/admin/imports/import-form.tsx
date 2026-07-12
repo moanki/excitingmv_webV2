@@ -8,8 +8,10 @@ import {
 } from "@/app/admin/imports/actions";
 import type { ImportCheckpointRecord, ImportExecutionResult, ImportLogEntry } from "@/lib/services/import-service";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { toErrorMessage } from "@/lib/error-message";
 
 type UploadStage = "idle" | "uploading" | "processing" | "complete" | "error";
+const MAX_IMPORT_PDF_BYTES = 50 * 1024 * 1024;
 
 type DriveImportProgress = {
   totalSources: number;
@@ -225,7 +227,7 @@ function ImportProgress({
 }
 
 function ImportRunSummary({ state }: { state: ImportActionState }) {
-  if (!state?.ok) {
+  if (!state || !("result" in state) || !state.result) {
     return null;
   }
 
@@ -593,6 +595,14 @@ function ImportUploadPanel() {
         return;
       }
       setFilename(upload.name);
+      if (upload.size > MAX_IMPORT_PDF_BYTES) {
+        setUploadStage("error");
+        setState({
+          ok: false,
+          error: `This PDF is ${(upload.size / 1024 / 1024).toFixed(1)} MB. The current upload and MarkItDown limit is 50 MB.`
+        });
+        return;
+      }
 
       const supabase = createSupabaseBrowserClient();
       const signedUploadResponse = await fetch("/api/admin/imports", {
@@ -643,7 +653,7 @@ function ImportUploadPanel() {
         setUploadStage("error");
         setState({
           ok: false,
-          error: uploadResult.error.message
+          error: toErrorMessage(uploadResult.error, "PDF upload failed.")
         });
         return;
       }
@@ -676,6 +686,13 @@ function ImportUploadPanel() {
         return;
       }
 
+      if (payload.data.errorCount > 0) {
+        const error = [...payload.data.logs].reverse().find((entry) => entry.status === "error")?.message;
+        setUploadStage("error");
+        setState({ ok: false, error: error || "PDF import failed.", result: payload.data });
+        return;
+      }
+
       setState({
         ok: true,
         message: payload.message,
@@ -686,7 +703,7 @@ function ImportUploadPanel() {
       setUploadStage("error");
       setState({
         ok: false,
-        error: error instanceof Error ? error.message : "Uploaded PDF import failed."
+        error: toErrorMessage(error, "Uploaded PDF import failed.")
       });
     } finally {
       setPending(false);
@@ -710,7 +727,7 @@ function ImportUploadPanel() {
             <span className="field__label">Fact Sheet PDF</span>
             <input className="admin-file-input" name="factSheetFile" type="file" accept="application/pdf,.pdf" required />
             <p className="field__help">
-              Upload one resort fact sheet PDF. The importer will extract details, create SEO content, and skip the
+              Upload one resort fact sheet PDF up to 50 MB. The importer will extract details, create SEO content, and skip the
               resort if it already exists.
             </p>
           </label>
@@ -728,7 +745,7 @@ function ImportUploadPanel() {
         {state?.ok === false ? <p className="admin-alert admin-alert--error">{state.error}</p> : null}
 
         <ImportRunSummary state={state} />
-        {state?.ok ? <ConversionDetails result={state.result} /> : null}
+        {state && "result" in state && state.result?.conversion ? <ConversionDetails result={state.result} /> : null}
       </form>
     </article>
   );
