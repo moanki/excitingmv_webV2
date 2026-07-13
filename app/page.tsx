@@ -293,7 +293,7 @@ function TravelGuideMagazine({ guide }: { guide: HomepageGuideItem[] }) {
                 <span>{item.category}</span>
                 <h3>{item.title}</h3>
                 <p>{item.summary || item.description}</p>
-                <Link href={`/travel-guide/${item.slug}`}>Read insight <ArrowRight size={15} /></Link>
+                <Link href={`/travel-guide?article=${encodeURIComponent(item.slug)}`}>Read insight <ArrowRight size={15} /></Link>
               </div>
             </article>
           ))}

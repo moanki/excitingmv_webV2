@@ -19,6 +19,7 @@ type GlobalMarketMapProps = {
 
 const mapStyle = "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json";
 const labelledMapStyle = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+const maldivesHeadquarters = { longitude: 73.2207, latitude: 3.2028 };
 
 export function GlobalMarketMap({ markets, initialViewState, labelledMap = false }: GlobalMarketMapProps) {
   const [selectedMarket, setSelectedMarket] = useState<MarketOption | null>(null);
@@ -68,6 +69,21 @@ export function GlobalMarketMap({ markets, initialViewState, labelledMap = false
               </div>
             </Marker>
           ))}
+
+          <Marker
+            longitude={maldivesHeadquarters.longitude}
+            latitude={maldivesHeadquarters.latitude}
+            anchor="left"
+          >
+            <div className="market-map-hq" aria-label="Headquarters in Maldives" title="HQ · Maldives">
+              <span className="market-map-hq__pin" aria-hidden="true" />
+              <span className="market-map-hq__line" aria-hidden="true" />
+              <strong>
+                <span className="market-map-hq__full">HQ · Maldives</span>
+                <span className="market-map-hq__compact">HQ</span>
+              </strong>
+            </div>
+          </Marker>
 
           {selectedMarket ? (
             <Popup
