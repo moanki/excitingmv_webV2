@@ -31,7 +31,7 @@ export default async function TravelGuidePage({
       <TravelGuideDirectory
         guides={publishedGuides}
         catalogue={catalogue}
-        resorts={resorts.slice(0, 4)}
+        resorts={resorts}
         initialArticleSlug={initialArticleSlug}
       />
     </main>

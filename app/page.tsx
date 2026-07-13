@@ -9,6 +9,7 @@ import { ServicesParallax } from "@/components/services-parallax";
 import { WhyUsParallax } from "@/components/why-us-parallax";
 import { optimizedImageUrl } from "@/lib/image-urls";
 import { listHomepageFeaturedResorts } from "@/lib/services/resort-service";
+import { travelGuideReadTime } from "@/lib/travel-guide-utils";
 import type { ResortSummary } from "@/lib/types";
 import {
   getHomepageAwardsContent,
@@ -265,7 +266,7 @@ function FeaturedRetreats({
 }
 
 function TravelGuideMagazine({ guide }: { guide: HomepageGuideItem[] }) {
-  const articles = guide.filter((item) => item.title && item.published).slice(0, 5);
+  const articles = guide.filter((item) => item.title && item.published).slice(0, 3);
 
   return (
     <section className="lux-section lux-section--white" id="maldives-travel-guide">
@@ -277,25 +278,29 @@ function TravelGuideMagazine({ guide }: { guide: HomepageGuideItem[] }) {
             description="Partner-facing insight on geography, seasonality, transfers, room types, and client fit."
           />
           <Link href="/travel-guide" className="lux-text-link">
-            View all insights <ArrowRight size={16} />
+            Explore all guides <ArrowRight size={16} />
           </Link>
         </div>
-        <div className="lux-guide-carousel" aria-label="Maldives travel guide insights">
+        <div className="home-guide-preview" aria-label="Maldives travel guide insights">
           {articles.map((item, index) => (
-            <article className="lux-guide-card" key={`${item.title}-${index}`}>
-              <div
-                className="lux-guide-card__image"
+            <Link
+              className="home-guide-preview__card"
+              href={`/travel-guide?article=${encodeURIComponent(item.slug)}`}
+              key={item.slug}
+            >
+              <span
+                className="home-guide-preview__image"
                 style={{
                   backgroundImage: `url(${optimizedImageUrl(item.imageUrl || pickResortImage(index + 1), { width: 520, height: 360, quality: 74 })})`
                 }}
               />
-              <div className="lux-guide-card__content">
-                <span>{item.category}</span>
+              <span className="home-guide-preview__content">
+                <small>{item.category} · {travelGuideReadTime(item)} read</small>
                 <h3>{item.title}</h3>
                 <p>{item.summary || item.description}</p>
-                <Link href={`/travel-guide?article=${encodeURIComponent(item.slug)}`}>Read insight <ArrowRight size={15} /></Link>
-              </div>
-            </article>
+                <strong>Read guide <ArrowRight size={15} /></strong>
+              </span>
+            </Link>
           ))}
         </div>
       </div>
@@ -379,7 +384,7 @@ function MobileHomeV2({
   const displayServices = services.filter((service) => service.enabled && service.title).slice(0, 4);
   const displayWhy = whyUs.filter((item) => item.title).slice(0, 3);
   const displayAwards = awards.items.filter((item) => item.enabled && (item.imageUrl || item.name)).slice(0, 4);
-  const displayGuides = guide.filter((item) => item.published && item.title).slice(0, 4);
+  const displayGuides = guide.filter((item) => item.published && item.title).slice(0, 3);
 
   return (
     <div className="mobile-v2-home" aria-label="Exciting Maldives mobile home">
@@ -579,7 +584,7 @@ function MobileHomeV2({
         </div>
         <div className="mv2-insight-list">
           {displayGuides.map((item) => (
-            <Link href={`/travel-guide/${item.slug}`} className="mv2-insight" key={item.slug}>
+            <Link href={`/travel-guide?article=${encodeURIComponent(item.slug)}`} className="mv2-insight" key={item.slug}>
               <div
                 className="mv2-insight__image"
                 style={{
@@ -592,7 +597,7 @@ function MobileHomeV2({
               <div>
                 <strong>{item.title}</strong>
                 <p>{item.summary || item.description}</p>
-                <em>Read Insight <ArrowRight size={14} /></em>
+                <em>Read guide <ArrowRight size={14} aria-hidden="true" /></em>
               </div>
             </Link>
           ))}
