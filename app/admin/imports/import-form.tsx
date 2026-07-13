@@ -11,7 +11,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { toErrorMessage } from "@/lib/error-message";
 
 type UploadStage = "idle" | "uploading" | "processing" | "complete" | "error";
-const MAX_IMPORT_PDF_BYTES = 50 * 1024 * 1024;
+const MAX_IMPORT_PDF_BYTES = 100 * 1024 * 1024;
 
 type DriveImportProgress = {
   totalSources: number;
@@ -599,7 +599,7 @@ function ImportUploadPanel() {
         setUploadStage("error");
         setState({
           ok: false,
-          error: `This PDF is ${(upload.size / 1024 / 1024).toFixed(1)} MB. The current upload and MarkItDown limit is 50 MB.`
+          error: `This PDF is ${(upload.size / 1024 / 1024).toFixed(1)} MB. The current upload and MarkItDown limit is 100 MB.`
         });
         return;
       }
@@ -727,7 +727,7 @@ function ImportUploadPanel() {
             <span className="field__label">Fact Sheet PDF</span>
             <input className="admin-file-input" name="factSheetFile" type="file" accept="application/pdf,.pdf" required />
             <p className="field__help">
-              Upload one resort fact sheet PDF up to 50 MB. The importer will extract details, create SEO content, and skip the
+              Upload one resort fact sheet PDF up to 100 MB. The importer will extract details, create SEO content, and skip the
               resort if it already exists.
             </p>
           </label>

@@ -12,7 +12,7 @@ from markitdown import MarkItDown
 from pdfminer.pdfpage import PDFPage
 
 
-MAX_PDF_BYTES = 50 * 1024 * 1024
+MAX_PDF_BYTES = 100 * 1024 * 1024
 ALLOWED_HOSTS = (".supabase.co", ".google.com", ".googleusercontent.com")
 
 
@@ -32,7 +32,7 @@ def read_pdf(payload: dict) -> bytes:
             data = response.read(MAX_PDF_BYTES + 1)
 
     if len(data) > MAX_PDF_BYTES:
-        raise ValueError("PDF exceeds the 50 MB conversion limit.")
+        raise ValueError("PDF exceeds the 100 MB conversion limit.")
     if not data.startswith(b"%PDF-"):
         raise ValueError("Uploaded document is not a valid PDF.")
     return data
