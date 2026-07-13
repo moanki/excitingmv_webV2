@@ -4,6 +4,7 @@ import sharp from "sharp";
 
 export const SITE_ASSET_BUCKET = "site-assets";
 export const MAX_SITE_ASSET_FILE_SIZE = 50 * 1024 * 1024;
+export const SITE_ASSET_BUCKET_FILE_SIZE_LIMIT = 100 * 1024 * 1024;
 type SiteAssetUsage = "hero" | "banner" | "portrait" | "card" | "badge" | "logo" | "full";
 export const ALLOWED_SITE_ASSET_MIME_TYPES = [
   "image/png",
@@ -277,25 +278,26 @@ async function imageVariantBuffer(file: File, variant: keyof typeof VARIANT_PROF
     .toBuffer();
 }
 
-async function ensureBucket() {
+async function ensureBucket(strict = false) {
   const supabase = createSupabaseAdminClient();
   const { data: buckets } = await supabase.storage.listBuckets();
   const existing = buckets?.find((bucket) => bucket.name === SITE_ASSET_BUCKET);
 
   if (existing) {
-    await supabase.storage
-      .updateBucket(SITE_ASSET_BUCKET, {
+    const updated = await supabase.storage.updateBucket(SITE_ASSET_BUCKET, {
         public: true,
-        fileSizeLimit: `${MAX_SITE_ASSET_FILE_SIZE}`,
+        fileSizeLimit: `${SITE_ASSET_BUCKET_FILE_SIZE_LIMIT}`,
         allowedMimeTypes: ALLOWED_SITE_ASSET_MIME_TYPES
-      })
-      .catch(() => undefined);
+      });
+    if (strict && updated.error) {
+      throw new Error(`Could not configure 100 MB uploads. Increase the Supabase global Storage file-size limit to at least 100 MB. ${updated.error.message}`);
+    }
     return supabase;
   }
 
   const created = await supabase.storage.createBucket(SITE_ASSET_BUCKET, {
     public: true,
-    fileSizeLimit: `${MAX_SITE_ASSET_FILE_SIZE}`,
+    fileSizeLimit: `${SITE_ASSET_BUCKET_FILE_SIZE_LIMIT}`,
     allowedMimeTypes: ALLOWED_SITE_ASSET_MIME_TYPES
   });
 
@@ -304,6 +306,10 @@ async function ensureBucket() {
   }
 
   return supabase;
+}
+
+export function ensureImportUploadBucket() {
+  return ensureBucket(true);
 }
 
 export async function uploadSiteAsset(

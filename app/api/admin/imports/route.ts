@@ -11,8 +11,8 @@ import {
   startDriveImportBatch,
   type ImportLogEntry
 } from "@/lib/services/import-service";
-import { SITE_ASSET_BUCKET } from "@/lib/storage/site-assets";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { ensureImportUploadBucket, SITE_ASSET_BUCKET } from "@/lib/storage/site-assets";
+import { toErrorMessage } from "@/lib/error-message";
 import { aiImportRequestSchema } from "@/lib/validations";
 import { normalizePropertyType, type PropertyType } from "@/lib/services/resort-service";
 
@@ -136,7 +136,12 @@ export async function POST(request: Request) {
 
     const safeName = slugFilename(filename) || "fact-sheet.pdf";
     const storagePath = `imports/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
-    const supabase = createSupabaseAdminClient();
+    let supabase;
+    try {
+      supabase = await ensureImportUploadBucket();
+    } catch (error) {
+      return NextResponse.json({ ok: false, error: toErrorMessage(error, "Could not configure PDF uploads.") }, { status: 413 });
+    }
     const signed = await supabase.storage.from(SITE_ASSET_BUCKET).createSignedUploadUrl(storagePath, {
       upsert: true
     });
