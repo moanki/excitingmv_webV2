@@ -11,7 +11,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { toErrorMessage } from "@/lib/error-message";
 
 type UploadStage = "idle" | "uploading" | "processing" | "complete" | "error";
-const MAX_IMPORT_PDF_BYTES = 100 * 1024 * 1024;
+const MAX_IMPORT_PDF_BYTES = 50 * 1024 * 1024;
 
 type DriveImportProgress = {
   totalSources: number;
@@ -599,7 +599,7 @@ function ImportUploadPanel() {
         setUploadStage("error");
         setState({
           ok: false,
-          error: `This PDF is ${(upload.size / 1024 / 1024).toFixed(1)} MB. The current upload and MarkItDown limit is 100 MB.`
+          error: `This PDF is ${(upload.size / 1024 / 1024).toFixed(1)} MB. Production Supabase Storage currently allows files up to 50 MB.`
         });
         return;
       }

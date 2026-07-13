@@ -4,7 +4,7 @@ import sharp from "sharp";
 
 export const SITE_ASSET_BUCKET = "site-assets";
 export const MAX_SITE_ASSET_FILE_SIZE = 50 * 1024 * 1024;
-export const SITE_ASSET_BUCKET_FILE_SIZE_LIMIT = 100 * 1024 * 1024;
+export const SITE_ASSET_BUCKET_FILE_SIZE_LIMIT = MAX_SITE_ASSET_FILE_SIZE;
 type SiteAssetUsage = "hero" | "banner" | "portrait" | "card" | "badge" | "logo" | "full";
 export const ALLOWED_SITE_ASSET_MIME_TYPES = [
   "image/png",
@@ -290,7 +290,7 @@ async function ensureBucket(strict = false) {
         allowedMimeTypes: ALLOWED_SITE_ASSET_MIME_TYPES
       });
     if (strict && updated.error) {
-      throw new Error(`Could not configure 100 MB uploads. Increase the Supabase global Storage file-size limit to at least 100 MB. ${updated.error.message}`);
+      throw new Error(`Could not configure 50 MB uploads. ${updated.error.message}`);
     }
     return supabase;
   }

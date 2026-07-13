@@ -140,7 +140,7 @@ export async function POST(request: Request) {
     try {
       supabase = await ensureImportUploadBucket();
     } catch (error) {
-      return NextResponse.json({ ok: false, error: toErrorMessage(error, "Could not configure PDF uploads.") }, { status: 413 });
+      return NextResponse.json({ ok: false, error: toErrorMessage(error, "Could not configure PDF uploads.") }, { status: 500 });
     }
     const signed = await supabase.storage.from(SITE_ASSET_BUCKET).createSignedUploadUrl(storagePath, {
       upsert: true
