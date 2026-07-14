@@ -28371,12 +28371,11 @@ html {
   display: none;
 }
 
-@media (min-width: 821px) {
-  .reading-room__panel-article {
-    display: none;
-  }
+.reading-room__panel-article {
+  display: none;
+}
 
-  .reading-room__reader {
+.reading-room__reader {
     position: fixed;
     z-index: 1200;
     inset: 0;
@@ -28644,7 +28643,6 @@ html {
     letter-spacing: 0.18em;
     text-transform: uppercase;
   }
-}
 
 .reading-room__empty {
   display: flex;
@@ -29721,5 +29719,443 @@ html {
 
   .market-map-hq__compact {
     display: inline;
+  }
+}
+
+/* Travel Guide intelligence hub */
+.reading-room__workspace {
+  display: block;
+  padding-top: 42px;
+}
+
+.reading-room__index {
+  padding-right: 0;
+}
+
+.reading-room__list {
+  display: grid;
+  border-bottom: 1px solid #dfdbd1;
+}
+
+.reading-room__row {
+  grid-template-columns: 150px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 32px;
+  padding: 30px 24px;
+  border-top: 1px solid #dfdbd1;
+  border-radius: 0;
+  transition: background 220ms ease, transform 220ms ease;
+}
+
+.reading-room__row:hover,
+.reading-room__row:focus-visible,
+.reading-room__row.is-active {
+  background: #f4f1e9;
+  transform: translateX(4px);
+}
+
+.reading-room__row:focus-visible {
+  outline: 2px solid #b99850;
+  outline-offset: 2px;
+}
+
+.reading-room__row-meta {
+  display: grid;
+  gap: 8px;
+  color: #8f897d;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.reading-room__row-meta small:first-child {
+  color: #b18d42;
+}
+
+.reading-room__row-copy strong {
+  margin-top: 0;
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.12;
+}
+
+.reading-room__row-copy > span:not(.reading-room__row-tags) {
+  display: -webkit-box;
+  max-width: 680px;
+  margin-top: 12px;
+  overflow: hidden;
+  color: #6f6a61;
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.7;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.reading-room__row-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 16px;
+}
+
+.reading-room__row-tags em {
+  padding: 5px 8px;
+  border: 1px solid #ddd6c7;
+  border-radius: 999px;
+  color: #746c5f;
+  font-size: 8px;
+  font-style: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reading-room__row-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: center;
+  color: #0f6e56;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.reading-room__partner-brief {
+  margin-bottom: 42px;
+  padding: 28px 30px;
+  border-left: 2px solid #b99850;
+  background: #f2efe7;
+}
+
+.reading-room__partner-brief > span,
+.reading-room__best-for > span,
+.reading-room__related header > p {
+  color: #9b7734;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.reading-room__partner-brief p {
+  margin: 10px 0 0;
+  color: #38362f;
+  font-family: var(--font-reading-serif), var(--font-serif), serif;
+  font-size: 23px;
+  line-height: 1.5;
+}
+
+.reading-room__best-for {
+  margin-bottom: 36px;
+}
+
+.reading-room__best-for > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.reading-room__best-for strong {
+  padding: 7px 10px;
+  border: 1px solid #dcd5c7;
+  border-radius: 999px;
+  color: #5d584f;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.reading-room__related {
+  margin-top: 64px;
+  padding-top: 34px;
+  border-top: 1px solid #ddd8cc;
+}
+
+.reading-room__related header h3 {
+  margin: 9px 0 24px;
+  font-size: 28px;
+}
+
+.reading-room__related > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.reading-room__related > div > a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.reading-room__related > div > a > span {
+  display: block;
+  height: 124px;
+  border-radius: 3px;
+  background: #e7e1d5 center / cover no-repeat;
+}
+
+.reading-room__related small,
+.reading-room__related strong {
+  display: block;
+}
+
+.reading-room__related small {
+  margin-top: 10px;
+  color: #8f897d;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.reading-room__related strong {
+  margin-top: 4px;
+  font-family: var(--font-reading-serif), var(--font-serif), serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.reading-room__related-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f6e56;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+/* Compact homepage guide preview */
+.home-guide-preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.home-guide-preview__card {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 118px minmax(0, 1fr);
+  overflow: hidden;
+  border-top: 1px solid rgba(153, 111, 51, 0.28);
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  transition: background 220ms ease, transform 220ms ease;
+}
+
+.home-guide-preview__card:hover,
+.home-guide-preview__card:focus-visible {
+  background: #faf7f0;
+  transform: translateY(-3px);
+}
+
+.home-guide-preview__card:focus-visible {
+  outline: 2px solid #b99850;
+  outline-offset: 3px;
+}
+
+.home-guide-preview__image {
+  min-height: 190px;
+  background: #e9e3d7 center / cover no-repeat;
+}
+
+.home-guide-preview__content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 20px 18px;
+}
+
+.home-guide-preview__content small {
+  color: #9b7734;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.home-guide-preview__content h3 {
+  margin: 10px 0 0;
+  font-family: var(--font-serif), serif;
+  font-size: 21px;
+  font-weight: 300;
+  line-height: 1.18;
+}
+
+.home-guide-preview__content p {
+  display: -webkit-box;
+  margin: 10px 0 16px;
+  overflow: hidden;
+  color: rgba(23, 33, 43, 0.66);
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.home-guide-preview__content strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: auto;
+  color: #0f6e56;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .home-guide-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .home-guide-preview__card {
+    grid-template-columns: 130px minmax(0, 1fr);
+  }
+
+  .home-guide-preview__image {
+    min-height: 150px;
+  }
+}
+
+@media (max-width: 820px) {
+  .reading-room__row {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 24px 4px;
+  }
+
+  .reading-room__row:hover,
+  .reading-room__row:focus-visible,
+  .reading-room__row.is-active {
+    transform: none;
+  }
+
+  .reading-room__row-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+
+  .reading-room__row-copy strong {
+    font-size: 25px;
+  }
+
+  .reading-room__row-cta {
+    justify-self: start;
+  }
+
+  .reading-room__reader-shell {
+    width: 100vw;
+  }
+
+  .reading-room__reader-backdrop {
+    background: rgb(8 20 30 / 18%);
+  }
+
+  .reading-room__reader-header {
+    min-height: 58px;
+    gap: 12px;
+    padding: 0 18px;
+  }
+
+  .reading-room__reader-header button {
+    flex: 0 0 auto;
+    font-size: 9px;
+  }
+
+  .reading-room__reader-header > span {
+    max-width: 55%;
+    font-size: 7px;
+    line-height: 1.35;
+    text-align: right;
+    white-space: normal;
+  }
+
+  .reading-room__reader-shell,
+  .reading-room__reader-shell * {
+    min-width: 0;
+  }
+
+  .reading-room__reader-hero-copy,
+  .reading-room__partner-brief {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .reading-room__reader-hero {
+    min-height: min(48vh, 430px);
+    padding: 52px 24px 42px;
+  }
+
+  .reading-room__reader-hero-copy h2 {
+    font-size: clamp(36px, 10vw, 52px);
+  }
+
+  .reading-room__reader-hero-copy span {
+    font-size: 13px;
+  }
+
+  .reading-room__reader-article {
+    padding: 42px 22px calc(52px + env(safe-area-inset-bottom));
+  }
+
+  .reading-room__reader-article p,
+  .reading-room__reader-article li {
+    font-size: 16px;
+    line-height: 1.82;
+  }
+
+  .reading-room__partner-brief {
+    padding: 22px;
+  }
+
+  .reading-room__partner-brief p {
+    font-size: 20px;
+  }
+
+  .reading-room__related > div {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .reading-room__related > div > a > span {
+    height: 180px;
+  }
+
+  .reading-room__reader-nav {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .reading-room__reader-nav button:last-child {
+    justify-content: flex-start;
+    text-align: left;
+  }
+}
+
+@media (max-width: 520px) {
+  .home-guide-preview__card {
+    grid-template-columns: 104px minmax(0, 1fr);
+  }
+
+  .home-guide-preview__image {
+    min-height: 142px;
+  }
+
+  .home-guide-preview__content {
+    padding: 16px 14px;
+  }
+
+  .home-guide-preview__content h3 {
+    font-size: 18px;
+  }
+
+  .home-guide-preview__content p {
+    margin-bottom: 12px;
+    font-size: 11px;
   }
 }

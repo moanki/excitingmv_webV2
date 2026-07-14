@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, BookOpen, ChevronDown, Search, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown, Search } from "lucide-react";
 import {
   useEffect,
   useMemo,
@@ -13,39 +13,38 @@ import {
 
 import { optimizedImageUrl } from "@/lib/image-urls";
 import type { CatalogueContent, HomepageGuideItem } from "@/lib/site-content";
+import { relatedResortsForGuide, travelGuideReadTime, travelGuideTags } from "@/lib/travel-guide-utils";
 import type { ResortSummary } from "@/lib/types";
 
 const guidesPerPage = 5;
 const preferredCategories = ["Money", "Transport", "Arrival", "Packing", "Culture", "Seasons"];
-const categoryTints: Record<string, string> = {
-  money: "radial-gradient(circle at 74% 32%, #6a5636, transparent 62%)",
-  transport: "radial-gradient(circle at 72% 30%, #2f5f7a, transparent 62%)",
-  arrival: "radial-gradient(circle at 73% 33%, #2a5a66, transparent 62%)",
-  packing: "radial-gradient(circle at 72% 31%, #4a6b3f, transparent 62%)",
-  culture: "radial-gradient(circle at 71% 34%, #4a4066, transparent 62%)",
-  seasons: "radial-gradient(circle at 70% 35%, #3a5f52, transparent 62%)"
-};
-
-function readTime(guide: HomepageGuideItem) {
-  const words = [guide.mainContent, ...guide.sections.map((section) => section.body), ...guide.tips]
-    .join(" ")
-    .trim()
-    .split(/\s+/).length;
-  return `${Math.max(2, Math.ceil(words / 180))} min`;
-}
 
 function articleNumber(index: number) {
   return String(index + 1).padStart(2, "0");
 }
 
-function ReaderArticle({ guide }: { guide: HomepageGuideItem }) {
+function ReaderArticle({ guide, tags }: { guide: HomepageGuideItem; tags: string[] }) {
   return (
     <>
+      {guide.summary ? (
+        <aside className="reading-room__partner-brief">
+          <span>Partner brief</span>
+          <p>{guide.summary}</p>
+        </aside>
+      ) : null}
+
+      {tags.length ? (
+        <div className="reading-room__best-for" aria-label="Guide themes">
+          <span>Useful for</span>
+          <div>{tags.map((tag) => <strong key={tag}>{tag}</strong>)}</div>
+        </div>
+      ) : null}
+
       {guide.mainContent ? <p>{guide.mainContent}</p> : null}
 
       {guide.tips.length ? (
         <aside className="reading-room__tips">
-          <h3>Tips</h3>
+          <h3>Agent tips</h3>
           <ul>
             {guide.tips.map((tip) => <li key={tip}>{tip}</li>)}
           </ul>
@@ -89,8 +88,7 @@ export function TravelGuideDirectory({
   const [category, setCategory] = useState("All");
   const [activeSlug, setActiveSlug] = useState(initialArticleSlug);
   const [page, setPage] = useState(0);
-  const [isDesktop, setIsDesktop] = useState(false);
-  const [readerOpen, setReaderOpen] = useState(false);
+  const [readerOpen, setReaderOpen] = useState(Boolean(initialArticleSlug));
   const [progress, setProgress] = useState(0);
   const readerRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -121,32 +119,28 @@ export function TravelGuideDirectory({
   const visibleGuides = filteredGuides.slice(safePage * guidesPerPage, safePage * guidesPerPage + guidesPerPage);
   const activeGuide = guides.find((guide) => guide.slug === activeSlug);
   const activeIndex = activeGuide ? guides.findIndex((guide) => guide.slug === activeGuide.slug) : -1;
-  const heroTint = activeGuide
-    ? categoryTints[activeGuide.category.toLowerCase()] ?? "radial-gradient(circle at 72% 32%, #315a64, transparent 62%)"
-    : "radial-gradient(circle at 76% 32%, #24506b, transparent 60%)";
-  const heroImageUrl = optimizedImageUrl(
-    activeGuide?.imageUrl || catalogue.heroImageUrl,
+  const activeTags = activeGuide ? travelGuideTags(activeGuide) : [];
+  const relatedResorts = activeGuide ? relatedResortsForGuide(activeGuide, resorts) : [];
+  const heroTint = "radial-gradient(circle at 76% 32%, #24506b, transparent 60%)";
+  const catalogueHeroUrl = optimizedImageUrl(
+    catalogue.heroImageUrl,
     { width: 1920, height: 900, quality: 90 }
   );
-
-  useEffect(() => {
-    const media = window.matchMedia("(min-width: 821px)");
-    const update = () => setIsDesktop(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
+  const readerHeroUrl = optimizedImageUrl(
+    activeGuide?.imageUrl || catalogue.heroImageUrl,
+    { width: 1920, height: 1080, quality: 90 }
+  );
 
   useEffect(() => {
     const slug = new URLSearchParams(window.location.search).get("article");
     if (slug && guides.some((guide) => guide.slug === slug)) {
       setActiveSlug(slug);
-      if (isDesktop) setReaderOpen(true);
+      setReaderOpen(true);
     }
-  }, [guides, isDesktop]);
+  }, [guides]);
 
   useEffect(() => {
-    if (!isDesktop || !readerOpen || !activeGuide) return;
+    if (!readerOpen || !activeGuide) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -181,7 +175,7 @@ export function TravelGuideDirectory({
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [activeGuide, isDesktop, readerOpen]);
+  }, [activeGuide, readerOpen]);
 
   useEffect(() => () => clearTimeout(closeTimerRef.current), []);
 
@@ -207,14 +201,8 @@ export function TravelGuideDirectory({
     setActiveSlug(slug);
     setProgress(0);
     updateArticleUrl(slug);
-    if (!isDesktop) return;
     triggerRef.current = event.currentTarget;
     setReaderOpen(true);
-  }
-
-  function closeInlineArticle() {
-    setActiveSlug(undefined);
-    updateArticleUrl();
   }
 
   function closeReader() {
@@ -245,30 +233,15 @@ export function TravelGuideDirectory({
       <section className="reading-room__hero" style={{ "--reading-tint": heroTint } as CSSProperties}>
         <div
           className="reading-room__hero-image"
-          style={heroImageUrl ? { backgroundImage: `url(${JSON.stringify(heroImageUrl)})` } : undefined}
+          style={catalogueHeroUrl ? { backgroundImage: `url(${JSON.stringify(catalogueHeroUrl)})` } : undefined}
         />
         <div className="reading-room__hero-tint" />
         <div className="reading-room__wrap reading-room__hero-content">
-          {activeGuide ? (
-            <div>
-              <p>{activeGuide.category}</p>
-              <h1>{activeGuide.title}</h1>
-              <span>{activeGuide.summary || `No. ${articleNumber(activeIndex)} — ${readTime(activeGuide)} read`}</span>
-            </div>
-          ) : (
-            <>
-              <div className="reading-room__hero-default">
-                <p>{catalogue.eyebrow}</p>
-                <h1>{catalogue.title}</h1>
-                <span>{catalogue.body}</span>
-              </div>
-              <div className="reading-room__hero-desktop-default">
-                <p>{catalogue.eyebrow}</p>
-                <h1>{catalogue.title}</h1>
-                <span>{catalogue.body}</span>
-              </div>
-            </>
-          )}
+          <div>
+            <p>{catalogue.eyebrow || "Destination Intelligence"}</p>
+            <h1>{catalogue.title || "Maldives Travel Guide"}</h1>
+            <span>{catalogue.body || "Practical destination insights, selling angles, and planning guidance for partners positioning the Maldives with confidence."}</span>
+          </div>
         </div>
       </section>
 
@@ -300,25 +273,36 @@ export function TravelGuideDirectory({
           <div className="reading-room__workspace">
             <div className="reading-room__index">
               {visibleGuides.length ? (
-                <div className={activeGuide ? "reading-room__list has-active" : "reading-room__list"}>
+                <div className="reading-room__list">
                   {visibleGuides.map((guide) => {
                     const guideIndex = guides.findIndex((item) => item.slug === guide.slug);
                     const isActive = activeSlug === guide.slug;
+                    const tags = travelGuideTags(guide);
 
                     return (
                       <button
                         type="button"
                         className={isActive ? "reading-room__row is-active" : "reading-room__row"}
                         aria-pressed={isActive}
+                        aria-haspopup="dialog"
                         onClick={(event) => openArticle(guide.slug, event)}
                         key={guide.slug}
                       >
-                        <span className="reading-room__number">No. {articleNumber(guideIndex)}</span>
-                        <span className="reading-room__row-copy">
+                        <span className="reading-room__row-meta">
+                          <small>Guide {articleNumber(guideIndex)}</small>
                           <small>{guide.category}</small>
-                          <strong>{guide.title}</strong>
+                          <small>{travelGuideReadTime(guide)} read</small>
                         </span>
-                        <ArrowRight className="reading-room__arrow" aria-hidden="true" size={17} />
+                        <span className="reading-room__row-copy">
+                          <strong>{guide.title}</strong>
+                          <span>{guide.summary || guide.description}</span>
+                          {tags.length ? (
+                            <span className="reading-room__row-tags">
+                              {tags.map((tag) => <em key={tag}>{tag}</em>)}
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className="reading-room__row-cta">Open insight <ArrowRight aria-hidden="true" size={16} /></span>
                       </button>
                     );
                   })}
@@ -346,85 +330,11 @@ export function TravelGuideDirectory({
                 </div>
               ) : null}
             </div>
-
-            <div className="reading-room__divider" />
-
-            <article className="reading-room__panel">
-              {activeGuide ? (
-                <div className="reading-room__panel-article">
-                  <div className="reading-room__panel-meta">
-                    <span>{activeGuide.category} · {readTime(activeGuide)} read</span>
-                    <button type="button" onClick={closeInlineArticle}>
-                      Close <X aria-hidden="true" size={14} />
-                    </button>
-                  </div>
-                  <h2>{activeGuide.title}</h2>
-
-                  {activeGuide.tips.length ? (
-                    <aside className="reading-room__tips">
-                      <h3>Tips</h3>
-                      <ul>
-                        {activeGuide.tips.map((tip) => <li key={tip}>{tip}</li>)}
-                      </ul>
-                    </aside>
-                  ) : null}
-
-                  <p>{activeGuide.mainContent || activeGuide.summary}</p>
-                  {activeGuide.sections.map((section) => (
-                    <section key={section.heading}>
-                      <h3>{section.heading}</h3>
-                      <p>{section.body}</p>
-                    </section>
-                  ))}
-
-                  {activeGuide.faq.length ? (
-                    <section className="reading-room__faq">
-                      <h3>FAQ</h3>
-                      {activeGuide.faq.map((item) => (
-                        <details key={item.question} open>
-                          <summary><ChevronDown aria-hidden="true" size={15} />{item.question}</summary>
-                          <p>{item.answer}</p>
-                        </details>
-                      ))}
-                    </section>
-                  ) : null}
-                </div>
-              ) : (
-                <div className="reading-room__empty">
-                  <span><BookOpen aria-hidden="true" size={23} /></span>
-                  <h2>Pick up an article<br />to begin reading</h2>
-                  <p>Choose any piece from the index and it opens here — the banner above changes to match.</p>
-                  <small><ArrowLeft aria-hidden="true" size={14} /> Select from the left</small>
-                </div>
-              )}
-            </article>
           </div>
-
-          {resorts.length ? (
-            <section className="reading-room__properties">
-              <header>
-                <h2>Explore properties</h2>
-                <Link href="/resorts">View all resorts</Link>
-              </header>
-              <div>
-                {resorts.map((resort, index) => (
-                  <Link href={`/resorts/${resort.slug}`} key={resort.id} className={`reading-room__property tone-${index + 1}`}>
-                    <span
-                      style={resort.heroImageUrl ? {
-                        backgroundImage: `url(${optimizedImageUrl(resort.heroImageUrl, { width: 560, height: 360, quality: 82 })})`
-                      } : undefined}
-                    />
-                    <small>{resort.location}</small>
-                    <strong>{resort.name}</strong>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          ) : null}
         </div>
       </section>
 
-      {isDesktop && activeGuide ? (
+      {activeGuide ? (
         <div
           className={readerOpen ? "reading-room__reader is-open" : "reading-room__reader"}
         >
@@ -444,12 +354,12 @@ export function TravelGuideDirectory({
               <button ref={closeRef} type="button" onClick={closeReader} aria-label="Close article and return to guides">
                 <ArrowLeft aria-hidden="true" size={17} /> Back to guides
               </button>
-              <span>{activeGuide.category} · {readTime(activeGuide)} read</span>
+              <span>Guide {articleNumber(activeIndex)} · {activeGuide.category} · {travelGuideReadTime(activeGuide)} read</span>
             </header>
 
             <div
               className="reading-room__reader-hero"
-              style={heroImageUrl ? { backgroundImage: `url(${JSON.stringify(heroImageUrl)})` } : undefined}
+              style={readerHeroUrl ? { backgroundImage: `url(${JSON.stringify(readerHeroUrl)})` } : undefined}
             >
               <div className="reading-room__reader-hero-overlay" />
               <div className="reading-room__reader-hero-copy">
@@ -461,8 +371,34 @@ export function TravelGuideDirectory({
 
             <article className="reading-room__reader-article">
               <div>
-                <ReaderArticle guide={activeGuide} />
+                <ReaderArticle guide={activeGuide} tags={activeTags} />
               </div>
+
+              <section className="reading-room__related">
+                <header>
+                  <p>Contextual recommendations</p>
+                  <h3>{relatedResorts.length ? "Relevant stays for this guide" : "Continue your Maldives research"}</h3>
+                </header>
+                {relatedResorts.length ? (
+                  <div>
+                    {relatedResorts.map((resort) => (
+                      <Link href={`/resorts/${resort.slug}`} key={resort.id}>
+                        <span
+                          style={resort.heroImageUrl ? {
+                            backgroundImage: `url(${optimizedImageUrl(resort.heroImageUrl, { width: 520, height: 340, quality: 82 })})`
+                          } : undefined}
+                        />
+                        <small>{resort.transferType || resort.location}</small>
+                        <strong>{resort.name}</strong>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <Link className="reading-room__related-all" href="/resorts">
+                    Explore all resorts <ArrowRight aria-hidden="true" size={15} />
+                  </Link>
+                )}
+              </section>
 
               <nav className="reading-room__reader-nav" aria-label="Travel guide article navigation">
                 {activeIndex > 0 ? (
