@@ -571,15 +571,25 @@ async function resolveGoogleDriveExcelSources(url: string) {
   const folderMatch = parsed.pathname.match(/\/drive\/folders\/([^/?]+)/);
   if (!folderMatch?.[1]) return [normalizeGoogleDriveExcelUrl(url)];
 
-  const html = await fetch(url, { cache: "no-store" }).then((response) => response.text());
+  const html = (await fetch(url, { cache: "no-store" }).then((response) => response.text()))
+    .replaceAll("\\/", "/")
+    .replaceAll("\\u003d", "=")
+    .replaceAll("\\u0026", "&");
   const matches = Array.from(
     new Set(
       [
         ...Array.from(html.matchAll(/https:\/\/drive\.google\.com\/file\/d\/[^"'&<\s]+/g)).map((match) => match[0]),
         ...Array.from(html.matchAll(/https:\/\/docs\.google\.com\/spreadsheets\/d\/[^"'&<\s]+/g)).map((match) => match[0]),
+        ...Array.from(html.matchAll(/https?:\/\/(?:drive\.google\.com|drive\.usercontent\.google\.com)\/[^"'<>\s]+[?&](?:export=download&)?id=[A-Za-z0-9_-]{10,}[^"'<>\s]*/gi)).map((match) => match[0]),
         ...Array.from(html.matchAll(/https?:\/\/[^"'<> \t\r\n]+\.xlsx(?:\?[^"'<> \t\r\n]*)?/gi)).map((match) => match[0])
       ]
-        .map((item) => normalizeGoogleDriveExcelUrl(item.replace(/&amp;/g, "&")))
+        .map((item) => {
+          try {
+            return normalizeGoogleDriveExcelUrl(item.replace(/&amp;/g, "&"));
+          } catch {
+            return "";
+          }
+        })
         .filter(Boolean)
     )
   );
@@ -592,6 +602,7 @@ function normalizeGoogleDriveExcelUrl(url: string) {
   const parsed = new URL(url);
   const fileMatch = parsed.pathname.match(/\/file\/d\/([^/]+)/);
   if (fileMatch?.[1]) {
+    if (!isGoogleDriveId(fileMatch[1])) throw new Error("Google Drive file URL does not contain a valid file id.");
     const normalized = new URL("https://drive.google.com/uc");
     normalized.searchParams.set("export", "download");
     normalized.searchParams.set("id", fileMatch[1]);
@@ -600,12 +611,30 @@ function normalizeGoogleDriveExcelUrl(url: string) {
 
   const sheetMatch = parsed.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
   if (sheetMatch?.[1]) {
+    if (!isGoogleDriveId(sheetMatch[1])) throw new Error("Google Sheets URL does not contain a valid spreadsheet id.");
     const normalized = new URL(`https://docs.google.com/spreadsheets/d/${sheetMatch[1]}/export`);
     normalized.searchParams.set("format", "xlsx");
     return normalized.toString();
   }
 
+  const queryId = parsed.searchParams.get("id");
+  if (queryId && (parsed.hostname === "drive.google.com" || parsed.hostname === "drive.usercontent.google.com")) {
+    if (!isGoogleDriveId(queryId)) throw new Error("Google Drive download URL does not contain a valid file id.");
+    const normalized = new URL("https://drive.google.com/uc");
+    normalized.searchParams.set("export", "download");
+    normalized.searchParams.set("id", queryId);
+    return normalized.toString();
+  }
+
   return url;
+}
+
+function isGoogleDriveId(value: string) {
+  try {
+    return /^[A-Za-z0-9_-]{10,}$/u.test(decodeURIComponent(value));
+  } catch {
+    return false;
+  }
 }
 
 function guessExcelFilename(url: string, index: number) {
@@ -622,11 +651,27 @@ async function downloadExcelSource(sourceUrl: string, index: number) {
   const response = await fetch(sourceUrl, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to download Excel workbook from ${sourceUrl}`);
   const bytes = new Uint8Array(await response.arrayBuffer());
+  const disposition = response.headers.get("content-disposition");
   return {
     sourceUrl,
-    filename: guessExcelFilename(sourceUrl, index),
+    filename: filenameFromContentDisposition(disposition) ?? guessExcelFilename(response.url || sourceUrl, index),
     bytes
   };
+}
+
+function filenameFromContentDisposition(value: string | null) {
+  if (!value) return null;
+  const encoded = value.match(/filename\*=UTF-8''([^;]+)/i)?.[1];
+  const plain = value.match(/filename\s*=\s*"?([^";]+)"?/i)?.[1];
+  const candidate = encoded ?? plain;
+  if (!candidate) return null;
+  try {
+    const decoded = decodeURIComponent(candidate).trim();
+    const safe = decoded.replace(/[\\/:*?"<>|]+/g, "-");
+    return safe || null;
+  } catch {
+    return candidate.trim() || null;
+  }
 }
 
 async function createBatchRecord(sourceUrl: string, propertyType: PropertyType) {

@@ -56,7 +56,13 @@ function PreviewCard({
   onApply: (preview: ExcelResortPreview) => void;
   onManualMatch: (preview: ExcelResortPreview, resortId: string) => void;
 }) {
-  const matchedName = preview.match?.status === "matched" ? preview.match.resortName : preview.match?.status === "new" ? "Not in database" : "Ambiguous match";
+  const matchedName = preview.status === "parse_error"
+    ? "Workbook unavailable"
+    : preview.match?.status === "matched"
+      ? preview.match.resortName
+      : preview.match?.status === "new"
+        ? "Not in database"
+        : "Ambiguous match";
   const canApply = preview.status === "ready_to_update" || preview.status === "ready_to_create";
   const isPending = pendingKey === preview.stagingId;
 
