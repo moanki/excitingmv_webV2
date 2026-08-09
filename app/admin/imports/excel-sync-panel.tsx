@@ -57,11 +57,11 @@ function PreviewCard({
   onManualMatch: (preview: ExcelResortPreview, resortId: string) => void;
 }) {
   const matchedName = preview.status === "parse_error"
-    ? "Workbook unavailable"
-    : preview.match?.status === "matched"
-      ? preview.match.resortName
+      ? "Workbook unavailable"
+      : preview.match?.status === "matched"
+        ? preview.match.resortName
       : preview.match?.status === "new"
-        ? "Not in database"
+        ? preview.model?.resort.name || "Not in database"
         : "Ambiguous match";
   const canApply = preview.status === "ready_to_update" || preview.status === "ready_to_create";
   const isPending = pendingKey === preview.stagingId;
@@ -82,6 +82,21 @@ function PreviewCard({
         <span>Room photos preserved: {preview.matchingRoomPhotosPreserved}</span>
       </div>
 
+      {preview.model ? (
+        <div className="admin-checkpoint-notes">
+          <p>
+            <strong>Generic Information:</strong>{" "}
+            {preview.model.sections.generic.actualRows > 0 ? "Actual data detected - ready to update" : "No update"}
+          </p>
+          <p>
+            <strong>Villa Types:</strong>{" "}
+            {preview.model.sections.rooms.actualRows > 0
+              ? `${preview.model.sections.rooms.actualRows} actual record${preview.model.sections.rooms.actualRows === 1 ? "" : "s"} detected - ready to update`
+              : "No update - existing villa data will remain unchanged"}
+          </p>
+        </div>
+      ) : null}
+
       {preview.diff ? (
         <div className="dashboard-grid dashboard-grid-quad">
           <div className="stat-card"><p className="eyebrow">Root changes</p><strong>{preview.diff.rootFields.length}</strong></div>
@@ -96,6 +111,19 @@ function PreviewCard({
         <ul className="admin-checkpoint-notes">
           {preview.warnings.map((warning) => <li key={warning}>{warning}</li>)}
         </ul>
+      ) : null}
+
+      {preview.model?.ignoredExampleRows.length ? (
+        <details>
+          <summary>Ignored template/example rows ({preview.model.ignoredExampleRows.length})</summary>
+          <ul className="admin-checkpoint-notes">
+            {preview.model.ignoredExampleRows.map((row) => (
+              <li key={`${row.sheet}-${row.rowNumber}-${row.reason}`}>
+                {row.sheet} row {row.rowNumber}: {row.reason} - {row.values.slice(0, 2).join(" | ").slice(0, 180)}
+              </li>
+            ))}
+          </ul>
+        </details>
       ) : null}
 
       {preview.match?.status === "review_required" ? (
@@ -277,6 +305,7 @@ export function ExcelSyncPanel() {
         uploadForm.append("excelFile", uploadedFile);
         uploadForm.append("propertyType", propertyType);
         uploadForm.append("manualMatchResortId", resortId);
+        uploadForm.append("modelIndex", String(preview.modelIndex ?? 0));
         response = await fetch("/api/admin/imports", { method: "POST", body: uploadForm });
       } else {
         response = await fetch("/api/admin/imports", {
@@ -287,6 +316,7 @@ export function ExcelSyncPanel() {
             batchId,
             sourceUrl: preview.sourceUrl,
             sourceIndex: preview.sourceIndex,
+            modelIndex: preview.modelIndex,
             propertyType,
             manualMatchResortId: resortId
           })

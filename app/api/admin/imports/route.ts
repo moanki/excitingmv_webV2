@@ -64,6 +64,9 @@ export async function POST(request: Request) {
         propertyType: normalizePropertyType(formData.get("propertyType")),
         manualMatchResortId: typeof formData.get("manualMatchResortId") === "string"
           ? String(formData.get("manualMatchResortId"))
+          : undefined,
+        modelIndex: typeof formData.get("modelIndex") === "string" && /^\d+$/u.test(String(formData.get("modelIndex")))
+          ? Number(formData.get("modelIndex"))
           : undefined
       });
 
@@ -126,6 +129,7 @@ export async function POST(request: Request) {
       batchId: json.batchId,
       sourceUrl: json.sourceUrl,
       sourceIndex: json.sourceIndex,
+      modelIndex: Number.isInteger(json.modelIndex) ? json.modelIndex : undefined,
       propertyType: normalizePropertyType(json.propertyType),
       manualMatchResortId: typeof json.manualMatchResortId === "string" ? json.manualMatchResortId : undefined
     });
