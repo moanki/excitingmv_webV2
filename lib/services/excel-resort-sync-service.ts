@@ -3,6 +3,7 @@ import ExcelJS from "exceljs";
 import { toErrorMessage } from "@/lib/error-message";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { ServiceResult } from "@/lib/types";
+import { convertDocumentToMarkdown } from "@/lib/services/resort-ai-service";
 import {
   listAdminResorts,
   normalizePropertyType,
@@ -20,6 +21,7 @@ type ParsedSheet = {
 export type ExcelSyncStatus =
   | "ready_to_update"
   | "ready_to_create"
+  | "new_candidate"
   | "needs_review"
   | "parse_error"
   | "updated"
@@ -37,6 +39,7 @@ export type ExcelResortRoomModel = {
   bedType: string;
   viewLabel: string;
   amenities: string[];
+  providedFields: string[];
   source: string;
 };
 
@@ -45,12 +48,20 @@ export type ExcelResortImportModel = {
     sourceUrl: string;
     filename: string;
     sheets: string[];
+    normalizedMarkdown?: string;
+    sourceType: "excel" | "google_drive";
   };
   resort: {
     name: string;
     slug: string;
     location: string;
     villaSummary: string;
+    curatedMoments: string[];
+    butlerService: {
+      available?: boolean;
+      displayName?: string;
+      description?: string;
+    };
     category: string;
     transferType: string;
     description: string;
@@ -89,7 +100,8 @@ export type ExcelResortMatch =
       confidence: "manual" | "exact";
     }
   | {
-      status: "new";
+      status: "new_candidate";
+      candidates: Array<{ resortId: string; resortName: string; reason: string }>;
     }
   | {
       status: "review_required";
@@ -114,23 +126,24 @@ export type ExcelResortPreview = {
 };
 
 export type ExcelResortDiff = {
-  rootFields: Array<{ field: string; current: string; excel: string; action: "Update" | "Clear" | "Keep protected" }>;
+  rootFields: Array<{ field: string; current: string; excel: string; action: "Update" | "Same" | "No update" | "Protected" | "Review" }>;
   rooms: {
     added: number;
     updated: number;
     removed: number;
+    untouched: number;
     final: number;
-    action: "Synchronize" | "No update";
+    action: "Update" | "No update";
   };
   highlights: {
     current: number;
     excel: number;
-    action: "Synchronize" | "No update";
+    action: "Update" | "No update";
   };
   mealPlans: {
     current: number;
     excel: number;
-    action: "Synchronize" | "No update";
+    action: "Update" | "No update";
   };
 };
 
@@ -144,6 +157,7 @@ export type ExcelSyncDelta = {
   processedSources: number;
   readyToUpdate: number;
   readyToCreate: number;
+  newCandidates: number;
   needsReview: number;
   parseErrors: number;
   noSourceWorkbook: number;
@@ -222,7 +236,8 @@ type StagingPayload = {
 const SHEET_ALIASES = {
   general: ["general", "generic", "overview", "resort", "property", "facts", "fact sheet"],
   rooms: ["villas", "villa details", "villa", "rooms", "room", "accommodation", "accommodations", "suites"],
-  mealPlans: ["meal plans", "meal plan", "meals", "dining plans"]
+  mealPlans: ["meal plans", "meal plan", "meals", "dining plans"],
+  curatedMoments: ["curated moments", "signature experiences", "resort experiences"]
 };
 
 const ROOT_FIELD_ALIASES: Record<string, keyof ExcelResortImportModel["resort"]> = {
@@ -248,6 +263,15 @@ const ROOT_FIELD_ALIASES: Record<string, keyof ExcelResortImportModel["resort"]>
   amenities: "highlights",
   mealplans: "mealPlans",
   mealplan: "mealPlans",
+  curatedmoments: "curatedMoments",
+  signatureexperiences: "curatedMoments",
+  resortexperiences: "curatedMoments",
+  butlerservice: "butlerService",
+  hostservice: "butlerService",
+  personalhost: "butlerService",
+  villahost: "butlerService",
+  jadugarservice: "butlerService",
+  kuwaanuservice: "butlerService",
   seotitle: "seoTitle",
   seodescription: "seoDescription",
   seosummary: "seoSummary"
@@ -355,6 +379,33 @@ function parseNumber(value: string) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function splitCuratedMoments(value: string) {
+  return Array.from(
+    new Set(
+      splitList(value)
+        .map((item) => item.replace(/^[-*+]\s*/u, "").trim())
+        .filter((item) => item && !classifyExampleRow([item]))
+    )
+  );
+}
+
+function inferResortNameFromLocation(value: string) {
+  const parts = value.split(",").map((part) => part.trim()).filter(Boolean);
+  const first = parts[0] ?? "";
+  if (!first || !/(?:maldives|resort|joali|anantara|naladhu|ritz-carlton)/iu.test(first)) return null;
+  return { name: first, location: parts.slice(1).join(", ") || value };
+}
+
+function normalizeButlerService(value: string) {
+  const displayName = value.trim();
+  if (!displayName) return {};
+  const unavailable = /^(no|none|not available|n\/a)$/iu.test(displayName);
+  return {
+    available: !unavailable,
+    displayName
+  };
+}
+
 function parseMaximumOccupancy(value: string) {
   const alternatives = value
     .split(/\bor\b/iu)
@@ -381,12 +432,14 @@ function uniqueSlug(base: string, existing: ResortRecord[]) {
 
 function createEmptyModel(sourceUrl: string, filename: string, sheets: string[]): ExcelResortImportModel {
   return {
-    sourceFile: { sourceUrl, filename, sheets },
+    sourceFile: { sourceUrl, filename, sheets, sourceType: sourceUrl.startsWith("upload:") ? "excel" : "google_drive" },
     resort: {
       name: "",
       slug: "",
       location: "",
       villaSummary: "",
+      curatedMoments: [],
+      butlerService: {},
       category: "",
       transferType: "",
       description: "",
@@ -429,7 +482,6 @@ function markIgnoredExampleRow(model: ExcelResortImportModel, sheet: string, row
 }
 
 function markProvidedField(model: ExcelResortImportModel, field: string) {
-  if (field === "villaSummary") return;
   if (!model.providedResortFields.includes(field)) model.providedResortFields.push(field);
 }
 
@@ -454,6 +506,8 @@ type GenericResortRecord = {
   name: string;
   location: string;
   villaSummary: string;
+  curatedMoments: string[];
+  butlerService: ReturnType<typeof normalizeButlerService>;
   transferType: string;
   category: string;
   description: string;
@@ -468,7 +522,7 @@ type GenericParseResult = {
 };
 
 function emptyGenericResortRecord(): GenericResortRecord {
-  return { name: "", location: "", villaSummary: "", transferType: "", category: "", description: "", highlights: [], mealPlans: [] };
+  return { name: "", location: "", villaSummary: "", curatedMoments: [], butlerService: {}, transferType: "", category: "", description: "", highlights: [], mealPlans: [] };
 }
 
 function extractGenericResortRecords(sheet: ParsedSheet): GenericParseResult {
@@ -488,7 +542,7 @@ function extractGenericResortRecords(sheet: ParsedSheet): GenericParseResult {
   const headerIndex = rows.findIndex((row) => {
     const headers = row.map((cell) => normalizeKey(valueToString(cell)));
     const matches = new Set(
-      ["resorts", "resort", "locationofresort", "noofvillas", "transfer", "resortcatergory", "resortcategory", "descriptionofresort", "butlerservice"]
+      ["resorts", "resort", "locationofresort", "noofvillas", "transfer", "resortcatergory", "resortcategory", "descriptionofresort", "butlerservice", "curatedmoments", "signatureexperiences", "resortexperiences"]
         .filter((alias) => headers.some((header) => header.includes(alias)))
     );
     return matches.has("resorts") || matches.has("locationofresort") || matches.size >= 3;
@@ -500,6 +554,8 @@ function extractGenericResortRecords(sheet: ParsedSheet): GenericParseResult {
       name: headers.findIndex((header) => ["resorts", "resort", "resortname", "propertyname"].includes(header)),
       location: columnIndex(headers, ["locationofresort", "location", "atoll"]),
       villaSummary: columnIndex(headers, ["noofvillas", "numberofvillas", "accommodation"]),
+      curatedMoments: columnIndex(headers, ["curatedmoments", "signatureexperiences", "resortexperiences"]),
+      butlerService: columnIndex(headers, ["butlerservice", "hostservice", "personalhost", "villahost", "jadugarservice", "kuwaanuservice"]),
       transfer: columnIndex(headers, ["transfer"]),
       category: columnIndex(headers, ["resortcatergory", "resortcategory", "category"]),
       description: columnIndex(headers, ["descriptionofresort", "description"])
@@ -517,8 +573,9 @@ function extractGenericResortRecords(sheet: ParsedSheet): GenericParseResult {
       }
 
       const record = emptyGenericResortRecord();
-      const fields: Array<[keyof typeof indexes, "name" | "location" | "villaSummary" | "transferType" | "category" | "description"]> = [
+      const fields: Array<[keyof typeof indexes, "name" | "location" | "villaSummary" | "curatedMoments" | "butlerService" | "transferType" | "category" | "description"]> = [
         ["name", "name"], ["location", "location"], ["villaSummary", "villaSummary"],
+        ["curatedMoments", "curatedMoments"], ["butlerService", "butlerService"],
         ["transfer", "transferType"], ["category", "category"], ["description", "description"]
       ];
       for (const [indexKey, field] of fields) {
@@ -527,9 +584,18 @@ function extractGenericResortRecords(sheet: ParsedSheet): GenericParseResult {
         if (field === "name") record.name = value;
         if (field === "location") record.location = value;
         if (field === "villaSummary") record.villaSummary = value;
+        if (field === "curatedMoments") record.curatedMoments = splitCuratedMoments(value);
+        if (field === "butlerService") record.butlerService = normalizeButlerService(value);
         if (field === "transferType") record.transferType = value;
         if (field === "category") record.category = value;
         if (field === "description") record.description = value;
+      }
+      if (!record.name && indexes.name < 0) {
+        const inferred = inferResortNameFromLocation(record.location);
+        if (inferred) {
+          record.name = inferred.name;
+          record.location = inferred.location;
+        }
       }
       if (hasNameColumn && !record.name) continue;
       if (!record.name && !record.location && !record.villaSummary && !record.transferType && !record.category && !record.description) continue;
@@ -554,11 +620,13 @@ function extractGenericResortRecords(sheet: ParsedSheet): GenericParseResult {
       if (field === "name") record.name = second;
       if (field === "location") record.location = second;
       if (field === "villaSummary") record.villaSummary = second;
+      if (field === "curatedMoments") record.curatedMoments = splitCuratedMoments(second);
+      if (field === "butlerService") record.butlerService = normalizeButlerService(second);
       if (field === "transferType") record.transferType = second;
       if (field === "category") record.category = second;
       if (field === "description") record.description = second;
     }
-    if (record.name || record.location || record.villaSummary || record.transferType || record.category || record.description || record.highlights.length || record.mealPlans.length) {
+    if (record.name || record.location || record.villaSummary || record.curatedMoments.length || Object.keys(record.butlerService).length || record.transferType || record.category || record.description || record.highlights.length || record.mealPlans.length) {
       records.push(record);
     }
   }
@@ -570,6 +638,8 @@ function applyGenericResortRecord(model: ExcelResortImportModel, record: Generic
   model.resort.name = record.name;
   model.resort.location = record.location;
   model.resort.villaSummary = record.villaSummary;
+  model.resort.curatedMoments = record.curatedMoments;
+  model.resort.butlerService = record.butlerService;
   model.resort.transferType = record.transferType;
   model.resort.category = record.category;
   model.resort.description = record.description;
@@ -581,8 +651,10 @@ function applyGenericResortRecord(model: ExcelResortImportModel, record: Generic
   }
   if (model.resort.highlights.length) markProvidedField(model, "highlights");
   if (model.resort.mealPlans.length) markProvidedField(model, "mealPlans");
+  if (model.resort.curatedMoments.length) markProvidedField(model, "curatedMoments");
+  if (Object.keys(model.resort.butlerService).length) markProvidedField(model, "butlerService");
   model.sections.generic.ignoredExampleRows = ignoredExampleRows.length;
-  model.sections.generic.actualRows = record.name || record.location || record.villaSummary || record.transferType || record.category || record.description || record.highlights.length || record.mealPlans.length ? 1 : 0;
+  model.sections.generic.actualRows = record.name || record.location || record.villaSummary || record.curatedMoments.length || Object.keys(record.butlerService).length || record.transferType || record.category || record.description || record.highlights.length || record.mealPlans.length ? 1 : 0;
   model.sections.generic.status = model.sections.generic.actualRows > 0 ? "ready" : "no_update";
   model.ignoredExampleRows.push(...ignoredExampleRows);
 }
@@ -650,6 +722,14 @@ function applyRoomsSheet(model: ExcelResortImportModel, sheet: ParsedSheet, mult
       bedType: bedIndex >= 0 ? valueToString(row[bedIndex]) : "",
       viewLabel: viewIndex >= 0 ? valueToString(row[viewIndex]) : "",
       amenities,
+      providedFields: [
+        ...(description ? ["description"] : []),
+        ...(sizeIndex >= 0 && valueToString(row[sizeIndex]) ? ["sizeLabel"] : []),
+        ...(occupancyIndex >= 0 && valueToString(row[occupancyIndex]) ? ["maxOccupancy"] : []),
+        ...(bedIndex >= 0 && valueToString(row[bedIndex]) ? ["bedType"] : []),
+        ...(viewIndex >= 0 && valueToString(row[viewIndex]) ? ["viewLabel"] : []),
+        ...(amenities.length ? ["amenities"] : [])
+      ],
       source: sheet.name
     });
     model.sections.rooms.actualRows += 1;
@@ -683,14 +763,33 @@ function applyListSheet(model: ExcelResortImportModel, sheet: ParsedSheet, field
   }
 }
 
+function curatedSheetBelongsToResort(sheetName: string, resortName: string) {
+  const sheetIdentity = normalizeIdentity(sheetName.replace(/\b(curated|moments|signature|experiences|resort)\b/giu, ""));
+  if (!sheetIdentity) return true;
+  const resortIdentity = normalizeIdentity(resortName);
+  return Boolean(resortIdentity) && (sheetIdentity === resortIdentity || sheetIdentity.includes(resortIdentity) || resortIdentity.includes(sheetIdentity));
+}
+
+function applyCuratedMomentsSheet(model: ExcelResortImportModel, sheet: ParsedSheet, multipleModels = false) {
+  if (multipleModels && !curatedSheetBelongsToResort(sheet.name, model.resort.name)) return;
+  const values = sheet.rows
+    .flatMap((row) => row.map(valueToString))
+    .flatMap(splitCuratedMoments)
+    .filter((value) => !/^(?:curated moments|signature experiences|resort experiences|highlights)$/iu.test(value));
+  if (!values.length) return;
+  model.resort.curatedMoments = Array.from(new Set([...model.resort.curatedMoments, ...values]));
+  markProvidedField(model, "curatedMoments");
+}
+
 export async function parseExcelResortWorkbook(input: {
   sourceUrl: string;
   filename: string;
   bytes: Uint8Array;
+  normalizedMarkdown?: string;
 }): Promise<ExcelResortImportModel[]> {
   const sheets = await workbookToSheets(input.bytes);
   const genericResults = sheets
-    .filter((sheet) => !sheetMatches(sheet.name, SHEET_ALIASES.rooms) && sheetMatches(sheet.name, SHEET_ALIASES.general))
+    .filter((sheet) => !sheetMatches(sheet.name, SHEET_ALIASES.rooms) && !sheetMatches(sheet.name, SHEET_ALIASES.curatedMoments) && sheetMatches(sheet.name, SHEET_ALIASES.general))
     .map(extractGenericResortRecords);
   const genericRecords = genericResults.flatMap((result) => result.records);
   const ignoredExampleRows = genericResults.flatMap((result) => result.ignoredExampleRows);
@@ -698,6 +797,7 @@ export async function parseExcelResortWorkbook(input: {
   const records = genericRecords.length ? genericRecords : [emptyGenericResortRecord()];
   const models = records.map((record) => {
     const model = createEmptyModel(input.sourceUrl, input.filename, sheets.map((sheet) => sheet.name));
+    model.sourceFile.normalizedMarkdown = input.normalizedMarkdown;
     applyGenericResortRecord(model, record, ignoredExampleRows);
     return model;
   });
@@ -711,12 +811,12 @@ export async function parseExcelResortWorkbook(input: {
         model.warnings.push("General sheet did not contain a resort name; a cleaned filename was used for matching and new-resort preview only.");
       }
     }
-    if (model.resort.villaSummary) {
-      model.warnings.push("No of Villas was read from Excel and retained in the staged payload; the current resort schema has no dedicated number-of-villas field.");
+    for (const sheet of sheets) {
+      if (sheetMatches(sheet.name, SHEET_ALIASES.rooms)) applyRoomsSheet(model, sheet, models.length > 1);
     }
 
     for (const sheet of sheets) {
-      if (sheetMatches(sheet.name, SHEET_ALIASES.rooms)) applyRoomsSheet(model, sheet, models.length > 1);
+      if (sheetMatches(sheet.name, SHEET_ALIASES.curatedMoments)) applyCuratedMomentsSheet(model, sheet, models.length > 1);
     }
 
     for (const sheet of sheets) {
@@ -724,7 +824,7 @@ export async function parseExcelResortWorkbook(input: {
     }
 
     for (const sheet of sheets) {
-      if (!sheet.rows.length || sheetMatches(sheet.name, SHEET_ALIASES.rooms) || sheetMatches(sheet.name, SHEET_ALIASES.general) || sheetMatches(sheet.name, SHEET_ALIASES.mealPlans)) continue;
+      if (!sheet.rows.length || sheetMatches(sheet.name, SHEET_ALIASES.rooms) || sheetMatches(sheet.name, SHEET_ALIASES.general) || sheetMatches(sheet.name, SHEET_ALIASES.mealPlans) || sheetMatches(sheet.name, SHEET_ALIASES.curatedMoments)) continue;
       model.warnings.push(`${sheet.name}: sheet was retained as source metadata but is not mapped to the current schema yet.`);
     }
 
@@ -734,7 +834,21 @@ export async function parseExcelResortWorkbook(input: {
   return models;
 }
 
-function matchResort(model: ExcelResortImportModel, existing: ResortRecord[], manualResortId?: string): ExcelResortMatch {
+function identitySimilarity(left: string, right: string) {
+  const leftTokens = new Set(left.match(/[a-z0-9]{3,}/g) ?? []);
+  const rightTokens = new Set(right.match(/[a-z0-9]{3,}/g) ?? []);
+  if (!leftTokens.size || !rightTokens.size) return 0;
+  const overlap = [...leftTokens].filter((token) => rightTokens.has(token)).length;
+  return overlap / Math.max(leftTokens.size, rightTokens.size);
+}
+
+function matchResort(model: ExcelResortImportModel, existing: ResortRecord[], manualResortId?: string, savedResortId?: string): ExcelResortMatch {
+  if (savedResortId) {
+    const saved = existing.find((resort) => resort.id === savedResortId);
+    if (saved) {
+      return { status: "matched", resortId: saved.id, resortName: saved.name, confidence: "exact" };
+    }
+  }
   if (manualResortId) {
     const manual = existing.find((resort) => resort.id === manualResortId);
     if (manual) {
@@ -744,7 +858,7 @@ function matchResort(model: ExcelResortImportModel, existing: ResortRecord[], ma
 
   const slug = slugify(model.resort.slug || model.resort.name);
   const normalizedName = model.providedResortFields.includes("name") ? normalizeIdentity(model.resort.name) : "";
-  const filenameName = normalizeIdentity(model.sourceFile.filename.replace(/\.[^.]+$/u, ""));
+  const filenameName = normalizedName ? "" : normalizeIdentity(model.sourceFile.filename.replace(/\.[^.]+$/u, ""));
   const exactMatches = existing.filter(
     (resort) =>
       slugify(resort.slug || resort.name) === slug ||
@@ -776,7 +890,24 @@ function matchResort(model: ExcelResortImportModel, existing: ResortRecord[], ma
     };
   }
 
-  return { status: "new" };
+  const candidates = existing
+    .map((resort) => ({
+      resort,
+      score: Math.max(
+        identitySimilarity(normalizedName, normalizeIdentity(resort.name)),
+        identitySimilarity(normalizeIdentity(model.resort.location), normalizeIdentity(resort.location))
+      )
+    }))
+    .filter((candidate) => candidate.score >= 0.25)
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 5)
+    .map(({ resort, score }) => ({
+      resortId: resort.id,
+      resortName: resort.name,
+      reason: `Similarity suggestion (${Math.round(score * 100)}%)`
+    }));
+
+  return { status: "new_candidate", candidates };
 }
 
 function countMedia(resort: ResortRecord | undefined) {
@@ -794,16 +925,19 @@ function buildDiff(model: ExcelResortImportModel, resort: ResortRecord | undefin
   const rootFields: ExcelResortDiff["rootFields"] = [];
   const compare = (field: string, current: string, excel: string) => {
     if (current !== excel) {
-      rootFields.push({ field, current, excel, action: excel ? "Update" : "Clear" });
+      rootFields.push({ field, current, excel, action: "Update" });
     }
   };
 
   if (resort) {
     if (model.providedResortFields.includes("name")) compare("Name", resort.name, model.resort.name);
     if (model.providedResortFields.includes("location")) compare("Location", resort.location, model.resort.location);
+    if (model.providedResortFields.includes("villaSummary")) compare("Accommodation summary", resort.accommodationSummary, model.resort.villaSummary);
     if (model.providedResortFields.includes("category")) compare("Category", resort.category, model.resort.category);
     if (model.providedResortFields.includes("transferType")) compare("Transfer", resort.transferType, model.resort.transferType);
     if (model.providedResortFields.includes("description")) compare("Description", resort.description, model.resort.description);
+    if (model.providedResortFields.includes("curatedMoments")) compare("Curated Moments", resort.curatedMoments.join("\n"), model.resort.curatedMoments.join("\n"));
+    if (model.providedResortFields.includes("butlerService")) compare("Butler / Host Service", resort.butlerService.displayName ?? "", model.resort.butlerService.displayName ?? "");
     if (model.providedResortFields.includes("seoTitle") && model.resort.seoTitle !== undefined) compare("SEO title", resort.seoTitle, model.resort.seoTitle);
     if (model.providedResortFields.includes("seoDescription") && model.resort.seoDescription !== undefined) compare("SEO description", resort.seoDescription, model.resort.seoDescription);
     if (model.providedResortFields.includes("seoSummary") && model.resort.seoSummary !== undefined) compare("SEO summary", resort.seoSummary, model.resort.seoSummary);
@@ -820,19 +954,20 @@ function buildDiff(model: ExcelResortImportModel, resort: ResortRecord | undefin
     rooms: {
       added: model.rooms.length - updated,
       updated,
-      removed: model.sections.rooms.actualRows > 0 ? [...existingRoomNames].filter((name) => !excelRoomNames.has(name)).length : 0,
+      removed: 0,
+      untouched: model.sections.rooms.actualRows > 0 ? [...existingRoomNames].filter((name) => !excelRoomNames.has(name)).length : existingRoomNames.size,
       final: model.rooms.length,
-      action: model.sections.rooms.actualRows > 0 ? "Synchronize" : "No update"
+      action: model.sections.rooms.actualRows > 0 ? "Update" : "No update"
     },
     highlights: {
       current: resort?.highlights.length ?? 0,
       excel: model.resort.highlights.length,
-      action: model.providedResortFields.includes("highlights") ? "Synchronize" : "No update"
+      action: model.providedResortFields.includes("highlights") ? "Update" : "No update"
     },
     mealPlans: {
       current: resort?.mealPlans.length ?? 0,
       excel: model.resort.mealPlans.length,
-      action: model.providedResortFields.includes("mealPlans") ? "Synchronize" : "No update"
+      action: model.providedResortFields.includes("mealPlans") ? "Update" : "No update"
     }
   };
 }
@@ -1005,6 +1140,25 @@ async function saveExcelMapping(input: {
   if (error && !isMissingTableError(error)) throw new Error(error.message);
 }
 
+async function findSavedExcelMapping(model: ExcelResortImportModel, propertyType: PropertyType) {
+  const sourceIdentifier = model.resort.slug || normalizeIdentity(model.resort.name);
+  if (!sourceIdentifier) return undefined;
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("excel_resort_sync_mappings")
+    .select("resort_id")
+    .eq("source_identifier", sourceIdentifier)
+    .eq("property_type", propertyType)
+    .maybeSingle();
+  if (error) {
+    if (isMissingTableError(error)) return undefined;
+    throw new Error(error.message);
+  }
+  return typeof (data as { resort_id?: unknown } | null)?.resort_id === "string"
+    ? (data as { resort_id: string }).resort_id
+    : undefined;
+}
+
 async function resolveContentTable(): Promise<ContentTable> {
   const supabase = createSupabaseAdminClient();
   for (const tableName of ["property", "resorts"] as const) {
@@ -1077,7 +1231,13 @@ export async function processExcelResortSyncSource(input: {
           bytes: input.sourceBytes
         }
       : await downloadExcelSource(input.sourceUrl, input.sourceIndex);
-    const models = await parseExcelResortWorkbook(downloaded);
+    // Normalize the bytes already downloaded by the Drive/upload path. This keeps
+    // preview parsing deterministic and avoids a second, potentially restricted URL fetch.
+    const normalized = await convertDocumentToMarkdown({
+      ...downloaded,
+      sourceUrl: `upload:${downloaded.filename}`
+    });
+    const models = await parseExcelResortWorkbook({ ...downloaded, normalizedMarkdown: normalized.markdown });
     const selectedModels = input.modelIndex === undefined
       ? models.map((model, modelIndex) => ({ model, modelIndex }))
       : models[input.modelIndex]
@@ -1089,10 +1249,12 @@ export async function processExcelResortSyncSource(input: {
     let readyToUpdate = 0;
     let readyToCreate = 0;
     let needsReview = 0;
+    let newCandidates = 0;
     let parseErrors = 0;
     for (const { model, modelIndex } of selectedModels) {
       const validation = validateExcelModel(model);
-      const match = matchResort(model, existingResorts, input.manualMatchResortId);
+      const savedMapping = await findSavedExcelMapping(model, propertyType);
+      const match = matchResort(model, existingResorts, input.manualMatchResortId, savedMapping);
       const existing = match.status === "matched" ? existingResorts.find((resort) => resort.id === match.resortId) : undefined;
       const diff = buildDiff(model, existing);
       const status: ExcelSyncStatus =
@@ -1102,8 +1264,8 @@ export async function processExcelResortSyncSource(input: {
             ? "needs_review"
             : match.status === "matched"
               ? "ready_to_update"
-              : "ready_to_create";
-      const action = status === "parse_error" ? "error" : status === "needs_review" ? "review" : match.status === "matched" ? "update" : "create";
+              : "new_candidate";
+      const action = status === "parse_error" ? "error" : status === "needs_review" || status === "new_candidate" ? "review" : "update";
       const payload: StagingPayload = {
         kind: "excel_resort_sync_preview",
         version: 1,
@@ -1125,8 +1287,8 @@ export async function processExcelResortSyncSource(input: {
       const stagingId = await insertPreview(input.batchId, payload);
       previews.push(payloadToPreview(stagingId, payload));
       if (status === "ready_to_update") readyToUpdate += 1;
-      if (status === "ready_to_create") readyToCreate += 1;
       if (status === "needs_review") needsReview += 1;
+      if (status === "new_candidate") newCandidates += 1;
       if (status === "parse_error") parseErrors += 1;
     }
 
@@ -1136,6 +1298,7 @@ export async function processExcelResortSyncSource(input: {
         processedSources: 1,
         readyToUpdate,
         readyToCreate,
+        newCandidates,
         needsReview,
         parseErrors,
         noSourceWorkbook: 0,
@@ -1166,6 +1329,7 @@ export async function processExcelResortSyncSource(input: {
         processedSources: 1,
         readyToUpdate: 0,
         readyToCreate: 0,
+        newCandidates: 0,
         needsReview: 0,
         parseErrors: 1,
         noSourceWorkbook: 0,
@@ -1261,7 +1425,6 @@ async function syncRooms(resortId: string, rooms: ExcelResortRoomModel[]) {
   const supabase = createSupabaseAdminClient();
   const currentRooms = await fetchCurrentRooms(resortId);
   const currentByName = new Map(currentRooms.map((room) => [normalizeIdentity(room.name), room]));
-  const incomingNames = new Set(rooms.map((room) => normalizeIdentity(room.name)));
 
   for (let index = 0; index < rooms.length; index += 1) {
     const room = rooms[index];
@@ -1269,12 +1432,11 @@ async function syncRooms(resortId: string, rooms: ExcelResortRoomModel[]) {
     const payload = {
       resort_id: resortId,
       name: room.name.trim(),
-      short_description: room.description.trim() || null,
-      size_label: room.sizeLabel.trim() || null,
-      max_occupancy: room.maxOccupancy,
-      bed_type: room.bedType.trim() || null,
-      features: roomFeatures(room),
-      seo_summary: room.seoDescription.trim() || room.description.trim() || null,
+      ...(room.providedFields.includes("description") ? { short_description: room.description.trim() || null, seo_summary: room.seoDescription.trim() || room.description.trim() || null } : {}),
+      ...(room.providedFields.includes("sizeLabel") ? { size_label: room.sizeLabel.trim() || null } : {}),
+      ...(room.providedFields.includes("maxOccupancy") ? { max_occupancy: room.maxOccupancy } : {}),
+      ...(room.providedFields.includes("bedType") ? { bed_type: room.bedType.trim() || null } : {}),
+      ...(room.providedFields.includes("amenities") || room.providedFields.includes("viewLabel") ? { features: roomFeatures(room) } : {}),
       sort_order: index
     };
 
@@ -1287,13 +1449,6 @@ async function syncRooms(resortId: string, rooms: ExcelResortRoomModel[]) {
     }
   }
 
-  const removedIds = currentRooms.filter((room) => !incomingNames.has(normalizeIdentity(room.name))).map((room) => room.id);
-  if (removedIds.length) {
-    const detach = await supabase.from("resort_media").update({ room_id: null }).in("room_id", removedIds);
-    if (detach.error) throw new Error(detach.error.message);
-    const remove = await supabase.from("rooms").delete().in("id", removedIds);
-    if (remove.error) throw new Error(remove.error.message);
-  }
 }
 
 async function createPropertyFromExcel(model: ExcelResortImportModel, propertyType: PropertyType) {
@@ -1309,8 +1464,11 @@ async function createPropertyFromExcel(model: ExcelResortImportModel, propertyTy
     category: model.resort.category,
     transfer_type: model.resort.transferType,
     description: model.resort.description,
+    accommodation_summary: model.resort.villaSummary || null,
     highlights: model.resort.highlights,
     meal_plans: model.resort.mealPlans,
+    curated_moments: model.resort.curatedMoments,
+    butler_service: model.resort.butlerService,
     seo_title: model.resort.seoTitle ?? model.resort.name,
     seo_description: model.resort.seoDescription ?? model.resort.description,
     seo_summary: model.resort.seoSummary ?? model.resort.description,
@@ -1336,11 +1494,14 @@ async function updatePropertyFromExcel(resortId: string, model: ExcelResortImpor
   const updatePayload: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (model.providedResortFields.includes("name")) updatePayload.name = model.resort.name;
   if (model.providedResortFields.includes("location")) updatePayload.atoll = model.resort.location;
+  if (model.providedResortFields.includes("villaSummary")) updatePayload.accommodation_summary = model.resort.villaSummary;
   if (model.providedResortFields.includes("transferType")) updatePayload.transfer_type = model.resort.transferType;
   if (model.providedResortFields.includes("category")) updatePayload.category = model.resort.category;
   if (model.providedResortFields.includes("description")) updatePayload.description = model.resort.description;
   if (model.providedResortFields.includes("highlights")) updatePayload.highlights = model.resort.highlights;
   if (model.providedResortFields.includes("mealPlans")) updatePayload.meal_plans = model.resort.mealPlans;
+  if (model.providedResortFields.includes("curatedMoments")) updatePayload.curated_moments = model.resort.curatedMoments;
+  if (model.providedResortFields.includes("butlerService")) updatePayload.butler_service = model.resort.butlerService;
   if (model.providedResortFields.includes("seoTitle") && model.resort.seoTitle !== undefined) updatePayload.seo_title = model.resort.seoTitle;
   if (model.providedResortFields.includes("seoDescription") && model.resort.seoDescription !== undefined) updatePayload.seo_description = model.resort.seoDescription;
   if (model.providedResortFields.includes("seoSummary") && model.resort.seoSummary !== undefined) updatePayload.seo_summary = model.resort.seoSummary;
@@ -1368,15 +1529,15 @@ async function writeAuditLog(input: {
   });
 }
 
-export async function applyExcelResortSyncPreview(stagingId: string): Promise<ServiceResult<ExcelSyncApplyResult>> {
+export async function applyExcelResortSyncPreview(stagingId: string, decision: "update" | "create_draft" = "update"): Promise<ServiceResult<ExcelSyncApplyResult>> {
   try {
     const staged = await loadStagingPayload(stagingId);
     const payload = staged.payload;
     if (!payload.model || !payload.match) {
       return { ok: false, error: "Only parsed Excel previews can be synchronized.", status: 400 };
     }
-    if (payload.status !== "ready_to_update" && payload.status !== "ready_to_create") {
-      return { ok: false, error: "Only ready Excel sync previews can be applied.", status: 400 };
+    if (payload.status !== "ready_to_update" && !(payload.status === "new_candidate" && decision === "create_draft")) {
+      return { ok: false, error: "Review this resort candidate and choose an explicit action before applying it.", status: 400 };
     }
     if (staged.reviewStatus !== payload.status) {
       return { ok: false, error: "This Excel preview is no longer pending approval.", status: 409 };
@@ -1384,7 +1545,7 @@ export async function applyExcelResortSyncPreview(stagingId: string): Promise<Se
 
     const supabase = createSupabaseAdminClient();
     let effectiveMatch = payload.match;
-    if (payload.match.status === "new") {
+    if (payload.match.status === "new_candidate") {
       const latestResorts = await listAdminResorts(payload.propertyType);
       effectiveMatch = matchResort(payload.model, latestResorts);
       if (effectiveMatch.status === "review_required") {
@@ -1402,7 +1563,7 @@ export async function applyExcelResortSyncPreview(stagingId: string): Promise<Se
       };
       result = await updatePropertyFromExcel(effectiveMatch.resortId, payload.model);
       await saveExcelMapping({ model: payload.model, propertyType: payload.propertyType, match: effectiveMatch });
-    } else if (effectiveMatch.status === "new") {
+    } else if (effectiveMatch.status === "new_candidate" && decision === "create_draft") {
       result = await createPropertyFromExcel(payload.model, payload.propertyType);
     } else {
       return { ok: false, error: "Manual review is required before this workbook can be applied.", status: 400 };
@@ -1413,21 +1574,27 @@ export async function applyExcelResortSyncPreview(stagingId: string): Promise<Se
       rooms: await fetchCurrentRooms(result.id),
       media: await fetchCurrentMedia(result.id)
     };
-    await writeAuditLog({
-      action: effectiveMatch.status === "new" ? "excel_resort_sync_create" : "excel_resort_sync_update",
-      resortId: result.id,
-      beforeState,
-      afterState,
-      metadata: {
-        sourceUrl: payload.sourceUrl,
-        filename: payload.filename,
-        sheets: payload.model.sourceFile.sheets,
-        mediaPreserved: true,
-        mode: "authoritative_excel_sync"
-      }
-    });
+    try {
+      await writeAuditLog({
+        action: effectiveMatch.status === "new_candidate" ? "excel_resort_sync_create" : "excel_resort_sync_update",
+        resortId: result.id,
+        beforeState,
+        afterState,
+        metadata: {
+          sourceUrl: payload.sourceUrl,
+          filename: payload.filename,
+          sourceType: payload.model.sourceFile.sourceType,
+          sheets: payload.model.sourceFile.sheets,
+          normalizedMarkdown: payload.model.sourceFile.normalizedMarkdown,
+          mediaPreserved: true,
+          mode: "document_resort_import"
+        }
+      });
+    } catch (auditError) {
+      console.error("Excel resort update completed but audit logging failed", auditError);
+    }
 
-    const status: ExcelSyncStatus = effectiveMatch.status === "new" ? "created" : "updated";
+    const status: ExcelSyncStatus = effectiveMatch.status === "new_candidate" ? "created" : "updated";
     await supabase.from("resort_staging").update({ review_status: status }).eq("id", stagingId);
     return {
       ok: true,

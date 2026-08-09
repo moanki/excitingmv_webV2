@@ -13,6 +13,7 @@ type ExcelSyncProgress = {
   processedSources: number;
   readyToUpdate: number;
   readyToCreate: number;
+  newCandidates: number;
   needsReview: number;
   parseErrors: number;
   previews: ExcelResortPreview[];
@@ -36,7 +37,7 @@ function statusLabel(status: ExcelSyncStatus) {
 
 function statusClass(status: ExcelSyncStatus) {
   if (status === "updated" || status === "created" || status === "ready_to_update" || status === "ready_to_create") return "approved";
-  if (status === "needs_review") return "pending";
+  if (status === "needs_review" || status === "new_candidate") return "pending";
   if (status === "parse_error" || status === "failed") return "error";
   return "neutral";
 }
@@ -49,22 +50,26 @@ function PreviewCard({
   preview,
   pendingKey,
   onApply,
+  onCreate,
   onManualMatch
 }: {
   preview: ExcelResortPreview;
   pendingKey: string;
   onApply: (preview: ExcelResortPreview) => void;
+  onCreate: (preview: ExcelResortPreview) => void;
   onManualMatch: (preview: ExcelResortPreview, resortId: string) => void;
 }) {
   const matchedName = preview.status === "parse_error"
       ? "Workbook unavailable"
       : preview.match?.status === "matched"
         ? preview.match.resortName
-      : preview.match?.status === "new"
+      : preview.match?.status === "new_candidate"
         ? preview.model?.resort.name || "Not in database"
         : "Ambiguous match";
   const canApply = preview.status === "ready_to_update" || preview.status === "ready_to_create";
+  const canCreate = preview.status === "new_candidate";
   const isPending = pendingKey === preview.stagingId;
+  const [showChanges, setShowChanges] = useState(false);
 
   return (
     <article className="admin-checkpoint-card">
@@ -102,7 +107,23 @@ function PreviewCard({
           <div className="stat-card"><p className="eyebrow">Root changes</p><strong>{preview.diff.rootFields.length}</strong></div>
           <div className="stat-card"><p className="eyebrow">Villas added</p><strong>{preview.diff.rooms.added}</strong></div>
           <div className="stat-card"><p className="eyebrow">Villas updated</p><strong>{preview.diff.rooms.updated}</strong></div>
-          <div className="stat-card"><p className="eyebrow">Villas removed</p><strong>{preview.diff.rooms.removed}</strong></div>
+          <div className="stat-card"><p className="eyebrow">Existing villas kept</p><strong>{preview.diff.rooms.untouched}</strong></div>
+        </div>
+      ) : null}
+
+      {preview.diff ? (
+        <button type="button" className="admin-btn admin-btn--secondary" onClick={() => setShowChanges((current) => !current)}>
+          {showChanges ? "Hide Changes" : "Review Changes"}
+        </button>
+      ) : null}
+
+      {showChanges && preview.diff ? (
+        <div className="admin-checkpoint-notes">
+          {preview.diff.rootFields.length ? preview.diff.rootFields.map((field) => (
+            <p key={field.field}><strong>{field.field}:</strong> {field.action}</p>
+          )) : <p>No resort fields need updating.</p>}
+          <p><strong>Villas:</strong> {preview.diff.rooms.updated} matched update(s), {preview.diff.rooms.added} new, {preview.diff.rooms.untouched} existing villa(s) kept.</p>
+          <p><strong>Photos and media:</strong> protected; existing IDs and storage objects are not replaced.</p>
         </div>
       ) : null}
 
@@ -126,9 +147,9 @@ function PreviewCard({
         </details>
       ) : null}
 
-      {preview.match?.status === "review_required" ? (
+      {preview.match?.status === "review_required" || preview.match?.status === "new_candidate" ? (
         <div className="admin-checkpoint-resorts">
-          <p className="field__help">Select the exact database resort only after checking the workbook identity.</p>
+          <p className="field__help">Check the workbook identity before choosing an existing resort. A new candidate is never created automatically.</p>
           {preview.match.candidates.map((candidate) => (
             <div key={candidate.resortId} className="admin-checkpoint-resort">
               <div>
@@ -156,7 +177,14 @@ function PreviewCard({
             disabled={Boolean(pendingKey)}
             onClick={() => onApply(preview)}
           >
-            {isPending ? "Applying..." : preview.status === "ready_to_create" ? "Create Draft Resort" : "Apply Authoritative Update"}
+            {isPending ? "Applying..." : "Apply Update"}
+          </button>
+        </div>
+      ) : null}
+      {canCreate ? (
+        <div className="admin-form-actions">
+          <button type="button" className="admin-btn admin-btn--primary" disabled={Boolean(pendingKey)} onClick={() => onCreate(preview)}>
+            {isPending ? "Creating draft..." : "Add as Draft Resort"}
           </button>
         </div>
       ) : null}
@@ -205,6 +233,7 @@ export function ExcelSyncPanel() {
           processedSources: delta.processedSources,
           readyToUpdate: delta.readyToUpdate,
           readyToCreate: delta.readyToCreate,
+          newCandidates: delta.newCandidates,
           needsReview: delta.needsReview,
           parseErrors: delta.parseErrors,
           previews: delta.previews
@@ -229,6 +258,7 @@ export function ExcelSyncPanel() {
         processedSources: 0,
         readyToUpdate: 0,
         readyToCreate: 0,
+        newCandidates: 0,
         needsReview: 0,
         parseErrors: 0,
         previews: []
@@ -253,6 +283,7 @@ export function ExcelSyncPanel() {
         nextProgress.processedSources += delta.processedSources;
         nextProgress.readyToUpdate += delta.readyToUpdate;
         nextProgress.readyToCreate += delta.readyToCreate;
+        nextProgress.newCandidates += delta.newCandidates;
         nextProgress.needsReview += delta.needsReview;
         nextProgress.parseErrors += delta.parseErrors;
         nextProgress.previews = [...nextProgress.previews, ...delta.previews];
@@ -267,7 +298,7 @@ export function ExcelSyncPanel() {
     }
   }
 
-  async function applyPreview(preview: ExcelResortPreview) {
+  async function applyPreview(preview: ExcelResortPreview, decision: "update" | "create_draft" = "update") {
     setPendingKey(preview.stagingId);
     setMessage("");
     setError("");
@@ -275,7 +306,7 @@ export function ExcelSyncPanel() {
       const response = await fetch("/api/admin/imports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "excel-apply", stagingId: preview.stagingId, propertyType })
+        body: JSON.stringify({ mode: "excel-apply", stagingId: preview.stagingId, propertyType, decision })
       });
       const payload = await readJson(response);
       if (!response.ok || !payload?.ok || !payload.data) throw new Error(payload?.error || "Excel preview could not be applied.");
@@ -290,6 +321,10 @@ export function ExcelSyncPanel() {
     } finally {
       setPendingKey("");
     }
+  }
+
+  async function createDraft(preview: ExcelResortPreview) {
+    await applyPreview(preview, "create_draft");
   }
 
   async function manualMatch(preview: ExcelResortPreview, resortId: string) {
@@ -342,8 +377,8 @@ export function ExcelSyncPanel() {
   return (
     <article className="panel admin-form-card">
       <div className="admin-form-section__header">
-        <h3 className="admin-form-section__title">Authoritative Excel Resort Sync</h3>
-        <p className="admin-form-section__help">Analyze Excel workbooks from Google Drive, review deterministic field and villa diffs, then apply selected updates. Photos, media rows, storage objects, slugs, publish status, and homepage flags are protected.</p>
+        <h3 className="admin-form-section__title">Update Resorts from Documents</h3>
+        <p className="admin-form-section__help">Review workbook-derived resort changes before applying them. Existing resort IDs, villa photos, media, slugs, publish status, and homepage settings are protected.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="stack">
@@ -372,7 +407,7 @@ export function ExcelSyncPanel() {
             <div className="admin-import-progress__track" aria-hidden="true"><div className={pending ? "admin-import-progress__bar is-pending" : "admin-import-progress__bar"} style={{ width: `${progressValue}%` }} /></div>
             <div className="dashboard-grid dashboard-grid-quad">
               <div className="stat-card"><p className="eyebrow">Ready to update</p><strong>{progress.readyToUpdate}</strong></div>
-              <div className="stat-card"><p className="eyebrow">Ready to create</p><strong>{progress.readyToCreate}</strong></div>
+              <div className="stat-card"><p className="eyebrow">New candidates</p><strong>{progress.newCandidates}</strong></div>
               <div className="stat-card"><p className="eyebrow">Needs review</p><strong>{progress.needsReview}</strong></div>
               <div className="stat-card"><p className="eyebrow">Parse errors</p><strong>{progress.parseErrors}</strong></div>
             </div>
@@ -390,7 +425,7 @@ export function ExcelSyncPanel() {
       {progress?.previews.length ? (
         <div className="stack">
           <h4>Workbook Previews</h4>
-          {progress.previews.map((preview) => <PreviewCard key={preview.stagingId} preview={preview} pendingKey={pendingKey} onApply={applyPreview} onManualMatch={manualMatch} />)}
+          {progress.previews.map((preview) => <PreviewCard key={preview.stagingId} preview={preview} pendingKey={pendingKey} onApply={applyPreview} onCreate={createDraft} onManualMatch={manualMatch} />)}
         </div>
       ) : null}
     </article>

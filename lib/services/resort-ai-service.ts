@@ -79,7 +79,7 @@ type GatewayAnthropicPayload = {
 
 type GatewayPurpose = keyof typeof gatewayModelConfig;
 
-type GatewayDocumentInput = {
+export type GatewayDocumentInput = {
   sourceUrl: string;
   filename: string;
   bytes: Uint8Array;
@@ -155,7 +155,12 @@ const importedResortPayloadSchema = z.object({
 
 const GATEWAY_TIMEOUT_MS = 85_000;
 
-async function convertPdfToMarkdown(document: GatewayDocumentInput): Promise<MarkItDownResult> {
+function fileExtension(filename: string) {
+  const extension = filename.match(/\.(pdf|xlsx|xlsm|docx)$/iu)?.[0].toLowerCase();
+  return extension ?? ".pdf";
+}
+
+export async function convertDocumentToMarkdown(document: GatewayDocumentInput): Promise<MarkItDownResult> {
   const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceRoleKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for Microsoft MarkItDown conversion.");
 
@@ -166,11 +171,11 @@ async function convertPdfToMarkdown(document: GatewayDocumentInput): Promise<Mar
       "Content-Type": "application/json",
       Authorization: `Bearer ${serviceRoleKey}`
     },
-    body: JSON.stringify(
-      document.sourceUrl.startsWith("https://")
-        ? { sourceUrl: document.sourceUrl }
-        : { contentBase64: Buffer.from(document.bytes).toString("base64") }
-    ),
+    body: JSON.stringify({
+      ...(document.sourceUrl.startsWith("https://") ? { sourceUrl: document.sourceUrl } : { contentBase64: Buffer.from(document.bytes).toString("base64") }),
+      filename: document.filename,
+      fileExtension: fileExtension(document.filename)
+    }),
     signal: AbortSignal.timeout(GATEWAY_TIMEOUT_MS)
   });
   const payload = (await response.json().catch(() => null)) as (MarkItDownResult & { ok?: boolean; error?: unknown }) | null;
@@ -180,6 +185,10 @@ async function convertPdfToMarkdown(document: GatewayDocumentInput): Promise<Mar
     throw new Error(message);
   }
   return { markdown: payload.markdown, stats: payload.stats };
+}
+
+async function convertPdfToMarkdown(document: GatewayDocumentInput): Promise<MarkItDownResult> {
+  return convertDocumentToMarkdown(document);
 }
 
 const resortSeoJsonSchema = {

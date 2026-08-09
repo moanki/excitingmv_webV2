@@ -29,12 +29,19 @@ export type ResortSummary = {
   category: string;
   transferType: string;
   summary: string;
+  accommodationSummary?: string;
   heroImageUrl?: string;
   status: PublishStatus;
   isFeaturedHomepage?: boolean;
   selectionTags?: string[];
   highlights?: string[];
   mealPlans?: string[];
+  curatedMoments?: string[];
+  butlerService?: {
+    available?: boolean;
+    displayName?: string;
+    description?: string;
+  };
   recommendedOrder?: number;
   createdAt?: string;
   updatedAt?: string;

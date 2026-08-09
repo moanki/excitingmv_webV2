@@ -13,7 +13,7 @@ const PROPERTY_TABLES = [PROPERTY_TABLE, LEGACY_PROPERTY_TABLE] as const;
 const VIEW_LABEL_FEATURE_PREFIX = "__viewLabel:";
 const FEATURED_MIGRATION_ERROR = "Database migration missing: is_featured_homepage column is not available.";
 const ADMIN_LIST_COLUMNS =
-  "id,property_type,slug,name,atoll,category,transfer_type,description,seo_summary,status,is_featured_homepage,published_at,created_at,updated_at";
+  "id,property_type,slug,name,atoll,category,transfer_type,description,accommodation_summary,curated_moments,butler_service,seo_summary,status,is_featured_homepage,published_at,created_at,updated_at";
 
 export type ResortRoomRecord = {
   id?: string;
@@ -39,8 +39,11 @@ export type ResortRecord = {
   transferType: string;
   summary: string;
   description: string;
+  accommodationSummary: string;
   highlights: string[];
   mealPlans: string[];
+  curatedMoments: string[];
+  butlerService: ResortButlerService;
   status: PublishStatus;
   isFeaturedHomepage: boolean;
   seoTitle: string;
@@ -55,6 +58,12 @@ export type ResortRecord = {
   updatedAt?: string;
 };
 
+export type ResortButlerService = {
+  available?: boolean;
+  displayName?: string;
+  description?: string;
+};
+
 type ResortRow = {
   id: string;
   property_type?: PropertyType | null;
@@ -64,8 +73,11 @@ type ResortRow = {
   category: string | null;
   transfer_type: string | null;
   description: string | null;
+  accommodation_summary?: string | null;
   highlights: unknown;
   meal_plans: unknown;
+  curated_moments?: unknown;
+  butler_service?: unknown;
   seo_title: string | null;
   seo_description: string | null;
   seo_summary: string | null;
@@ -191,6 +203,16 @@ function toStringArray(value: unknown) {
   return Array.isArray(value) ? value.map((item) => String(item)).filter(Boolean) : [];
 }
 
+function toButlerService(value: unknown): ResortButlerService {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const record = value as Record<string, unknown>;
+  return {
+    ...(typeof record.available === "boolean" ? { available: record.available } : {}),
+    ...(typeof record.displayName === "string" && record.displayName.trim() ? { displayName: record.displayName.trim() } : {}),
+    ...(typeof record.description === "string" && record.description.trim() ? { description: record.description.trim() } : {})
+  };
+}
+
 function normalizeText(value: string | null | undefined) {
   return value?.trim() ?? "";
 }
@@ -209,8 +231,11 @@ function mapResortRow(row: ResortRow): ResortRecord {
     transferType: row.transfer_type ?? "",
     summary: seoSummary || description,
     description,
+    accommodationSummary: row.accommodation_summary ?? "",
     highlights: toStringArray(row.highlights),
     mealPlans: toStringArray(row.meal_plans),
+    curatedMoments: toStringArray(row.curated_moments),
+    butlerService: toButlerService(row.butler_service),
     status: row.status,
     isFeaturedHomepage: Boolean(row.is_featured_homepage),
     seoTitle: row.seo_title ?? row.name,
@@ -564,7 +589,7 @@ async function listPublishedResortRowsFromTable(
 ) {
   const firstAttempt = await supabase
     .from(tableName)
-    .select("id,property_type,slug,name,atoll,category,transfer_type,description,highlights,meal_plans,seo_summary,status,is_featured_homepage,created_at,updated_at")
+    .select("id,property_type,slug,name,atoll,category,transfer_type,description,accommodation_summary,highlights,meal_plans,curated_moments,butler_service,seo_summary,status,is_featured_homepage,created_at,updated_at")
     .eq("status", "published")
     .in("property_type", propertyTypeAliases(propertyType))
     .order("updated_at", { ascending: false });
@@ -581,8 +606,11 @@ async function listPublishedResortRowsFromTable(
         | "category"
         | "transfer_type"
         | "description"
+        | "accommodation_summary"
         | "highlights"
         | "meal_plans"
+        | "curated_moments"
+        | "butler_service"
         | "seo_summary"
         | "status"
         | "is_featured_homepage"
@@ -603,7 +631,7 @@ async function listPublishedResortRowsFromTable(
   if (isMissingFeaturedHomepageColumnError(firstAttempt.error)) {
     const fallbackAttempt = await supabase
       .from(tableName)
-      .select("id,property_type,slug,name,atoll,category,transfer_type,description,highlights,meal_plans,seo_summary,status,created_at,updated_at")
+      .select("id,property_type,slug,name,atoll,category,transfer_type,description,accommodation_summary,highlights,meal_plans,curated_moments,butler_service,seo_summary,status,created_at,updated_at")
       .eq("status", "published")
       .in("property_type", propertyTypeAliases(propertyType))
       .order("updated_at", { ascending: false });
@@ -633,7 +661,7 @@ async function listPublishedResortRowsWithoutPropertyType(tableName = PROPERTY_T
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from(tableName)
-    .select("id,slug,name,atoll,category,transfer_type,description,highlights,meal_plans,seo_summary,status,created_at,updated_at")
+    .select("id,slug,name,atoll,category,transfer_type,description,accommodation_summary,highlights,meal_plans,curated_moments,butler_service,seo_summary,status,created_at,updated_at")
     .eq("status", "published")
     .order("updated_at", { ascending: false });
 
@@ -651,8 +679,11 @@ async function listPublishedResortRowsWithoutPropertyType(tableName = PROPERTY_T
       | "category"
       | "transfer_type"
       | "description"
+      | "accommodation_summary"
       | "highlights"
       | "meal_plans"
+      | "curated_moments"
+      | "butler_service"
       | "seo_summary"
       | "status"
       | "created_at"
@@ -684,11 +715,14 @@ const getCachedPublishedResorts = unstable_cache(
           category: row.category ?? "",
           transferType: row.transfer_type ?? "",
           summary: row.seo_summary ?? row.description ?? "",
+          accommodationSummary: row.accommodation_summary ?? "",
           heroImageUrl: heroMedia.get(row.id) ?? "",
           status: row.status,
           isFeaturedHomepage: Boolean(row.is_featured_homepage),
           highlights: toStringArray(row.highlights),
           mealPlans: toStringArray(row.meal_plans),
+          curatedMoments: toStringArray(row.curated_moments),
+          butlerService: toButlerService(row.butler_service),
           createdAt: row.created_at,
           updatedAt: row.updated_at
         }))
@@ -726,11 +760,14 @@ export async function listPublishedProperties(propertyType: PropertyType): Promi
       category: row.category ?? "",
       transferType: row.transfer_type ?? "",
       summary: row.seo_summary ?? row.description ?? "",
+      accommodationSummary: row.accommodation_summary ?? "",
       heroImageUrl: heroMedia.get(row.id) ?? "",
       status: row.status,
       isFeaturedHomepage: Boolean(row.is_featured_homepage),
       highlights: toStringArray(row.highlights),
       mealPlans: toStringArray(row.meal_plans),
+      curatedMoments: toStringArray(row.curated_moments),
+      butlerService: toButlerService(row.butler_service),
       createdAt: row.created_at,
       updatedAt: row.updated_at
     }));

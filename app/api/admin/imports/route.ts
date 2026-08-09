@@ -146,7 +146,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: "An Excel preview id is required." }, { status: 400 });
     }
 
-    const result = await applyExcelResortSyncPreview(json.stagingId);
+    const result = await applyExcelResortSyncPreview(json.stagingId, json.decision === "create_draft" ? "create_draft" : "update");
 
     if (!result.ok) {
       return NextResponse.json({ ok: false, error: result.error, details: result.details }, { status: result.status ?? 500 });
