@@ -7,6 +7,7 @@ import {
   type ImportActionState
 } from "@/app/admin/imports/actions";
 import type { ImportCheckpointRecord, ImportExecutionResult, ImportLogEntry } from "@/lib/services/import-service";
+import { ExcelSyncPanel } from "@/app/admin/imports/excel-sync-panel";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { toErrorMessage } from "@/lib/error-message";
 
@@ -758,6 +759,7 @@ export function ImportCenterForms({ checkpoints }: { checkpoints: ImportCheckpoi
         <CheckpointModal checkpoints={checkpoints} />
       </div>
       <ImportDrivePanel />
+      <ExcelSyncPanel />
       <ImportUploadPanel />
     </div>
   );

@@ -11,6 +11,11 @@ import {
   startDriveImportBatch,
   type ImportLogEntry
 } from "@/lib/services/import-service";
+import {
+  applyExcelResortSyncPreview,
+  processExcelResortSyncSource,
+  startExcelResortSync
+} from "@/lib/services/excel-resort-sync-service";
 import { ensureImportUploadBucket, SITE_ASSET_BUCKET } from "@/lib/storage/site-assets";
 import { toErrorMessage } from "@/lib/error-message";
 import { aiImportRequestSchema } from "@/lib/validations";
@@ -71,6 +76,60 @@ export async function POST(request: Request) {
 
   const json = await request.json().catch(() => null);
   const mode = typeof json?.mode === "string" ? json.mode : "start";
+
+  if (mode === "excel-start") {
+    if (typeof json?.googleDriveUrl !== "string" || !json.googleDriveUrl.trim()) {
+      return NextResponse.json({ ok: false, error: "A Google Drive folder or workbook URL is required." }, { status: 400 });
+    }
+
+    const result = await startExcelResortSync({
+      googleDriveUrl: json.googleDriveUrl,
+      propertyType: normalizePropertyType(json.propertyType)
+    });
+
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, error: result.error, details: result.details }, { status: result.status ?? 500 });
+    }
+
+    return NextResponse.json({ ok: true, message: result.data.message, data: result.data });
+  }
+
+  if (mode === "excel-process") {
+    if (typeof json?.batchId !== "string" || typeof json?.sourceUrl !== "string" || !Number.isInteger(json?.sourceIndex)) {
+      return NextResponse.json({ ok: false, error: "Invalid Excel workbook processing request." }, { status: 400 });
+    }
+
+    const result = await processExcelResortSyncSource({
+      batchId: json.batchId,
+      sourceUrl: json.sourceUrl,
+      sourceIndex: json.sourceIndex,
+      propertyType: normalizePropertyType(json.propertyType),
+      manualMatchResortId: typeof json.manualMatchResortId === "string" ? json.manualMatchResortId : undefined
+    });
+
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, error: result.error, details: result.details }, { status: result.status ?? 500 });
+    }
+
+    return NextResponse.json({ ok: true, message: "Excel workbook analyzed and staged for review.", data: result.data });
+  }
+
+  if (mode === "excel-apply") {
+    if (typeof json?.stagingId !== "string" || !json.stagingId) {
+      return NextResponse.json({ ok: false, error: "An Excel preview id is required." }, { status: 400 });
+    }
+
+    const result = await applyExcelResortSyncPreview(json.stagingId);
+
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, error: result.error, details: result.details }, { status: result.status ?? 500 });
+    }
+
+    revalidatePath("/admin/imports");
+    revalidatePropertyType(normalizePropertyType(json.propertyType));
+
+    return NextResponse.json({ ok: true, message: result.data.message, data: result.data });
+  }
 
   if (mode === "start") {
     const parsed = aiImportRequestSchema.safeParse(json);

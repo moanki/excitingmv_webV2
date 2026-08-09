@@ -1,0 +1,318 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+
+import type {
+  ExcelResortPreview,
+  ExcelSyncApplyResult,
+  ExcelSyncStatus
+} from "@/lib/services/excel-resort-sync-service";
+
+type ExcelSyncProgress = {
+  totalSources: number;
+  processedSources: number;
+  readyToUpdate: number;
+  readyToCreate: number;
+  needsReview: number;
+  parseErrors: number;
+  previews: ExcelResortPreview[];
+};
+
+type ExcelStartPayload = {
+  batchId: string;
+  sourceFiles: string[];
+  message: string;
+};
+
+const categoryOptions = [
+  { value: "resort", label: "Resort" },
+  { value: "liveaboards", label: "Liveaboard" },
+  { value: "hotels", label: "Hotel" }
+] as const;
+
+function statusLabel(status: ExcelSyncStatus) {
+  return status.replaceAll("_", " ");
+}
+
+function statusClass(status: ExcelSyncStatus) {
+  if (status === "updated" || status === "created" || status === "ready_to_update" || status === "ready_to_create") return "approved";
+  if (status === "needs_review") return "pending";
+  if (status === "parse_error" || status === "failed") return "error";
+  return "neutral";
+}
+
+async function readJson(response: Response) {
+  return (await response.json().catch(() => null)) as { ok?: boolean; error?: string; message?: string; data?: unknown } | null;
+}
+
+function PreviewCard({
+  preview,
+  pendingKey,
+  onApply,
+  onManualMatch
+}: {
+  preview: ExcelResortPreview;
+  pendingKey: string;
+  onApply: (preview: ExcelResortPreview) => void;
+  onManualMatch: (preview: ExcelResortPreview, resortId: string) => void;
+}) {
+  const matchedName = preview.match?.status === "matched" ? preview.match.resortName : preview.match?.status === "new" ? "Not in database" : "Ambiguous match";
+  const canApply = preview.status === "ready_to_update" || preview.status === "ready_to_create";
+  const isPending = pendingKey === preview.stagingId;
+
+  return (
+    <article className="admin-checkpoint-card">
+      <div className="admin-checkpoint-card__header">
+        <div>
+          <strong>{preview.filename}</strong>
+          <p>{matchedName} · {preview.action}</p>
+        </div>
+        <span className={`admin-status-badge is-${statusClass(preview.status)}`}>{statusLabel(preview.status)}</span>
+      </div>
+
+      <div className="admin-checkpoint-meta">
+        <span>Sheets: {preview.model?.sourceFile.sheets.join(", ") || "Unreadable"}</span>
+        <span>Existing photos: {preview.existingPhotosCount}</span>
+        <span>Room photos preserved: {preview.matchingRoomPhotosPreserved}</span>
+      </div>
+
+      {preview.diff ? (
+        <div className="dashboard-grid dashboard-grid-quad">
+          <div className="stat-card"><p className="eyebrow">Root changes</p><strong>{preview.diff.rootFields.length}</strong></div>
+          <div className="stat-card"><p className="eyebrow">Villas added</p><strong>{preview.diff.rooms.added}</strong></div>
+          <div className="stat-card"><p className="eyebrow">Villas updated</p><strong>{preview.diff.rooms.updated}</strong></div>
+          <div className="stat-card"><p className="eyebrow">Villas removed</p><strong>{preview.diff.rooms.removed}</strong></div>
+        </div>
+      ) : null}
+
+      {preview.error ? <p className="admin-alert admin-alert--error">{preview.error}</p> : null}
+      {preview.warnings.length ? (
+        <ul className="admin-checkpoint-notes">
+          {preview.warnings.map((warning) => <li key={warning}>{warning}</li>)}
+        </ul>
+      ) : null}
+
+      {preview.match?.status === "review_required" ? (
+        <div className="admin-checkpoint-resorts">
+          <p className="field__help">Select the exact database resort only after checking the workbook identity.</p>
+          {preview.match.candidates.map((candidate) => (
+            <div key={candidate.resortId} className="admin-checkpoint-resort">
+              <div>
+                <strong>{candidate.resortName}</strong>
+                <p>{candidate.reason}</p>
+              </div>
+              <button
+                type="button"
+                className="admin-btn admin-btn--secondary"
+                disabled={Boolean(pendingKey)}
+                onClick={() => onManualMatch(preview, candidate.resortId)}
+              >
+                Use This Match
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {canApply ? (
+        <div className="admin-form-actions">
+          <button
+            type="button"
+            className="admin-btn admin-btn--primary"
+            disabled={Boolean(pendingKey)}
+            onClick={() => onApply(preview)}
+          >
+            {isPending ? "Applying..." : preview.status === "ready_to_create" ? "Create Draft Resort" : "Apply Authoritative Update"}
+          </button>
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
+export function ExcelSyncPanel() {
+  const [propertyType, setPropertyType] = useState("resort");
+  const [pending, setPending] = useState(false);
+  const [pendingKey, setPendingKey] = useState("");
+  const [batchId, setBatchId] = useState("");
+  const [progress, setProgress] = useState<ExcelSyncProgress | null>(null);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setPendingKey("");
+    setMessage("");
+    setError("");
+    setProgress(null);
+
+    try {
+      const formData = new FormData(event.currentTarget);
+      const selectedPropertyType = String(formData.get("propertyType") ?? "resort");
+      const sourceUrl = String(formData.get("googleDriveUrl") ?? "");
+      const startResponse = await fetch("/api/admin/imports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "excel-start", googleDriveUrl: sourceUrl, propertyType: selectedPropertyType })
+      });
+      const startPayload = await readJson(startResponse);
+      if (!startResponse.ok || !startPayload?.ok || !startPayload.data) throw new Error(startPayload?.error || "Excel sync could not start.");
+
+      const start = startPayload.data as ExcelStartPayload;
+      setBatchId(start.batchId);
+      const nextProgress: ExcelSyncProgress = {
+        totalSources: start.sourceFiles.length,
+        processedSources: 0,
+        readyToUpdate: 0,
+        readyToCreate: 0,
+        needsReview: 0,
+        parseErrors: 0,
+        previews: []
+      };
+      setProgress(nextProgress);
+
+      for (let index = 0; index < start.sourceFiles.length; index += 1) {
+        const processResponse = await fetch("/api/admin/imports", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mode: "excel-process",
+            batchId: start.batchId,
+            sourceUrl: start.sourceFiles[index],
+            sourceIndex: index,
+            propertyType: selectedPropertyType
+          })
+        });
+        const processPayload = await readJson(processResponse);
+        if (!processResponse.ok || !processPayload?.ok || !processPayload.data) throw new Error(processPayload?.error || "Excel workbook analysis failed.");
+        const delta = processPayload.data as Omit<ExcelSyncProgress, "totalSources" | "previews"> & { previews: ExcelResortPreview[] };
+        nextProgress.processedSources += delta.processedSources;
+        nextProgress.readyToUpdate += delta.readyToUpdate;
+        nextProgress.readyToCreate += delta.readyToCreate;
+        nextProgress.needsReview += delta.needsReview;
+        nextProgress.parseErrors += delta.parseErrors;
+        nextProgress.previews = [...nextProgress.previews, ...delta.previews];
+        setProgress({ ...nextProgress, previews: [...nextProgress.previews] });
+      }
+
+      setMessage("Excel workbooks analyzed and staged. Review each preview before applying any update.");
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : "Excel sync failed.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function applyPreview(preview: ExcelResortPreview) {
+    setPendingKey(preview.stagingId);
+    setMessage("");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/imports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "excel-apply", stagingId: preview.stagingId, propertyType })
+      });
+      const payload = await readJson(response);
+      if (!response.ok || !payload?.ok || !payload.data) throw new Error(payload?.error || "Excel preview could not be applied.");
+      const result = payload.data as ExcelSyncApplyResult;
+      setProgress((current) => current ? {
+        ...current,
+        previews: current.previews.map((item) => item.stagingId === preview.stagingId ? { ...item, status: result.status, action: result.status === "created" ? "create" : "update" } : item)
+      } : current);
+      setMessage(result.message);
+    } catch (applyError) {
+      setError(applyError instanceof Error ? applyError.message : "Excel preview could not be applied.");
+    } finally {
+      setPendingKey("");
+    }
+  }
+
+  async function manualMatch(preview: ExcelResortPreview, resortId: string) {
+    if (!batchId) return;
+    setPendingKey(preview.stagingId);
+    setMessage("");
+    setError("");
+    try {
+      const response = await fetch("/api/admin/imports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "excel-process",
+          batchId,
+          sourceUrl: preview.sourceUrl,
+          sourceIndex: preview.sourceIndex,
+          propertyType,
+          manualMatchResortId: resortId
+        })
+      });
+      const payload = await readJson(response);
+      if (!response.ok || !payload?.ok || !payload.data) throw new Error(payload?.error || "Manual resort match failed.");
+      const delta = payload.data as { previews: ExcelResortPreview[] };
+      const replacement = delta.previews[0];
+      setProgress((current) => current ? { ...current, previews: current.previews.map((item) => item.stagingId === preview.stagingId ? replacement : item) } : current);
+      setMessage("Manual resort match saved as a new reviewed preview. Apply it only after checking the diff.");
+    } catch (matchError) {
+      setError(matchError instanceof Error ? matchError.message : "Manual resort match failed.");
+    } finally {
+      setPendingKey("");
+    }
+  }
+
+  const processed = progress?.processedSources ?? 0;
+  const total = progress?.totalSources ?? 0;
+  const progressValue = pending && total ? Math.max(8, Math.round((processed / total) * 100)) : progress && total ? Math.round((processed / total) * 100) : 0;
+
+  return (
+    <article className="panel admin-form-card">
+      <div className="admin-form-section__header">
+        <h3 className="admin-form-section__title">Authoritative Excel Resort Sync</h3>
+        <p className="admin-form-section__help">Analyze Excel workbooks from Google Drive, review deterministic field and villa diffs, then apply selected updates. Photos, media rows, storage objects, slugs, publish status, and homepage flags are protected.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="stack">
+        <div className="form-grid">
+          <label className="field">
+            <span className="field__label">Property Type</span>
+            <select className="admin-select" name="propertyType" value={propertyType} onChange={(event) => setPropertyType(event.target.value)}>
+              {categoryOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
+          <label className="field field--full">
+            <span className="field__label">Google Drive Folder or Workbook URL</span>
+            <input className="admin-input" name="googleDriveUrl" placeholder="https://drive.google.com/drive/folders/..." required />
+            <p className="field__help">Analysis creates staged previews only. Ambiguous resorts or villa names cannot be applied automatically.</p>
+          </label>
+        </div>
+
+        {progress ? (
+          <div className="admin-import-progress" role="status" aria-live="polite">
+            <div className="admin-import-progress__header"><strong>{pending ? `Analyzing Excel workbooks (${processed}/${total})` : `Analyzed ${processed} of ${total} workbooks`}</strong><span>{progressValue}%</span></div>
+            <div className="admin-import-progress__track" aria-hidden="true"><div className={pending ? "admin-import-progress__bar is-pending" : "admin-import-progress__bar"} style={{ width: `${progressValue}%` }} /></div>
+            <div className="dashboard-grid dashboard-grid-quad">
+              <div className="stat-card"><p className="eyebrow">Ready to update</p><strong>{progress.readyToUpdate}</strong></div>
+              <div className="stat-card"><p className="eyebrow">Ready to create</p><strong>{progress.readyToCreate}</strong></div>
+              <div className="stat-card"><p className="eyebrow">Needs review</p><strong>{progress.needsReview}</strong></div>
+              <div className="stat-card"><p className="eyebrow">Parse errors</p><strong>{progress.parseErrors}</strong></div>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="admin-form-actions">
+          <button className="admin-btn admin-btn--primary" type="submit" disabled={pending} data-admin-feedback-managed="true">{pending ? "Analyzing..." : "Analyze Excel Workbooks"}</button>
+        </div>
+
+        {message ? <p className="admin-alert admin-alert--success">{message}</p> : null}
+        {error ? <p className="admin-alert admin-alert--error">{error}</p> : null}
+      </form>
+
+      {progress?.previews.length ? (
+        <div className="stack">
+          <h4>Workbook Previews</h4>
+          {progress.previews.map((preview) => <PreviewCard key={preview.stagingId} preview={preview} pendingKey={pendingKey} onApply={applyPreview} onManualMatch={manualMatch} />)}
+        </div>
+      ) : null}
+    </article>
+  );
+}
