@@ -230,6 +230,7 @@ const ROOT_FIELD_ALIASES: Record<string, keyof ExcelResortImportModel["resort"]>
 
 const VIEW_LABEL_FEATURE_PREFIX = "__viewLabel:";
 const MAX_LIVE_PREVIEWS = 24;
+type ContentTable = "property" | "resorts";
 
 function slugify(value: string) {
   return value
@@ -250,6 +251,15 @@ function normalizeIdentity(value: string) {
 
 function normalizeKey(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function isMissingTableError(error: unknown) {
+  const message = error instanceof Error
+    ? error.message
+    : typeof error === "object" && error !== null && "message" in error
+      ? String((error as { message?: unknown }).message ?? "")
+      : "";
+  return message.includes("Could not find the table") || message.includes("schema cache") || message.includes("does not exist");
 }
 
 function cellToValue(value: ExcelJS.CellValue): ExcelCellValue {
@@ -731,7 +741,17 @@ async function saveExcelMapping(input: {
     },
     { onConflict: "source_identifier,property_type" }
   );
-  if (error) throw new Error(error.message);
+  if (error && !isMissingTableError(error)) throw new Error(error.message);
+}
+
+async function resolveContentTable(): Promise<ContentTable> {
+  const supabase = createSupabaseAdminClient();
+  for (const tableName of ["property", "resorts"] as const) {
+    const { error } = await supabase.from(tableName).select("id").limit(1);
+    if (!error) return tableName;
+    if (!isMissingTableError(error)) throw new Error(error.message);
+  }
+  throw new Error("Neither public.property nor public.resorts is available in the database schema.");
 }
 
 function payloadToPreview(stagingId: string, payload: StagingPayload): ExcelResortPreview {
@@ -916,7 +936,8 @@ async function loadStagingPayload(stagingId: string): Promise<{ payload: Staging
 
 async function fetchCurrentProperty(resortId: string): Promise<PropertyRow | null> {
   const supabase = createSupabaseAdminClient();
-  const { data, error } = await supabase.from("property").select("*").eq("id", resortId).maybeSingle();
+  const tableName = await resolveContentTable();
+  const { data, error } = await supabase.from(tableName).select("*").eq("id", resortId).maybeSingle();
   if (error) throw new Error(error.message);
   return (data as PropertyRow | null) ?? null;
 }
@@ -990,29 +1011,29 @@ async function syncRooms(resortId: string, rooms: ExcelResortRoomModel[]) {
 
 async function createPropertyFromExcel(model: ExcelResortImportModel, propertyType: PropertyType) {
   const supabase = createSupabaseAdminClient();
+  const tableName = await resolveContentTable();
   const existing = await listAdminResorts(propertyType);
   const now = new Date().toISOString();
   const slug = uniqueSlug(model.resort.slug || model.resort.name, existing);
+  const basePayload = {
+    slug,
+    name: model.resort.name,
+    atoll: model.resort.location,
+    category: model.resort.category,
+    transfer_type: model.resort.transferType,
+    description: model.resort.description,
+    highlights: model.resort.highlights,
+    meal_plans: model.resort.mealPlans,
+    seo_title: model.resort.seoTitle ?? model.resort.name,
+    seo_description: model.resort.seoDescription ?? model.resort.description,
+    seo_summary: model.resort.seoSummary ?? model.resort.description,
+    status: "draft",
+    published_at: null,
+    updated_at: now
+  };
   const { data, error } = await supabase
-    .from("property")
-    .insert({
-      property_type: propertyType,
-      slug,
-      name: model.resort.name,
-      atoll: model.resort.location,
-      category: model.resort.category,
-      transfer_type: model.resort.transferType,
-      description: model.resort.description,
-      highlights: model.resort.highlights,
-      meal_plans: model.resort.mealPlans,
-      seo_title: model.resort.seoTitle ?? model.resort.name,
-      seo_description: model.resort.seoDescription ?? model.resort.description,
-      seo_summary: model.resort.seoSummary ?? model.resort.description,
-      status: "draft",
-      is_featured_homepage: false,
-      published_at: null,
-      updated_at: now
-    })
+    .from(tableName)
+    .insert(tableName === "property" ? { ...basePayload, property_type: propertyType, is_featured_homepage: false } : basePayload)
     .select("id,name")
     .single();
   if (error || !data) throw new Error(error?.message ?? "Failed to create resort from Excel.");
@@ -1022,6 +1043,7 @@ async function createPropertyFromExcel(model: ExcelResortImportModel, propertyTy
 
 async function updatePropertyFromExcel(resortId: string, model: ExcelResortImportModel) {
   const supabase = createSupabaseAdminClient();
+  const tableName = await resolveContentTable();
   const before = await fetchCurrentProperty(resortId);
   if (!before) throw new Error("Matched resort no longer exists.");
   const updatePayload = {
@@ -1037,7 +1059,7 @@ async function updatePropertyFromExcel(resortId: string, model: ExcelResortImpor
     ...(model.resort.seoSummary !== undefined ? { seo_summary: model.resort.seoSummary } : {}),
     updated_at: new Date().toISOString()
   };
-  const { error } = await supabase.from("property").update(updatePayload).eq("id", resortId);
+  const { error } = await supabase.from(tableName).update(updatePayload).eq("id", resortId);
   if (error) throw new Error(error.message);
   await syncRooms(resortId, model.rooms);
   return { id: before.id, name: before.name };

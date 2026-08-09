@@ -6,7 +6,7 @@ create table if not exists public.excel_resort_sync_mappings (
   source_identifier text not null,
   source_filename text,
   property_type text not null default 'resort',
-  resort_id uuid references public.property(id) on delete set null,
+  resort_id uuid,
   confidence text not null check (confidence in ('exact', 'manual')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
