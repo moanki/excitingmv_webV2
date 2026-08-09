@@ -13,6 +13,7 @@ import {
 } from "@/lib/services/import-service";
 import {
   applyExcelResortSyncPreview,
+  processUploadedExcelResortSource,
   processExcelResortSyncSource,
   startExcelResortSync
 } from "@/lib/services/excel-resort-sync-service";
@@ -51,6 +52,28 @@ export async function POST(request: Request) {
 
   if (contentType.includes("multipart/form-data")) {
     const formData = await request.formData();
+    const excelUpload = formData.get("excelFile");
+    if (excelUpload instanceof File) {
+      if (excelUpload.size === 0 || excelUpload.size > 50 * 1024 * 1024) {
+        return NextResponse.json({ ok: false, error: "Upload an Excel workbook up to 50 MB." }, { status: 400 });
+      }
+
+      const result = await processUploadedExcelResortSource({
+        filename: excelUpload.name,
+        bytes: new Uint8Array(await excelUpload.arrayBuffer()),
+        propertyType: normalizePropertyType(formData.get("propertyType")),
+        manualMatchResortId: typeof formData.get("manualMatchResortId") === "string"
+          ? String(formData.get("manualMatchResortId"))
+          : undefined
+      });
+
+      if (!result.ok) {
+        return NextResponse.json({ ok: false, error: result.error, details: result.details }, { status: result.status ?? 500 });
+      }
+
+      return NextResponse.json({ ok: true, message: "Excel workbook analyzed and staged for review.", data: result.data });
+    }
+
     const upload = formData.get("factSheetFile");
     const result = await importUploadedFactSheet(
       upload instanceof File ? upload : new File([], ""),

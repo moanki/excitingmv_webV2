@@ -674,14 +674,14 @@ function filenameFromContentDisposition(value: string | null) {
   }
 }
 
-async function createBatchRecord(sourceUrl: string, propertyType: PropertyType) {
+async function createBatchRecord(sourceUrl: string, propertyType: PropertyType, sourceType = "google_drive_excel") {
   const supabase = createSupabaseAdminClient();
   const stamp = new Date().toISOString().slice(0, 10);
   const { data, error } = await supabase
     .from("import_batches")
     .insert({
       batch_name: `Excel resort sync ${stamp}`,
-      source_type: `google_drive_excel:${propertyType}`,
+      source_type: `${sourceType}:${propertyType}`,
       file_path: sourceUrl,
       status: "analyzing"
     })
@@ -781,11 +781,19 @@ export async function processExcelResortSyncSource(input: {
   sourceIndex: number;
   propertyType?: PropertyType;
   manualMatchResortId?: string;
+  sourceBytes?: Uint8Array;
+  sourceFilename?: string;
 }): Promise<ServiceResult<ExcelSyncDelta>> {
   try {
     const propertyType = normalizePropertyType(input.propertyType);
     const existingResorts = await listAdminResorts(propertyType);
-    const downloaded = await downloadExcelSource(input.sourceUrl, input.sourceIndex);
+    const downloaded = input.sourceBytes
+      ? {
+          sourceUrl: input.sourceUrl,
+          filename: input.sourceFilename ?? guessExcelFilename(input.sourceUrl, input.sourceIndex),
+          bytes: input.sourceBytes
+        }
+      : await downloadExcelSource(input.sourceUrl, input.sourceIndex);
     const model = await parseExcelResortWorkbook(downloaded);
     const validation = validateExcelModel(model);
     const match = matchResort(model, existingResorts, input.manualMatchResortId);
@@ -840,7 +848,7 @@ export async function processExcelResortSyncSource(input: {
       propertyType,
       sourceIndex: input.sourceIndex,
       sourceUrl: input.sourceUrl,
-      filename: guessExcelFilename(input.sourceUrl, input.sourceIndex),
+      filename: input.sourceFilename ?? guessExcelFilename(input.sourceUrl, input.sourceIndex),
       status: "parse_error",
       action: "error",
       error: toErrorMessage(error, "Workbook could not be parsed."),
@@ -861,6 +869,32 @@ export async function processExcelResortSyncSource(input: {
         previews: [payloadToPreview(stagingId, payload)]
       }
     };
+  }
+}
+
+export async function processUploadedExcelResortSource(input: {
+  filename: string;
+  bytes: Uint8Array;
+  propertyType?: PropertyType;
+  manualMatchResortId?: string;
+}): Promise<ServiceResult<ExcelSyncDelta & { batchId: string }>> {
+  try {
+    const propertyType = normalizePropertyType(input.propertyType);
+    const batchId = await createBatchRecord(`upload:${input.filename}`, propertyType, "excel_upload");
+    const result = await processExcelResortSyncSource({
+      batchId,
+      sourceUrl: `upload:${input.filename}`,
+      sourceIndex: 0,
+      sourceFilename: input.filename,
+      sourceBytes: input.bytes,
+      propertyType,
+      manualMatchResortId: input.manualMatchResortId
+    });
+
+    if (!result.ok) return result;
+    return { ok: true, data: { ...result.data, batchId } };
+  } catch (error) {
+    return { ok: false, error: toErrorMessage(error, "Uploaded Excel workbook could not be staged.") };
   }
 }
 

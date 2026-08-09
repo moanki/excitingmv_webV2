@@ -141,6 +141,7 @@ export function ExcelSyncPanel() {
   const [pending, setPending] = useState(false);
   const [pendingKey, setPendingKey] = useState("");
   const [batchId, setBatchId] = useState("");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [progress, setProgress] = useState<ExcelSyncProgress | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -157,6 +158,34 @@ export function ExcelSyncPanel() {
       const formData = new FormData(event.currentTarget);
       const selectedPropertyType = String(formData.get("propertyType") ?? "resort");
       const sourceUrl = String(formData.get("googleDriveUrl") ?? "");
+      const selectedFile = formData.get("excelFile");
+      const excelFile = selectedFile instanceof File && selectedFile.size > 0 ? selectedFile : null;
+      setUploadedFile(excelFile);
+
+      if (excelFile) {
+        const uploadForm = new FormData();
+        uploadForm.append("excelFile", excelFile);
+        uploadForm.append("propertyType", selectedPropertyType);
+        const uploadResponse = await fetch("/api/admin/imports", { method: "POST", body: uploadForm });
+        const uploadPayload = await readJson(uploadResponse);
+        if (!uploadResponse.ok || !uploadPayload?.ok || !uploadPayload.data) throw new Error(uploadPayload?.error || "Excel workbook upload failed.");
+
+        const delta = uploadPayload.data as Omit<ExcelSyncProgress, "totalSources" | "previews"> & { previews: ExcelResortPreview[]; batchId: string };
+        setBatchId(delta.batchId);
+        setProgress({
+          totalSources: 1,
+          processedSources: delta.processedSources,
+          readyToUpdate: delta.readyToUpdate,
+          readyToCreate: delta.readyToCreate,
+          needsReview: delta.needsReview,
+          parseErrors: delta.parseErrors,
+          previews: delta.previews
+        });
+        setMessage("Downloaded workbook analyzed and staged. Review the preview before applying any update.");
+        return;
+      }
+
+      if (!sourceUrl.trim()) throw new Error("Provide a Google Drive URL or choose a downloaded Excel workbook.");
       const startResponse = await fetch("/api/admin/imports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -241,18 +270,28 @@ export function ExcelSyncPanel() {
     setMessage("");
     setError("");
     try {
-      const response = await fetch("/api/admin/imports", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode: "excel-process",
-          batchId,
-          sourceUrl: preview.sourceUrl,
-          sourceIndex: preview.sourceIndex,
-          propertyType,
-          manualMatchResortId: resortId
-        })
-      });
+      let response: Response;
+      if (preview.sourceUrl.startsWith("upload:")) {
+        if (!uploadedFile) throw new Error("The downloaded workbook is no longer available in this browser. Upload it again to rematch.");
+        const uploadForm = new FormData();
+        uploadForm.append("excelFile", uploadedFile);
+        uploadForm.append("propertyType", propertyType);
+        uploadForm.append("manualMatchResortId", resortId);
+        response = await fetch("/api/admin/imports", { method: "POST", body: uploadForm });
+      } else {
+        response = await fetch("/api/admin/imports", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mode: "excel-process",
+            batchId,
+            sourceUrl: preview.sourceUrl,
+            sourceIndex: preview.sourceIndex,
+            propertyType,
+            manualMatchResortId: resortId
+          })
+        });
+      }
       const payload = await readJson(response);
       if (!response.ok || !payload?.ok || !payload.data) throw new Error(payload?.error || "Manual resort match failed.");
       const delta = payload.data as { previews: ExcelResortPreview[] };
@@ -287,8 +326,13 @@ export function ExcelSyncPanel() {
           </label>
           <label className="field field--full">
             <span className="field__label">Google Drive Folder or Workbook URL</span>
-            <input className="admin-input" name="googleDriveUrl" placeholder="https://drive.google.com/drive/folders/..." required />
-            <p className="field__help">Analysis creates staged previews only. Ambiguous resorts or villa names cannot be applied automatically.</p>
+            <input className="admin-input" name="googleDriveUrl" placeholder="https://drive.google.com/drive/folders/..." />
+            <p className="field__help">Use a shareable link. If Drive preview is unavailable, download the workbook and use the upload field below.</p>
+          </label>
+          <label className="field field--full">
+            <span className="field__label">Downloaded Excel Workbook</span>
+            <input className="admin-file-input" name="excelFile" type="file" accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel.sheet.macroEnabled.12" />
+            <p className="field__help">Use either a Google Drive URL or a downloaded `.xlsx` / `.xlsm` file. Analysis creates staged previews only.</p>
           </label>
         </div>
 
