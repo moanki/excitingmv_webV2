@@ -338,6 +338,19 @@ function isMissingTableError(error: unknown) {
   return message.includes("Could not find the table") || message.includes("schema cache") || message.includes("does not exist");
 }
 
+function isMissingOptionalResortContentColumnError(error: unknown) {
+  const message = toErrorMessage(error, "");
+  return /Could not find the '(?:accommodation_summary|curated_moments|butler_service)' column|(?:accommodation_summary|curated_moments|butler_service).*schema cache/iu.test(message);
+}
+
+function withoutOptionalResortContentFields(payload: Record<string, unknown>) {
+  const fallback = { ...payload };
+  delete fallback.accommodation_summary;
+  delete fallback.curated_moments;
+  delete fallback.butler_service;
+  return fallback;
+}
+
 function isMarkItDownAuthorizationError(error: unknown) {
   const message = toErrorMessage(error, "");
   return /MarkItDown rejected the staging service token|MarkItDown service authentication failed|HTTP 401/iu.test(message);
@@ -1491,14 +1504,16 @@ async function createPropertyFromExcel(model: ExcelResortImportModel, propertyTy
     published_at: null,
     updated_at: now
   };
-  const { data, error } = await supabase
-    .from(tableName)
-    .insert(tableName === "property" ? { ...basePayload, property_type: propertyType, is_featured_homepage: false } : basePayload)
-    .select("id,name")
-    .single();
+  const insertPayload = tableName === "property" ? { ...basePayload, property_type: propertyType, is_featured_homepage: false } : basePayload;
+  let { data, error } = await supabase.from(tableName).insert(insertPayload).select("id,name").single();
+  let warnings: string[] = [];
+  if (error && isMissingOptionalResortContentColumnError(error)) {
+    ({ data, error } = await supabase.from(tableName).insert(withoutOptionalResortContentFields(insertPayload)).select("id,name").single());
+    warnings = ["The staging database has not applied the additive resort content migration; accommodation summary, curated moments, and butler/host metadata were not stored."];
+  }
   if (error || !data) throw new Error(error?.message ?? "Failed to create resort from Excel.");
   await syncRooms((data as { id: string }).id, model.rooms);
-  return data as { id: string; name: string };
+  return { ...(data as { id: string; name: string }), warnings };
 }
 
 async function updatePropertyFromExcel(resortId: string, model: ExcelResortImportModel) {
@@ -1520,10 +1535,15 @@ async function updatePropertyFromExcel(resortId: string, model: ExcelResortImpor
   if (model.providedResortFields.includes("seoTitle") && model.resort.seoTitle !== undefined) updatePayload.seo_title = model.resort.seoTitle;
   if (model.providedResortFields.includes("seoDescription") && model.resort.seoDescription !== undefined) updatePayload.seo_description = model.resort.seoDescription;
   if (model.providedResortFields.includes("seoSummary") && model.resort.seoSummary !== undefined) updatePayload.seo_summary = model.resort.seoSummary;
-  const { error } = await supabase.from(tableName).update(updatePayload).eq("id", resortId);
+  let { error } = await supabase.from(tableName).update(updatePayload).eq("id", resortId);
+  let warnings: string[] = [];
+  if (error && isMissingOptionalResortContentColumnError(error)) {
+    ({ error } = await supabase.from(tableName).update(withoutOptionalResortContentFields(updatePayload)).eq("id", resortId));
+    warnings = ["The staging database has not applied the additive resort content migration; accommodation summary, curated moments, and butler/host metadata were not stored."];
+  }
   if (error) throw new Error(error.message);
   await syncRooms(resortId, model.rooms);
-  return { id: before.id, name: before.name };
+  return { id: before.id, name: before.name, warnings };
 }
 
 async function writeAuditLog(input: {
@@ -1568,7 +1588,7 @@ export async function applyExcelResortSyncPreview(stagingId: string, decision: "
       }
     }
 
-    let result: { id: string; name: string };
+    let result: { id: string; name: string; warnings?: string[] };
     let beforeState: unknown = null;
     if (effectiveMatch.status === "matched") {
       beforeState = {
@@ -1617,7 +1637,7 @@ export async function applyExcelResortSyncPreview(stagingId: string, decision: "
         status,
         resortId: result.id,
         resortName: result.name,
-        message: `${result.name} ${status === "created" ? "created" : "updated"} from Excel.`
+        message: `${result.name} ${status === "created" ? "created" : "updated"} from Excel.${result.warnings?.length ? ` ${result.warnings.join(" ")}` : ""}`
       }
     };
   } catch (error) {
