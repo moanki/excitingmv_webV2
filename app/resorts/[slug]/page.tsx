@@ -4,15 +4,12 @@ import { ArrowLeft, BedDouble, Heart, MapPin, Palette, Plane, Share2, Sparkles, 
 
 import {
   getResortBySlug,
-  listPublishedResorts,
   listSimilarPublishedResorts
 } from "@/lib/services/resort-service";
 import { optimizedImageUrl } from "@/lib/image-urls";
 
-export async function generateStaticParams() {
-  const resorts = await listPublishedResorts();
-  return resorts.map((resort) => ({ slug: resort.slug }));
-}
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function formatInlineList(items: string[], fallback: string) {
   const cleaned = items.filter(Boolean);
