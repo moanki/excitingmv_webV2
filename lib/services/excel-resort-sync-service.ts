@@ -338,6 +338,11 @@ function isMissingTableError(error: unknown) {
   return message.includes("Could not find the table") || message.includes("schema cache") || message.includes("does not exist");
 }
 
+function isMarkItDownAuthorizationError(error: unknown) {
+  const message = toErrorMessage(error, "");
+  return /MarkItDown rejected the staging service token|MarkItDown service authentication failed|HTTP 401/iu.test(message);
+}
+
 function cellToValue(value: ExcelJS.CellValue): ExcelCellValue {
   if (value === null || value === undefined) return null;
   if (value instanceof Date) return value;
@@ -1231,13 +1236,23 @@ export async function processExcelResortSyncSource(input: {
           bytes: input.sourceBytes
         }
       : await downloadExcelSource(input.sourceUrl, input.sourceIndex);
-    // Normalize the bytes already downloaded by the Drive/upload path. This keeps
-    // preview parsing deterministic and avoids a second, potentially restricted URL fetch.
-    const normalized = await convertDocumentToMarkdown({
-      ...downloaded,
-      sourceUrl: `upload:${downloaded.filename}`
-    });
-    const models = await parseExcelResortWorkbook({ ...downloaded, normalizedMarkdown: normalized.markdown });
+    // Normalize the bytes already downloaded by the Drive/upload path. If the
+    // optional internal normalizer is unavailable, ExcelJS still provides a
+    // deterministic workbook parse for review; no database write happens here.
+    let normalizedMarkdown: string | undefined;
+    let normalizationWarning: string | undefined;
+    try {
+      const normalized = await convertDocumentToMarkdown({
+        ...downloaded,
+        sourceUrl: `upload:${downloaded.filename}`
+      });
+      normalizedMarkdown = normalized.markdown;
+    } catch (error) {
+      if (!isMarkItDownAuthorizationError(error)) throw error;
+      normalizationWarning = "Microsoft MarkItDown normalization was unavailable in staging; the workbook was parsed deterministically for review and no data was changed.";
+    }
+    const models = await parseExcelResortWorkbook({ ...downloaded, normalizedMarkdown });
+    if (normalizationWarning) models.forEach((model) => model.warnings.push(normalizationWarning));
     const selectedModels = input.modelIndex === undefined
       ? models.map((model, modelIndex) => ({ model, modelIndex }))
       : models[input.modelIndex]
