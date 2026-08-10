@@ -140,7 +140,7 @@ function isMissingAdminListColumnError(error: unknown) {
         ? String((error as { message?: unknown }).message ?? "")
         : "";
 
-  return message.includes("is_featured_homepage");
+  return message.includes("is_featured_homepage") || /(?:accommodation_summary|curated_moments|butler_service).*schema cache/iu.test(message);
 }
 
 function isMissingPropertyTableError(error: unknown) {
