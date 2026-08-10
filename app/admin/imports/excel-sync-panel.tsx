@@ -46,149 +46,197 @@ async function readJson(response: Response) {
   return (await response.json().catch(() => null)) as { ok?: boolean; error?: string; message?: string; data?: unknown } | null;
 }
 
-function PreviewCard({
-  preview,
+type BulkMode = "update" | "create" | "mixed";
+
+function previewResortName(preview: ExcelResortPreview) {
+  if (preview.status === "parse_error") return "Workbook unavailable";
+  if (preview.match?.status === "matched") return preview.match.resortName;
+  if (preview.match?.status === "new_candidate") return preview.model?.resort.name || "Not in database";
+  return "Ambiguous match";
+}
+
+function canApplyPreview(preview: ExcelResortPreview) {
+  return preview.status === "ready_to_update" || preview.status === "ready_to_create";
+}
+
+function canCreatePreview(preview: ExcelResortPreview) {
+  return preview.status === "new_candidate";
+}
+
+function isPreviewActionable(preview: ExcelResortPreview) {
+  return canApplyPreview(preview) || canCreatePreview(preview);
+}
+
+function previewChangesSummary(preview: ExcelResortPreview) {
+  if (preview.error) return preview.error;
+  if (!preview.diff) return statusLabel(preview.status);
+
+  const changes = preview.diff.rootFields
+    .filter((field) => field.action === "Update")
+    .map((field) => field.field);
+
+  if (preview.diff.highlights.action === "Update") changes.push("Highlights");
+  if (preview.diff.mealPlans.action === "Update") changes.push("Meal Plans");
+  if (preview.diff.rooms.action === "Update") changes.push("Villa Categories");
+
+  if (!changes.length) return "No field changes";
+
+  const visibleChanges = changes.slice(0, 4);
+  const remaining = changes.length - visibleChanges.length;
+  return remaining > 0 ? `${visibleChanges.join(", ")} +${remaining} more` : visibleChanges.join(", ");
+}
+
+function bulkTargetPreviews(previews: ExcelResortPreview[], selectedPreviewIds: string[], mode: BulkMode) {
+  return previews.filter((preview) => {
+    if (!selectedPreviewIds.includes(preview.stagingId)) return false;
+    if (mode === "update") return canApplyPreview(preview);
+    if (mode === "create") return canCreatePreview(preview);
+    return isPreviewActionable(preview);
+  });
+}
+
+function PreviewTable({
+  previews,
+  selectedPreviewIds,
   pendingKey,
+  onToggle,
+  onToggleAll,
   onApply,
   onCreate,
-  onManualMatch
+  onManualMatch,
+  onBulkApply
 }: {
-  preview: ExcelResortPreview;
+  previews: ExcelResortPreview[];
+  selectedPreviewIds: string[];
   pendingKey: string;
-  onApply: (preview: ExcelResortPreview) => void;
-  onCreate: (preview: ExcelResortPreview) => void;
+  onToggle: (previewId: string) => void;
+  onToggleAll: () => void;
+  onApply: (preview: ExcelResortPreview) => Promise<boolean>;
+  onCreate: (preview: ExcelResortPreview) => Promise<boolean>;
   onManualMatch: (preview: ExcelResortPreview, resortId: string) => void;
+  onBulkApply: (mode: BulkMode) => void;
 }) {
-  const matchedName = preview.status === "parse_error"
-      ? "Workbook unavailable"
-      : preview.match?.status === "matched"
-        ? preview.match.resortName
-      : preview.match?.status === "new_candidate"
-        ? preview.model?.resort.name || "Not in database"
-        : "Ambiguous match";
-  const canApply = preview.status === "ready_to_update" || preview.status === "ready_to_create";
-  const canCreate = preview.status === "new_candidate";
-  const isPending = pendingKey === preview.stagingId;
-  const [showChanges, setShowChanges] = useState(false);
+  const actionablePreviews = previews.filter(isPreviewActionable);
+  const selectedActionableCount = actionablePreviews.filter((preview) => selectedPreviewIds.includes(preview.stagingId)).length;
+  const selectedUpdateCount = bulkTargetPreviews(previews, selectedPreviewIds, "update").length;
+  const selectedCreateCount = bulkTargetPreviews(previews, selectedPreviewIds, "create").length;
+  const allActionableSelected = actionablePreviews.length > 0 && selectedActionableCount === actionablePreviews.length;
+  const isBusy = Boolean(pendingKey);
 
   return (
-    <article className="admin-checkpoint-card">
-      <div className="admin-checkpoint-card__header">
-        <div>
-          <strong>{preview.filename}</strong>
-          <p>{matchedName} · {preview.action}</p>
-        </div>
-        <span className={`admin-status-badge is-${statusClass(preview.status)}`}>{statusLabel(preview.status)}</span>
+    <div className="stack">
+      <h4>Review Action Table</h4>
+      <div className="admin-table-shell excel-preview-table-shell">
+        <table className="table excel-preview-table">
+          <thead>
+            <tr>
+              <th className="admin-checkbox-cell">
+                <input
+                  type="checkbox"
+                  aria-label="Select all actionable workbook previews"
+                  checked={allActionableSelected}
+                  disabled={!actionablePreviews.length || isBusy}
+                  onChange={onToggleAll}
+                />
+              </th>
+              <th>File Name</th>
+              <th>Resort Name</th>
+              <th>Changes</th>
+              <th>No. of Villas Updated</th>
+              <th>No. of Villas to be Removed</th>
+              <th>Villas Added</th>
+              <th>Action Items</th>
+            </tr>
+          </thead>
+          <tbody>
+            {previews.map((preview) => {
+              const canApply = canApplyPreview(preview);
+              const canCreate = canCreatePreview(preview);
+              const isPending = pendingKey === preview.stagingId;
+              const isSelected = selectedPreviewIds.includes(preview.stagingId);
+              const canSelect = isPreviewActionable(preview);
+
+              return (
+                <tr key={preview.stagingId}>
+                  <td className="admin-checkbox-cell">
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${preview.filename}`}
+                      checked={isSelected}
+                      disabled={!canSelect || isBusy}
+                      onChange={() => onToggle(preview.stagingId)}
+                    />
+                  </td>
+                  <td>
+                    <strong>{preview.filename}</strong>
+                    <span className={`admin-status-badge is-${statusClass(preview.status)}`}>{statusLabel(preview.status)}</span>
+                    <p className="admin-table-subtle">{preview.model?.sourceFile.sheets.join(", ") || "Unreadable workbook"}</p>
+                  </td>
+                  <td>
+                    <strong>{previewResortName(preview)}</strong>
+                    <p className="admin-table-subtle">{preview.action}</p>
+                  </td>
+                  <td>
+                    <span>{previewChangesSummary(preview)}</span>
+                    {preview.warnings.length ? <p className="admin-table-subtle">{preview.warnings.length} warning{preview.warnings.length === 1 ? "" : "s"}</p> : null}
+                    {preview.model?.ignoredExampleRows.length ? <p className="admin-table-subtle">{preview.model.ignoredExampleRows.length} template row{preview.model.ignoredExampleRows.length === 1 ? "" : "s"} ignored</p> : null}
+                  </td>
+                  <td>{preview.diff?.rooms.updated ?? 0}</td>
+                  <td>{preview.diff?.rooms.removed ?? 0}</td>
+                  <td>{preview.diff?.rooms.added ?? 0}</td>
+                  <td>
+                    <div className="admin-bulk-actions excel-preview-table__actions">
+                      {canApply ? (
+                        <button
+                          type="button"
+                          className="admin-btn admin-btn--primary"
+                          disabled={isBusy}
+                          onClick={() => onApply(preview)}
+                        >
+                          {isPending ? "Applying..." : "Apply Update"}
+                        </button>
+                      ) : null}
+                      {canCreate ? (
+                        <button type="button" className="admin-btn admin-btn--primary" disabled={isBusy} onClick={() => onCreate(preview)}>
+                          {isPending ? "Creating..." : "Add Draft"}
+                        </button>
+                      ) : null}
+                      {preview.match?.status === "review_required" ? preview.match.candidates.map((candidate) => (
+                        <button
+                          key={candidate.resortId}
+                          type="button"
+                          className="admin-btn admin-btn--secondary"
+                          disabled={isBusy}
+                          onClick={() => onManualMatch(preview, candidate.resortId)}
+                        >
+                          Use Match
+                        </button>
+                      )) : null}
+                      {!canApply && !canCreate && preview.match?.status !== "review_required" ? <span className="admin-table-subtle">No action</span> : null}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
-      <div className="admin-checkpoint-meta">
-        <span>Sheets: {preview.model?.sourceFile.sheets.join(", ") || "Unreadable"}</span>
-        <span>Existing photos: {preview.existingPhotosCount}</span>
-        <span>Room photos preserved: {preview.matchingRoomPhotosPreserved}</span>
+      <div className="admin-bulk-bar">
+        <span>{selectedActionableCount} selected</span>
+        <div className="admin-bulk-actions">
+          <button type="button" className="admin-btn admin-btn--primary" disabled={isBusy || selectedUpdateCount === 0} onClick={() => onBulkApply("update")}>
+            Apply Selected Updates
+          </button>
+          <button type="button" className="admin-btn admin-btn--secondary" disabled={isBusy || selectedCreateCount === 0} onClick={() => onBulkApply("create")}>
+            Create Selected Drafts
+          </button>
+          <button type="button" className="admin-btn admin-btn--secondary" disabled={isBusy || selectedActionableCount === 0} onClick={() => onBulkApply("mixed")}>
+            Apply/Create Selected
+          </button>
+        </div>
       </div>
-
-      {preview.model ? (
-        <div className="admin-checkpoint-notes">
-          <p>
-            <strong>Generic Information:</strong>{" "}
-            {preview.model.sections.generic.actualRows > 0 ? "Actual data detected - ready to update" : "No update"}
-          </p>
-          <p>
-            <strong>Villa Types:</strong>{" "}
-            {preview.model.sections.rooms.actualRows > 0
-              ? `${preview.model.sections.rooms.actualRows} actual record${preview.model.sections.rooms.actualRows === 1 ? "" : "s"} detected - ready to update`
-              : "No update - existing villa data will remain unchanged"}
-          </p>
-        </div>
-      ) : null}
-
-      {preview.diff ? (
-        <div className="dashboard-grid dashboard-grid-quad">
-          <div className="stat-card"><p className="eyebrow">Root changes</p><strong>{preview.diff.rootFields.length}</strong></div>
-          <div className="stat-card"><p className="eyebrow">Villas added</p><strong>{preview.diff.rooms.added}</strong></div>
-          <div className="stat-card"><p className="eyebrow">Villas updated</p><strong>{preview.diff.rooms.updated}</strong></div>
-          <div className="stat-card"><p className="eyebrow">Existing villas kept</p><strong>{preview.diff.rooms.untouched}</strong></div>
-        </div>
-      ) : null}
-
-      {preview.diff ? (
-        <button type="button" className="admin-btn admin-btn--secondary" onClick={() => setShowChanges((current) => !current)}>
-          {showChanges ? "Hide Changes" : "Review Changes"}
-        </button>
-      ) : null}
-
-      {showChanges && preview.diff ? (
-        <div className="admin-checkpoint-notes">
-          {preview.diff.rootFields.length ? preview.diff.rootFields.map((field) => (
-            <p key={field.field}><strong>{field.field}:</strong> {field.action}</p>
-          )) : <p>No resort fields need updating.</p>}
-          <p><strong>Villas:</strong> {preview.diff.rooms.updated} matched update(s), {preview.diff.rooms.added} new, {preview.diff.rooms.untouched} existing villa(s) kept.</p>
-          <p><strong>Photos and media:</strong> protected; existing IDs and storage objects are not replaced.</p>
-        </div>
-      ) : null}
-
-      {preview.error ? <p className="admin-alert admin-alert--error">{preview.error}</p> : null}
-      {preview.warnings.length ? (
-        <ul className="admin-checkpoint-notes">
-          {preview.warnings.map((warning) => <li key={warning}>{warning}</li>)}
-        </ul>
-      ) : null}
-
-      {preview.model?.ignoredExampleRows.length ? (
-        <details>
-          <summary>Ignored template/example rows ({preview.model.ignoredExampleRows.length})</summary>
-          <ul className="admin-checkpoint-notes">
-            {preview.model.ignoredExampleRows.map((row) => (
-              <li key={`${row.sheet}-${row.rowNumber}-${row.reason}`}>
-                {row.sheet} row {row.rowNumber}: {row.reason} - {row.values.slice(0, 2).join(" | ").slice(0, 180)}
-              </li>
-            ))}
-          </ul>
-        </details>
-      ) : null}
-
-      {preview.match?.status === "review_required" || preview.match?.status === "new_candidate" ? (
-        <div className="admin-checkpoint-resorts">
-          <p className="field__help">Check the workbook identity before choosing an existing resort. A new candidate is never created automatically.</p>
-          {preview.match.candidates.map((candidate) => (
-            <div key={candidate.resortId} className="admin-checkpoint-resort">
-              <div>
-                <strong>{candidate.resortName}</strong>
-                <p>{candidate.reason}</p>
-              </div>
-              <button
-                type="button"
-                className="admin-btn admin-btn--secondary"
-                disabled={Boolean(pendingKey)}
-                onClick={() => onManualMatch(preview, candidate.resortId)}
-              >
-                Use This Match
-              </button>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      {canApply ? (
-        <div className="admin-form-actions">
-          <button
-            type="button"
-            className="admin-btn admin-btn--primary"
-            disabled={Boolean(pendingKey)}
-            onClick={() => onApply(preview)}
-          >
-            {isPending ? "Applying..." : "Apply Update"}
-          </button>
-        </div>
-      ) : null}
-      {canCreate ? (
-        <div className="admin-form-actions">
-          <button type="button" className="admin-btn admin-btn--primary" disabled={Boolean(pendingKey)} onClick={() => onCreate(preview)}>
-            {isPending ? "Creating draft..." : "Add as Draft Resort"}
-          </button>
-        </div>
-      ) : null}
-    </article>
+    </div>
   );
 }
 
@@ -199,6 +247,7 @@ export function ExcelSyncPanel() {
   const [batchId, setBatchId] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [progress, setProgress] = useState<ExcelSyncProgress | null>(null);
+  const [selectedPreviewIds, setSelectedPreviewIds] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -209,6 +258,7 @@ export function ExcelSyncPanel() {
     setMessage("");
     setError("");
     setProgress(null);
+    setSelectedPreviewIds([]);
 
     try {
       const formData = new FormData(event.currentTarget);
@@ -315,16 +365,53 @@ export function ExcelSyncPanel() {
         ...current,
         previews: current.previews.map((item) => item.stagingId === preview.stagingId ? { ...item, status: result.status, action: result.status === "created" ? "create" : "update" } : item)
       } : current);
+      setSelectedPreviewIds((current) => current.filter((previewId) => previewId !== preview.stagingId));
       setMessage(result.message);
+      return true;
     } catch (applyError) {
       setError(applyError instanceof Error ? applyError.message : "Excel preview could not be applied.");
+      return false;
     } finally {
       setPendingKey("");
     }
   }
 
   async function createDraft(preview: ExcelResortPreview) {
-    await applyPreview(preview, "create_draft");
+    return applyPreview(preview, "create_draft");
+  }
+
+  function togglePreviewSelection(previewId: string) {
+    setSelectedPreviewIds((current) => (
+      current.includes(previewId)
+        ? current.filter((selectedPreviewId) => selectedPreviewId !== previewId)
+        : [...current, previewId]
+    ));
+  }
+
+  function toggleAllPreviews() {
+    setSelectedPreviewIds((current) => {
+      const actionableIds = progress?.previews.filter(isPreviewActionable).map((preview) => preview.stagingId) ?? [];
+      const allSelected = actionableIds.length > 0 && actionableIds.every((previewId) => current.includes(previewId));
+      if (allSelected) return current.filter((previewId) => !actionableIds.includes(previewId));
+      return Array.from(new Set([...current, ...actionableIds]));
+    });
+  }
+
+  async function bulkApply(mode: BulkMode) {
+    const targets = progress ? bulkTargetPreviews(progress.previews, selectedPreviewIds, mode) : [];
+    if (!targets.length) {
+      setError("Select at least one applicable workbook preview.");
+      return;
+    }
+
+    setMessage("");
+    setError("");
+    let appliedCount = 0;
+    for (const preview of targets) {
+      const applied = await applyPreview(preview, canCreatePreview(preview) ? "create_draft" : "update");
+      if (applied) appliedCount += 1;
+    }
+    if (appliedCount > 0) setMessage(`${appliedCount} workbook preview${appliedCount === 1 ? "" : "s"} applied.`);
   }
 
   async function manualMatch(preview: ExcelResortPreview, resortId: string) {
@@ -362,6 +449,7 @@ export function ExcelSyncPanel() {
       const delta = payload.data as { previews: ExcelResortPreview[] };
       const replacement = delta.previews[0];
       setProgress((current) => current ? { ...current, previews: current.previews.map((item) => item.stagingId === preview.stagingId ? replacement : item) } : current);
+      setSelectedPreviewIds((current) => current.filter((previewId) => previewId !== preview.stagingId));
       setMessage("Manual resort match saved as a new reviewed preview. Apply it only after checking the diff.");
     } catch (matchError) {
       setError(matchError instanceof Error ? matchError.message : "Manual resort match failed.");
@@ -423,10 +511,17 @@ export function ExcelSyncPanel() {
       </form>
 
       {progress?.previews.length ? (
-        <div className="stack">
-          <h4>Workbook Previews</h4>
-          {progress.previews.map((preview) => <PreviewCard key={preview.stagingId} preview={preview} pendingKey={pendingKey} onApply={applyPreview} onCreate={createDraft} onManualMatch={manualMatch} />)}
-        </div>
+        <PreviewTable
+          previews={progress.previews}
+          selectedPreviewIds={selectedPreviewIds}
+          pendingKey={pendingKey}
+          onToggle={togglePreviewSelection}
+          onToggleAll={toggleAllPreviews}
+          onApply={applyPreview}
+          onCreate={createDraft}
+          onManualMatch={manualMatch}
+          onBulkApply={bulkApply}
+        />
       ) : null}
     </article>
   );

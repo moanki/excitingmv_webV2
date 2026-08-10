@@ -4436,6 +4436,23 @@ select {
   background: rgba(15, 118, 110, 0.03);
 }
 
+.excel-preview-table-shell {
+  border-radius: 10px;
+}
+
+.excel-preview-table th,
+.excel-preview-table td {
+  vertical-align: top;
+}
+
+.excel-preview-table td > .admin-status-badge {
+  margin-top: 0.45rem;
+}
+
+.excel-preview-table__actions {
+  min-width: 180px;
+}
+
 .admin-alert {
   padding: 0.9rem 1rem;
   border-radius: 14px;
