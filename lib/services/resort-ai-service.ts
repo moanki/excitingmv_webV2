@@ -161,15 +161,17 @@ function fileExtension(filename: string) {
 }
 
 export async function convertDocumentToMarkdown(document: GatewayDocumentInput): Promise<MarkItDownResult> {
-  const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceRoleKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for Microsoft MarkItDown conversion.");
+  const serviceToken = (env.MARKITDOWN_SERVICE_TOKEN || env.SUPABASE_SERVICE_ROLE_KEY)?.trim();
+  if (!serviceToken) throw new Error("MARKITDOWN_SERVICE_TOKEN or SUPABASE_SERVICE_ROLE_KEY is required for Microsoft MarkItDown conversion.");
 
-  const origin = env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
+  const deploymentHost = env.VERCEL_URL?.trim().replace(/^https?:\/\//u, "").replace(/\/$/u, "");
+  const origin = deploymentHost ? `https://${deploymentHost}` : env.NEXT_PUBLIC_APP_URL.replace(/\/$/u, "");
   const response = await fetch(`${origin}/api/markitdown_convert`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${serviceRoleKey}`
+      Authorization: `Bearer ${serviceToken}`,
+      "X-MarkItDown-Token": serviceToken
     },
     body: JSON.stringify({
       ...(document.sourceUrl.startsWith("https://") ? { sourceUrl: document.sourceUrl } : { contentBase64: Buffer.from(document.bytes).toString("base64") }),
@@ -180,6 +182,9 @@ export async function convertDocumentToMarkdown(document: GatewayDocumentInput):
   });
   const payload = (await response.json().catch(() => null)) as (MarkItDownResult & { ok?: boolean; error?: unknown }) | null;
   if (!response.ok || !payload?.ok || !payload.markdown?.trim()) {
+    if (response.status === 401) {
+      throw new Error("Microsoft MarkItDown rejected the staging service token. Check SUPABASE_SERVICE_ROLE_KEY in the staging/Preview environment and redeploy.");
+    }
     const message = toErrorMessage(payload?.error, `Microsoft MarkItDown conversion failed (HTTP ${response.status}).`);
     console.error("[markitdown] conversion request failed", { status: response.status, message });
     throw new Error(message);

@@ -85,10 +85,10 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self) -> None:
-        expected = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-        supplied = self.headers.get("Authorization", "").removeprefix("Bearer ")
+        expected = (os.environ.get("MARKITDOWN_SERVICE_TOKEN") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")).strip()
+        supplied = (self.headers.get("X-MarkItDown-Token") or self.headers.get("Authorization", "").removeprefix("Bearer ")).strip()
         if not expected or supplied != expected:
-            self.send_json(401, {"ok": False, "error": "Unauthorized."})
+            self.send_json(401, {"ok": False, "error": "MarkItDown service authentication failed. Configure the same staging token for the web and Python functions."})
             return
 
         try:
