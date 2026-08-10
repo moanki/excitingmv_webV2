@@ -279,7 +279,7 @@ const ROOT_FIELD_ALIASES: Record<string, keyof ExcelResortImportModel["resort"]>
 
 const VIEW_LABEL_FEATURE_PREFIX = "__viewLabel:";
 const MAX_LIVE_PREVIEWS = 24;
-type ContentTable = "property" | "resorts";
+type ContentTable = "property";
 
 function slugify(value: string) {
   return value
@@ -1179,12 +1179,9 @@ async function findSavedExcelMapping(model: ExcelResortImportModel, propertyType
 
 async function resolveContentTable(): Promise<ContentTable> {
   const supabase = createSupabaseAdminClient();
-  for (const tableName of ["property", "resorts"] as const) {
-    const { error } = await supabase.from(tableName).select("id").limit(1);
-    if (!error) return tableName;
-    if (!isMissingTableError(error)) throw new Error(error.message);
-  }
-  throw new Error("Neither public.property nor public.resorts is available in the database schema.");
+  const { error } = await supabase.from("property").select("id").limit(1);
+  if (error) throw new Error(error.message);
+  return "property";
 }
 
 function payloadToPreview(stagingId: string, payload: StagingPayload): ExcelResortPreview {

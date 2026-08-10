@@ -8,8 +8,7 @@ import type { PublishStatus, ResortRoomSummary, ResortSummary } from "@/lib/type
 export type PropertyType = "resort" | "liveaboards" | "hotels";
 
 const PROPERTY_TABLE = "property";
-const LEGACY_PROPERTY_TABLE = "resorts";
-const PROPERTY_TABLES = [PROPERTY_TABLE, LEGACY_PROPERTY_TABLE] as const;
+const PROPERTY_TABLES = [PROPERTY_TABLE] as const;
 const VIEW_LABEL_FEATURE_PREFIX = "__viewLabel:";
 const FEATURED_MIGRATION_ERROR = "Database migration missing: is_featured_homepage column is not available.";
 const ADMIN_LIST_COLUMNS =
@@ -169,31 +168,11 @@ export function normalizePropertyType(value?: unknown): PropertyType {
 }
 
 function propertyTypeAliases(propertyType: PropertyType) {
-  if (propertyType === "liveaboards") {
-    return ["liveaboards", "liveaboard"];
-  }
-
-  if (propertyType === "hotels") {
-    return ["hotels", "hotel"];
-  }
-
-  return ["resort"];
+  return [propertyType];
 }
 
 function propertyTypeForTable(propertyType: PropertyType, tableName: string) {
-  if (tableName !== LEGACY_PROPERTY_TABLE) {
-    return propertyType;
-  }
-
-  if (propertyType === "liveaboards") {
-    return "liveaboard";
-  }
-
-  if (propertyType === "hotels") {
-    return "hotel";
-  }
-
-  return "resort";
+  return propertyType;
 }
 
 function propertyBasePath(propertyType: PropertyType) {
