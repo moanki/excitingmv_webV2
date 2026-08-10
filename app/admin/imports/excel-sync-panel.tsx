@@ -11,6 +11,7 @@ import type {
 type ExcelSyncProgress = {
   totalSources: number;
   processedSources: number;
+  alreadySynced: number;
   readyToUpdate: number;
   readyToCreate: number;
   newCandidates: number;
@@ -23,6 +24,7 @@ type ExcelStartPayload = {
   batchId: string;
   sourceFiles: string[];
   message: string;
+  warning?: string;
 };
 
 const categoryOptions = [
@@ -36,7 +38,7 @@ function statusLabel(status: ExcelSyncStatus) {
 }
 
 function statusClass(status: ExcelSyncStatus) {
-  if (status === "updated" || status === "created" || status === "ready_to_update" || status === "ready_to_create") return "approved";
+  if (status === "updated" || status === "created" || status === "ready_to_update" || status === "ready_to_create" || status === "already_synced") return "approved";
   if (status === "needs_review" || status === "new_candidate") return "pending";
   if (status === "parse_error" || status === "failed") return "error";
   return "neutral";
@@ -69,19 +71,22 @@ function isPreviewActionable(preview: ExcelResortPreview) {
 
 function previewChangeItems(preview: ExcelResortPreview) {
   if (preview.error) return [preview.error];
+  if (preview.status === "already_synced") return ["Already synced"];
   if (!preview.diff) return [statusLabel(preview.status)];
 
-  const changes = preview.diff.rootFields.map((field) => (
-    field.action === "Same" ? `Reapply ${field.field}` : `${field.action} ${field.field}`
-  ));
+  const changes = preview.diff.rootFields
+    .filter((field) => field.action !== "Same")
+    .map((field) => `${field.action} ${field.field}`);
 
   if (preview.diff.highlights.action === "Update") changes.push(`Update Highlights (${preview.diff.highlights.excel})`);
   if (preview.diff.mealPlans.action === "Update") changes.push(`Update Meal Plans (${preview.diff.mealPlans.excel})`);
   if (preview.diff.rooms.action === "Update") {
     if (preview.diff.rooms.updated > 0) changes.push(`Update ${preview.diff.rooms.updated} villa categor${preview.diff.rooms.updated === 1 ? "y" : "ies"}`);
+    if (preview.diff.rooms.removed > 0) changes.push(`Remove ${preview.diff.rooms.removed} villa categor${preview.diff.rooms.removed === 1 ? "y" : "ies"}`);
     if (preview.diff.rooms.added > 0) changes.push(`Add ${preview.diff.rooms.added} villa categor${preview.diff.rooms.added === 1 ? "y" : "ies"}`);
     if (preview.diff.rooms.untouched > 0) changes.push(`Keep ${preview.diff.rooms.untouched} existing villa categor${preview.diff.rooms.untouched === 1 ? "y" : "ies"}`);
   }
+  if (preview.status === "needs_review" && preview.warnings.length) changes.push(...preview.warnings);
 
   return changes.length ? changes : ["No field changes"];
 }
@@ -214,7 +219,7 @@ function PreviewTable({
                           Use Match
                         </button>
                       )) : null}
-                      {!canApply && !canCreate && preview.match?.status !== "review_required" ? <span className="admin-table-subtle">No action</span> : null}
+                      {!canApply && !canCreate && preview.match?.status !== "review_required" ? <span className="admin-table-subtle">{preview.status === "needs_review" ? "Resolve review first" : "No action needed"}</span> : null}
                     </div>
                   </td>
                 </tr>
@@ -285,6 +290,7 @@ export function ExcelSyncPanel() {
           processedSources: delta.processedSources,
           readyToUpdate: delta.readyToUpdate,
           readyToCreate: delta.readyToCreate,
+          alreadySynced: delta.alreadySynced,
           newCandidates: delta.newCandidates,
           needsReview: delta.needsReview,
           parseErrors: delta.parseErrors,
@@ -308,6 +314,7 @@ export function ExcelSyncPanel() {
       const nextProgress: ExcelSyncProgress = {
         totalSources: start.sourceFiles.length,
         processedSources: 0,
+        alreadySynced: 0,
         readyToUpdate: 0,
         readyToCreate: 0,
         newCandidates: 0,
@@ -333,6 +340,7 @@ export function ExcelSyncPanel() {
         if (!processResponse.ok || !processPayload?.ok || !processPayload.data) throw new Error(processPayload?.error || "Excel workbook analysis failed.");
         const delta = processPayload.data as Omit<ExcelSyncProgress, "totalSources" | "previews"> & { previews: ExcelResortPreview[] };
         nextProgress.processedSources += delta.processedSources;
+        nextProgress.alreadySynced += delta.alreadySynced;
         nextProgress.readyToUpdate += delta.readyToUpdate;
         nextProgress.readyToCreate += delta.readyToCreate;
         nextProgress.newCandidates += delta.newCandidates;
@@ -342,7 +350,7 @@ export function ExcelSyncPanel() {
         setProgress({ ...nextProgress, previews: [...nextProgress.previews] });
       }
 
-      setMessage("Excel workbooks analyzed and staged. Review each preview before applying any update.");
+      setMessage(`${start.message} Excel workbooks analyzed and staged. Review each preview before applying any update.${start.warning ? ` ${start.warning}` : ""}`);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Excel sync failed.");
     } finally {
@@ -481,8 +489,8 @@ export function ExcelSyncPanel() {
           </label>
           <label className="field field--full">
             <span className="field__label">Google Drive Folder or Workbook URL</span>
-            <input className="admin-input" name="googleDriveUrl" placeholder="https://drive.google.com/drive/folders/..." />
-            <p className="field__help">Use a shareable link. If Drive preview is unavailable, download the workbook and use the upload field below.</p>
+            <textarea className="admin-input" name="googleDriveUrl" rows={3} placeholder="https://drive.google.com/drive/folders/... or paste workbook links one per line" />
+            <p className="field__help">Use a shareable link. If Drive only exposes part of a folder, paste workbook links one per line or download a workbook below.</p>
           </label>
           <label className="field field--full">
             <span className="field__label">Downloaded Excel Workbook</span>
@@ -497,6 +505,7 @@ export function ExcelSyncPanel() {
             <div className="admin-import-progress__track" aria-hidden="true"><div className={pending ? "admin-import-progress__bar is-pending" : "admin-import-progress__bar"} style={{ width: `${progressValue}%` }} /></div>
             <div className="dashboard-grid dashboard-grid-quad">
               <div className="stat-card"><p className="eyebrow">Ready to update</p><strong>{progress.readyToUpdate}</strong></div>
+              <div className="stat-card"><p className="eyebrow">Already synced</p><strong>{progress.alreadySynced}</strong></div>
               <div className="stat-card"><p className="eyebrow">New candidates</p><strong>{progress.newCandidates}</strong></div>
               <div className="stat-card"><p className="eyebrow">Needs review</p><strong>{progress.needsReview}</strong></div>
               <div className="stat-card"><p className="eyebrow">Parse errors</p><strong>{progress.parseErrors}</strong></div>
