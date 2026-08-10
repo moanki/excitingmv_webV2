@@ -21,6 +21,12 @@ export type ResortRoomSummary = {
   amenities?: string[];
 };
 
+export type ResortCuratedMoment = {
+  title: string;
+  description: string;
+  iconUrl?: string;
+};
+
 export type ResortSummary = {
   id: string;
   slug: string;
@@ -29,12 +35,19 @@ export type ResortSummary = {
   category: string;
   transferType: string;
   summary: string;
+  accommodationSummary?: string;
   heroImageUrl?: string;
   status: PublishStatus;
   isFeaturedHomepage?: boolean;
   selectionTags?: string[];
   highlights?: string[];
   mealPlans?: string[];
+  curatedMoments?: ResortCuratedMoment[];
+  butlerService?: {
+    available?: boolean;
+    displayName?: string;
+    description?: string;
+  };
   recommendedOrder?: number;
   createdAt?: string;
   updatedAt?: string;

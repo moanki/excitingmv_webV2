@@ -12,7 +12,7 @@ from markitdown import MarkItDown
 from pdfminer.pdfpage import PDFPage
 
 
-MAX_PDF_BYTES = 100 * 1024 * 1024
+MAX_DOCUMENT_BYTES = 100 * 1024 * 1024
 ALLOWED_HOSTS = (".supabase.co", ".google.com", ".googleusercontent.com")
 
 
@@ -20,28 +20,36 @@ def normalize_markdown(value: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", value.replace("\r\n", "\n").replace("\r", "\n")).strip()
 
 
-def read_pdf(payload: dict) -> bytes:
+def read_document(payload: dict) -> tuple[bytes, str]:
+    extension = str(payload.get("fileExtension") or ".pdf").lower()
+    if not extension.startswith("."):
+        extension = f".{extension}"
+    if extension not in {".pdf", ".xlsx", ".xlsm", ".docx"}:
+        raise ValueError("Unsupported document type.")
+
     if payload.get("contentBase64"):
         data = base64.b64decode(payload["contentBase64"], validate=True)
     else:
         source_url = str(payload.get("sourceUrl", ""))
         parsed = urlparse(source_url)
         if parsed.scheme != "https" or not any(parsed.hostname and parsed.hostname.endswith(host) for host in ALLOWED_HOSTS):
-            raise ValueError("Unsupported PDF source URL.")
+            raise ValueError("Unsupported document source URL.")
         with urllib.request.urlopen(source_url, timeout=60) as response:
-            data = response.read(MAX_PDF_BYTES + 1)
+            data = response.read(MAX_DOCUMENT_BYTES + 1)
 
-    if len(data) > MAX_PDF_BYTES:
-        raise ValueError("PDF exceeds the 100 MB conversion limit.")
-    if not data.startswith(b"%PDF-"):
+    if len(data) > MAX_DOCUMENT_BYTES:
+        raise ValueError("Document exceeds the 100 MB conversion limit.")
+    if extension == ".pdf" and not data.startswith(b"%PDF-"):
         raise ValueError("Uploaded document is not a valid PDF.")
-    return data
+    if extension in {".xlsx", ".xlsm", ".docx"} and not data.startswith(b"PK"):
+        raise ValueError("Uploaded Office document is not a valid ZIP-based document.")
+    return data, extension
 
 
-def conversion_stats(markdown: str, pdf_bytes: bytes, duration_ms: int) -> dict:
+def conversion_stats(markdown: str, document_bytes: bytes, duration_ms: int, extension: str) -> dict:
     lines = markdown.splitlines()
     try:
-        page_count = sum(1 for _ in PDFPage.get_pages(io.BytesIO(pdf_bytes)))
+        page_count = sum(1 for _ in PDFPage.get_pages(io.BytesIO(document_bytes))) if extension == ".pdf" else 0
     except Exception:
         page_count = 0
     return {
@@ -49,7 +57,7 @@ def conversion_stats(markdown: str, pdf_bytes: bytes, duration_ms: int) -> dict:
         "outputFormat": "Markdown",
         "encoding": "UTF-8",
         "markdownVersion": "GitHub Flavored Markdown",
-        "originalFileSize": len(pdf_bytes),
+        "originalFileSize": len(document_bytes),
         "pageCount": page_count,
         "markdownSize": len(markdown.encode("utf-8")),
         "markdownCharacters": len(markdown),
@@ -77,19 +85,19 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self) -> None:
-        expected = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-        supplied = self.headers.get("Authorization", "").removeprefix("Bearer ")
+        expected = (os.environ.get("MARKITDOWN_SERVICE_TOKEN") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")).strip()
+        supplied = (self.headers.get("X-MarkItDown-Token") or self.headers.get("Authorization", "").removeprefix("Bearer ")).strip()
         if not expected or supplied != expected:
-            self.send_json(401, {"ok": False, "error": "Unauthorized."})
+            self.send_json(401, {"ok": False, "error": "MarkItDown service authentication failed. Configure the same staging token for the web and Python functions."})
             return
 
         try:
             length = int(self.headers.get("Content-Length", "0"))
             payload = json.loads(self.rfile.read(length))
-            pdf_bytes = read_pdf(payload)
+            document_bytes, extension = read_document(payload)
             started = time.perf_counter()
             result = MarkItDown(enable_plugins=False).convert_stream(
-                io.BytesIO(pdf_bytes), file_extension=".pdf"
+                io.BytesIO(document_bytes), file_extension=extension
             )
             markdown = normalize_markdown(result.text_content)
             if not markdown:
@@ -98,7 +106,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_json(200, {
                 "ok": True,
                 "markdown": markdown,
-                "stats": conversion_stats(markdown, pdf_bytes, duration_ms),
+                "stats": conversion_stats(markdown, document_bytes, duration_ms, extension),
             })
         except Exception as error:
             self.send_json(422, {"ok": False, "error": f"Microsoft MarkItDown conversion failed: {error}"})

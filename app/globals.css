@@ -4436,6 +4436,52 @@ select {
   background: rgba(15, 118, 110, 0.03);
 }
 
+.excel-preview-table-shell {
+  border-radius: 10px;
+}
+
+.excel-preview-table th,
+.excel-preview-table td {
+  vertical-align: top;
+}
+
+.excel-preview-table td > .admin-status-badge {
+  margin-top: 0.45rem;
+}
+
+.excel-preview-table__changes {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.excel-preview-table__actions {
+  min-width: 180px;
+}
+
+.admin-curated-moment-editor,
+.admin-curated-moment-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-curated-moment-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background: var(--admin-surface);
+}
+
+.admin-curated-moment-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .admin-alert {
   padding: 0.9rem 1rem;
   border-radius: 14px;
@@ -5372,6 +5418,12 @@ select {
   border-radius: 999px;
   background: rgba(185, 137, 80, 0.08);
   color: #164f48;
+}
+
+.resort-story-curated-icon--uploaded {
+  background: #164f48;
+  -webkit-mask: var(--curated-icon-url) center / 22px 22px no-repeat;
+  mask: var(--curated-icon-url) center / 22px 22px no-repeat;
 }
 
 .resort-story-curated-item h3 {

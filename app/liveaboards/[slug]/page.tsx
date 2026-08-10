@@ -2,13 +2,11 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Heart, Share2 } from "lucide-react";
 
-import { getResortBySlug, listPublishedProperties } from "@/lib/services/resort-service";
+import { getResortBySlug } from "@/lib/services/resort-service";
 import { optimizedImageUrl } from "@/lib/image-urls";
 
-export async function generateStaticParams() {
-  const liveaboards = await listPublishedProperties("liveaboards");
-  return liveaboards.map((item) => ({ slug: item.slug }));
-}
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function LiveaboardDetailPage({
   params

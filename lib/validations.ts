@@ -108,6 +108,11 @@ export const adminResortPayloadSchema = z.object({
   description: trimmedString.default(""),
   highlights: safeStringArraySchema,
   mealPlans: safeStringArraySchema,
+  curatedMoments: z.array(z.object({
+    title: trimmedString.default(""),
+    description: trimmedString.default(""),
+    iconUrl: optionalSafeMediaUrlSchema
+  })).default([]),
   seoTitle: trimmedString.default(""),
   seoDescription: trimmedString.default(""),
   seoSummary: trimmedString.default(""),

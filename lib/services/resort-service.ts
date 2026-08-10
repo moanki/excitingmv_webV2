@@ -3,17 +3,17 @@ import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { sampleResorts } from "@/lib/sample-data";
 import { getHomepageFeaturedResortsSetting } from "@/lib/site-content";
-import type { PublishStatus, ResortRoomSummary, ResortSummary } from "@/lib/types";
+import type { PublishStatus, ResortCuratedMoment, ResortRoomSummary, ResortSummary } from "@/lib/types";
 
 export type PropertyType = "resort" | "liveaboards" | "hotels";
 
 const PROPERTY_TABLE = "property";
-const LEGACY_PROPERTY_TABLE = "resorts";
-const PROPERTY_TABLES = [PROPERTY_TABLE, LEGACY_PROPERTY_TABLE] as const;
+const PROPERTY_TABLES = [PROPERTY_TABLE] as const;
 const VIEW_LABEL_FEATURE_PREFIX = "__viewLabel:";
 const FEATURED_MIGRATION_ERROR = "Database migration missing: is_featured_homepage column is not available.";
 const ADMIN_LIST_COLUMNS =
-  "id,property_type,slug,name,atoll,category,transfer_type,description,seo_summary,status,is_featured_homepage,published_at,created_at,updated_at";
+  "id,property_type,slug,name,atoll,category,transfer_type,description,accommodation_summary,curated_moments,butler_service,seo_summary,status,is_featured_homepage,published_at,created_at,updated_at";
+const ADMIN_LIST_COLUMNS_WITHOUT_OPTIONAL_CONTENT = ADMIN_LIST_COLUMNS.replace("accommodation_summary,curated_moments,butler_service,", "");
 
 export type ResortRoomRecord = {
   id?: string;
@@ -39,8 +39,11 @@ export type ResortRecord = {
   transferType: string;
   summary: string;
   description: string;
+  accommodationSummary: string;
   highlights: string[];
   mealPlans: string[];
+  curatedMoments: ResortCuratedMoment[];
+  butlerService: ResortButlerService;
   status: PublishStatus;
   isFeaturedHomepage: boolean;
   seoTitle: string;
@@ -55,6 +58,12 @@ export type ResortRecord = {
   updatedAt?: string;
 };
 
+export type ResortButlerService = {
+  available?: boolean;
+  displayName?: string;
+  description?: string;
+};
+
 type ResortRow = {
   id: string;
   property_type?: PropertyType | null;
@@ -64,8 +73,11 @@ type ResortRow = {
   category: string | null;
   transfer_type: string | null;
   description: string | null;
+  accommodation_summary?: string | null;
   highlights: unknown;
   meal_plans: unknown;
+  curated_moments?: unknown;
+  butler_service?: unknown;
   seo_title: string | null;
   seo_description: string | null;
   seo_summary: string | null;
@@ -105,7 +117,7 @@ function isMissingFeaturedHomepageColumnError(error: unknown) {
         ? String((error as { message?: unknown }).message ?? "")
         : "";
 
-  return message.includes("is_featured_homepage");
+  return message.includes("is_featured_homepage") || /(?:accommodation_summary|curated_moments|butler_service).*schema cache/iu.test(message);
 }
 
 function isMissingPropertyTypeColumnError(error: unknown) {
@@ -127,7 +139,7 @@ function isMissingAdminListColumnError(error: unknown) {
         ? String((error as { message?: unknown }).message ?? "")
         : "";
 
-  return message.includes("is_featured_homepage");
+  return message.includes("is_featured_homepage") || /(?:accommodation_summary|curated_moments|butler_service).*schema cache/iu.test(message);
 }
 
 function isMissingPropertyTableError(error: unknown) {
@@ -156,31 +168,11 @@ export function normalizePropertyType(value?: unknown): PropertyType {
 }
 
 function propertyTypeAliases(propertyType: PropertyType) {
-  if (propertyType === "liveaboards") {
-    return ["liveaboards", "liveaboard"];
-  }
-
-  if (propertyType === "hotels") {
-    return ["hotels", "hotel"];
-  }
-
-  return ["resort"];
+  return [propertyType];
 }
 
 function propertyTypeForTable(propertyType: PropertyType, tableName: string) {
-  if (tableName !== LEGACY_PROPERTY_TABLE) {
-    return propertyType;
-  }
-
-  if (propertyType === "liveaboards") {
-    return "liveaboard";
-  }
-
-  if (propertyType === "hotels") {
-    return "hotel";
-  }
-
-  return "resort";
+  return propertyType;
 }
 
 function propertyBasePath(propertyType: PropertyType) {
@@ -189,6 +181,48 @@ function propertyBasePath(propertyType: PropertyType) {
 
 function toStringArray(value: unknown) {
   return Array.isArray(value) ? value.map((item) => String(item)).filter(Boolean) : [];
+}
+
+function toCuratedMoments(value: unknown): ResortCuratedMoment[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      if (typeof item === "string") {
+        const title = item.trim();
+        return title ? { title, description: "" } : null;
+      }
+
+      if (!item || typeof item !== "object") return null;
+      const record = item as Record<string, unknown>;
+      const title = typeof record.title === "string" ? record.title.trim() : "";
+      const description =
+        typeof record.description === "string"
+          ? record.description.trim()
+          : typeof record.copy === "string"
+            ? record.copy.trim()
+            : "";
+      const iconUrl =
+        typeof record.iconUrl === "string"
+          ? record.iconUrl.trim()
+          : typeof record.icon === "string"
+            ? record.icon.trim()
+            : "";
+
+      if (!title && !description && !iconUrl) return null;
+      return { title: title || "Curated moment", description, ...(iconUrl ? { iconUrl } : {}) };
+    })
+    .filter((item): item is ResortCuratedMoment => Boolean(item));
+}
+
+function toButlerService(value: unknown): ResortButlerService {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const record = value as Record<string, unknown>;
+  return {
+    ...(typeof record.available === "boolean" ? { available: record.available } : {}),
+    ...(typeof record.displayName === "string" && record.displayName.trim() ? { displayName: record.displayName.trim() } : {}),
+    ...(typeof record.description === "string" && record.description.trim() ? { description: record.description.trim() } : {})
+  };
 }
 
 function normalizeText(value: string | null | undefined) {
@@ -209,8 +243,11 @@ function mapResortRow(row: ResortRow): ResortRecord {
     transferType: row.transfer_type ?? "",
     summary: seoSummary || description,
     description,
+    accommodationSummary: row.accommodation_summary ?? "",
     highlights: toStringArray(row.highlights),
     mealPlans: toStringArray(row.meal_plans),
+    curatedMoments: toCuratedMoments(row.curated_moments),
+    butlerService: toButlerService(row.butler_service),
     status: row.status,
     isFeaturedHomepage: Boolean(row.is_featured_homepage),
     seoTitle: row.seo_title ?? row.name,
@@ -455,7 +492,7 @@ async function listAdminResortCardsWithFallbackColumns(
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from(tableName)
-    .select(ADMIN_LIST_COLUMNS.replace("is_featured_homepage,", ""))
+    .select(ADMIN_LIST_COLUMNS_WITHOUT_OPTIONAL_CONTENT.replace("is_featured_homepage,", ""))
     .in("property_type", propertyTypeAliases(propertyType))
     .order("updated_at", { ascending: false })
     .range(0, Math.max(limit - 1, 0));
@@ -485,7 +522,7 @@ async function listAdminResortCardsWithoutPropertyType(
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from(tableName)
-    .select(ADMIN_LIST_COLUMNS.replace("property_type,", ""))
+    .select(ADMIN_LIST_COLUMNS_WITHOUT_OPTIONAL_CONTENT.replace("property_type,", ""))
     .order("updated_at", { ascending: false })
     .range(0, Math.max(limit - 1, 0));
 
@@ -564,7 +601,7 @@ async function listPublishedResortRowsFromTable(
 ) {
   const firstAttempt = await supabase
     .from(tableName)
-    .select("id,property_type,slug,name,atoll,category,transfer_type,description,highlights,meal_plans,seo_summary,status,is_featured_homepage,created_at,updated_at")
+    .select("id,property_type,slug,name,atoll,category,transfer_type,description,accommodation_summary,highlights,meal_plans,curated_moments,butler_service,seo_summary,status,is_featured_homepage,created_at,updated_at")
     .eq("status", "published")
     .in("property_type", propertyTypeAliases(propertyType))
     .order("updated_at", { ascending: false });
@@ -581,8 +618,11 @@ async function listPublishedResortRowsFromTable(
         | "category"
         | "transfer_type"
         | "description"
+        | "accommodation_summary"
         | "highlights"
         | "meal_plans"
+        | "curated_moments"
+        | "butler_service"
         | "seo_summary"
         | "status"
         | "is_featured_homepage"
@@ -603,7 +643,7 @@ async function listPublishedResortRowsFromTable(
   if (isMissingFeaturedHomepageColumnError(firstAttempt.error)) {
     const fallbackAttempt = await supabase
       .from(tableName)
-      .select("id,property_type,slug,name,atoll,category,transfer_type,description,highlights,meal_plans,seo_summary,status,created_at,updated_at")
+      .select("id,property_type,slug,name,atoll,category,transfer_type,description,accommodation_summary,highlights,meal_plans,curated_moments,butler_service,seo_summary,status,created_at,updated_at")
       .eq("status", "published")
       .in("property_type", propertyTypeAliases(propertyType))
       .order("updated_at", { ascending: false });
@@ -633,7 +673,7 @@ async function listPublishedResortRowsWithoutPropertyType(tableName = PROPERTY_T
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from(tableName)
-    .select("id,slug,name,atoll,category,transfer_type,description,highlights,meal_plans,seo_summary,status,created_at,updated_at")
+    .select("id,slug,name,atoll,category,transfer_type,description,accommodation_summary,highlights,meal_plans,curated_moments,butler_service,seo_summary,status,created_at,updated_at")
     .eq("status", "published")
     .order("updated_at", { ascending: false });
 
@@ -651,8 +691,11 @@ async function listPublishedResortRowsWithoutPropertyType(tableName = PROPERTY_T
       | "category"
       | "transfer_type"
       | "description"
+      | "accommodation_summary"
       | "highlights"
       | "meal_plans"
+      | "curated_moments"
+      | "butler_service"
       | "seo_summary"
       | "status"
       | "created_at"
@@ -684,11 +727,14 @@ const getCachedPublishedResorts = unstable_cache(
           category: row.category ?? "",
           transferType: row.transfer_type ?? "",
           summary: row.seo_summary ?? row.description ?? "",
+          accommodationSummary: row.accommodation_summary ?? "",
           heroImageUrl: heroMedia.get(row.id) ?? "",
           status: row.status,
           isFeaturedHomepage: Boolean(row.is_featured_homepage),
           highlights: toStringArray(row.highlights),
           mealPlans: toStringArray(row.meal_plans),
+          curatedMoments: toCuratedMoments(row.curated_moments),
+          butlerService: toButlerService(row.butler_service),
           createdAt: row.created_at,
           updatedAt: row.updated_at
         }))
@@ -726,11 +772,14 @@ export async function listPublishedProperties(propertyType: PropertyType): Promi
       category: row.category ?? "",
       transferType: row.transfer_type ?? "",
       summary: row.seo_summary ?? row.description ?? "",
+      accommodationSummary: row.accommodation_summary ?? "",
       heroImageUrl: heroMedia.get(row.id) ?? "",
       status: row.status,
       isFeaturedHomepage: Boolean(row.is_featured_homepage),
       highlights: toStringArray(row.highlights),
       mealPlans: toStringArray(row.meal_plans),
+      curatedMoments: toCuratedMoments(row.curated_moments),
+      butlerService: toButlerService(row.butler_service),
       createdAt: row.created_at,
       updatedAt: row.updated_at
     }));
@@ -834,6 +883,7 @@ export async function saveResort(input: {
   description: string;
   highlights: string[];
   mealPlans: string[];
+  curatedMoments?: ResortCuratedMoment[];
   seoTitle: string;
   seoDescription: string;
   seoSummary: string;
@@ -893,6 +943,7 @@ export async function saveResort(input: {
 
     const tablePayload = {
       ...basePayload,
+      ...(input.curatedMoments !== undefined ? { curated_moments: input.curatedMoments } : {}),
       property_type: propertyTypeForTable(propertyType, tableName)
     };
 

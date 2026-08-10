@@ -42,6 +42,7 @@ Set these values only inside the Exciting Maldives production Vercel project.
 | `AI_GATEWAY_IMPORT_MODELS` | Server | Optional comma-separated import-processing model list. |
 | `EMAIL_CONFIG_ENCRYPTION_KEY` | Server | Encrypts saved SMTP credentials. |
 | `EMAIL_PROVIDER` | Server | Selects the email configuration source. |
+| `MARKITDOWN_SERVICE_TOKEN` | Server/Python function | Optional dedicated token shared by the Next.js and MarkItDown functions; falls back to `SUPABASE_SERVICE_ROLE_KEY` when unset. |
 | `SAMOA_EXTERNAL_URL` | Server | Optional Samoa integration URL. |
 | `BOOTSTRAP_ADMIN_EMAIL` | Server | Optional bootstrap administrator email. |
 | `BOOTSTRAP_ADMIN_PASSWORD` | Server | Optional bootstrap administrator password. |

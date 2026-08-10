@@ -11,6 +11,12 @@ import {
   startDriveImportBatch,
   type ImportLogEntry
 } from "@/lib/services/import-service";
+import {
+  applyExcelResortSyncPreview,
+  processUploadedExcelResortSource,
+  processExcelResortSyncSource,
+  startExcelResortSync
+} from "@/lib/services/excel-resort-sync-service";
 import { ensureImportUploadBucket, SITE_ASSET_BUCKET } from "@/lib/storage/site-assets";
 import { toErrorMessage } from "@/lib/error-message";
 import { aiImportRequestSchema } from "@/lib/validations";
@@ -46,6 +52,31 @@ export async function POST(request: Request) {
 
   if (contentType.includes("multipart/form-data")) {
     const formData = await request.formData();
+    const excelUpload = formData.get("excelFile");
+    if (excelUpload instanceof File) {
+      if (excelUpload.size === 0 || excelUpload.size > 50 * 1024 * 1024) {
+        return NextResponse.json({ ok: false, error: "Upload an Excel workbook up to 50 MB." }, { status: 400 });
+      }
+
+      const result = await processUploadedExcelResortSource({
+        filename: excelUpload.name,
+        bytes: new Uint8Array(await excelUpload.arrayBuffer()),
+        propertyType: normalizePropertyType(formData.get("propertyType")),
+        manualMatchResortId: typeof formData.get("manualMatchResortId") === "string"
+          ? String(formData.get("manualMatchResortId"))
+          : undefined,
+        modelIndex: typeof formData.get("modelIndex") === "string" && /^\d+$/u.test(String(formData.get("modelIndex")))
+          ? Number(formData.get("modelIndex"))
+          : undefined
+      });
+
+      if (!result.ok) {
+        return NextResponse.json({ ok: false, error: result.error, details: result.details }, { status: result.status ?? 500 });
+      }
+
+      return NextResponse.json({ ok: true, message: "Excel workbook analyzed and staged for review.", data: result.data });
+    }
+
     const upload = formData.get("factSheetFile");
     const result = await importUploadedFactSheet(
       upload instanceof File ? upload : new File([], ""),
@@ -71,6 +102,61 @@ export async function POST(request: Request) {
 
   const json = await request.json().catch(() => null);
   const mode = typeof json?.mode === "string" ? json.mode : "start";
+
+  if (mode === "excel-start") {
+    if (typeof json?.googleDriveUrl !== "string" || !json.googleDriveUrl.trim()) {
+      return NextResponse.json({ ok: false, error: "A Google Drive folder or workbook URL is required." }, { status: 400 });
+    }
+
+    const result = await startExcelResortSync({
+      googleDriveUrl: json.googleDriveUrl,
+      propertyType: normalizePropertyType(json.propertyType)
+    });
+
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, error: result.error, details: result.details }, { status: result.status ?? 500 });
+    }
+
+    return NextResponse.json({ ok: true, message: result.data.message, data: result.data });
+  }
+
+  if (mode === "excel-process") {
+    if (typeof json?.batchId !== "string" || typeof json?.sourceUrl !== "string" || !Number.isInteger(json?.sourceIndex)) {
+      return NextResponse.json({ ok: false, error: "Invalid Excel workbook processing request." }, { status: 400 });
+    }
+
+    const result = await processExcelResortSyncSource({
+      batchId: json.batchId,
+      sourceUrl: json.sourceUrl,
+      sourceIndex: json.sourceIndex,
+      modelIndex: Number.isInteger(json.modelIndex) ? json.modelIndex : undefined,
+      propertyType: normalizePropertyType(json.propertyType),
+      manualMatchResortId: typeof json.manualMatchResortId === "string" ? json.manualMatchResortId : undefined
+    });
+
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, error: result.error, details: result.details }, { status: result.status ?? 500 });
+    }
+
+    return NextResponse.json({ ok: true, message: "Excel workbook analyzed and staged for review.", data: result.data });
+  }
+
+  if (mode === "excel-apply") {
+    if (typeof json?.stagingId !== "string" || !json.stagingId) {
+      return NextResponse.json({ ok: false, error: "An Excel preview id is required." }, { status: 400 });
+    }
+
+    const result = await applyExcelResortSyncPreview(json.stagingId, json.decision === "create_draft" ? "create_draft" : "update");
+
+    if (!result.ok) {
+      return NextResponse.json({ ok: false, error: result.error, details: result.details }, { status: result.status ?? 500 });
+    }
+
+    revalidatePath("/admin/imports");
+    revalidatePropertyType(normalizePropertyType(json.propertyType));
+
+    return NextResponse.json({ ok: true, message: result.data.message, data: result.data });
+  }
 
   if (mode === "start") {
     const parsed = aiImportRequestSchema.safeParse(json);
