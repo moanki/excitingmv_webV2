@@ -178,7 +178,7 @@ export default async function ResortDetailPage({
                       className="resort-story-room-card__media"
                       style={
                         room.photoUrl
-                          ? { backgroundImage: `url(${optimizedImageUrl(room.photoUrl, { width: 760, height: 520, quality: 76 })})` }
+                          ? { backgroundImage: `url(${optimizedImageUrl(room.photoUrl, { width: 1400, height: 960, quality: 94 })})` }
                           : undefined
                       }
                     />
