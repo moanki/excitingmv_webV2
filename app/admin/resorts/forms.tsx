@@ -25,7 +25,7 @@ import {
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 import { ActionForm, ActionMessage, InlineSpinner, SubmitButton } from "@/components/admin/action-feedback";
 import { optimizedImageUrl } from "@/lib/image-urls";
-import type { PublishStatus } from "@/lib/types";
+import type { PublishStatus, ResortCuratedMoment } from "@/lib/types";
 import type { PropertyType, ResortRecord } from "@/lib/services/resort-service";
 
 type ResortEditorMode = "create" | "edit";
@@ -56,6 +56,8 @@ type EditableRoom = {
   viewLabel: string;
   amenities: string;
 };
+
+type EditableCuratedMoment = ResortCuratedMoment;
 
 function StatusMessage({ message, error }: { message?: string; error?: string }) {
   if (error) {
@@ -176,6 +178,14 @@ function emptyRoom(): EditableRoom {
     bedType: "",
     viewLabel: "",
     amenities: ""
+  };
+}
+
+function emptyCuratedMoment(): EditableCuratedMoment {
+  return {
+    title: "",
+    description: "",
+    iconUrl: ""
   };
 }
 
@@ -503,6 +513,92 @@ function RoomTypeEditor({
   );
 }
 
+function CuratedMomentsEditor({
+  moments,
+  setMoments,
+  mediaLibrary,
+  mediaFolder
+}: {
+  moments: EditableCuratedMoment[];
+  setMoments: React.Dispatch<React.SetStateAction<EditableCuratedMoment[]>>;
+  mediaLibrary: MediaLibraryItem[];
+  mediaFolder: string;
+}) {
+  function updateMoment(index: number, updates: Partial<EditableCuratedMoment>) {
+    setMoments((current) => current.map((moment, currentIndex) => (currentIndex === index ? { ...moment, ...updates } : moment)));
+  }
+
+  function addMoment() {
+    setMoments((current) => [...current, emptyCuratedMoment()]);
+  }
+
+  function removeMoment(index: number) {
+    setMoments((current) => current.filter((_, currentIndex) => currentIndex !== index));
+  }
+
+  return (
+    <div className="admin-curated-moment-editor">
+      {moments.length ? (
+        <div className="admin-curated-moment-stack">
+          {moments.map((moment, index) => (
+            <article className="admin-curated-moment-card" key={`curated-moment-${index}`}>
+              <div className="admin-curated-moment-card__header">
+                <strong>Curated Moment {index + 1}</strong>
+                <button type="button" className="admin-btn admin-btn--danger" onClick={() => removeMoment(index)}>
+                  Delete
+                </button>
+              </div>
+              <div className="form-grid">
+                <label className="field">
+                  <span className="field__label">Title</span>
+                  <input
+                    className="admin-input"
+                    name={`curatedMoment_${index}_title`}
+                    value={moment.title}
+                    onChange={(event) => updateMoment(index, { title: event.target.value })}
+                    placeholder="e.g. Private pool villas"
+                  />
+                </label>
+                <label className="field field--full">
+                  <span className="field__label">Description</span>
+                  <textarea
+                    className="admin-textarea admin-textarea--compact"
+                    name={`curatedMoment_${index}_description`}
+                    value={moment.description}
+                    onChange={(event) => updateMoment(index, { description: event.target.value })}
+                    placeholder="Describe this moment for the public resort page"
+                  />
+                </label>
+              </div>
+              <MediaField
+                label={`Moment icon ${index + 1}`}
+                inputName={`curatedMoment_${index}_iconUrl`}
+                fileName={`curatedMoment_${index}_iconFile`}
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                value={moment.iconUrl ?? ""}
+                library={mediaLibrary}
+                folder={mediaFolder}
+                helper="Uploaded icons are normalized by the system and displayed at the public page icon size and color."
+                onChange={(url) => updateMoment(index, { iconUrl: url })}
+              />
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="admin-empty-panel">
+          <h4>No curated moments yet</h4>
+          <p>Add resort-specific moments for the public detail page.</p>
+        </div>
+      )}
+
+      <button type="button" className="admin-btn admin-btn--secondary" onClick={addMoment}>
+        <Plus className="admin-icon" />
+        Add Curated Moment
+      </button>
+    </div>
+  );
+}
+
 export function ResortEditor({
   resort,
   title,
@@ -549,6 +645,7 @@ export function ResortEditor({
   const [descriptionValue, setDescriptionValue] = useState(resort.description ?? resort.summary ?? "");
   const [highlightsValue, setHighlightsValue] = useState((resort.highlights ?? []).join("\n"));
   const [mealPlansValue, setMealPlansValue] = useState((resort.mealPlans ?? []).join("\n"));
+  const [curatedMoments, setCuratedMoments] = useState<EditableCuratedMoment[]>(resort.curatedMoments ?? []);
   const [seoTitle, setSeoTitle] = useState(resort.seoTitle ?? resort.name ?? "");
   const [seoDescription, setSeoDescription] = useState(resort.seoDescription ?? resort.summary ?? "");
   const [seoSummary, setSeoSummary] = useState(resort.seoSummary ?? resort.summary ?? "");
@@ -661,6 +758,7 @@ export function ResortEditor({
         {resort.id ? <input type="hidden" name="id" value={resort.id} /> : null}
         <input type="hidden" name="propertyType" value={propertyType} />
         <input type="hidden" name="roomCount" value={rooms.length} />
+        <input type="hidden" name="curatedMomentCount" value={curatedMoments.length} />
         {resort.isFeaturedHomepage ? <input type="hidden" name="isFeaturedHomepage" value="on" /> : null}
 
         <section className={`admin-form-section${activeEditorTab !== "basics" ? " is-editor-tab-hidden" : ""}`} id="basics">
@@ -735,6 +833,16 @@ export function ResortEditor({
 
           <div className="form-grid">
             <label className="field field--full">
+              <span className="field__label">Public Story Title</span>
+              <input
+                className="admin-input"
+                name="seoTitle"
+                value={seoTitle}
+                onChange={(event) => setSeoTitle(event.target.value)}
+                placeholder="e.g. Where art, nature, and joy come together"
+              />
+            </label>
+            <label className="field field--full">
               <span className="field__label">Main Description</span>
               <textarea
                 className="admin-textarea"
@@ -763,6 +871,16 @@ export function ResortEditor({
                 placeholder="One meal plan per line"
               />
             </label>
+            <div className="field field--full">
+              <span className="field__label">Curated Moments</span>
+              <p className="field__help">These cards appear on the public resort page. Add only moments that are true for this resort.</p>
+              <CuratedMomentsEditor
+                moments={curatedMoments}
+                setMoments={setCuratedMoments}
+                mediaLibrary={mediaLibrary}
+                mediaFolder={`media-library/${propertyType === "resort" ? "resorts" : propertyType}/icons`}
+              />
+            </div>
           </div>
         </section>
 
@@ -831,8 +949,8 @@ export function ResortEditor({
 
           <div className="form-grid">
             <label className="field">
-              <span className="field__label">SEO Title</span>
-              <input className="admin-input" name="seoTitle" value={seoTitle} onChange={(event) => setSeoTitle(event.target.value)} />
+              <span className="field__label">Story Title / SEO Title</span>
+              <input className="admin-input" value={seoTitle} onChange={(event) => setSeoTitle(event.target.value)} />
             </label>
             <label className="field field--full">
               <span className="field__label">SEO Description</span>

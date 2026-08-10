@@ -952,7 +952,7 @@ function buildDiff(model: ExcelResortImportModel, resort: ResortRecord | undefin
     if (model.providedResortFields.includes("category")) compare("Category", resort.category, model.resort.category);
     if (model.providedResortFields.includes("transferType")) compare("Transfer", resort.transferType, model.resort.transferType);
     if (model.providedResortFields.includes("description")) compare("Description", resort.description, model.resort.description);
-    if (model.providedResortFields.includes("curatedMoments")) compare("Curated Moments", resort.curatedMoments.join("\n"), model.resort.curatedMoments.join("\n"));
+    if (model.providedResortFields.includes("curatedMoments")) compare("Curated Moments", resort.curatedMoments.map((moment) => [moment.title, moment.description].filter(Boolean).join(": ")).join("\n"), model.resort.curatedMoments.join("\n"));
     if (model.providedResortFields.includes("butlerService")) compare("Butler / Host Service", resort.butlerService.displayName ?? "", model.resort.butlerService.displayName ?? "");
     if (model.providedResortFields.includes("seoTitle") && model.resort.seoTitle !== undefined) compare("SEO title", resort.seoTitle, model.resort.seoTitle);
     if (model.providedResortFields.includes("seoDescription") && model.resort.seoDescription !== undefined) compare("SEO description", resort.seoDescription, model.resort.seoDescription);

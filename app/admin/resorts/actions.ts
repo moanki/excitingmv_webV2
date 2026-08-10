@@ -143,6 +143,48 @@ async function parseRoomTypes(formData: FormData) {
   return rooms;
 }
 
+async function parseCuratedMoments(formData: FormData) {
+  const momentCount = Number(formData.get("curatedMomentCount") ?? 0);
+  const moments = [];
+
+  for (let index = 0; index < momentCount; index += 1) {
+    const title = String(formData.get(`curatedMoment_${index}_title`) ?? "").trim();
+    const description = String(formData.get(`curatedMoment_${index}_description`) ?? "").trim();
+    const existingIconUrl = String(formData.get(`curatedMoment_${index}_iconUrl`) ?? "").trim();
+    const iconFile = formData.get(`curatedMoment_${index}_iconFile`);
+    let iconUrl = existingIconUrl;
+
+    if (iconFile instanceof File && iconFile.size > 0) {
+      try {
+        iconUrl = await uploadSiteAsset(iconFile, "media-library/resorts/icons", "badge");
+      } catch (error) {
+        console.error("Curated moment icon upload failed", { filename: iconFile.name, title, error });
+        throw new Error(
+          `Curated moment icon failed for ${title || `item ${index + 1}`}: ${
+            error instanceof Error ? error.message : "Icon could not be uploaded."
+          }`
+        );
+      }
+    }
+
+    if (iconUrl) {
+      iconUrl = normalizeSafeMediaUrl(iconUrl);
+    }
+
+    if (!title && !description && !iconUrl) {
+      continue;
+    }
+
+    moments.push({
+      title: title || "Curated moment",
+      description,
+      iconUrl
+    });
+  }
+
+  return moments;
+}
+
 export async function saveResortAction(_: ActionState, formData: FormData) {
   try {
     await requireAdminRole(["super_admin", "admin", "content_manager"]);
@@ -194,6 +236,7 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
       .filter(Boolean)
       .map((item) => normalizeSafeMediaUrl(item));
     const roomTypes = await parseRoomTypes(formData);
+    const curatedMoments = await parseCuratedMoments(formData);
     const submittedSlug = String(formData.get("slug") ?? "").trim();
     const normalizedSlug = slugify(submittedSlug || name);
     if (submittedSlug && submittedSlug !== normalizedSlug) {
@@ -211,6 +254,7 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
       description: String(formData.get("description") ?? "").trim(),
       highlights: splitLines(String(formData.get("highlights") ?? "")),
       mealPlans: splitLines(String(formData.get("mealPlans") ?? "")),
+      curatedMoments,
       seoTitle: String(formData.get("seoTitle") ?? name).trim(),
       seoDescription: String(formData.get("seoDescription") ?? "").trim(),
       seoSummary: String(formData.get("seoSummary") ?? "").trim(),

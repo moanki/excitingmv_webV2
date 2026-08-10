@@ -3,7 +3,7 @@ import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { sampleResorts } from "@/lib/sample-data";
 import { getHomepageFeaturedResortsSetting } from "@/lib/site-content";
-import type { PublishStatus, ResortRoomSummary, ResortSummary } from "@/lib/types";
+import type { PublishStatus, ResortCuratedMoment, ResortRoomSummary, ResortSummary } from "@/lib/types";
 
 export type PropertyType = "resort" | "liveaboards" | "hotels";
 
@@ -42,7 +42,7 @@ export type ResortRecord = {
   accommodationSummary: string;
   highlights: string[];
   mealPlans: string[];
-  curatedMoments: string[];
+  curatedMoments: ResortCuratedMoment[];
   butlerService: ResortButlerService;
   status: PublishStatus;
   isFeaturedHomepage: boolean;
@@ -183,6 +183,38 @@ function toStringArray(value: unknown) {
   return Array.isArray(value) ? value.map((item) => String(item)).filter(Boolean) : [];
 }
 
+function toCuratedMoments(value: unknown): ResortCuratedMoment[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      if (typeof item === "string") {
+        const title = item.trim();
+        return title ? { title, description: "" } : null;
+      }
+
+      if (!item || typeof item !== "object") return null;
+      const record = item as Record<string, unknown>;
+      const title = typeof record.title === "string" ? record.title.trim() : "";
+      const description =
+        typeof record.description === "string"
+          ? record.description.trim()
+          : typeof record.copy === "string"
+            ? record.copy.trim()
+            : "";
+      const iconUrl =
+        typeof record.iconUrl === "string"
+          ? record.iconUrl.trim()
+          : typeof record.icon === "string"
+            ? record.icon.trim()
+            : "";
+
+      if (!title && !description && !iconUrl) return null;
+      return { title: title || "Curated moment", description, ...(iconUrl ? { iconUrl } : {}) };
+    })
+    .filter((item): item is ResortCuratedMoment => Boolean(item));
+}
+
 function toButlerService(value: unknown): ResortButlerService {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const record = value as Record<string, unknown>;
@@ -214,7 +246,7 @@ function mapResortRow(row: ResortRow): ResortRecord {
     accommodationSummary: row.accommodation_summary ?? "",
     highlights: toStringArray(row.highlights),
     mealPlans: toStringArray(row.meal_plans),
-    curatedMoments: toStringArray(row.curated_moments),
+    curatedMoments: toCuratedMoments(row.curated_moments),
     butlerService: toButlerService(row.butler_service),
     status: row.status,
     isFeaturedHomepage: Boolean(row.is_featured_homepage),
@@ -701,7 +733,7 @@ const getCachedPublishedResorts = unstable_cache(
           isFeaturedHomepage: Boolean(row.is_featured_homepage),
           highlights: toStringArray(row.highlights),
           mealPlans: toStringArray(row.meal_plans),
-          curatedMoments: toStringArray(row.curated_moments),
+          curatedMoments: toCuratedMoments(row.curated_moments),
           butlerService: toButlerService(row.butler_service),
           createdAt: row.created_at,
           updatedAt: row.updated_at
@@ -746,7 +778,7 @@ export async function listPublishedProperties(propertyType: PropertyType): Promi
       isFeaturedHomepage: Boolean(row.is_featured_homepage),
       highlights: toStringArray(row.highlights),
       mealPlans: toStringArray(row.meal_plans),
-      curatedMoments: toStringArray(row.curated_moments),
+      curatedMoments: toCuratedMoments(row.curated_moments),
       butlerService: toButlerService(row.butler_service),
       createdAt: row.created_at,
       updatedAt: row.updated_at
@@ -851,6 +883,7 @@ export async function saveResort(input: {
   description: string;
   highlights: string[];
   mealPlans: string[];
+  curatedMoments?: ResortCuratedMoment[];
   seoTitle: string;
   seoDescription: string;
   seoSummary: string;
@@ -910,6 +943,7 @@ export async function saveResort(input: {
 
     const tablePayload = {
       ...basePayload,
+      ...(input.curatedMoments !== undefined ? { curated_moments: input.curatedMoments } : {}),
       property_type: propertyTypeForTable(propertyType, tableName)
     };
 

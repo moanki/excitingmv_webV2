@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BedDouble, Heart, MapPin, Palette, Plane, Share2, Sparkles, Utensils, Waves } from "lucide-react";
+import type { CSSProperties } from "react";
+import { ArrowLeft, BedDouble, Heart, MapPin, Plane, Share2, Sparkles } from "lucide-react";
 
 import {
   getResortBySlug,
@@ -38,15 +39,6 @@ function buildAboutParagraphs(resort: Awaited<ReturnType<typeof getResortBySlug>
   return paragraphs.length ? paragraphs : ["Discover a luxury island stay in the Maldives."];
 }
 
-function buildEditorialPhilosophy(resort: NonNullable<Awaited<ReturnType<typeof getResortBySlug>>>) {
-  const category = resort.category ? resort.category.toLowerCase() : "island luxury";
-
-  return [
-    `${resort.name} pairs ${category} with a calm sense of place, where design, nature, and service are allowed to breathe.`,
-    "Days unfold through private villas, considered dining, and curated moments that feel personal, unhurried, and deeply connected to the Maldives."
-  ];
-}
-
 export default async function ResortDetailPage({
   params
 }: {
@@ -61,7 +53,7 @@ export default async function ResortDetailPage({
 
   const similarResorts = await listSimilarPublishedResorts(resort.slug, resort.category, 5);
   const aboutParagraphs = buildAboutParagraphs(resort);
-  const philosophyParagraphs = buildEditorialPhilosophy(resort);
+  const storyTitle = resort.seoTitle?.trim() || `Discover ${resort.name}`;
   const topFacts = [
     { label: "Location", value: resort.location || "Maldives", Icon: MapPin },
     { label: "Villas", value: resort.roomTypes.length ? `${resort.roomTypes.length} room types` : "To be confirmed", Icon: BedDouble },
@@ -71,31 +63,10 @@ export default async function ResortDetailPage({
   const heroBackground = resort.heroImageUrl
     ? `url(${optimizedImageUrl(resort.heroImageUrl, { width: 1800, height: 1100, quality: 86 })})`
     : "linear-gradient(135deg, #163f35 0%, #f3edaa 52%, #f4f2ec 100%)";
-  const curatedMoments = [
-    {
-      title: "Art-immersive island",
-      copy: "Discover installations, sculptures, and creative spaces woven through the island.",
-      Icon: Palette
-    },
-    {
-      title: "Private pool villas",
-      copy: "Elegant beach and overwater villas designed for privacy and comfort.",
-      Icon: Waves
-    },
-    {
-      title: "Jadugar service",
-      copy: "Enjoy intuitive, personal service from your own Jadugar throughout your stay.",
-      Icon: Sparkles
-    },
-    {
-      title: "Island wellness",
-      copy: "Slow rituals, ocean calm, and restorative spaces for mind and body.",
-      Icon: Utensils
-    }
-  ];
+  const curatedMoments = resort.curatedMoments.filter((item) => item.title || item.description || item.iconUrl);
   const topSectionLinks = [
     { href: "#overview", label: "Overview" },
-    { href: "#experiences", label: "Curated Moments" },
+    ...(curatedMoments.length ? [{ href: "#experiences", label: "Curated Moments" }] : []),
     { href: "#rooms", label: "Rooms & Villas" }
   ];
 
@@ -140,30 +111,42 @@ export default async function ResortDetailPage({
 
           <div className="resort-story-editorial">
             <article className="resort-story-editorial__main">
-              <p className="eyebrow">The Philosophy</p>
-              <h2>Where art, nature, and joy come together</h2>
-              {philosophyParagraphs.map((paragraph) => (
+              <p className="eyebrow">Overview</p>
+              <h2>{storyTitle}</h2>
+              {aboutParagraphs.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
               <a href="#rooms" className="resort-story-text-link">Discover the stay</a>
             </article>
 
-            <article className="resort-story-editorial__aside" id="experiences">
-              <p className="eyebrow">Curated Moments</p>
-              <div className="resort-story-curated-list">
-                {curatedMoments.map((item) => (
-                  <div className="resort-story-curated-item" key={`${item.title}-${item.copy}`}>
-                    <span className="resort-story-curated-icon">
-                      <item.Icon size={22} aria-hidden="true" />
-                    </span>
-                    <div>
-                      <h3>{item.title}</h3>
-                      <p>{item.copy}</p>
+            {curatedMoments.length ? (
+              <article className="resort-story-editorial__aside" id="experiences">
+                <p className="eyebrow">Curated Moments</p>
+                <div className="resort-story-curated-list">
+                  {curatedMoments.map((item, index) => (
+                    <div className="resort-story-curated-item" key={`${item.title}-${index}`}>
+                      {item.iconUrl ? (
+                        <span
+                          className="resort-story-curated-icon resort-story-curated-icon--uploaded"
+                          style={{
+                            "--curated-icon-url": `url(${item.iconUrl})`
+                          } as CSSProperties}
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <span className="resort-story-curated-icon">
+                          <Sparkles size={22} aria-hidden="true" />
+                        </span>
+                      )}
+                      <div>
+                        <h3>{item.title}</h3>
+                        {item.description ? <p>{item.description}</p> : null}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </article>
+                  ))}
+                </div>
+              </article>
+            ) : null}
           </div>
         </div>
       </section>
