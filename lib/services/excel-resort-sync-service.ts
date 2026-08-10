@@ -942,9 +942,7 @@ function roomPhotoPreservation(model: ExcelResortImportModel, resort: ResortReco
 function buildDiff(model: ExcelResortImportModel, resort: ResortRecord | undefined): ExcelResortDiff {
   const rootFields: ExcelResortDiff["rootFields"] = [];
   const compare = (field: string, current: string, excel: string) => {
-    if (current !== excel) {
-      rootFields.push({ field, current, excel, action: "Update" });
-    }
+    rootFields.push({ field, current, excel, action: current !== excel ? "Update" : "Same" });
   };
 
   if (resort) {
@@ -961,6 +959,17 @@ function buildDiff(model: ExcelResortImportModel, resort: ResortRecord | undefin
     if (model.providedResortFields.includes("seoSummary") && model.resort.seoSummary !== undefined) compare("SEO summary", resort.seoSummary, model.resort.seoSummary);
   } else {
     rootFields.push({ field: "Property", current: "Not in database", excel: model.resort.name, action: "Update" });
+    if (model.providedResortFields.includes("name")) rootFields.push({ field: "Name", current: "", excel: model.resort.name, action: "Update" });
+    if (model.providedResortFields.includes("location")) rootFields.push({ field: "Location", current: "", excel: model.resort.location, action: "Update" });
+    if (model.providedResortFields.includes("villaSummary")) rootFields.push({ field: "Accommodation summary", current: "", excel: model.resort.villaSummary, action: "Update" });
+    if (model.providedResortFields.includes("category")) rootFields.push({ field: "Category", current: "", excel: model.resort.category, action: "Update" });
+    if (model.providedResortFields.includes("transferType")) rootFields.push({ field: "Transfer", current: "", excel: model.resort.transferType, action: "Update" });
+    if (model.providedResortFields.includes("description")) rootFields.push({ field: "Description", current: "", excel: model.resort.description, action: "Update" });
+    if (model.providedResortFields.includes("curatedMoments")) rootFields.push({ field: "Curated Moments", current: "", excel: model.resort.curatedMoments.join("\n"), action: "Update" });
+    if (model.providedResortFields.includes("butlerService")) rootFields.push({ field: "Butler / Host Service", current: "", excel: model.resort.butlerService.displayName ?? "", action: "Update" });
+    if (model.providedResortFields.includes("seoTitle") && model.resort.seoTitle !== undefined) rootFields.push({ field: "SEO title", current: "", excel: model.resort.seoTitle, action: "Update" });
+    if (model.providedResortFields.includes("seoDescription") && model.resort.seoDescription !== undefined) rootFields.push({ field: "SEO description", current: "", excel: model.resort.seoDescription, action: "Update" });
+    if (model.providedResortFields.includes("seoSummary") && model.resort.seoSummary !== undefined) rootFields.push({ field: "SEO summary", current: "", excel: model.resort.seoSummary, action: "Update" });
   }
 
   const existingRoomNames = new Set((resort?.roomTypes ?? []).map((room) => normalizeIdentity(room.name)));

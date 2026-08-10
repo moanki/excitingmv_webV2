@@ -67,23 +67,23 @@ function isPreviewActionable(preview: ExcelResortPreview) {
   return canApplyPreview(preview) || canCreatePreview(preview);
 }
 
-function previewChangesSummary(preview: ExcelResortPreview) {
-  if (preview.error) return preview.error;
-  if (!preview.diff) return statusLabel(preview.status);
+function previewChangeItems(preview: ExcelResortPreview) {
+  if (preview.error) return [preview.error];
+  if (!preview.diff) return [statusLabel(preview.status)];
 
-  const changes = preview.diff.rootFields
-    .filter((field) => field.action === "Update")
-    .map((field) => field.field);
+  const changes = preview.diff.rootFields.map((field) => (
+    field.action === "Same" ? `Reapply ${field.field}` : `${field.action} ${field.field}`
+  ));
 
-  if (preview.diff.highlights.action === "Update") changes.push("Highlights");
-  if (preview.diff.mealPlans.action === "Update") changes.push("Meal Plans");
-  if (preview.diff.rooms.action === "Update") changes.push("Villa Categories");
+  if (preview.diff.highlights.action === "Update") changes.push(`Update Highlights (${preview.diff.highlights.excel})`);
+  if (preview.diff.mealPlans.action === "Update") changes.push(`Update Meal Plans (${preview.diff.mealPlans.excel})`);
+  if (preview.diff.rooms.action === "Update") {
+    if (preview.diff.rooms.updated > 0) changes.push(`Update ${preview.diff.rooms.updated} villa categor${preview.diff.rooms.updated === 1 ? "y" : "ies"}`);
+    if (preview.diff.rooms.added > 0) changes.push(`Add ${preview.diff.rooms.added} villa categor${preview.diff.rooms.added === 1 ? "y" : "ies"}`);
+    if (preview.diff.rooms.untouched > 0) changes.push(`Keep ${preview.diff.rooms.untouched} existing villa categor${preview.diff.rooms.untouched === 1 ? "y" : "ies"}`);
+  }
 
-  if (!changes.length) return "No field changes";
-
-  const visibleChanges = changes.slice(0, 4);
-  const remaining = changes.length - visibleChanges.length;
-  return remaining > 0 ? `${visibleChanges.join(", ")} +${remaining} more` : visibleChanges.join(", ");
+  return changes.length ? changes : ["No field changes"];
 }
 
 function bulkTargetPreviews(previews: ExcelResortPreview[], selectedPreviewIds: string[], mode: BulkMode) {
@@ -177,7 +177,9 @@ function PreviewTable({
                     <p className="admin-table-subtle">{preview.action}</p>
                   </td>
                   <td>
-                    <span>{previewChangesSummary(preview)}</span>
+                    <ul className="excel-preview-table__changes">
+                      {previewChangeItems(preview).map((change) => <li key={change}>{change}</li>)}
+                    </ul>
                     {preview.warnings.length ? <p className="admin-table-subtle">{preview.warnings.length} warning{preview.warnings.length === 1 ? "" : "s"}</p> : null}
                     {preview.model?.ignoredExampleRows.length ? <p className="admin-table-subtle">{preview.model.ignoredExampleRows.length} template row{preview.model.ignoredExampleRows.length === 1 ? "" : "s"} ignored</p> : null}
                   </td>

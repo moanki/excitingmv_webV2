@@ -4449,6 +4449,13 @@ select {
   margin-top: 0.45rem;
 }
 
+.excel-preview-table__changes {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding-left: 1rem;
+}
+
 .excel-preview-table__actions {
   min-width: 180px;
 }
