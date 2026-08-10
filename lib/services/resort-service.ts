@@ -14,6 +14,7 @@ const VIEW_LABEL_FEATURE_PREFIX = "__viewLabel:";
 const FEATURED_MIGRATION_ERROR = "Database migration missing: is_featured_homepage column is not available.";
 const ADMIN_LIST_COLUMNS =
   "id,property_type,slug,name,atoll,category,transfer_type,description,accommodation_summary,curated_moments,butler_service,seo_summary,status,is_featured_homepage,published_at,created_at,updated_at";
+const ADMIN_LIST_COLUMNS_WITHOUT_OPTIONAL_CONTENT = ADMIN_LIST_COLUMNS.replace("accommodation_summary,curated_moments,butler_service,", "");
 
 export type ResortRoomRecord = {
   id?: string;
@@ -117,7 +118,7 @@ function isMissingFeaturedHomepageColumnError(error: unknown) {
         ? String((error as { message?: unknown }).message ?? "")
         : "";
 
-  return message.includes("is_featured_homepage");
+  return message.includes("is_featured_homepage") || /(?:accommodation_summary|curated_moments|butler_service).*schema cache/iu.test(message);
 }
 
 function isMissingPropertyTypeColumnError(error: unknown) {
@@ -480,7 +481,7 @@ async function listAdminResortCardsWithFallbackColumns(
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from(tableName)
-    .select(ADMIN_LIST_COLUMNS.replace("is_featured_homepage,", ""))
+    .select(ADMIN_LIST_COLUMNS_WITHOUT_OPTIONAL_CONTENT.replace("is_featured_homepage,", ""))
     .in("property_type", propertyTypeAliases(propertyType))
     .order("updated_at", { ascending: false })
     .range(0, Math.max(limit - 1, 0));
@@ -510,7 +511,7 @@ async function listAdminResortCardsWithoutPropertyType(
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from(tableName)
-    .select(ADMIN_LIST_COLUMNS.replace("property_type,", ""))
+    .select(ADMIN_LIST_COLUMNS_WITHOUT_OPTIONAL_CONTENT.replace("property_type,", ""))
     .order("updated_at", { ascending: false })
     .range(0, Math.max(limit - 1, 0));
 
