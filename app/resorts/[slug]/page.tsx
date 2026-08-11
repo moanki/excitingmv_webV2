@@ -1,13 +1,29 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { CSSProperties } from "react";
-import { ArrowLeft, BedDouble, Heart, MapPin, Plane, Share2, Sparkles } from "lucide-react";
+import {
+  Accessibility,
+  ArrowLeft,
+  BedDouble,
+  Dumbbell,
+  Heart,
+  MapPin,
+  Palmtree,
+  Plane,
+  Share2,
+  Sparkles,
+  Utensils,
+  Waves,
+  Wifi
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import {
   getResortBySlug,
   listSimilarPublishedResorts
 } from "@/lib/services/resort-service";
 import { optimizedImageUrl } from "@/lib/image-urls";
+import type { ResortCuratedMoment } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -39,6 +55,39 @@ function buildAboutParagraphs(resort: Awaited<ReturnType<typeof getResortBySlug>
   return paragraphs.length ? paragraphs : ["Discover a luxury island stay in the Maldives."];
 }
 
+const curatedCategoryRules = [
+  { label: "Dining", terms: ["restaurant", "bar", "dining", "breakfast", "coffee", "wine", "champagne", "meal", "food", "drink"], Icon: Utensils },
+  { label: "Wellness", terms: ["spa", "wellness", "fitness", "yoga", "massage", "steam", "sauna", "gym", "relaxation"], Icon: Dumbbell },
+  { label: "Water & Pools", terms: ["pool", "beach", "snorkel", "dive", "diving", "reef", "shipwreck", "water", "lagoon"], Icon: Waves },
+  { label: "Island Life", terms: ["garden", "terrace", "outdoor", "picnic", "sun deck", "private beach", "balcony"], Icon: Palmtree },
+  { label: "Family & Access", terms: ["family", "kids", "children", "accessible", "wheelchair", "disabled", "grab rails"], Icon: Accessibility },
+  { label: "Essentials", terms: ["wifi", "internet", "parking", "concierge", "front desk", "room service", "air conditioning"], Icon: Wifi }
+];
+
+function displayCuratedMoment(item: ResortCuratedMoment) {
+  const title = item.title.trim();
+  if (item.description.trim() || !title.includes(":")) return item;
+  const [first, ...rest] = title.split(":");
+  const description = rest.join(":").trim();
+  return description ? { ...item, title: first.trim(), description } : item;
+}
+
+function categoryForMoment(item: ResortCuratedMoment) {
+  const text = `${item.title} ${item.description}`.toLowerCase();
+  return curatedCategoryRules.find((category) => category.terms.some((term) => text.includes(term))) ?? { label: "Highlights", Icon: Sparkles };
+}
+
+function groupedCuratedMoments(items: ResortCuratedMoment[]) {
+  const groups = new Map<string, { label: string; Icon: LucideIcon; items: ResortCuratedMoment[] }>();
+  for (const item of items.map(displayCuratedMoment)) {
+    const category = categoryForMoment(item);
+    const group = groups.get(category.label) ?? { label: category.label, Icon: category.Icon, items: [] };
+    group.items.push(item);
+    groups.set(category.label, group);
+  }
+  return [...groups.values()];
+}
+
 export default async function ResortDetailPage({
   params
 }: {
@@ -64,6 +113,8 @@ export default async function ResortDetailPage({
     ? `url(${optimizedImageUrl(resort.heroImageUrl, { width: 1800, height: 1100, quality: 86 })})`
     : "linear-gradient(135deg, #163f35 0%, #f3edaa 52%, #f4f2ec 100%)";
   const curatedMoments = resort.curatedMoments.filter((item) => item.title || item.description || item.iconUrl);
+  const curatedMomentGroups = groupedCuratedMoments(curatedMoments);
+  const featuredCuratedMoments = curatedMomentGroups.flatMap((group) => group.items.slice(0, 2)).slice(0, 8);
   const topSectionLinks = [
     { href: "#overview", label: "Overview" },
     ...(curatedMoments.length ? [{ href: "#experiences", label: "Curated Moments" }] : []),
@@ -118,36 +169,65 @@ export default async function ResortDetailPage({
               ))}
               <a href="#rooms" className="resort-story-text-link">Discover the stay</a>
             </article>
-
-            {curatedMoments.length ? (
-              <article className="resort-story-editorial__aside" id="experiences">
-                <p className="eyebrow">Curated Moments</p>
-                <div className="resort-story-curated-list">
-                  {curatedMoments.map((item, index) => (
-                    <div className="resort-story-curated-item" key={`${item.title}-${index}`}>
-                      {item.iconUrl ? (
-                        <span
-                          className="resort-story-curated-icon resort-story-curated-icon--uploaded"
-                          style={{
-                            "--curated-icon-url": `url(${item.iconUrl})`
-                          } as CSSProperties}
-                          aria-hidden="true"
-                        />
-                      ) : (
-                        <span className="resort-story-curated-icon">
-                          <Sparkles size={22} aria-hidden="true" />
-                        </span>
-                      )}
-                      <div>
-                        <h3>{item.title}</h3>
-                        {item.description ? <p>{item.description}</p> : null}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            ) : null}
           </div>
+
+          {curatedMomentGroups.length ? (
+            <section className="resort-story-curated-section" id="experiences" aria-labelledby="curated-moments-heading">
+              <div className="section-heading resort-story-section-heading">
+                <div>
+                  <p className="eyebrow">Curated Moments</p>
+                  <h2 id="curated-moments-heading">What stands out here</h2>
+                </div>
+              </div>
+
+              {featuredCuratedMoments.length ? (
+                <div className="resort-story-curated-highlights" aria-label="Curated moment highlights">
+                  {featuredCuratedMoments.map((item, index) => {
+                    const category = categoryForMoment(item);
+                    const Icon = category.Icon;
+                    return (
+                      <div className="resort-story-curated-highlight" key={`${item.title}-${index}`}>
+                        {item.iconUrl ? (
+                          <span
+                            className="resort-story-curated-icon resort-story-curated-icon--uploaded"
+                            style={{
+                              "--curated-icon-url": `url(${item.iconUrl})`
+                            } as CSSProperties}
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <Icon size={23} aria-hidden="true" />
+                        )}
+                        <span>{item.title}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              <div className="resort-story-curated-groups">
+                {curatedMomentGroups.map((group) => {
+                  const Icon = group.Icon;
+                  return (
+                    <article className="resort-story-curated-group" key={group.label}>
+                      <div className="resort-story-curated-group__heading">
+                        <Icon size={21} aria-hidden="true" />
+                        <h3>{group.label}</h3>
+                      </div>
+                      <div className="resort-story-curated-list">
+                        {group.items.map((item, index) => (
+                          <div className="resort-story-curated-item" key={`${item.title}-${index}`}>
+                            <h4>{item.title}</h4>
+                            {item.description ? <p>{item.description}</p> : null}
+                          </div>
+                        ))}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
         </div>
       </section>
 
