@@ -831,10 +831,19 @@ function curatedSheetBelongsToResort(sheetName: string, resortName: string) {
 
 function applyCuratedMomentsSheet(model: ExcelResortImportModel, sheet: ParsedSheet, multipleModels = false) {
   if (multipleModels && !curatedSheetBelongsToResort(sheet.name, model.resort.name)) return;
-  const values = sheet.rows
+  const detailHeaderIndex = sheet.rows.findIndex((row) => row.map((cell) => normalizeKey(valueToString(cell))).includes("details"));
+  const pairedValues = detailHeaderIndex >= 0
+    ? sheet.rows.slice(detailHeaderIndex + 1).flatMap((row) => {
+        const title = valueToString(row[0]);
+        const detail = row.slice(1).map(valueToString).filter(Boolean).join("\n");
+        if (!title || classifyExampleRow(row)) return [];
+        return detail ? [`${title}: ${detail}`] : [title];
+      })
+    : [];
+  const values = (pairedValues.length ? pairedValues : sheet.rows
     .flatMap((row) => row.map(valueToString))
     .flatMap(splitCuratedMoments)
-    .filter((value) => !/^(?:curated moments|signature experiences|resort experiences|highlights)$/iu.test(value));
+    .filter((value) => !/^(?:curated moments|signature experiences|resort experiences|highlights|details)$/iu.test(value)));
   if (!values.length) return;
   model.resort.curatedMoments = Array.from(new Set([...model.resort.curatedMoments, ...values]));
   markProvidedField(model, "curatedMoments");
