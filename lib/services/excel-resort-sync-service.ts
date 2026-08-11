@@ -240,7 +240,7 @@ const SHEET_ALIASES = {
   general: ["general", "generic", "overview", "resort", "property", "facts", "fact sheet"],
   rooms: ["villas", "villa details", "villa", "rooms", "room", "accommodation", "accommodations", "suites"],
   mealPlans: ["meal plans", "meal plan", "meals", "dining plans"],
-  curatedMoments: ["curated moments", "signature experiences", "resort experiences"]
+  curatedMoments: ["curated moments", "signature experiences", "resort experiences", "other details", "other changes"]
 };
 
 const ROOT_FIELD_ALIASES: Record<string, keyof ExcelResortImportModel["resort"]> = {
@@ -549,6 +549,7 @@ function emptyGenericResortRecord(): GenericResortRecord {
 function appendText(existing: string, next: string) {
   if (!next) return existing;
   if (!existing) return next;
+  if (normalizeIdentity(existing) === normalizeIdentity(next)) return existing;
   return `${existing}\n\n${next}`;
 }
 
@@ -566,6 +567,18 @@ function mergeGenericResortValue(record: GenericResortRecord, field: "name" | "l
 
 function genericRecordHasContent(record: GenericResortRecord) {
   return Boolean(record.name || record.location || record.villaSummary || record.curatedMoments.length || Object.keys(record.butlerService).length || record.transferType || record.category || record.description || record.highlights.length || record.mealPlans.length);
+}
+
+function mergeGenericResortRecord(target: GenericResortRecord, source: GenericResortRecord) {
+  for (const field of ["name", "location", "villaSummary", "curatedMoments", "butlerService", "transferType", "category", "description"] as const) {
+    mergeGenericResortValue(target, field, field === "curatedMoments"
+      ? source.curatedMoments.join("\n")
+      : field === "butlerService"
+        ? source.butlerService.displayName ?? ""
+        : source[field]);
+  }
+  target.highlights = Array.from(new Set([...target.highlights, ...source.highlights]));
+  target.mealPlans = Array.from(new Set([...target.mealPlans, ...source.mealPlans]));
 }
 
 function extractGenericResortRecords(sheet: ParsedSheet): GenericParseResult {
@@ -638,15 +651,11 @@ function extractGenericResortRecords(sheet: ParsedSheet): GenericParseResult {
       if (hasNameColumn) {
         if (!record.name) continue;
         if (!genericRecordHasContent(record)) continue;
-        records.push(record);
+        const existingRecord = records.find((item) => normalizeIdentity(item.name) === normalizeIdentity(record.name));
+        if (existingRecord) mergeGenericResortRecord(existingRecord, record);
+        else records.push(record);
       } else if (bundledRecord) {
-        for (const field of ["name", "location", "villaSummary", "curatedMoments", "butlerService", "transferType", "category", "description"] as const) {
-          mergeGenericResortValue(bundledRecord, field, field === "curatedMoments"
-            ? record.curatedMoments.join("\n")
-            : field === "butlerService"
-              ? record.butlerService.displayName ?? ""
-              : record[field]);
-        }
+        mergeGenericResortRecord(bundledRecord, record);
       }
     }
     if (bundledRecord && genericRecordHasContent(bundledRecord)) records.push(bundledRecord);
@@ -813,6 +822,7 @@ function applyListSheet(model: ExcelResortImportModel, sheet: ParsedSheet, field
 }
 
 function curatedSheetBelongsToResort(sheetName: string, resortName: string) {
+  if (sheetMatches(sheetName, ["other details", "other changes"])) return true;
   const sheetIdentity = normalizeIdentity(sheetName.replace(/\b(curated|moments|signature|experiences|resort)\b/giu, ""));
   if (!sheetIdentity) return true;
   const resortIdentity = normalizeIdentity(resortName);
