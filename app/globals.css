@@ -5355,8 +5355,8 @@ select {
 }
 
 .resort-story-page--resort .resort-story-editorial {
-  grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.9fr);
-  gap: clamp(2.2rem, 4.5vw, 4.8rem);
+  grid-template-columns: minmax(0, 760px);
+  gap: 0;
   padding-top: 4rem;
 }
 
@@ -5388,25 +5388,81 @@ select {
   letter-spacing: 0.12em;
 }
 
+.resort-story-curated-section {
+  display: grid;
+  gap: 1.7rem;
+  padding-top: 4.5rem;
+}
+
+.resort-story-curated-highlights {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.resort-story-curated-highlight {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 78px;
+  padding: 1rem 1.15rem;
+  border: 1px solid rgba(31, 42, 38, 0.11);
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2a26;
+}
+
+.resort-story-curated-highlight svg {
+  color: #164f48;
+}
+
+.resort-story-curated-highlight span:last-child {
+  min-width: 0;
+  color: #1f2a26;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.resort-story-curated-groups {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.42fr);
+  gap: clamp(2rem, 4vw, 4rem);
+  align-items: start;
+}
+
+.resort-story-curated-group {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.resort-story-curated-group:nth-child(1) {
+  grid-row: span 2;
+}
+
+.resort-story-curated-group__heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.resort-story-curated-group__heading svg {
+  color: #0b8a62;
+}
+
+.resort-story-curated-group__heading h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
 .resort-story-curated-list {
   display: grid;
+  gap: 0.72rem;
 }
 
 .resort-story-curated-item {
   display: grid;
-  grid-template-columns: 62px 1fr;
-  gap: 1.05rem;
-  align-items: start;
-  padding: 1.3rem 0;
-  border-bottom: 1px solid rgba(31, 42, 38, 0.08);
-}
-
-.resort-story-curated-item:first-child {
-  padding-top: 0.35rem;
-}
-
-.resort-story-curated-item:last-child {
-  border-bottom: 0;
+  gap: 0.25rem;
 }
 
 .resort-story-curated-icon {
@@ -5426,17 +5482,18 @@ select {
   mask: var(--curated-icon-url) center / 22px 22px no-repeat;
 }
 
-.resort-story-curated-item h3 {
-  margin: 0 0 0.35rem;
-  font-family: var(--font-serif), serif;
-  font-size: 1.2rem;
+.resort-story-curated-item h4 {
+  margin: 0;
+  color: #1f2a26;
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .resort-story-curated-item p {
   margin: 0;
   color: rgba(31, 42, 38, 0.62);
-  font-size: 0.84rem;
-  line-height: 1.65;
+  font-size: 0.86rem;
+  line-height: 1.7;
 }
 
 @media (max-width: 900px) {
@@ -5484,7 +5541,8 @@ select {
   }
 
   .resort-story-page--resort .resort-story-editorial,
-  .resort-story-experience-grid {
+  .resort-story-experience-grid,
+  .resort-story-curated-groups {
     grid-template-columns: 1fr;
   }
 
@@ -5498,6 +5556,18 @@ select {
     border-left: 0;
     border-top: 1px solid rgba(31, 42, 38, 0.1);
     padding-top: 1.75rem;
+  }
+
+  .resort-story-curated-section {
+    padding-top: 3.25rem;
+  }
+
+  .resort-story-curated-highlights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .resort-story-curated-group:nth-child(1) {
+    grid-row: auto;
   }
 
 }
@@ -5516,6 +5586,15 @@ select {
 
   .resort-story-page--resort .resort-story-fact-card:last-child {
     border-bottom: 0;
+  }
+
+  .resort-story-curated-highlights {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .resort-story-curated-highlight {
+    min-height: 64px;
   }
 
 }
