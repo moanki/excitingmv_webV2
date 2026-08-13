@@ -129,7 +129,6 @@ export function PropertyDetailOverview({
           <div className="site-container property-detail-facts__inner">
             {facts.map((fact) => (
               <div className="property-detail-fact" key={fact.label}>
-                <fact.Icon size={16} aria-hidden="true" />
                 <span>{fact.label}</span>
                 <strong>{fact.value}</strong>
               </div>
