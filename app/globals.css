@@ -20122,6 +20122,380 @@ html {
   }
 }
 
+/* Property detail mockup alignment */
+.resort-story-page--resort .property-detail-hero {
+  min-height: clamp(520px, 61vw, 700px) !important;
+  background-position: center !important;
+  background-size: cover !important;
+}
+
+.resort-story-page--resort .property-detail-hero .resort-story-hero__overlay {
+  background: linear-gradient(180deg, rgba(4, 13, 17, 0.02) 0%, rgba(4, 13, 17, 0.08) 48%, rgba(4, 13, 17, 0.62) 100%) !important;
+}
+
+.resort-story-page--resort .property-detail-hero .resort-story-hero__inner {
+  min-height: clamp(520px, 61vw, 700px) !important;
+  padding-top: 8rem !important;
+  padding-bottom: 3.3rem !important;
+}
+
+.resort-story-page--resort .property-detail-hero .resort-story-hero__copy {
+  max-width: 760px !important;
+}
+
+.resort-story-page--resort .property-detail-hero .resort-story-hero__copy h1 {
+  max-width: 14ch !important;
+  color: #fff !important;
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: clamp(44px, 5.2vw, 72px) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  line-height: 0.98 !important;
+}
+
+.property-detail-intro {
+  background: #fff;
+}
+
+.property-detail-facts {
+  padding: 0 clamp(1rem, 4vw, 2rem);
+  background: #fff;
+}
+
+.property-detail-facts__inner {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: min(100%, 1120px);
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0;
+  border-inline: 1px solid rgba(218, 209, 195, 0.8);
+  border-bottom: 1px solid rgba(218, 209, 195, 0.8);
+}
+
+.property-detail-fact {
+  display: grid;
+  gap: 0.25rem;
+  min-height: 86px;
+  padding: 1.25rem clamp(1.5rem, 3vw, 2.5rem);
+  border-right: 1px solid rgba(218, 209, 195, 0.8);
+  background: #fff;
+}
+
+.property-detail-fact:last-child {
+  border-right: 0;
+}
+
+.property-detail-fact span {
+  align-self: end;
+  color: #6b9cbb;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.property-detail-fact strong {
+  align-self: start;
+  color: #123a58;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.45;
+}
+
+.property-detail-overview {
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+  width: min(100%, 860px);
+  max-width: 860px;
+  margin: 0 auto;
+  padding: clamp(4.5rem, 6vw, 5.8rem) 0 clamp(4.7rem, 6vw, 6rem);
+  text-align: center;
+}
+
+.property-detail-overview .eyebrow {
+  margin: 0;
+  color: #6b9cbb !important;
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: 0.76rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase !important;
+}
+
+.property-detail-overview h2,
+.property-detail-curated h2 {
+  margin: 0;
+  color: #123a58 !important;
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: clamp(28px, 3vw, 36px) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.12 !important;
+}
+
+.property-detail-overview__copy {
+  display: grid;
+  gap: 1.55rem;
+  width: min(100%, 760px);
+  margin-top: 0.85rem;
+}
+
+.property-detail-overview p {
+  max-width: 760px;
+  margin: 0;
+  color: rgba(18, 58, 88, 0.7) !important;
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: clamp(1rem, 1.2vw, 1.08rem) !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.75 !important;
+  text-wrap: pretty;
+}
+
+.property-detail-overview__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  margin-top: 0.85rem;
+  padding: 0 1.9rem;
+  border-radius: 999px;
+  background: #123a58;
+  color: #fff;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-decoration: none;
+}
+
+.property-detail-curated {
+  padding: clamp(2.4rem, 4vw, 3.1rem) 0 clamp(2.6rem, 4vw, 3.4rem);
+  background: #f2ede3;
+}
+
+.property-detail-curated__heading {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1.55rem;
+  text-align: center;
+}
+
+.property-detail-curated__heading p {
+  margin: 0;
+  color: rgba(18, 58, 88, 0.64);
+  font-family: var(--font-sans), sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+.property-detail-curated__groups {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.property-detail-curated__group {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.property-detail-curated__group-heading {
+  display: block;
+  padding-bottom: 0.2rem;
+  color: #123a58;
+}
+
+.property-detail-curated__group-heading h3 {
+  margin: 0;
+  color: #123a58;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+.property-detail-curated__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.55rem;
+}
+
+.property-detail-curated__chip {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.35rem;
+  max-width: 100%;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #123a58;
+  box-shadow: none;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.76rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+.property-detail-curated__chip svg {
+  color: #008d58;
+  flex: 0 0 auto;
+}
+
+.property-detail-curated__uploaded-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background-image: var(--curated-icon-url);
+  background-position: center;
+  background-size: cover;
+}
+
+.property-detail-curated__more {
+  display: grid;
+  gap: 0.85rem;
+  max-width: 1040px;
+  margin: 0.95rem auto 0;
+}
+
+.property-detail-curated__more summary {
+  display: inline-flex;
+  justify-self: center;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #123a58;
+  cursor: pointer;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  list-style: none;
+}
+
+.property-detail-curated__more summary::-webkit-details-marker {
+  display: none;
+}
+
+.property-detail-curated__more[open] summary {
+  margin-bottom: 0.85rem;
+}
+
+.property-detail-curated__more[open] summary::before {
+  content: "show less";
+}
+
+.property-detail-curated__more[open] summary {
+  font-size: 0;
+}
+
+.property-detail-curated__more[open] summary::before {
+  font-size: 0.95rem;
+}
+
+.resort-story-page--resort #rooms.site-section--white {
+  padding-top: clamp(5rem, 7vw, 6.5rem);
+  background: #fff;
+}
+
+.resort-story-page--resort #rooms .resort-story-section-heading {
+  justify-content: center;
+  margin-bottom: clamp(3rem, 6vw, 5.2rem);
+  text-align: center;
+}
+
+.resort-story-page--resort #rooms .resort-story-section-heading .eyebrow {
+  color: #6b9cbb !important;
+}
+
+.resort-story-page--resort #rooms .resort-story-section-heading h2 {
+  color: #123a58 !important;
+  font-family: var(--font-sans), sans-serif !important;
+  font-size: clamp(28px, 3vw, 36px) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+}
+
+@media (max-width: 900px) {
+  .property-detail-facts__inner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .property-detail-curated__groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .property-detail-fact:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .property-detail-fact:nth-child(-n + 2) {
+    border-bottom: 1px solid rgba(218, 209, 195, 0.8);
+  }
+}
+
+@media (max-width: 640px) {
+  .resort-story-page--resort .property-detail-hero,
+  .resort-story-page--resort .property-detail-hero .resort-story-hero__inner {
+    min-height: 520px !important;
+  }
+
+  .property-detail-facts__inner {
+    grid-template-columns: 1fr;
+  }
+
+  .property-detail-fact,
+  .property-detail-fact:nth-child(2n) {
+    min-height: 76px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(218, 209, 195, 0.8);
+  }
+
+  .property-detail-fact:last-child {
+    border-bottom: 0;
+  }
+
+  .property-detail-overview {
+    padding: 4rem 0 4.5rem;
+  }
+
+  .property-detail-curated__groups {
+    grid-template-columns: 1fr;
+  }
+
+  .property-detail-curated__chips {
+    display: flex;
+  }
+
+  .property-detail-facts {
+    padding-inline: 1rem;
+  }
+}
+
 /* Admin portal repair layer
    Keep this block last: older admin experiments above use the same class names.
    Scoping through .admin-body prevents any public website layout changes. */

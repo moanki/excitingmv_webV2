@@ -1,15 +1,6 @@
-import { Cormorant_Garamond } from "next/font/google";
-
 import { TravelGuideDirectory } from "@/components/travel-guide-directory";
 import { listPublishedResorts } from "@/lib/services/resort-service";
 import { getCatalogueContent, getHomepageGuide } from "@/lib/site-content";
-
-const readingSerif = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-reading-serif"
-});
 
 export default async function TravelGuidePage({
   searchParams
@@ -27,7 +18,7 @@ export default async function TravelGuidePage({
   const initialArticleSlug = publishedGuides.some((item) => item.slug === requestedSlug) ? requestedSlug : undefined;
 
   return (
-    <main className={`${readingSerif.variable} reading-room`}>
+    <main className="reading-room">
       <TravelGuideDirectory
         guides={publishedGuides}
         catalogue={catalogue}
