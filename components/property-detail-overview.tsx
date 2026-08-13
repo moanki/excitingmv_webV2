@@ -80,6 +80,7 @@ const curatedIconRules: CuratedCategory[] = [
 ];
 const fallbackCuratedCategory: CuratedCategory = { label: "Signature Details", terms: [], Icon: ShieldCheck };
 const initialCuratedGroupLimit = 5;
+const curatedCategoryOrder = new Map(curatedIconRules.map((category, index) => [category.label, index]));
 
 function cleanText(value: string | undefined) {
   return value?.trim() ?? "";
@@ -117,7 +118,11 @@ function groupCuratedMoments(items: ResortCuratedMoment[]) {
     grouped.set(category.label, group);
   }
 
-  return [...grouped.values()];
+  return [...grouped.values()].sort(
+    (a, b) =>
+      (curatedCategoryOrder.get(a.label) ?? curatedIconRules.length) -
+      (curatedCategoryOrder.get(b.label) ?? curatedIconRules.length)
+  );
 }
 
 function CuratedGroups({ groups }: { groups: ReturnType<typeof groupCuratedMoments> }) {
