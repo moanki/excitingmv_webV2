@@ -156,11 +156,9 @@ function CuratedGroups({ groups }: { groups: ReturnType<typeof groupCuratedMomen
   return (
     <div className="property-detail-curated__groups">
       {groups.map((group) => {
-        const GroupIcon = group.Icon;
         return (
           <article className="property-detail-curated__group" key={group.label}>
             <div className="property-detail-curated__group-heading">
-              <GroupIcon size={17} aria-hidden="true" />
               <h3>{group.label}</h3>
             </div>
             <div className="property-detail-curated__chips">
