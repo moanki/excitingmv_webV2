@@ -79,7 +79,7 @@ const curatedIconRules: CuratedCategory[] = [
   { label: "Essentials", terms: ["24-hour", "24 hour", "open", "clock"], Icon: Clock }
 ];
 const fallbackCuratedCategory: CuratedCategory = { label: "Signature Details", terms: [], Icon: ShieldCheck };
-const initialCuratedLimit = 15;
+const initialCuratedGroupLimit = 5;
 
 function cleanText(value: string | undefined) {
   return value?.trim() ?? "";
@@ -176,10 +176,9 @@ export function PropertyDetailOverview({
   const visibleCuratedMoments = curatedMoments
     .map(displayCuratedMoment)
     .filter((item) => item.title || item.description || item.iconUrl);
-  const initialCuratedMoments = visibleCuratedMoments.slice(0, initialCuratedLimit);
-  const remainingCuratedMoments = visibleCuratedMoments.slice(initialCuratedLimit);
-  const initialCuratedGroups = groupCuratedMoments(initialCuratedMoments);
-  const remainingCuratedGroups = groupCuratedMoments(remainingCuratedMoments);
+  const curatedGroups = groupCuratedMoments(visibleCuratedMoments);
+  const initialCuratedGroups = curatedGroups.slice(0, initialCuratedGroupLimit);
+  const remainingCuratedGroups = curatedGroups.slice(initialCuratedGroupLimit);
 
   return (
     <>
