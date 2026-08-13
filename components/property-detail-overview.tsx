@@ -80,6 +80,7 @@ const curatedIconRules: CuratedCategory[] = [
 ];
 const fallbackCuratedCategory: CuratedCategory = { label: "Signature Details", terms: [], Icon: ShieldCheck };
 const initialCuratedGroupLimit = 5;
+const initialCuratedItemsPerGroup = 4;
 const curatedCategoryOrder = new Map(curatedIconRules.map((category, index) => [category.label, index]));
 
 function cleanText(value: string | undefined) {
@@ -97,6 +98,17 @@ function displayCuratedMoment(item: ResortCuratedMoment) {
   const [first, ...rest] = title.split(":");
   const splitDescription = rest.join(":").trim();
   return splitDescription ? { ...item, title: first.trim(), description: splitDescription } : { ...item, title, description };
+}
+
+function splitOverviewCopy(copy: string) {
+  const sentences = copy.match(/[^.!?]+[.!?]+|[^.!?]+$/g)?.map((sentence) => sentence.trim()).filter(Boolean) ?? [copy];
+
+  if (sentences.length <= 2) {
+    return [copy];
+  }
+
+  const midpoint = Math.ceil(sentences.length / 2);
+  return [sentences.slice(0, midpoint).join(" "), sentences.slice(midpoint).join(" ")].filter(Boolean);
 }
 
 function iconForMoment(item: ResortCuratedMoment) {
@@ -123,6 +135,21 @@ function groupCuratedMoments(items: ResortCuratedMoment[]) {
       (curatedCategoryOrder.get(a.label) ?? curatedIconRules.length) -
       (curatedCategoryOrder.get(b.label) ?? curatedIconRules.length)
   );
+}
+
+function splitCuratedGroups(groups: ReturnType<typeof groupCuratedMoments>) {
+  const initialGroups = groups.slice(0, initialCuratedGroupLimit).map((group) => ({
+    ...group,
+    items: group.items.slice(0, initialCuratedItemsPerGroup)
+  }));
+  const remainingGroups = [
+    ...groups.slice(0, initialCuratedGroupLimit)
+      .map((group) => ({ ...group, items: group.items.slice(initialCuratedItemsPerGroup) }))
+      .filter((group) => group.items.length),
+    ...groups.slice(initialCuratedGroupLimit)
+  ];
+
+  return { initialGroups, remainingGroups };
 }
 
 function CuratedGroups({ groups }: { groups: ReturnType<typeof groupCuratedMoments> }) {
@@ -182,8 +209,8 @@ export function PropertyDetailOverview({
     .map(displayCuratedMoment)
     .filter((item) => item.title || item.description || item.iconUrl);
   const curatedGroups = groupCuratedMoments(visibleCuratedMoments);
-  const initialCuratedGroups = curatedGroups.slice(0, initialCuratedGroupLimit);
-  const remainingCuratedGroups = curatedGroups.slice(initialCuratedGroupLimit);
+  const { initialGroups: initialCuratedGroups, remainingGroups: remainingCuratedGroups } = splitCuratedGroups(curatedGroups);
+  const overviewParagraphs = splitOverviewCopy(overviewCopy);
 
   return (
     <>
@@ -224,7 +251,11 @@ export function PropertyDetailOverview({
           <article className="property-detail-overview">
             <p className="eyebrow">Overview</p>
             <h2>{overviewTitle}</h2>
-            <p>{overviewCopy}</p>
+            <div className="property-detail-overview__copy">
+              {overviewParagraphs.map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+            </div>
             <a href={roomsHref} className="property-detail-overview__button">
               {roomsLabel}
             </a>
@@ -242,7 +273,7 @@ export function PropertyDetailOverview({
             <CuratedGroups groups={initialCuratedGroups} />
             {remainingCuratedGroups.length ? (
               <details className="property-detail-curated__more">
-                <summary>View more</summary>
+                <summary>view more</summary>
                 <CuratedGroups groups={remainingCuratedGroups} />
               </details>
             ) : null}
