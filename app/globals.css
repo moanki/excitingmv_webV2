@@ -20158,16 +20158,19 @@ html {
 }
 
 .property-detail-facts {
-  border-bottom: 1px solid rgba(218, 209, 195, 0.7);
+  padding: 0 clamp(1rem, 4vw, 2rem);
   background: #fff;
 }
 
 .property-detail-facts__inner {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  max-width: none;
-  width: 100%;
+  width: min(100%, 1120px);
+  max-width: 1120px;
+  margin: 0 auto;
   padding: 0;
+  border-inline: 1px solid rgba(218, 209, 195, 0.8);
+  border-bottom: 1px solid rgba(218, 209, 195, 0.8);
 }
 
 .property-detail-fact {
@@ -20198,17 +20201,18 @@ html {
   align-self: start;
   color: #123a58;
   font-family: var(--font-sans), sans-serif;
-  font-size: 0.92rem;
-  font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 400;
   letter-spacing: 0;
-  line-height: 1.35;
+  line-height: 1.45;
 }
 
 .property-detail-overview {
   display: grid;
   justify-items: center;
   gap: 1.1rem;
-  max-width: 740px;
+  width: min(100%, 680px);
+  max-width: 680px;
   margin: 0 auto;
   padding: clamp(5rem, 7vw, 6.6rem) 0 clamp(5.4rem, 7vw, 6.9rem);
   text-align: center;
@@ -20237,14 +20241,15 @@ html {
 }
 
 .property-detail-overview p {
-  max-width: 650px;
+  max-width: 600px;
   margin: 0;
   color: rgba(18, 58, 88, 0.7) !important;
   font-family: var(--font-sans), sans-serif !important;
   font-size: clamp(1rem, 1.2vw, 1.08rem) !important;
   font-weight: 400 !important;
   letter-spacing: 0 !important;
-  line-height: 1.75 !important;
+  line-height: 1.9 !important;
+  text-wrap: pretty;
 }
 
 .property-detail-overview__button {
@@ -20285,13 +20290,46 @@ html {
   letter-spacing: 0;
 }
 
+.property-detail-curated__groups {
+  display: grid;
+  gap: 1.2rem;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.property-detail-curated__group {
+  display: grid;
+  gap: 0.9rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid rgba(18, 58, 88, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.property-detail-curated__group-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #123a58;
+}
+
+.property-detail-curated__group-heading svg {
+  color: #6b9cbb;
+}
+
+.property-detail-curated__group-heading h3 {
+  margin: 0;
+  color: #123a58;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
 .property-detail-curated__chips {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.85rem 1rem;
-  max-width: 920px;
-  margin: 0 auto;
+  gap: 0.75rem 0.85rem;
 }
 
 .property-detail-curated__chip {
@@ -20307,7 +20345,7 @@ html {
   box-shadow: 0 6px 14px rgba(18, 58, 88, 0.04);
   font-family: var(--font-sans), sans-serif;
   font-size: 0.86rem;
-  font-weight: 800;
+  font-weight: 400;
   letter-spacing: 0;
 }
 
@@ -20323,6 +20361,51 @@ html {
   background-image: var(--curated-icon-url);
   background-position: center;
   background-size: cover;
+}
+
+.property-detail-curated__more {
+  display: grid;
+  gap: 1.2rem;
+  max-width: 960px;
+  margin: 1.2rem auto 0;
+}
+
+.property-detail-curated__more summary {
+  display: inline-flex;
+  justify-self: center;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 1.2rem;
+  border: 1px solid rgba(18, 58, 88, 0.14);
+  border-radius: 999px;
+  background: #fff;
+  color: #123a58;
+  cursor: pointer;
+  font-family: var(--font-sans), sans-serif;
+  font-size: 0.86rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  list-style: none;
+}
+
+.property-detail-curated__more summary::-webkit-details-marker {
+  display: none;
+}
+
+.property-detail-curated__more[open] summary {
+  margin-bottom: 1.2rem;
+}
+
+.property-detail-curated__more[open] summary::before {
+  content: "Show less";
+}
+
+.property-detail-curated__more[open] summary {
+  font-size: 0;
+}
+
+.property-detail-curated__more[open] summary::before {
+  font-size: 0.86rem;
 }
 
 .resort-story-page--resort #rooms.site-section--white {
@@ -20389,6 +20472,10 @@ html {
 
   .property-detail-curated__chips {
     justify-content: flex-start;
+  }
+
+  .property-detail-facts {
+    padding-inline: 1rem;
   }
 }
 

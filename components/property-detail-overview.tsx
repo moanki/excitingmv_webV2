@@ -2,19 +2,27 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import {
   Accessibility,
-  Anchor,
   ArrowLeft,
   Baby,
   BedDouble,
+  BottleWine,
+  Car,
+  ChefHat,
+  Clock,
+  Coffee,
+  ConciergeBell,
   Dumbbell,
+  Flower2,
   Heart,
+  HeartPulse,
   MapPin,
-  Palmtree,
   Plane,
   Sailboat,
   Share2,
   ShieldCheck,
+  ShipWheel,
   Sparkles,
+  TreePalm,
   Utensils,
   Waves,
   Wifi
@@ -44,20 +52,34 @@ type PropertyDetailOverviewProps = {
   roomsLabel?: string;
 };
 
-const curatedIconRules: Array<{ terms: string[]; Icon: LucideIcon }> = [
-  { terms: ["wifi", "internet"], Icon: Wifi },
-  { terms: ["spa", "wellness", "massage", "sauna", "steam", "yoga"], Icon: Sparkles },
-  { terms: ["fitness", "gym"], Icon: Dumbbell },
-  { terms: ["pool", "beach", "snorkel", "dive", "diving", "reef", "water", "lagoon"], Icon: Waves },
-  { terms: ["wheelchair", "accessible", "disabled", "grab rails"], Icon: Accessibility },
-  { terms: ["kid", "family", "child", "children", "club"], Icon: Baby },
-  { terms: ["restaurant", "dining", "bar", "breakfast", "meal", "food", "chef"], Icon: Utensils },
-  { terms: ["seaplane", "plane", "transfer", "airport"], Icon: Plane },
-  { terms: ["boat", "yacht", "liveaboard", "charter", "sail"], Icon: Sailboat },
-  { terms: ["front desk", "concierge", "butler", "jadugar", "service"], Icon: ShieldCheck },
-  { terms: ["garden", "island", "palm", "terrace"], Icon: Palmtree },
-  { terms: ["anchor", "marine", "cruise"], Icon: Anchor }
+type CuratedCategory = {
+  label: string;
+  terms: string[];
+  Icon: LucideIcon;
+};
+
+const curatedIconRules: CuratedCategory[] = [
+  { label: "Connectivity", terms: ["wifi", "internet"], Icon: Wifi },
+  { label: "Spa", terms: ["spa", "massage", "sauna", "steam", "therapy"], Icon: Flower2 },
+  { label: "Wellness", terms: ["wellness", "yoga", "meditation", "relaxation"], Icon: HeartPulse },
+  { label: "Fitness", terms: ["fitness", "gym", "training"], Icon: Dumbbell },
+  { label: "Pools & Lagoon", terms: ["pool", "beach", "lagoon", "private beach", "sundeck"], Icon: Waves },
+  { label: "Diving & Marine", terms: ["snorkel", "dive", "diving", "reef", "marine", "house reef"], Icon: Waves },
+  { label: "Access", terms: ["wheelchair", "accessible", "disabled", "grab rails"], Icon: Accessibility },
+  { label: "Family", terms: ["kid", "family", "child", "children", "club", "babysitting"], Icon: Baby },
+  { label: "Restaurants", terms: ["restaurant", "dining", "breakfast", "meal", "food"], Icon: Utensils },
+  { label: "Culinary", terms: ["chef", "culinary", "kitchen"], Icon: ChefHat },
+  { label: "Bars", terms: ["bar", "wine", "cocktail", "champagne"], Icon: BottleWine },
+  { label: "Cafes", terms: ["coffee", "cafe"], Icon: Coffee },
+  { label: "Transfers", terms: ["seaplane", "plane", "transfer", "airport", "car", "taxi"], Icon: Plane },
+  { label: "Boating", terms: ["boat", "yacht", "liveaboard", "charter", "sail", "cruise"], Icon: Sailboat },
+  { label: "Guest Services", terms: ["front desk", "concierge", "butler", "jadugar", "service", "room service"], Icon: ConciergeBell },
+  { label: "Island Life", terms: ["garden", "island", "palm", "terrace", "outdoor", "cycling", "bike"], Icon: TreePalm },
+  { label: "Experiences", terms: ["anchor", "excursion", "activity", "experience", "adventure"], Icon: ShipWheel },
+  { label: "Essentials", terms: ["24-hour", "24 hour", "open", "clock"], Icon: Clock }
 ];
+const fallbackCuratedCategory: CuratedCategory = { label: "Signature Details", terms: [], Icon: ShieldCheck };
+const initialCuratedLimit = 15;
 
 function cleanText(value: string | undefined) {
   return value?.trim() ?? "";
@@ -77,8 +99,62 @@ function displayCuratedMoment(item: ResortCuratedMoment) {
 }
 
 function iconForMoment(item: ResortCuratedMoment) {
+  return categoryForMoment(item).Icon;
+}
+
+function categoryForMoment(item: ResortCuratedMoment) {
   const text = `${item.title} ${item.description}`.toLowerCase();
-  return curatedIconRules.find((rule) => rule.terms.some((term) => text.includes(term)))?.Icon ?? Sparkles;
+  return curatedIconRules.find((rule) => rule.terms.some((term) => text.includes(term))) ?? fallbackCuratedCategory;
+}
+
+function groupCuratedMoments(items: ResortCuratedMoment[]) {
+  const grouped = new Map<string, { label: string; Icon: LucideIcon; items: ResortCuratedMoment[] }>();
+
+  for (const item of items) {
+    const category = categoryForMoment(item);
+    const group = grouped.get(category.label) ?? { label: category.label, Icon: category.Icon, items: [] };
+    group.items.push(item);
+    grouped.set(category.label, group);
+  }
+
+  return [...grouped.values()];
+}
+
+function CuratedGroups({ groups }: { groups: ReturnType<typeof groupCuratedMoments> }) {
+  return (
+    <div className="property-detail-curated__groups">
+      {groups.map((group) => {
+        const GroupIcon = group.Icon;
+        return (
+          <article className="property-detail-curated__group" key={group.label}>
+            <div className="property-detail-curated__group-heading">
+              <GroupIcon size={17} aria-hidden="true" />
+              <h3>{group.label}</h3>
+            </div>
+            <div className="property-detail-curated__chips">
+              {group.items.map((item, index) => {
+                const Icon = iconForMoment(item);
+                return (
+                  <span className="property-detail-curated__chip" key={`${item.title}-${index}`}>
+                    {item.iconUrl ? (
+                      <span
+                        className="property-detail-curated__uploaded-icon"
+                        style={{ "--curated-icon-url": `url(${item.iconUrl})` } as CSSProperties}
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <Icon size={15} aria-hidden="true" />
+                    )}
+                    {item.title}
+                  </span>
+                );
+              })}
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
 }
 
 export function PropertyDetailOverview({
@@ -100,6 +176,10 @@ export function PropertyDetailOverview({
   const visibleCuratedMoments = curatedMoments
     .map(displayCuratedMoment)
     .filter((item) => item.title || item.description || item.iconUrl);
+  const initialCuratedMoments = visibleCuratedMoments.slice(0, initialCuratedLimit);
+  const remainingCuratedMoments = visibleCuratedMoments.slice(initialCuratedLimit);
+  const initialCuratedGroups = groupCuratedMoments(initialCuratedMoments);
+  const remainingCuratedGroups = groupCuratedMoments(remainingCuratedMoments);
 
   return (
     <>
@@ -155,25 +235,13 @@ export function PropertyDetailOverview({
               <h2 id="property-detail-curated-heading">What stands out here</h2>
               <p>A curated look at {name}'s most-loved amenities.</p>
             </div>
-            <div className="property-detail-curated__chips">
-              {visibleCuratedMoments.map((item, index) => {
-                const Icon = iconForMoment(item);
-                return (
-                  <span className="property-detail-curated__chip" key={`${item.title}-${index}`}>
-                    {item.iconUrl ? (
-                      <span
-                        className="property-detail-curated__uploaded-icon"
-                        style={{ "--curated-icon-url": `url(${item.iconUrl})` } as CSSProperties}
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <Icon size={15} aria-hidden="true" />
-                    )}
-                    {item.title}
-                  </span>
-                );
-              })}
-            </div>
+            <CuratedGroups groups={initialCuratedGroups} />
+            {remainingCuratedGroups.length ? (
+              <details className="property-detail-curated__more">
+                <summary>View more</summary>
+                <CuratedGroups groups={remainingCuratedGroups} />
+              </details>
+            ) : null}
           </div>
         </section>
       ) : null}
@@ -183,6 +251,7 @@ export function PropertyDetailOverview({
 
 export const propertyFactIcons = {
   BedDouble,
+  Car,
   MapPin,
   Plane,
   Sailboat,
