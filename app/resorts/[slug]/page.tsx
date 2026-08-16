@@ -7,6 +7,7 @@ import {
 } from "@/lib/services/resort-service";
 import { optimizedImageUrl } from "@/lib/image-urls";
 import { PropertyDetailOverview, propertyFactIcons } from "@/components/property-detail-overview";
+import { PropertyRoomCard } from "@/components/property-room-card";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -95,46 +96,14 @@ export default async function ResortDetailPage({
                   room.viewLabel
                 ].filter(Boolean);
                 const roomCopy = room.description || room.seoDescription || "Curated room details coming soon.";
-                const amenities = room.amenities.filter(Boolean);
-
                 return (
-                  <article className="resort-story-room-card--property" key={room.id ?? `${room.name}-${room.sortOrder}`}>
-                    <div
-                      className="resort-story-room-card__media"
-                      style={
-                        room.photoUrl
-                          ? { backgroundImage: `url(${optimizedImageUrl(room.photoUrl, { width: 1400, height: 960, quality: 94 })})` }
-                          : undefined
-                      }
-                    />
-                    <div className="resort-story-room-card__body">
-                      <div className="resort-story-room-card__header">
-                        <p className="eyebrow">Room Type</p>
-                        <h3>{room.name}</h3>
-                      </div>
-
-                      {roomMeta.length ? (
-                        <div className="resort-story-room-facts">
-                          {roomMeta.map((item) => (
-                            <span key={item}>{item}</span>
-                          ))}
-                        </div>
-                      ) : null}
-
-                      <p>{roomCopy}</p>
-
-                      {amenities.length ? (
-                        <div className="resort-story-room-amenities">
-                          <p className="eyebrow">Room Amenities</p>
-                          <ul className="resort-story-room-amenities__list">
-                            {amenities.map((feature) => (
-                              <li key={feature}>{feature}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : null}
-                    </div>
-                  </article>
+                  <PropertyRoomCard
+                    room={room}
+                    imageAltPrefix={resort.name}
+                    meta={roomMeta}
+                    fallbackCopy={roomCopy}
+                    key={room.id ?? `${room.name}-${room.sortOrder}`}
+                  />
                 );
               })}
             </div>

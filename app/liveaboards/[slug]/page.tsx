@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { PropertyDetailOverview, propertyFactIcons } from "@/components/property-detail-overview";
-import { optimizedImageUrl } from "@/lib/image-urls";
+import { PropertyRoomCard } from "@/components/property-room-card";
 import { getResortBySlug } from "@/lib/services/resort-service";
 
 export const dynamic = "force-dynamic";
@@ -56,25 +56,25 @@ export default async function LiveaboardDetailPage({
               </div>
             </div>
             <div className="resort-story-room-stack">
-              {liveaboard.roomTypes.map((room) => (
-                <article className="resort-story-room-card--property" key={room.id ?? room.name}>
-                  <div
-                    className="resort-story-room-card__media"
-                    style={
-                      room.photoUrl
-                        ? { backgroundImage: `url(${optimizedImageUrl(room.photoUrl, { width: 760, height: 520, quality: 76 })})` }
-                        : undefined
-                    }
+              {liveaboard.roomTypes.map((room) => {
+                const roomMeta = [
+                  room.sizeLabel,
+                  room.maxOccupancy ? `Up to ${room.maxOccupancy} guests` : "",
+                  room.bedType,
+                  room.viewLabel
+                ].filter(Boolean);
+
+                return (
+                  <PropertyRoomCard
+                    room={room}
+                    eyebrow="Cabin Type"
+                    imageAltPrefix={liveaboard.name}
+                    meta={roomMeta}
+                    fallbackCopy="Cabin details coming soon."
+                    key={room.id ?? room.name}
                   />
-                  <div className="resort-story-room-card__body">
-                    <div className="resort-story-room-card__header">
-                      <p className="eyebrow">Cabin Type</p>
-                      <h3>{room.name}</h3>
-                    </div>
-                    <p>{room.description || room.seoDescription || "Cabin details coming soon."}</p>
-                  </div>
-                </article>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>

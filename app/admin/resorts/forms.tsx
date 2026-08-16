@@ -10,6 +10,7 @@ import {
   MapPin,
   Pencil,
   Plus,
+  Rocket,
   Search,
   Sparkles,
   Star,
@@ -19,6 +20,7 @@ import {
 import {
   deleteResortAction,
   generateResortSeoAction,
+  publishSelectedDraftsAction,
   saveResortAction,
   seedResortsAction
 } from "@/app/admin/resorts/actions";
@@ -1122,6 +1124,8 @@ export function ResortManagerListView({
 }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<ResortFilter>("all");
+  const [selectedDraftIds, setSelectedDraftIds] = useState<string[]>([]);
+  const [bulkPublishState, bulkPublishAction] = useActionState(publishSelectedDraftsAction, undefined);
 
   const filteredResorts = useMemo(() => {
     return resorts.filter((resort) => {
@@ -1154,6 +1158,28 @@ export function ResortManagerListView({
       return true;
     });
   }, [filter, query, resorts]);
+  const filteredDrafts = useMemo(() => filteredResorts.filter((resort) => resort.status === "draft"), [filteredResorts]);
+  const selectedDraftSet = useMemo(() => new Set(selectedDraftIds), [selectedDraftIds]);
+  const allFilteredDraftsSelected = filteredDrafts.length > 0 && filteredDrafts.every((resort) => selectedDraftSet.has(resort.id));
+
+  useEffect(() => {
+    const draftIds = new Set(resorts.filter((resort) => resort.status === "draft").map((resort) => resort.id));
+    setSelectedDraftIds((current) => current.filter((id) => draftIds.has(id)));
+  }, [resorts]);
+
+  function toggleDraftSelection(id: string) {
+    setSelectedDraftIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  }
+
+  function toggleFilteredDrafts() {
+    if (allFilteredDraftsSelected) {
+      const visibleDraftIds = new Set(filteredDrafts.map((resort) => resort.id));
+      setSelectedDraftIds((current) => current.filter((id) => !visibleDraftIds.has(id)));
+      return;
+    }
+
+    setSelectedDraftIds((current) => Array.from(new Set([...current, ...filteredDrafts.map((resort) => resort.id)])));
+  }
 
   const filterOptions: Array<{ id: ResortFilter; label: string }> = [
     { id: "all", label: "All" },
@@ -1196,9 +1222,48 @@ export function ResortManagerListView({
         </div>
       </div>
 
+      <form
+        action={bulkPublishAction}
+        className="admin-bulk-publish-panel"
+        onSubmit={(event) => {
+          if (!selectedDraftIds.length) {
+            event.preventDefault();
+          }
+        }}
+      >
+        <input type="hidden" name="propertyType" value={propertyType} />
+        {selectedDraftIds.map((id) => <input key={id} type="hidden" name="ids" value={id} />)}
+        <div className="admin-bulk-publish-panel__copy">
+          <strong>Publish drafts to live website</strong>
+          <span>
+            Select draft {labels.plural.toLowerCase()} below, or select all visible drafts from the current filter.
+          </span>
+        </div>
+        <div className="admin-bulk-publish-panel__actions">
+          <button
+            className="admin-btn admin-btn--secondary"
+            type="button"
+            onClick={toggleFilteredDrafts}
+            disabled={!filteredDrafts.length}
+          >
+            {allFilteredDraftsSelected ? "Clear visible drafts" : `Select all visible drafts (${filteredDrafts.length})`}
+          </button>
+          <SubmitButton
+            idleLabel={`Publish selected (${selectedDraftIds.length})`}
+            pendingLabel="Publishing..."
+            icon={<Rocket className="admin-icon" />}
+            disabled={!selectedDraftIds.length}
+            feedbackTitle="Publishing selected drafts"
+            feedbackMessage={`Publishing selected ${labels.plural.toLowerCase()} to the live website.`}
+          />
+        </div>
+        <ActionMessage state={bulkPublishState} />
+      </form>
+
       {filteredResorts.length ? (
         <div className="data-list property-data-list">
           <div className="list-head property-list-head" aria-hidden="true">
+            <span>Select</span>
             <span>Property</span>
             <span>Status</span>
             <span>Updated</span>
@@ -1207,9 +1272,21 @@ export function ResortManagerListView({
 
           {filteredResorts.map((resort) => {
             const tags = propertyListTags(resort);
+            const canBulkPublish = resort.status === "draft";
+            const checkboxId = `select-${propertyType}-${resort.id}`;
 
             return (
               <article className="list-row property-list-row" key={resort.id}>
+                <div className="lr-select">
+                  <input
+                    id={checkboxId}
+                    type="checkbox"
+                    checked={selectedDraftSet.has(resort.id)}
+                    onChange={() => toggleDraftSelection(resort.id)}
+                    disabled={!canBulkPublish}
+                    aria-label={`Select ${resort.name} for publishing`}
+                  />
+                </div>
                 <div className="lr-thumb-wrap">
                   {resort.heroImageUrl ? (
                     <img

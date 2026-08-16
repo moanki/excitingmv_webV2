@@ -5755,6 +5755,28 @@ select {
   background-size: cover;
 }
 
+.resort-story-room-card__media img,
+.resort-story-room-card__media-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.resort-story-room-card__media img {
+  display: block;
+  object-fit: cover;
+}
+
+.resort-story-room-card__media-placeholder {
+  display: grid;
+  place-items: center;
+  color: rgba(15, 23, 42, 0.32);
+}
+
+.resort-story-room-card__media-placeholder svg {
+  width: 42px;
+  height: 42px;
+}
+
 .resort-story-room-card__body {
   display: grid;
   align-content: center;
@@ -5838,6 +5860,40 @@ select {
   border-radius: 50%;
   background: var(--brand-teal);
   box-shadow: 0 0 0 5px rgba(79, 209, 197, 0.14);
+}
+
+.resort-story-room-amenities__more {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.resort-story-room-amenities__more summary {
+  display: inline-flex;
+  width: max-content;
+  cursor: pointer;
+  color: var(--brand-teal);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  list-style: none;
+  text-transform: uppercase;
+}
+
+.resort-story-room-amenities__more summary::-webkit-details-marker {
+  display: none;
+}
+
+.resort-story-room-amenities__more[open] summary {
+  margin-bottom: 0.15rem;
+}
+
+.resort-story-room-amenities__more[open] summary {
+  font-size: 0;
+}
+
+.resort-story-room-amenities__more[open] summary::before {
+  content: "show fewer amenities";
+  font-size: 0.82rem;
 }
 
 .resort-story-similar {
@@ -20101,6 +20157,32 @@ html {
   gap: 0.6rem;
 }
 
+.resort-story-page--resort .resort-story-room-card--property {
+  align-items: stretch !important;
+  min-height: 340px !important;
+}
+
+.resort-story-page--resort .resort-story-room-card__media {
+  align-self: stretch !important;
+  aspect-ratio: auto !important;
+  min-height: 100% !important;
+  overflow: hidden !important;
+}
+
+.resort-story-page--resort .resort-story-room-card__media img,
+.resort-story-page--resort .resort-story-room-card__media-placeholder {
+  min-height: 100% !important;
+  object-fit: cover !important;
+}
+
+.resort-story-page--resort .resort-story-room-amenities__more summary,
+.resort-story-page--resort .resort-story-room-amenities__more[open] summary::before {
+  font-family: var(--font-sans), sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
 @media (max-width: 720px) {
   .resort-story-page--resort .resort-story-hero__copy h1 {
     font-size: 2.65rem !important;
@@ -20119,6 +20201,15 @@ html {
   .resort-story-page--resort .resort-story-curated-item p {
     font-size: 0.96rem !important;
     line-height: 1.68 !important;
+  }
+
+  .resort-story-page--resort .resort-story-room-card--property {
+    min-height: 0 !important;
+  }
+
+  .resort-story-page--resort .resort-story-room-card__media {
+    aspect-ratio: 16 / 10 !important;
+    min-height: 220px !important;
   }
 }
 
@@ -29536,9 +29627,58 @@ html {
   box-shadow: none !important;
 }
 
+.admin-body .admin-bulk-publish-panel {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 14px 16px !important;
+  border: 1px solid var(--cms-hair, #e5e9e7) !important;
+  border-radius: 10px !important;
+  background: rgba(248, 250, 249, 0.82) !important;
+}
+
+.admin-body .admin-bulk-publish-panel__copy {
+  display: grid !important;
+  gap: 3px !important;
+  min-width: 0 !important;
+}
+
+.admin-body .admin-bulk-publish-panel__copy strong {
+  color: var(--cms-ink, #1b2422) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+.admin-body .admin-bulk-publish-panel__copy span {
+  color: var(--cms-muted, #6d7774) !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+.admin-body .admin-bulk-publish-panel__actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.admin-body .lr-select {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.admin-body .lr-select input {
+  width: 16px !important;
+  height: 16px !important;
+  accent-color: var(--cms-teal, #0f6f67) !important;
+}
+
 .admin-body .property-list-page .property-list-head,
 .admin-body .property-list-page .property-list-row {
-  grid-template-columns: 52px minmax(230px, 1fr) minmax(105px, 130px) 110px 104px !important;
+  grid-template-columns: 32px 52px minmax(230px, 1fr) minmax(105px, 130px) 110px 104px !important;
   gap: 12px !important;
 }
 
@@ -29547,6 +29687,10 @@ html {
   font-size: 11px !important;
   font-weight: 600 !important;
   letter-spacing: 0.08em !important;
+}
+
+.admin-body .property-list-page .property-list-head span:first-child {
+  grid-column: auto !important;
 }
 
 .admin-body .property-list-page .property-list-row {
@@ -29624,17 +29768,17 @@ html {
   }
 
   .admin-body .property-list-page .property-list-row {
-    grid-template-columns: 64px minmax(0, 1fr) auto !important;
+    grid-template-columns: 28px 64px minmax(0, 1fr) auto !important;
     min-height: 92px !important;
   }
 
   .admin-body .property-list-page .property-list-row .lr-status,
   .admin-body .property-list-page .property-list-row .lr-updated {
-    grid-column: 2 !important;
+    grid-column: 3 !important;
   }
 
   .admin-body .property-list-page .property-list-row .lr-actions {
-    grid-column: 3 !important;
+    grid-column: 4 !important;
     grid-row: 1 / span 3 !important;
   }
 }
@@ -29659,18 +29803,27 @@ html {
   .admin-body .property-list-page .table-toolbar-right {
     justify-content: space-between !important;
   }
+
+  .admin-body .admin-bulk-publish-panel {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .admin-body .admin-bulk-publish-panel__actions {
+    justify-content: flex-start !important;
+  }
 }
 
 @media (max-width: 560px) {
   .admin-body .property-list-page .property-list-row {
-    grid-template-columns: 52px minmax(0, 1fr) !important;
+    grid-template-columns: 24px 52px minmax(0, 1fr) !important;
     gap: 8px 10px !important;
     padding: 12px !important;
   }
 
   .admin-body .property-list-page .property-list-row .lr-status,
   .admin-body .property-list-page .property-list-row .lr-updated {
-    grid-column: 2 !important;
+    grid-column: 3 !important;
   }
 
   .admin-body .property-list-page .property-list-row .lr-actions {

@@ -4,7 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 
 import { requireAdminRole } from "@/lib/auth/require-admin";
 import { generateResortSeoCopy, type ResortSeoGenerationInput } from "@/lib/services/resort-ai-service";
-import { deleteResort, normalizePropertyType, saveResort, seedSampleResorts, type PropertyType } from "@/lib/services/resort-service";
+import { deleteResort, normalizePropertyType, publishDraftProperties, saveResort, seedSampleResorts, type PropertyType } from "@/lib/services/resort-service";
 import { uploadSiteAsset } from "@/lib/storage/site-assets";
 import type { PublishStatus } from "@/lib/types";
 import {
@@ -303,6 +303,31 @@ export async function deleteResortAction(_: ActionState, formData: FormData): Pr
     return { message: "Property deleted successfully." };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to delete property." };
+  }
+}
+
+export async function publishSelectedDraftsAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
+    const propertyType = normalizePropertyType(formData.get("propertyType"));
+    const ids = formData.getAll("ids").map((id) => String(id));
+
+    if (!ids.length) {
+      return { error: "Select at least one draft to publish." };
+    }
+
+    const result = await publishDraftProperties({ ids, propertyType });
+
+    if (!result.count) {
+      return { error: "No selected draft properties were available to publish." };
+    }
+
+    revalidateResortPaths(propertyType);
+    return {
+      message: `${result.count} draft ${result.count === 1 ? "property" : "properties"} published.`
+    };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to publish selected drafts." };
   }
 }
 

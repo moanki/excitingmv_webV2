@@ -1070,6 +1070,100 @@ export async function saveResort(input: {
   revalidatePath(`${propertyBasePath(propertyType)}/${input.slug}`);
 }
 
+export async function publishDraftProperties(input: {
+  ids: string[];
+  propertyType?: PropertyType;
+}) {
+  const supabase = createSupabaseAdminClient();
+  const propertyType = normalizePropertyType(input.propertyType);
+  const ids = Array.from(new Set(input.ids.map((id) => id.trim()).filter(Boolean)));
+
+  if (!ids.length) {
+    return { count: 0, slugs: [] as string[] };
+  }
+
+  const now = new Date().toISOString();
+  let lastError: { message?: string } | null = null;
+
+  for (const tableName of PROPERTY_TABLES) {
+    const draftAttempt = await supabase
+      .from(tableName)
+      .select("id,slug")
+      .in("id", ids)
+      .in("property_type", propertyTypeAliases(propertyType))
+      .eq("status", "draft");
+
+    if (draftAttempt.error) {
+      lastError = draftAttempt.error;
+
+      if (isMissingPropertyTableError(draftAttempt.error)) {
+        continue;
+      }
+
+      if (isMissingPropertyTypeColumnError(draftAttempt.error) && propertyType === "resort") {
+        const fallbackDraftAttempt = await supabase
+          .from(tableName)
+          .select("id,slug")
+          .in("id", ids)
+          .eq("status", "draft");
+
+        if (fallbackDraftAttempt.error) {
+          lastError = fallbackDraftAttempt.error;
+          break;
+        }
+
+        const draftRows = (fallbackDraftAttempt.data ?? []) as Array<{ id: string; slug: string | null }>;
+        if (!draftRows.length) {
+          return { count: 0, slugs: [] as string[] };
+        }
+
+        const { error: updateError } = await supabase
+          .from(tableName)
+          .update({ status: "published", published_at: now, updated_at: now })
+          .in("id", draftRows.map((row) => row.id));
+
+        if (updateError) {
+          lastError = updateError;
+          break;
+        }
+
+        const slugs = draftRows.map((row) => row.slug).filter((slug): slug is string => Boolean(slug));
+        revalidateTag("resorts-public", "max");
+        revalidatePath("/");
+        revalidatePath(propertyBasePath(propertyType));
+        slugs.forEach((slug) => revalidatePath(`${propertyBasePath(propertyType)}/${slug}`));
+        return { count: draftRows.length, slugs };
+      }
+
+      break;
+    }
+
+    const draftRows = (draftAttempt.data ?? []) as Array<{ id: string; slug: string | null }>;
+    if (!draftRows.length) {
+      return { count: 0, slugs: [] as string[] };
+    }
+
+    const { error: updateError } = await supabase
+      .from(tableName)
+      .update({ status: "published", published_at: now, updated_at: now })
+      .in("id", draftRows.map((row) => row.id));
+
+    if (updateError) {
+      lastError = updateError;
+      break;
+    }
+
+    const slugs = draftRows.map((row) => row.slug).filter((slug): slug is string => Boolean(slug));
+    revalidateTag("resorts-public", "max");
+    revalidatePath("/");
+    revalidatePath(propertyBasePath(propertyType));
+    slugs.forEach((slug) => revalidatePath(`${propertyBasePath(propertyType)}/${slug}`));
+    return { count: draftRows.length, slugs };
+  }
+
+  throw new Error(lastError?.message ?? "Failed to publish selected drafts.");
+}
+
 export async function deleteResort(id: string) {
   const supabase = createSupabaseAdminClient();
   let error: { message?: string } | null = null;
