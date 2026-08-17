@@ -425,7 +425,7 @@ export async function listAdminResorts(propertyType: PropertyType = "resort"): P
   }
 }
 
-export async function listAdminResortCards(propertyType: PropertyType = "resort", limit = 60): Promise<ResortRecord[]> {
+export async function listAdminResortCards(propertyType: PropertyType = "resort", limit = 1000): Promise<ResortRecord[]> {
   try {
     const supabase = createSupabaseAdminClient();
 
@@ -487,7 +487,7 @@ export async function listAdminResortCards(propertyType: PropertyType = "resort"
 async function listAdminResortCardsWithFallbackColumns(
   tableName: string,
   propertyType: PropertyType,
-  limit = 60
+  limit = 1000
 ): Promise<ResortRecord[]> {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
@@ -517,7 +517,7 @@ async function listAdminResortCardsWithFallbackColumns(
 
 async function listAdminResortCardsWithoutPropertyType(
   tableName = PROPERTY_TABLE,
-  limit = 60
+  limit = 1000
 ): Promise<ResortRecord[]> {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
