@@ -285,6 +285,7 @@ export function PropertyDetailOverview({
 export const propertyFactIcons = {
   BedDouble,
   Car,
+  ConciergeBell,
   MapPin,
   Plane,
   Sailboat,

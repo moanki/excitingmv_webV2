@@ -297,11 +297,30 @@ async function fetchResortRoomCounts(resortIds: string[]) {
   }
 
   const supabase = createSupabaseAdminClient();
-  const { data } = await supabase.from("rooms").select("resort_id").in("resort_id", resortIds);
+  const pageSize = 1000;
+  let from = 0;
 
-  ((data ?? []) as Array<Pick<RoomRow, "resort_id">>).forEach((row) => {
-    countMap.set(row.resort_id, (countMap.get(row.resort_id) ?? 0) + 1);
-  });
+  while (true) {
+    const { data, error } = await supabase
+      .from("rooms")
+      .select("resort_id")
+      .in("resort_id", resortIds)
+      .range(from, from + pageSize - 1);
+
+    if (error) {
+      throw error;
+    }
+
+    ((data ?? []) as Array<Pick<RoomRow, "resort_id">>).forEach((row) => {
+      countMap.set(row.resort_id, (countMap.get(row.resort_id) ?? 0) + 1);
+    });
+
+    if (!data || data.length < pageSize) {
+      break;
+    }
+
+    from += pageSize;
+  }
 
   return countMap;
 }
@@ -321,7 +340,9 @@ function mapRoom(row: RoomRow, mediaRows: MediaRow[], resortHeroImageUrl = ""): 
   const seoDescription = normalizeText(row.seo_summary) || description;
   const rawFeatures = toStringArray(row.features);
   const viewLabel = rawFeatures.find((item) => item.startsWith(VIEW_LABEL_FEATURE_PREFIX))?.slice(VIEW_LABEL_FEATURE_PREFIX.length) ?? "";
-  const amenities = rawFeatures.filter((item) => !item.startsWith(VIEW_LABEL_FEATURE_PREFIX));
+  const amenities = rawFeatures
+    .filter((item) => !item.startsWith(VIEW_LABEL_FEATURE_PREFIX))
+    .flatMap(splitDelimitedList);
 
   return {
     id: row.id,
@@ -336,6 +357,17 @@ function mapRoom(row: RoomRow, mediaRows: MediaRow[], resortHeroImageUrl = ""): 
     viewLabel,
     amenities
   };
+}
+
+function splitDelimitedList(value: string) {
+  return Array.from(
+    new Set(
+      value
+        .split(/\r?\n|[•·;]|,(?=\s*[A-Z0-9])/u)
+        .map((item) => item.replace(/^[-*+•·]\s*/u, "").trim())
+        .filter(Boolean)
+    )
+  );
 }
 
 async function attachResortRelations(resorts: ResortRecord[]) {

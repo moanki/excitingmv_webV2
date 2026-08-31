@@ -87,8 +87,8 @@ async function parseRoomTypes(formData: FormData) {
     const bedType = String(formData.get(`room_${index}_bedType`) ?? "").trim();
     const viewLabel = String(formData.get(`room_${index}_viewLabel`) ?? "").trim();
     const amenities = String(formData.get(`room_${index}_amenities`) ?? "")
-      .split(/\r?\n|,/)
-      .map((item) => item.trim())
+      .split(/\r?\n|[•·;]|,(?=\s*[A-Z0-9])/u)
+      .map((item) => item.replace(/^[-*+•·]\s*/u, "").trim())
       .filter(Boolean);
     const roomPhotoFile = formData.get(`room_${index}_photoFile`);
     const existingPhoto = String(formData.get(`room_${index}_photoUrl`) ?? "").trim();

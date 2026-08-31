@@ -386,8 +386,8 @@ function splitList(value: string) {
   return Array.from(
     new Set(
       value
-        .split(/\r?\n|;|,/)
-        .map((item) => item.trim())
+        .split(/\r?\n|[•·;]|,(?=\s*[A-Z0-9])/u)
+        .map((item) => item.replace(/^[-*+•·]\s*/u, "").trim())
         .filter(Boolean)
     )
   );
