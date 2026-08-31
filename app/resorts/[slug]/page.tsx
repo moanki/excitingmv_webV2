@@ -56,18 +56,18 @@ export default async function ResortDetailPage({
   const storyTitle = resort.seoTitle?.trim() || `Discover ${resort.name}`;
   const butlerServiceLabel =
     resort.butlerService.available === false
-      ? ""
-      : resort.butlerService.displayName?.trim() || resort.butlerService.description?.trim() || "";
+      ? "Not available"
+      : resort.butlerService.displayName?.trim().toLowerCase() === "yes"
+        ? "Available"
+        : resort.butlerService.displayName?.trim() || resort.butlerService.description?.trim() || "To be confirmed";
   const topFactItems = [
     { label: "Location", value: resort.location || "Maldives", Icon: propertyFactIcons.MapPin },
     { label: "Villas", value: resort.roomTypes.length ? `${resort.roomTypes.length} room types` : "To be confirmed", Icon: propertyFactIcons.BedDouble },
     { label: "Transfer", value: resort.transferType || "Available on request", Icon: propertyFactIcons.Plane },
     { label: "Category", value: resort.category || formatInlineList(resort.mealPlans, "Luxury island resort"), Icon: propertyFactIcons.Sparkles },
-    butlerServiceLabel
-      ? { label: "Butler Service", value: butlerServiceLabel, Icon: propertyFactIcons.ConciergeBell }
-      : null
+    { label: "Butler Service", value: butlerServiceLabel, Icon: propertyFactIcons.ConciergeBell }
   ];
-  const topFacts = topFactItems.filter((fact): fact is Exclude<(typeof topFactItems)[number], null> => Boolean(fact));
+  const topFacts = topFactItems;
   const curatedMoments = resort.curatedMoments.filter((item) => item.title || item.description || item.iconUrl);
   const overviewCopy = resort.accommodationSummary || aboutParagraphs[0];
 
