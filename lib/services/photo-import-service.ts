@@ -164,6 +164,7 @@ function similarity(left: string, right: string) {
   const leftTokens = tokens(left);
   const rightTokens = tokens(right);
   const intersection = [...leftTokens].filter((token) => rightTokens.has(token)).length;
+  if (intersection === 0) return 0;
   const union = new Set([...leftTokens, ...rightTokens]).size || 1;
   const tokenScore = intersection / union;
   const lengthScore = 1 - Math.abs(left.length - right.length) / Math.max(left.length, right.length, 1);
@@ -212,6 +213,10 @@ function bestResortMatch(localName: string, resorts: ResortRecord[]) {
   return { match: top.resort, status: top.status, confidence: top.confidence, reason: top.reason };
 }
 
+function isSafeResortMatch(match: ReturnType<typeof bestResortMatch>) {
+  return Boolean(match.match) && ["EXACT_MATCH", "NORMALIZED_MATCH"].includes(match.status) && match.confidence >= 95;
+}
+
 function bestVillaMatch(localName: string, rooms: ResortRoomRecord[]) {
   const ranked = rooms
     .map((room) => ({ room, ...classify(localName, room.name, "villa") }))
@@ -238,13 +243,35 @@ function splitRelativePath(relativePath: string) {
   return relativePath.replace(/\\/gu, "/").split("/").map((part) => part.trim()).filter(Boolean);
 }
 
-function localGroups(files: PhotoImportFileInput[]) {
+function stripSelectedWrapper(parts: string[], resorts: ResortRecord[], stripRoot: boolean) {
+  const effectiveParts = cleanText(parts[0] ?? "") === "resortphotos" || stripRoot ? parts.slice(1) : parts;
+  return effectiveParts;
+}
+
+function shouldStripCommonRoot(files: PhotoImportFileInput[], resorts: ResortRecord[]) {
+  const splitPaths = files.map((file) => splitRelativePath(file.relativePath || file.name)).filter((parts) => parts.length >= 3);
+  const commonRoot = splitPaths[0]?.[0] ?? "";
+  if (!commonRoot || !splitPaths.every((parts) => parts[0] === commonRoot)) return false;
+  if (cleanText(commonRoot) === "resortphotos") return true;
+
+  const rootMatch = bestResortMatch(commonRoot, resorts);
+  if (isSafeResortMatch(rootMatch)) return false;
+
+  const secondLevelNames = [...new Set(splitPaths.map((parts) => parts[1]).filter(Boolean))];
+  if (secondLevelNames.length < 2) return false;
+
+  const safeSecondLevelMatches = secondLevelNames.filter((name) => isSafeResortMatch(bestResortMatch(name, resorts))).length;
+  return safeSecondLevelMatches >= Math.max(2, Math.ceil(secondLevelNames.length * 0.35));
+}
+
+function localGroups(files: PhotoImportFileInput[], resorts: ResortRecord[]) {
   const groups = new Map<string, { localResortFolder: string; localVillaFolder: string; targetType: "banner" | "villa" | "review"; files: PhotoImportFileInput[] }>();
+  const stripRoot = shouldStripCommonRoot(files, resorts);
 
   files.forEach((file) => {
     if (!SUPPORTED_EXTENSIONS.has(fileExtension(file.name || file.relativePath))) return;
     const parts = splitRelativePath(file.relativePath || file.name);
-    const effectiveParts = cleanText(parts[0] ?? "") === "resortphotos" ? parts.slice(1) : parts;
+    const effectiveParts = stripSelectedWrapper(parts, resorts, stripRoot);
     const [resortFolder, second] = effectiveParts;
     if (!resortFolder) return;
 
@@ -280,7 +307,7 @@ function localGroups(files: PhotoImportFileInput[]) {
 export async function previewPhotoImport(input: { propertyType?: PropertyType; files: PhotoImportFileInput[] }): Promise<PhotoImportPreviewResult> {
   const propertyType = normalizePropertyType(input.propertyType);
   const resorts = await listAdminResorts(propertyType);
-  const groups = localGroups(input.files);
+  const groups = localGroups(input.files, resorts);
   const localRootName = splitRelativePath(input.files[0]?.relativePath ?? "")[0] ?? "Selected folder";
 
   const rows = groups.map((group, index) => {

@@ -773,7 +773,7 @@ function PhotoImportPanel() {
     setPreview(null);
     setReport(null);
     setMessage("");
-    setError(selected.length ? "" : "Choose a folder containing JPG, PNG, WebP, AVIF, or GIF photos.");
+    setError(selected.length ? "" : "Choose a folder containing JPG, PNG, or WebP photos.");
     setProgress({ done: 0, total: 0 });
   }
 
@@ -975,7 +975,7 @@ function PhotoImportPanel() {
         <CategorySelector value={propertyType} onChange={setPropertyType} />
         <label className="field field--full">
           <span className="field__label">Local Photo Folder</span>
-            <input
+          <input
             className="admin-file-input"
             type="file"
             multiple
