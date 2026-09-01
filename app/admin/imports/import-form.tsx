@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
-import { ArchiveRestore, X } from "lucide-react";
+import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { ArchiveRestore, FolderOpen, UploadCloud, X } from "lucide-react";
 
 import {
   type ImportActionState
@@ -14,6 +14,7 @@ import { toErrorMessage } from "@/lib/error-message";
 
 type UploadStage = "idle" | "uploading" | "processing" | "complete" | "error";
 const MAX_IMPORT_PDF_BYTES = 50 * 1024 * 1024;
+const PHOTO_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp"]);
 
 type DriveImportProgress = {
   totalSources: number;
@@ -24,6 +25,63 @@ type DriveImportProgress = {
   errorCount: number;
   providerUsages: string[];
   logs: ImportLogEntry[];
+};
+
+type PhotoImportPreviewRow = {
+  id: string;
+  localResortFolder: string;
+  localVillaFolder: string;
+  targetType: "banner" | "villa" | "review";
+  websiteResortName: string;
+  websiteResortId: string;
+  websiteResortSlug: string;
+  websiteVillaName: string;
+  websiteVillaId: string;
+  matchStatus: string;
+  confidence: number;
+  reason: string;
+  photoCount: number;
+  safeForAutoImport: boolean;
+  files: Array<{
+    relativePath: string;
+    name: string;
+    size: number;
+    type: string;
+  }>;
+};
+
+type PhotoImportPreview = {
+  localRootName: string;
+  rows: PhotoImportPreviewRow[];
+  summary: {
+    totalFiles: number;
+    totalGroups: number;
+    safeGroups: number;
+    reviewGroups: number;
+    bannerGroups: number;
+    villaGroups: number;
+  };
+};
+
+type PhotoImportReport = {
+  uploaded: Array<{
+    websiteResortName: string;
+    websiteVillaName: string;
+    targetType: string;
+    publicUrl: string;
+    originalName: string;
+  }>;
+  notUploaded: Array<{
+    websiteResortName: string;
+    websiteVillaName: string;
+    targetType: string;
+    reason: string;
+  }>;
+  summary: {
+    uploadedCount: number;
+    notUploadedCount: number;
+    affectedResorts: number;
+  };
 };
 
 const categoryOptions = [
@@ -636,6 +694,401 @@ function ImportDrivePanel() {
   );
 }
 
+function photoRelativePath(file: File) {
+  return ("webkitRelativePath" in file && typeof file.webkitRelativePath === "string" && file.webkitRelativePath)
+    ? file.webkitRelativePath
+    : file.name;
+}
+
+function isPhotoFile(file: File) {
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+  return PHOTO_EXTENSIONS.has(extension);
+}
+
+function photoContentType(file: File) {
+  if (file.type) return file.type;
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+  if (extension === "png") return "image/png";
+  if (extension === "webp") return "image/webp";
+  return "image/jpeg";
+}
+
+function safeStorageSegment(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60) || "photos";
+}
+
+function downloadPhotoImportReport(report: PhotoImportReport) {
+  const rows = [
+    ["Status", "Website Resort Name", "Website Villa", "Target Type", "Original File", "Public URL / Reason"],
+    ...report.uploaded.map((item) => [
+      "uploaded",
+      item.websiteResortName,
+      item.websiteVillaName,
+      item.targetType,
+      item.originalName,
+      item.publicUrl
+    ]),
+    ...report.notUploaded.map((item) => [
+      "not uploaded",
+      item.websiteResortName,
+      item.websiteVillaName,
+      item.targetType,
+      "",
+      item.reason
+    ])
+  ];
+  const csv = rows
+    .map((row) => row.map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `photo-import-report-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function PhotoImportPanel() {
+  const [propertyType, setPropertyType] = useState("resort");
+  const [files, setFiles] = useState<File[]>([]);
+  const [preview, setPreview] = useState<PhotoImportPreview | null>(null);
+  const [report, setReport] = useState<PhotoImportReport | null>(null);
+  const [pending, setPending] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
+  const [replaceExisting, setReplaceExisting] = useState(true);
+  const { finishAction, startAction, updateAction } = useAdminActionFeedback();
+  const safeRows = useMemo(() => preview?.rows.filter((row) => row.safeForAutoImport) ?? [], [preview]);
+  const reviewRows = useMemo(() => preview?.rows.filter((row) => !row.safeForAutoImport) ?? [], [preview]);
+  const localRootName = files[0] ? photoRelativePath(files[0]).split(/[\\/]/)[0] : "";
+
+  function handleFolderChange(event: ChangeEvent<HTMLInputElement>) {
+    const selected = Array.from(event.target.files ?? []).filter(isPhotoFile);
+    setFiles(selected);
+    setPreview(null);
+    setReport(null);
+    setMessage("");
+    setError(selected.length ? "" : "Choose a folder containing JPG, PNG, WebP, AVIF, or GIF photos.");
+    setProgress({ done: 0, total: 0 });
+  }
+
+  async function previewPhotos() {
+    if (!files.length) {
+      setError("Choose a local resort photo folder first.");
+      return;
+    }
+
+    setPending(true);
+    setError("");
+    setMessage("");
+    setReport(null);
+
+    try {
+      const response = await fetch("/api/admin/imports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "photo-preview",
+          propertyType,
+          files: files.map((file) => ({
+            relativePath: photoRelativePath(file),
+            name: file.name,
+            size: file.size,
+            type: file.type || "application/octet-stream"
+          }))
+        })
+      });
+      const payload = (await response.json().catch(() => null)) as { ok?: boolean; error?: string; message?: string; data?: PhotoImportPreview } | null;
+      if (!response.ok || !payload?.ok || !payload.data) {
+        setError(payload?.error || "Could not preview photo matches.");
+        return;
+      }
+
+      setPreview(payload.data);
+      setMessage(payload.message || "Photo import preview ready.");
+    } catch (previewError) {
+      setError(toErrorMessage(previewError, "Could not preview photo matches."));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function importSafePhotos() {
+    if (!preview || safeRows.length === 0) {
+      setError("There are no safe photo groups to import.");
+      return;
+    }
+
+    const actionId = startAction({
+      title: "Uploading resort photos...",
+      message: "Preparing signed uploads for safe resort and villa matches.",
+      progress: 0
+    });
+    const fileByPath = new Map(files.map((file) => [photoRelativePath(file), file]));
+    const total = safeRows.reduce((count, row) => count + row.files.length, 0);
+    const uploadedItems: Array<{ previewRowId: string; publicUrl: string; originalName: string; sortOrder: number }> = [];
+    const failedItems: PhotoImportReport["notUploaded"] = [];
+
+    setPending(true);
+    setError("");
+    setMessage("");
+    setReport(null);
+    setProgress({ done: 0, total });
+
+    try {
+      const supabase = createSupabaseBrowserClient();
+      let done = 0;
+
+      for (const row of safeRows) {
+        for (let index = 0; index < row.files.length; index += 1) {
+          const fileInfo = row.files[index];
+          const file = fileByPath.get(fileInfo.relativePath);
+          if (!file) {
+            failedItems.push({
+              websiteResortName: row.websiteResortName,
+              websiteVillaName: row.websiteVillaName,
+              targetType: row.targetType,
+              reason: `${fileInfo.relativePath} was not available in the selected browser folder.`
+            });
+            continue;
+          }
+
+          try {
+            const folder = `resorts/${row.websiteResortSlug}/${row.targetType === "banner" ? "banner" : safeStorageSegment(row.websiteVillaName)}`;
+            const signedResponse = await fetch("/api/admin/imports", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                mode: "photo-create-upload-url",
+                filename: file.name,
+                contentType: photoContentType(file),
+                folder
+              })
+            });
+            const signedPayload = (await signedResponse.json().catch(() => null)) as
+              | { ok?: boolean; error?: string; data?: { bucket: string; path: string; token: string; publicUrl: string; contentType: string } }
+              | null;
+            if (!signedResponse.ok || !signedPayload?.ok || !signedPayload.data) {
+              throw new Error(signedPayload?.error || "Could not prepare signed upload.");
+            }
+
+            const uploadResult = await supabase.storage
+              .from(signedPayload.data.bucket)
+              .uploadToSignedUrl(signedPayload.data.path, signedPayload.data.token, file, {
+                cacheControl: "31536000",
+                contentType: signedPayload.data.contentType,
+                upsert: true
+              });
+            if (uploadResult.error) {
+              throw uploadResult.error;
+            }
+
+            uploadedItems.push({
+              previewRowId: row.id,
+              publicUrl: signedPayload.data.publicUrl,
+              originalName: file.name,
+              sortOrder: index
+            });
+          } catch (uploadError) {
+            failedItems.push({
+              websiteResortName: row.websiteResortName,
+              websiteVillaName: row.websiteVillaName,
+              targetType: row.targetType,
+              reason: `${fileInfo.relativePath}: ${toErrorMessage(uploadError, "Upload failed.")}`
+            });
+          } finally {
+            done += 1;
+            setProgress({ done, total });
+            updateAction(actionId, {
+              title: `Uploading resort photos (${done}/${total})`,
+              message: `${uploadedItems.length} uploaded, ${failedItems.length} not uploaded.`,
+              progress: Math.round((done / Math.max(total, 1)) * 92)
+            });
+          }
+        }
+      }
+
+      const commitResponse = await fetch("/api/admin/imports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "photo-commit",
+          propertyType,
+          replaceExisting,
+          rows: safeRows,
+          uploadedItems
+        })
+      });
+      const commitPayload = (await commitResponse.json().catch(() => null)) as { ok?: boolean; error?: string; message?: string; data?: PhotoImportReport } | null;
+      if (!commitResponse.ok || !commitPayload?.ok || !commitPayload.data) {
+        setReport({
+          uploaded: [],
+          notUploaded: [
+            ...failedItems,
+            { websiteResortName: "", websiteVillaName: "", targetType: "commit", reason: commitPayload?.error || "Uploaded files could not be attached to resort media." }
+          ],
+          summary: { uploadedCount: 0, notUploadedCount: failedItems.length + 1, affectedResorts: 0 }
+        });
+        setError(commitPayload?.error || "Uploaded files could not be attached to resort media.");
+        finishAction(actionId, { title: "Photo import stopped", message: commitPayload?.error || "Commit failed.", status: "error" });
+        return;
+      }
+
+      const combinedReport = {
+        ...commitPayload.data,
+        notUploaded: [...commitPayload.data.notUploaded, ...failedItems],
+        summary: {
+          ...commitPayload.data.summary,
+          notUploadedCount: commitPayload.data.notUploaded.length + failedItems.length
+        }
+      };
+      setReport(combinedReport);
+      setMessage(commitPayload.message || "Photo import completed.");
+      finishAction(actionId, {
+        title: "Photo import completed",
+        message: `${combinedReport.summary.uploadedCount} uploaded, ${combinedReport.summary.notUploadedCount} not uploaded.`,
+        status: "success"
+      });
+    } catch (importError) {
+      setError(toErrorMessage(importError, "Photo import failed."));
+      finishAction(actionId, { title: "Photo import failed", message: toErrorMessage(importError, "Photo import failed."), status: "error" });
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <article className="panel admin-form-card photo-import-panel">
+      <div className="admin-form-section__header">
+        <h3 className="admin-form-section__title">Bulk Photo Import</h3>
+        <p className="admin-form-section__help">
+          Select the local resort photo folder, preview exact resort and villa matches, then upload only safe matches.
+        </p>
+      </div>
+
+      <div className="form-grid">
+        <CategorySelector value={propertyType} onChange={setPropertyType} />
+        <label className="field field--full">
+          <span className="field__label">Local Photo Folder</span>
+            <input
+            className="admin-file-input"
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+            onChange={handleFolderChange}
+            {...{ webkitdirectory: "", directory: "" }}
+          />
+          <p className="field__help">
+            Selected folder: {localRootName || "None selected"}. JPG, PNG, and WebP photos are matched by relative folder names.
+          </p>
+        </label>
+      </div>
+
+      <div className="admin-form-actions">
+        <button type="button" className="admin-btn admin-btn--secondary" onClick={previewPhotos} disabled={pending || files.length === 0}>
+          <FolderOpen className="admin-btn__icon" />Preview Matches
+        </button>
+        <button type="button" className="admin-btn admin-btn--primary" onClick={importSafePhotos} disabled={pending || safeRows.length === 0}>
+          <UploadCloud className="admin-btn__icon" />{pending ? "Importing..." : `Import Safe Matches (${safeRows.length})`}
+        </button>
+        <label className="admin-checkbox-inline">
+          <input type="checkbox" checked={replaceExisting} onChange={(event) => setReplaceExisting(event.target.checked)} />
+          <span>Replace existing matched room/banner photos</span>
+        </label>
+      </div>
+
+      {message ? <p className="admin-alert admin-alert--success">{message}</p> : null}
+      {error ? <p className="admin-alert admin-alert--error">{error}</p> : null}
+
+      {pending && progress.total > 0 ? (
+        <div className="admin-import-progress" role="status" aria-live="polite">
+          <div className="admin-import-progress__header">
+            <strong>Uploading photos</strong>
+            <span>{progress.done} / {progress.total}</span>
+          </div>
+          <div className="admin-import-progress__track" aria-hidden="true">
+            <div className="admin-import-progress__bar is-pending" style={{ width: `${Math.round((progress.done / Math.max(progress.total, 1)) * 100)}%` }} />
+          </div>
+        </div>
+      ) : null}
+
+      {preview ? (
+        <div className="stack">
+          <div className="dashboard-grid dashboard-grid-quad">
+            <div className="stat-card"><p className="eyebrow">Photos</p><strong>{preview.summary.totalFiles}</strong></div>
+            <div className="stat-card"><p className="eyebrow">Matched Groups</p><strong>{preview.summary.safeGroups}</strong></div>
+            <div className="stat-card"><p className="eyebrow">Needs Review</p><strong>{preview.summary.reviewGroups}</strong></div>
+            <div className="stat-card"><p className="eyebrow">Banners / Villas</p><strong>{preview.summary.bannerGroups} / {preview.summary.villaGroups}</strong></div>
+          </div>
+
+          <div className="admin-table-shell photo-import-table">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Local Folder</th>
+                  <th>Website Resort</th>
+                  <th>Website Villa</th>
+                  <th>Photos</th>
+                  <th>Status</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...safeRows, ...reviewRows].slice(0, 160).map((row) => (
+                  <tr key={row.id}>
+                    <td>
+                      <strong>{row.localResortFolder}</strong>
+                      <span>{row.localVillaFolder || row.targetType}</span>
+                    </td>
+                    <td>{row.websiteResortName || "Not matched"}</td>
+                    <td>{row.websiteVillaName || (row.targetType === "banner" ? "Resort banner" : "Not matched")}</td>
+                    <td>{row.photoCount}</td>
+                    <td><span className={`badge ${row.safeForAutoImport ? "is-approved" : "is-pending"}`}>{row.matchStatus} · {row.confidence}</span></td>
+                    <td>{row.reason}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {preview.rows.length > 160 ? <p className="admin-table-subtle">Showing first 160 groups. All safe groups are still included when importing.</p> : null}
+          </div>
+        </div>
+      ) : null}
+
+      {report ? (
+        <article className="admin-import-run stack">
+          <div className="admin-form-section__header">
+            <h3 className="admin-form-section__title">Photo Import Report</h3>
+            <p className="admin-form-section__help">
+              {report.summary.uploadedCount} photos uploaded across {report.summary.affectedResorts} resorts. {report.summary.notUploadedCount} photos were not uploaded.
+            </p>
+          </div>
+          <div className="admin-form-actions">
+            <button type="button" className="admin-btn admin-btn--secondary" onClick={() => downloadPhotoImportReport(report)}>
+              Download Report CSV
+            </button>
+          </div>
+          <div className="admin-import-log-list">
+            {report.notUploaded.slice(0, 50).map((item, index) => (
+              <article key={`${item.websiteResortName}-${item.websiteVillaName}-${index}`} className="admin-import-log admin-import-log--warning">
+                <div className="admin-import-log__header">
+                  <strong>{item.websiteResortName || "Unmatched photo"}</strong>
+                  <span className="badge">Not uploaded</span>
+                </div>
+                <p>{item.websiteVillaName || item.targetType}: {item.reason}</p>
+              </article>
+            ))}
+          </div>
+        </article>
+      ) : null}
+    </article>
+  );
+}
+
 function ImportUploadPanel() {
   const [state, setState] = useState<ImportActionState>(undefined);
   const [pending, setPending] = useState(false);
@@ -826,6 +1279,7 @@ export function ImportCenterForms({ checkpoints }: { checkpoints: ImportCheckpoi
         <CheckpointModal checkpoints={checkpoints} />
       </div>
       <ImportDrivePanel />
+      <PhotoImportPanel />
       <ExcelSyncPanel />
       <ImportUploadPanel />
     </div>

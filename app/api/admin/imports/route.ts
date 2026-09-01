@@ -21,6 +21,12 @@ import { ensureImportUploadBucket, SITE_ASSET_BUCKET } from "@/lib/storage/site-
 import { toErrorMessage } from "@/lib/error-message";
 import { aiImportRequestSchema } from "@/lib/validations";
 import { normalizePropertyType, type PropertyType } from "@/lib/services/resort-service";
+import {
+  commitPhotoImport,
+  previewPhotoImport,
+  type PhotoImportCommitInput,
+  type PhotoImportFileInput
+} from "@/lib/services/photo-import-service";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -118,6 +124,61 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ ok: true, message: result.data.message, data: result.data });
+  }
+
+  if (mode === "photo-preview") {
+    const files = Array.isArray(json?.files) ? json.files : [];
+    const result = await previewPhotoImport({
+      propertyType: normalizePropertyType(json?.propertyType),
+      files: files.map((file: Partial<PhotoImportFileInput>) => ({
+        relativePath: String(file.relativePath ?? ""),
+        name: String(file.name ?? ""),
+        size: Number(file.size ?? 0),
+        type: String(file.type ?? "")
+      }))
+    });
+
+    return NextResponse.json({
+      ok: true,
+      message: `${result.summary.safeGroups} photo groups are safe for import. ${result.summary.reviewGroups} need review.`,
+      data: result
+    });
+  }
+
+  if (mode === "photo-create-upload-url") {
+    const filename = String(json?.filename ?? "").trim();
+    const contentType = String(json?.contentType ?? "").trim() || "image/jpeg";
+    const folder = String(json?.folder ?? "media-library/resorts").trim() || "media-library/resorts";
+
+    if (!filename) {
+      return NextResponse.json({ ok: false, error: "Filename is required." }, { status: 400 });
+    }
+
+    try {
+      const { createSignedSiteAssetUpload } = await import("@/lib/storage/site-assets");
+      const data = await createSignedSiteAssetUpload(filename, contentType, folder, filename);
+      return NextResponse.json({ ok: true, data });
+    } catch (error) {
+      return NextResponse.json({ ok: false, error: toErrorMessage(error, "Could not prepare photo upload.") }, { status: 500 });
+    }
+  }
+
+  if (mode === "photo-commit") {
+    const result = await commitPhotoImport({
+      propertyType: normalizePropertyType(json?.propertyType),
+      replaceExisting: Boolean(json?.replaceExisting),
+      rows: Array.isArray(json?.rows) ? json.rows : [],
+      uploadedItems: Array.isArray(json?.uploadedItems) ? json.uploadedItems : []
+    } as PhotoImportCommitInput);
+
+    revalidatePath("/admin/imports");
+    revalidatePropertyType(normalizePropertyType(json?.propertyType));
+
+    return NextResponse.json({
+      ok: true,
+      message: `${result.summary.uploadedCount} photos uploaded. ${result.summary.notUploadedCount} photos not uploaded.`,
+      data: result
+    });
   }
 
   if (mode === "excel-process") {
