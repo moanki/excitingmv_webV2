@@ -32,6 +32,10 @@ export function optimizedImageUrl(url: string | null | undefined, options: Image
       return url;
     }
 
+    if (isSupabaseObject && parsed.pathname.includes("/site-assets/")) {
+      return url;
+    }
+
     parsed.pathname = parsed.pathname.replace(SUPABASE_PUBLIC_OBJECT_MARKER, SUPABASE_RENDER_IMAGE_MARKER);
 
     if (options.width) {
