@@ -53,6 +53,12 @@ type PhotoImportPreviewRow = {
 type PhotoImportPreview = {
   localRootName: string;
   rows: PhotoImportPreviewRow[];
+  resortOptions: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    roomTypes: Array<{ id: string; name: string }>;
+  }>;
   summary: {
     totalFiles: number;
     totalGroups: number;
@@ -61,6 +67,20 @@ type PhotoImportPreview = {
     bannerGroups: number;
     villaGroups: number;
   };
+};
+
+type PhotoReviewSelection = {
+  accepted: boolean;
+  resortId: string;
+  targetType: "banner" | "villa" | "review";
+  roomId: string;
+};
+
+type PendingPhotoAttachment = {
+  propertyType: string;
+  rows: PhotoImportPreviewRow[];
+  uploadedItems: Array<{ previewRowId: string; publicUrl: string; originalName: string; sortOrder: number }>;
+  failedItems: PhotoImportReport["notUploaded"];
 };
 
 type PhotoImportReport = {
@@ -762,15 +782,39 @@ function PhotoImportPanel() {
   const [error, setError] = useState("");
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [replaceExisting, setReplaceExisting] = useState(true);
+  const [reviewSelections, setReviewSelections] = useState<Record<string, PhotoReviewSelection>>({});
+  const [pendingAttachment, setPendingAttachment] = useState<PendingPhotoAttachment | null>(null);
   const { finishAction, startAction, updateAction } = useAdminActionFeedback();
   const safeRows = useMemo(() => preview?.rows.filter((row) => row.safeForAutoImport) ?? [], [preview]);
   const reviewRows = useMemo(() => preview?.rows.filter((row) => !row.safeForAutoImport) ?? [], [preview]);
+  const importRows = useMemo(() => {
+    if (!preview) return [];
+    const acceptedRows = reviewRows.flatMap((row) => {
+      const selection = reviewSelections[row.id];
+      const resort = preview.resortOptions.find((option) => option.id === selection?.resortId);
+      const room = resort?.roomTypes.find((option) => option.id === selection?.roomId);
+      if (!selection?.accepted || !resort || (selection.targetType === "villa" && !room)) return [];
+      return [{
+        ...row,
+        websiteResortId: resort.id,
+        websiteResortName: resort.name,
+        websiteResortSlug: resort.slug,
+        websiteVillaId: selection.targetType === "villa" ? room?.id ?? "" : "",
+        websiteVillaName: selection.targetType === "banner" ? "Resort banner" : selection.targetType === "review" ? "Resort gallery" : room?.name ?? "",
+        targetType: selection.targetType,
+        safeForAutoImport: true
+      }];
+    });
+    return [...safeRows, ...acceptedRows];
+  }, [preview, reviewRows, reviewSelections, safeRows]);
   const localRootName = files[0] ? photoRelativePath(files[0]).split(/[\\/]/)[0] : "";
 
   function handleFolderChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(event.target.files ?? []).filter(isPhotoFile);
     setFiles(selected);
     setPreview(null);
+    setReviewSelections({});
+    setPendingAttachment(null);
     setReport(null);
     setMessage("");
     setError(selected.length ? "" : "Choose a folder containing JPG, PNG, or WebP photos.");
@@ -810,6 +854,12 @@ function PhotoImportPanel() {
       }
 
       setPreview(payload.data);
+      setReviewSelections(Object.fromEntries(payload.data.rows.filter((row) => !row.safeForAutoImport).map((row) => [row.id, {
+        accepted: false,
+        resortId: row.websiteResortId,
+        targetType: row.targetType === "banner" || row.targetType === "villa" ? row.targetType : "review",
+        roomId: row.websiteVillaId
+      }])));
       setMessage(payload.message || "Photo import preview ready.");
     } catch (previewError) {
       setError(toErrorMessage(previewError, "Could not preview photo matches."));
@@ -819,18 +869,18 @@ function PhotoImportPanel() {
   }
 
   async function importSafePhotos() {
-    if (!preview || safeRows.length === 0) {
-      setError("There are no safe photo groups to import.");
+    if (!preview || importRows.length === 0 || pendingAttachment) {
+      setError("There are no matched or accepted photo groups to import.");
       return;
     }
 
     const actionId = startAction({
       title: "Uploading resort photos...",
-      message: "Preparing signed uploads for safe resort and villa matches.",
+      message: "Preparing signed uploads for matched and accepted resort photos.",
       progress: 0
     });
     const fileByPath = new Map(files.map((file) => [photoRelativePath(file), file]));
-    const total = safeRows.reduce((count, row) => count + row.files.length, 0);
+    const total = importRows.reduce((count, row) => count + row.files.length, 0);
     const uploadedItems: Array<{ previewRowId: string; publicUrl: string; originalName: string; sortOrder: number }> = [];
     const failedItems: PhotoImportReport["notUploaded"] = [];
 
@@ -844,7 +894,7 @@ function PhotoImportPanel() {
       const supabase = createSupabaseBrowserClient();
       let done = 0;
 
-      for (const row of safeRows) {
+      for (const row of importRows) {
         for (let index = 0; index < row.files.length; index += 1) {
           const fileInfo = row.files[index];
           const file = fileByPath.get(fileInfo.relativePath);
@@ -859,7 +909,8 @@ function PhotoImportPanel() {
           }
 
           try {
-            const folder = `resorts/${row.websiteResortSlug}/${row.targetType === "banner" ? "banner" : safeStorageSegment(row.websiteVillaName)}`;
+            const targetFolder = row.targetType === "banner" ? "banner" : row.targetType === "review" ? "gallery" : safeStorageSegment(row.websiteVillaName);
+            const folder = `resorts/${row.websiteResortSlug}/${targetFolder}`;
             const signedResponse = await fetch("/api/admin/imports", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -913,6 +964,7 @@ function PhotoImportPanel() {
         }
       }
 
+      if (uploadedItems.length) setPendingAttachment({ propertyType, rows: importRows, uploadedItems, failedItems });
       const commitResponse = await fetch("/api/admin/imports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -920,7 +972,7 @@ function PhotoImportPanel() {
           mode: "photo-commit",
           propertyType,
           replaceExisting,
-          rows: safeRows,
+          rows: importRows,
           uploadedItems
         })
       });
@@ -948,6 +1000,9 @@ function PhotoImportPanel() {
         }
       };
       setReport(combinedReport);
+      setPendingAttachment(commitPayload.data.summary.notUploadedCount > 0
+        ? { propertyType, rows: importRows, uploadedItems, failedItems: [] }
+        : null);
       setMessage(commitPayload.message || "Photo import completed.");
       finishAction(actionId, {
         title: "Photo import completed",
@@ -962,12 +1017,58 @@ function PhotoImportPanel() {
     }
   }
 
+  async function retryPhotoAttachment() {
+    if (!pendingAttachment) return;
+    const actionId = startAction({ title: "Attaching uploaded photos...", message: "Retrying the database attachment for files already in Storage." });
+    setPending(true);
+    setError("");
+    try {
+      const response = await fetch("/api/admin/imports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "photo-commit",
+          propertyType: pendingAttachment.propertyType,
+          replaceExisting: false,
+          rows: pendingAttachment.rows,
+          uploadedItems: pendingAttachment.uploadedItems
+        })
+      });
+      const payload = (await response.json().catch(() => null)) as { ok?: boolean; error?: string; message?: string; data?: PhotoImportReport } | null;
+      if (!response.ok || !payload?.ok || !payload.data) {
+        const reason = payload?.error || `Attachment retry failed (HTTP ${response.status}).`;
+        setError(reason);
+        finishAction(actionId, { title: "Attachment retry failed", message: reason, status: "error" });
+        return;
+      }
+
+      const combinedReport = {
+        ...payload.data,
+        notUploaded: [...payload.data.notUploaded, ...pendingAttachment.failedItems],
+        summary: {
+          ...payload.data.summary,
+          notUploadedCount: payload.data.notUploaded.length + pendingAttachment.failedItems.length
+        }
+      };
+      setReport(combinedReport);
+      if (payload.data.summary.notUploadedCount === 0) setPendingAttachment(null);
+      setMessage(payload.message || "Uploaded photos attached.");
+      finishAction(actionId, { title: "Photo attachment completed", message: `${combinedReport.summary.uploadedCount} attached, ${combinedReport.summary.notUploadedCount} not attached.`, status: "success" });
+    } catch (retryError) {
+      const reason = toErrorMessage(retryError, "Attachment retry failed.");
+      setError(reason);
+      finishAction(actionId, { title: "Attachment retry failed", message: reason, status: "error" });
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <article className="panel admin-form-card photo-import-panel">
       <div className="admin-form-section__header">
         <h3 className="admin-form-section__title">Bulk Photo Import</h3>
         <p className="admin-form-section__help">
-          Select the local resort photo folder, preview exact resort and villa matches, then upload only safe matches.
+          Select the photo folder, preview matches, and accept reviewed resort, villa, banner, or gallery targets before importing.
         </p>
       </div>
 
@@ -993,12 +1094,17 @@ function PhotoImportPanel() {
         <button type="button" className="admin-btn admin-btn--secondary" onClick={previewPhotos} disabled={pending || files.length === 0}>
           <FolderOpen className="admin-btn__icon" />Preview Matches
         </button>
-        <button type="button" className="admin-btn admin-btn--primary" onClick={importSafePhotos} disabled={pending || safeRows.length === 0}>
-          <UploadCloud className="admin-btn__icon" />{pending ? "Importing..." : `Import Safe Matches (${safeRows.length})`}
+        <button type="button" className="admin-btn admin-btn--primary" onClick={importSafePhotos} disabled={pending || importRows.length === 0 || Boolean(pendingAttachment)}>
+          <UploadCloud className="admin-btn__icon" />{pending ? "Importing..." : `Import Accepted Photos (${importRows.length})`}
         </button>
+        {pendingAttachment ? (
+          <button type="button" className="admin-btn admin-btn--secondary" onClick={retryPhotoAttachment} disabled={pending}>
+            <UploadCloud className="admin-btn__icon" />Retry Attachment ({pendingAttachment.uploadedItems.length})
+          </button>
+        ) : null}
         <label className="admin-checkbox-inline">
           <input type="checkbox" checked={replaceExisting} onChange={(event) => setReplaceExisting(event.target.checked)} />
-          <span>Replace existing matched room/banner photos</span>
+          <span>Replace existing photos for selected targets</span>
         </label>
       </div>
 
@@ -1049,7 +1155,49 @@ function PhotoImportPanel() {
                     <td>{row.websiteVillaName || (row.targetType === "banner" ? "Resort banner" : "Not matched")}</td>
                     <td>{row.photoCount}</td>
                     <td><span className={`badge ${row.safeForAutoImport ? "is-approved" : "is-pending"}`}>{row.matchStatus} · {row.confidence}</span></td>
-                    <td>{row.reason}</td>
+                    <td>
+                      <p>{row.reason}</p>
+                      {!row.safeForAutoImport && preview ? (() => {
+                        const selection = reviewSelections[row.id] ?? { accepted: false, resortId: "", targetType: "review" as const, roomId: "" };
+                        const selectedResort = preview.resortOptions.find((option) => option.id === selection.resortId);
+                        const updateSelection = (changes: Partial<PhotoReviewSelection>) => setReviewSelections((current) => ({
+                          ...current,
+                          [row.id]: { ...selection, ...changes, accepted: changes.accepted ?? false }
+                        }));
+                        return (
+                          <div className="stack">
+                            <label className="field">
+                              <span className="field__label">Resort match</span>
+                              <select className="admin-select" value={selection.resortId} onChange={(event) => updateSelection({ resortId: event.target.value, roomId: "" })}>
+                                <option value="">Select resort</option>
+                                {preview.resortOptions.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}
+                              </select>
+                            </label>
+                            <label className="field">
+                              <span className="field__label">Attach photos to</span>
+                              <select className="admin-select" value={selection.targetType} onChange={(event) => updateSelection({ targetType: event.target.value as PhotoReviewSelection["targetType"], roomId: "" })}>
+                                <option value="villa">Villa</option>
+                                <option value="banner">Resort banner</option>
+                                <option value="review">Resort gallery</option>
+                              </select>
+                            </label>
+                            {selection.targetType === "villa" ? (
+                              <label className="field">
+                                <span className="field__label">Villa match</span>
+                                <select className="admin-select" value={selection.roomId} onChange={(event) => updateSelection({ roomId: event.target.value })} disabled={!selectedResort}>
+                                  <option value="">Select villa</option>
+                                  {selectedResort?.roomTypes.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
+                                </select>
+                              </label>
+                            ) : null}
+                            <label className="admin-checkbox-inline">
+                              <input type="checkbox" checked={selection.accepted} disabled={!selectedResort || (selection.targetType === "villa" && !selection.roomId)} onChange={(event) => updateSelection({ accepted: event.target.checked })} />
+                              <span>Accept this match for import</span>
+                            </label>
+                          </div>
+                        );
+                      })() : null}
+                    </td>
                   </tr>
                 ))}
               </tbody>

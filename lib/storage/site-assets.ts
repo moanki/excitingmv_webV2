@@ -280,10 +280,12 @@ async function imageVariantBuffer(file: File, variant: keyof typeof VARIANT_PROF
 
 async function ensureBucket(strict = false) {
   const supabase = createSupabaseAdminClient();
-  const { data: buckets } = await supabase.storage.listBuckets();
+  const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+  if (listError) throw new Error(`Could not check site asset bucket. ${listError.message}`);
   const existing = buckets?.find((bucket) => bucket.name === SITE_ASSET_BUCKET);
 
   if (existing) {
+    if (!strict) return supabase;
     const updated = await supabase.storage.updateBucket(SITE_ASSET_BUCKET, {
         public: true,
         fileSizeLimit: `${SITE_ASSET_BUCKET_FILE_SIZE_LIMIT}`,
@@ -409,7 +411,7 @@ export async function uploadSiteAsset(
 export async function createSignedSiteAssetUpload(filename: string, contentType: string, folder: string, originalName = filename) {
   await requireAdminRole(["super_admin", "admin", "content_manager"]);
   validateSiteAssetType(filename, contentType);
-  const supabase = await ensureBucket();
+  const supabase = createSupabaseAdminClient();
   const safeFolder = normalizeFolderPath(folder);
   const extension = fileExtension({ name: filename, type: contentType } as File);
   const assetId = `${Date.now()}-${crypto.randomUUID()}`;

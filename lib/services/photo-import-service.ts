@@ -31,6 +31,12 @@ export type PhotoImportPreviewRow = {
 export type PhotoImportPreviewResult = {
   localRootName: string;
   rows: PhotoImportPreviewRow[];
+  resortOptions: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    roomTypes: Array<{ id: string; name: string }>;
+  }>;
   summary: {
     totalFiles: number;
     totalGroups: number;
@@ -59,7 +65,7 @@ export type PhotoImportCommitResult = {
   uploaded: Array<{
     websiteResortName: string;
     websiteVillaName: string;
-    targetType: "banner" | "villa";
+    targetType: "banner" | "villa" | "review";
     publicUrl: string;
     originalName: string;
   }>;
@@ -370,6 +376,12 @@ export async function previewPhotoImport(input: { propertyType?: PropertyType; f
   return {
     localRootName,
     rows,
+    resortOptions: resorts.map((resort) => ({
+      id: resort.id,
+      name: resort.name,
+      slug: resort.slug,
+      roomTypes: resort.roomTypes.flatMap((room) => room.id ? [{ id: room.id, name: room.name }] : [])
+    })),
     summary: {
       totalFiles: input.files.length,
       totalGroups: rows.length,
@@ -388,6 +400,13 @@ export async function commitPhotoImport(input: PhotoImportCommitInput): Promise<
   const notUploaded: PhotoImportCommitResult["notUploaded"] = [];
   const affectedResortIds = new Set<string>();
   const groupedDeletes = new Set<string>();
+  const seenUrls = new Set<string>();
+  const planned: Array<{
+    row: NonNullable<ReturnType<typeof safeRows.get>>;
+    item: PhotoImportUploadedItem;
+    targetKey: string;
+    media: { resort_id: string; room_id: string | null; file_path: string; alt_text: string; is_hero: boolean; sort_order: number };
+  }> = [];
 
   for (const item of input.uploadedItems) {
     const row = safeRows.get(item.previewRowId);
@@ -401,45 +420,72 @@ export async function commitPhotoImport(input: PhotoImportCommitInput): Promise<
       continue;
     }
 
-    if (row.targetType === "review") {
-      notUploaded.push({ websiteResortName: row.websiteResortName, websiteVillaName: row.websiteVillaName, targetType: row.targetType, reason: `Skipped ${item.originalName}: review-only rows cannot be imported automatically.` });
-      continue;
-    }
-
+    if (seenUrls.has(item.publicUrl)) continue;
+    seenUrls.add(item.publicUrl);
     const targetKey = `${row.websiteResortId}:${row.targetType}:${row.websiteVillaId || "banner"}`;
-    if (input.replaceExisting && !groupedDeletes.has(targetKey)) {
-      const deleteQuery = supabase.from("resort_media").delete().eq("resort_id", row.websiteResortId);
-      const deleted = row.targetType === "banner"
+    planned.push({
+      row,
+      item,
+      targetKey,
+      media: {
+        resort_id: row.websiteResortId,
+        room_id: row.targetType === "villa" ? row.websiteVillaId : null,
+        file_path: item.publicUrl,
+        alt_text: row.targetType === "villa" ? `${row.websiteResortName} ${row.websiteVillaName}` : row.websiteResortName,
+        is_hero: row.targetType === "banner",
+        sort_order: row.targetType === "banner" ? item.sortOrder : 100 + item.sortOrder
+      }
+    });
+  }
+
+  if (input.replaceExisting) {
+    const failedDeleteTargets = new Set<string>();
+    for (const entry of planned) {
+      if (groupedDeletes.has(entry.targetKey)) continue;
+      const deleteQuery = supabase.from("resort_media").delete().eq("resort_id", entry.row.websiteResortId);
+      const deleted = entry.row.targetType === "banner"
         ? await deleteQuery.is("room_id", null).eq("is_hero", true)
-        : await deleteQuery.eq("room_id", row.websiteVillaId);
-      groupedDeletes.add(targetKey);
+        : entry.row.targetType === "villa"
+          ? await deleteQuery.eq("room_id", entry.row.websiteVillaId)
+          : await deleteQuery.is("room_id", null).eq("is_hero", false);
+      groupedDeletes.add(entry.targetKey);
       if (deleted.error) {
-        notUploaded.push({ websiteResortName: row.websiteResortName, websiteVillaName: row.websiteVillaName, targetType: row.targetType, reason: deleted.error.message });
-        continue;
+        notUploaded.push({ websiteResortName: entry.row.websiteResortName, websiteVillaName: entry.row.websiteVillaName, targetType: entry.row.targetType, reason: deleted.error.message });
+        failedDeleteTargets.add(entry.targetKey);
       }
     }
-
-    const inserted = await supabase.from("resort_media").insert({
-      resort_id: row.websiteResortId,
-      room_id: row.targetType === "villa" ? row.websiteVillaId : null,
-      file_path: item.publicUrl,
-      alt_text: row.targetType === "villa" ? `${row.websiteResortName} ${row.websiteVillaName}` : row.websiteResortName,
-      is_hero: row.targetType === "banner",
-      sort_order: row.targetType === "banner" ? item.sortOrder : 100 + item.sortOrder
+    planned.forEach((entry) => {
+      if (failedDeleteTargets.has(entry.targetKey)) entry.targetKey = "";
     });
+  } else {
+    const uniqueUrls = [...new Set(planned.map((entry) => entry.item.publicUrl))];
+    const existingTargets = new Set<string>();
+    for (let index = 0; index < uniqueUrls.length; index += 100) {
+      const { data, error } = await supabase.from("resort_media").select("file_path,resort_id,room_id,is_hero").in("file_path", uniqueUrls.slice(index, index + 100));
+      if (error) throw new Error(`Could not check existing photo attachments: ${error.message}`);
+      data?.forEach((media) => existingTargets.add(`${media.file_path}:${media.resort_id}:${media.room_id ?? ""}:${media.is_hero}`));
+    }
+    planned.forEach((entry) => {
+      const targetSignature = `${entry.item.publicUrl}:${entry.media.resort_id}:${entry.media.room_id ?? ""}:${entry.media.is_hero}`;
+      if (!existingTargets.has(targetSignature)) return;
+      affectedResortIds.add(entry.row.websiteResortId);
+      uploaded.push({ websiteResortName: entry.row.websiteResortName, websiteVillaName: entry.row.websiteVillaName, targetType: entry.row.targetType, publicUrl: entry.item.publicUrl, originalName: entry.item.originalName });
+      entry.targetKey = "";
+    });
+  }
 
-    if (inserted.error) {
-      notUploaded.push({ websiteResortName: row.websiteResortName, websiteVillaName: row.websiteVillaName, targetType: row.targetType, reason: inserted.error.message });
+  const insertable = planned.filter((entry) => entry.targetKey);
+  for (let index = 0; index < insertable.length; index += 100) {
+    const batch = insertable.slice(index, index + 100);
+    const { error } = await supabase.from("resort_media").insert(batch.map((entry) => entry.media));
+    if (error) {
+      batch.forEach((entry) => notUploaded.push({ websiteResortName: entry.row.websiteResortName, websiteVillaName: entry.row.websiteVillaName, targetType: entry.row.targetType, reason: error.message }));
       continue;
     }
 
-    affectedResortIds.add(row.websiteResortId);
-    uploaded.push({
-      websiteResortName: row.websiteResortName,
-      websiteVillaName: row.websiteVillaName,
-      targetType: row.targetType,
-      publicUrl: item.publicUrl,
-      originalName: item.originalName
+    batch.forEach((entry) => {
+      affectedResortIds.add(entry.row.websiteResortId);
+      uploaded.push({ websiteResortName: entry.row.websiteResortName, websiteVillaName: entry.row.websiteVillaName, targetType: entry.row.targetType, publicUrl: entry.item.publicUrl, originalName: entry.item.originalName });
     });
   }
 

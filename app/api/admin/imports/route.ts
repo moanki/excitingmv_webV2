@@ -164,21 +164,26 @@ export async function POST(request: Request) {
   }
 
   if (mode === "photo-commit") {
-    const result = await commitPhotoImport({
-      propertyType: normalizePropertyType(json?.propertyType),
-      replaceExisting: Boolean(json?.replaceExisting),
-      rows: Array.isArray(json?.rows) ? json.rows : [],
-      uploadedItems: Array.isArray(json?.uploadedItems) ? json.uploadedItems : []
-    } as PhotoImportCommitInput);
+    try {
+      const result = await commitPhotoImport({
+        propertyType: normalizePropertyType(json?.propertyType),
+        replaceExisting: Boolean(json?.replaceExisting),
+        rows: Array.isArray(json?.rows) ? json.rows : [],
+        uploadedItems: Array.isArray(json?.uploadedItems) ? json.uploadedItems : []
+      } as PhotoImportCommitInput);
 
-    revalidatePath("/admin/imports");
-    revalidatePropertyType(normalizePropertyType(json?.propertyType));
+      revalidatePath("/admin/imports");
+      revalidatePropertyType(normalizePropertyType(json?.propertyType));
 
-    return NextResponse.json({
-      ok: true,
-      message: `${result.summary.uploadedCount} photos uploaded. ${result.summary.notUploadedCount} photos not uploaded.`,
-      data: result
-    });
+      return NextResponse.json({
+        ok: true,
+        message: `${result.summary.uploadedCount} photos attached. ${result.summary.notUploadedCount} photos not attached.`,
+        data: result
+      });
+    } catch (error) {
+      console.error("Photo import commit failed", error);
+      return NextResponse.json({ ok: false, error: toErrorMessage(error, "Photo attachment failed.") }, { status: 500 });
+    }
   }
 
   if (mode === "excel-process") {
