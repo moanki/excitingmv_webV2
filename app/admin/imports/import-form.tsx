@@ -783,10 +783,16 @@ function PhotoImportPanel() {
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [replaceExisting, setReplaceExisting] = useState(true);
   const [reviewSelections, setReviewSelections] = useState<Record<string, PhotoReviewSelection>>({});
+  const [photoView, setPhotoView] = useState<"matched" | "review">("matched");
   const [pendingAttachment, setPendingAttachment] = useState<PendingPhotoAttachment | null>(null);
   const { finishAction, startAction, updateAction } = useAdminActionFeedback();
   const safeRows = useMemo(() => preview?.rows.filter((row) => row.safeForAutoImport) ?? [], [preview]);
   const reviewRows = useMemo(() => preview?.rows.filter((row) => !row.safeForAutoImport) ?? [], [preview]);
+  const readyReviewRows = useMemo(() => reviewRows.filter((row) => {
+    const selection = reviewSelections[row.id];
+    const resort = preview?.resortOptions.find((option) => option.id === selection?.resortId);
+    return Boolean(resort && (selection?.targetType !== "villa" || resort.roomTypes.some((room) => room.id === selection.roomId)));
+  }), [preview, reviewRows, reviewSelections]);
   const importRows = useMemo(() => {
     if (!preview) return [];
     const acceptedRows = reviewRows.flatMap((row) => {
@@ -1132,6 +1138,28 @@ function PhotoImportPanel() {
             <div className="stat-card"><p className="eyebrow">Banners / Villas</p><strong>{preview.summary.bannerGroups} / {preview.summary.villaGroups}</strong></div>
           </div>
 
+          <div className="photo-import-tabs" role="tablist" aria-label="Photo import matches">
+            <button type="button" role="tab" aria-selected={photoView === "matched"} className={photoView === "matched" ? "is-active" : ""} onClick={() => setPhotoView("matched")}>
+              Matched ({safeRows.length})
+            </button>
+            <button type="button" role="tab" aria-selected={photoView === "review"} className={photoView === "review" ? "is-active" : ""} onClick={() => setPhotoView("review")}>
+              Needs review ({reviewRows.length})
+            </button>
+          </div>
+
+          {photoView === "review" ? (
+            <div className="admin-form-section__header">
+              <p className="admin-form-section__help">Review each resort and destination. Bulk acceptance applies only to rows with a valid destination selected.</p>
+              <button type="button" className="admin-btn admin-btn--secondary" disabled={!readyReviewRows.length} onClick={() => setReviewSelections((current) => {
+                const next = { ...current };
+                for (const row of readyReviewRows) next[row.id] = { ...next[row.id], accepted: true };
+                return next;
+              })}>
+                Accept all ready ({readyReviewRows.length})
+              </button>
+            </div>
+          ) : null}
+
           <div className="admin-table-shell photo-import-table">
             <table className="table">
               <thead>
@@ -1145,7 +1173,7 @@ function PhotoImportPanel() {
                 </tr>
               </thead>
               <tbody>
-                {[...safeRows, ...reviewRows].slice(0, 160).map((row) => (
+                {(photoView === "matched" ? safeRows : reviewRows).slice(0, 160).map((row) => (
                   <tr key={row.id}>
                     <td>
                       <strong>{row.localResortFolder}</strong>
@@ -1202,7 +1230,7 @@ function PhotoImportPanel() {
                 ))}
               </tbody>
             </table>
-            {preview.rows.length > 160 ? <p className="admin-table-subtle">Showing first 160 groups. All safe groups are still included when importing.</p> : null}
+            {(photoView === "matched" ? safeRows : reviewRows).length > 160 ? <p className="admin-table-subtle">Showing first 160 groups.</p> : null}
           </div>
         </div>
       ) : null}

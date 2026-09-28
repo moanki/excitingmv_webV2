@@ -4974,6 +4974,29 @@ select {
   gap: 1.1rem;
 }
 
+.photo-import-tabs {
+  display: flex;
+  gap: 4px;
+  width: fit-content;
+  border-bottom: 1px solid var(--admin-border, #d1d5db);
+}
+
+.photo-import-tabs button {
+  padding: 9px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--admin-muted, #6b7280);
+  font: inherit;
+  cursor: pointer;
+}
+
+.photo-import-tabs button.is-active {
+  border-bottom-color: var(--admin-accent, #0f766e);
+  color: var(--admin-ink, #111827);
+  font-weight: 600;
+}
+
 .photo-import-table .table td {
   vertical-align: top;
 }
