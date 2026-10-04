@@ -25,6 +25,7 @@ import {
   seedResortsAction
 } from "@/app/admin/resorts/actions";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
+import { useAdminActionFeedback } from "@/components/admin/admin-action-feedback";
 import { ActionForm, ActionMessage, InlineSpinner, SubmitButton } from "@/components/admin/action-feedback";
 import { optimizedImageUrl } from "@/lib/image-urls";
 import type { PublishStatus, ResortCuratedMoment } from "@/lib/types";
@@ -1126,6 +1127,14 @@ export function ResortManagerListView({
   const [filter, setFilter] = useState<ResortFilter>("all");
   const [selectedDraftIds, setSelectedDraftIds] = useState<string[]>([]);
   const [bulkPublishState, bulkPublishAction] = useActionState(publishSelectedDraftsAction, undefined);
+  const [deleteState, deleteAction, deletePending] = useActionState(deleteResortAction, undefined);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { startAction } = useAdminActionFeedback();
+  const deleteFormId = `delete-${propertyType}-form`;
+
+  useEffect(() => {
+    if (!deletePending) setDeletingId(null);
+  }, [deletePending]);
 
   const filteredResorts = useMemo(() => {
     return resorts.filter((resort) => {
@@ -1347,7 +1356,19 @@ export function ResortManagerListView({
                       <Eye className="admin-icon" />
                     </Link>
                   ) : null}
-                  <ActionForm action={deleteResortAction} hidden={{ id: resort.id, propertyType }} idleLabel="" pendingLabel="" icon={<Trash2 className="admin-icon" />} variant="icon" buttonClassName="act-btn act-btn-danger" ariaLabel={`Delete ${resort.name}`} confirmMessage={`Delete ${resort.name}? This permanently removes the property. Archiving is usually safer.`} />
+                  <button
+                    className="act-btn act-btn-danger"
+                    type="submit"
+                    form={deleteFormId}
+                    name="id"
+                    value={resort.id}
+                    aria-label={`Delete ${resort.name}`}
+                    title={`Delete ${resort.name}`}
+                    data-admin-feedback-managed="true"
+                    disabled={deletePending}
+                  >
+                    {deletePending && deletingId === resort.id ? <InlineSpinner /> : <Trash2 className="admin-icon" />}
+                  </button>
                 </div>
               </article>
             );
@@ -1359,6 +1380,24 @@ export function ResortManagerListView({
           <p>Try a different filter or add your first {labels.singular.toLowerCase()} to start building this collection.</p>
         </div>
       )}
+      <form
+        id={deleteFormId}
+        action={deleteAction}
+        onSubmit={(event) => {
+          const submitter = (event.nativeEvent as SubmitEvent).submitter;
+          const id = submitter instanceof HTMLButtonElement ? submitter.value : "";
+          const resort = resorts.find((item) => item.id === id);
+          if (!resort || !window.confirm(`Delete ${resort.name}? This permanently removes the property. Archiving is usually safer.`)) {
+            event.preventDefault();
+            return;
+          }
+          setDeletingId(id);
+          startAction({ title: `Deleting ${resort.name}...` });
+        }}
+      >
+        <input type="hidden" name="propertyType" value={propertyType} />
+      </form>
+      <ActionMessage state={deleteState} />
     </div>
   );
 }

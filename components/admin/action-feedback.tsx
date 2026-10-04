@@ -23,7 +23,7 @@ export function ActionMessage({ state }: { state: ActionState }) {
       finishLatestAction({ title: state.message, status: "success" });
       router.refresh();
     }
-  }, [finishLatestAction, router, state?.error, state?.message]);
+  }, [finishLatestAction, router, state]);
 
   if (state?.error) return <p className="admin-alert admin-alert--error" role="alert" data-admin-feedback-handled="true">{state.error}</p>;
   if (state?.message) return <p className="admin-alert admin-alert--success" role="status" data-admin-feedback-handled="true">{state.message}</p>;
