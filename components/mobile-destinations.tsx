@@ -58,7 +58,7 @@ export function MobileDestinations({ activeKind, items }: MobileDestinationsProp
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [sort, setSort] = useState<SortOption>("recommended");
+  const [sort, setSort] = useState<SortOption>(activeKind === "resort" ? "az" : "recommended");
 
   useEffect(() => {
     if (!filtersOpen) return;

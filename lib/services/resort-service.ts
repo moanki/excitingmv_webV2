@@ -377,21 +377,38 @@ async function attachResortRelations(resorts: ResortRecord[]) {
 
   const supabase = createSupabaseAdminClient();
   const resortIds = resorts.map((resort) => resort.id);
-  const [{ data: mediaRows }, { data: roomRows }] = await Promise.all([
-    supabase
-      .from("resort_media")
-      .select("resort_id,room_id,file_path,is_hero,sort_order")
-      .in("resort_id", resortIds)
-      .order("sort_order", { ascending: true }),
-    supabase
-      .from("rooms")
-      .select("id,resort_id,name,short_description,size_label,max_occupancy,bed_type,features,seo_summary,sort_order")
-      .in("resort_id", resortIds)
-      .order("sort_order", { ascending: true })
+  const [typedMediaRows, typedRoomRows] = await Promise.all([
+    (async () => {
+      const rows: MediaRow[] = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabase
+          .from("resort_media")
+          .select("resort_id,room_id,file_path,is_hero,sort_order")
+          .in("resort_id", resortIds)
+          .order("sort_order", { ascending: true })
+          .order("file_path", { ascending: true })
+          .range(from, from + 999);
+        if (error) throw error;
+        rows.push(...((data ?? []) as MediaRow[]));
+        if (!data || data.length < 1000) return rows;
+      }
+    })(),
+    (async () => {
+      const rows: RoomRow[] = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabase
+          .from("rooms")
+          .select("id,resort_id,name,short_description,size_label,max_occupancy,bed_type,features,seo_summary,sort_order")
+          .in("resort_id", resortIds)
+          .order("sort_order", { ascending: true })
+          .order("id", { ascending: true })
+          .range(from, from + 999);
+        if (error) throw error;
+        rows.push(...((data ?? []) as RoomRow[]));
+        if (!data || data.length < 1000) return rows;
+      }
+    })()
   ]);
-
-  const typedMediaRows = (mediaRows ?? []) as MediaRow[];
-  const typedRoomRows = (roomRows ?? []) as RoomRow[];
 
   const resortMediaMap = new Map<string, { heroImageUrl: string; galleryMediaUrls: string[] }>();
   typedMediaRows

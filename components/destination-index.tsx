@@ -349,15 +349,15 @@ function hasActiveFilters(query: string, filters: PortfolioFiltersState, sort: S
   return Boolean(query.trim() || filters.category || filters.selection || filters.location || filters.transfer || sort !== "recommended");
 }
 
-function readInitialQueryState() {
+function readInitialQueryState(defaultSort: SortOption) {
   if (typeof window === "undefined") {
-    return { query: "", filters: initialFilters, sort: "recommended" as SortOption };
+    return { query: "", filters: initialFilters, sort: defaultSort };
   }
 
   const params = new URLSearchParams(window.location.search);
   const sort = params.get("sort");
   const validSort: SortOption =
-    sort === "az" || sort === "location" || sort === "category" || sort === "recent" ? sort : "recommended";
+    sort === "recommended" || sort === "az" || sort === "location" || sort === "category" || sort === "recent" ? sort : defaultSort;
 
   return {
     query: params.get("q") ?? "",
@@ -371,7 +371,7 @@ function readInitialQueryState() {
   };
 }
 
-function writeQueryState(query: string, filters: PortfolioFiltersState, sort: SortOption) {
+function writeQueryState(query: string, filters: PortfolioFiltersState, sort: SortOption, defaultSort: SortOption) {
   if (typeof window === "undefined") {
     return;
   }
@@ -382,7 +382,7 @@ function writeQueryState(query: string, filters: PortfolioFiltersState, sort: So
   if (filters.selection) params.set("selection", filters.selection);
   if (filters.location) params.set("location", filters.location);
   if (filters.transfer) params.set("transfer", filters.transfer);
-  if (sort !== "recommended") params.set("sort", sort);
+  if (sort !== defaultSort) params.set("sort", sort);
 
   const nextUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
   window.history.replaceState(null, "", nextUrl);
@@ -1006,10 +1006,11 @@ function DestinationMobileTabs({ activeKind }: { activeKind: DestinationKind }) 
 }
 
 export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
+  const defaultSort: SortOption = activeKind === "resort" ? "az" : "recommended";
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [filters, setFilters] = useState<PortfolioFiltersState>(initialFilters);
-  const [sort, setSort] = useState<SortOption>("recommended");
+  const [sort, setSort] = useState<SortOption>(defaultSort);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
   const [visibleCount, setVisibleCount] = useState(initialVisibleCount);
@@ -1018,12 +1019,12 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
   const portfolioItems = useMemo(() => normalizePortfolioItems(activeKind, items), [activeKind, items]);
 
   useEffect(() => {
-    const nextState = readInitialQueryState();
+    const nextState = readInitialQueryState(defaultSort);
     setQuery(nextState.query);
     setDebouncedQuery(nextState.query);
     setFilters(nextState.filters);
     setSort(nextState.sort);
-  }, []);
+  }, [defaultSort]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedQuery(query), 250);
@@ -1057,8 +1058,8 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
       return;
     }
 
-    writeQueryState(debouncedQuery, filters, sort);
-  }, [debouncedQuery, filters, sort]);
+    writeQueryState(debouncedQuery, filters, sort, defaultSort);
+  }, [debouncedQuery, defaultSort, filters, sort]);
 
   const visibleItems = filteredItems.slice(0, visibleCount);
 
@@ -1066,7 +1067,7 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
     setQuery("");
     setDebouncedQuery("");
     setFilters(initialFilters);
-    setSort("recommended");
+    setSort(defaultSort);
     setFiltersOpen(false);
   }
 
