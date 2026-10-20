@@ -17,3 +17,13 @@ test("rejects unexpected nesting instead of matching the wrong resort", () => {
   assert.equal(loaded.exports.brochureFolderName("Other/Vakkaru Island/brochure.pdf"), "");
   assert.equal(loaded.exports.brochureFolderName("ResortBrochure/Vakkaru Island/Old/brochure.pdf"), "");
 });
+
+test("uses the signed TUS endpoint with its required headers", () => {
+  assert.deepEqual(
+    loaded.exports.signedBrochureTusConfig("https://project.supabase.co", "public-key", "signed-token"),
+    {
+      endpoint: "https://project.storage.supabase.co/storage/v1/upload/resumable/sign",
+      headers: { apikey: "public-key", "x-signature": "signed-token" }
+    }
+  );
+});

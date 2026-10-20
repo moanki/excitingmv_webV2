@@ -5,6 +5,7 @@ import { FileDown, UploadCloud } from "lucide-react";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { publicEnv } from "@/lib/public-env";
+import { signedBrochureTusConfig } from "@/lib/brochure-import";
 
 type ResortOption = { id: string; name: string; hasBrochure: boolean };
 type PreviewRow = {
@@ -38,11 +39,14 @@ async function uploadBrochure(resortId: string, file: File, pendingPath = "") {
     mode: "sign", resortId, filename: file.name, size: file.size
   });
   const { Upload } = await import("tus-js-client");
-  const projectUrl = publicEnv.NEXT_PUBLIC_SUPABASE_URL.replace(".supabase.co", ".storage.supabase.co");
+  const tusConfig = signedBrochureTusConfig(
+    publicEnv.NEXT_PUBLIC_SUPABASE_URL,
+    publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    signed.token
+  );
   await new Promise<void>((resolve, reject) => {
     const upload = new Upload(file, {
-      endpoint: `${projectUrl}/storage/v1/upload/resumable`,
-      headers: { "x-signature": signed.token },
+      ...tusConfig,
       chunkSize: 6 * 1024 * 1024,
       retryDelays: [0, 3000, 5000, 10000, 20000],
       uploadDataDuringCreation: true,
