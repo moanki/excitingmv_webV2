@@ -25,6 +25,7 @@ import {
   seedResortsAction
 } from "@/app/admin/resorts/actions";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
+import { BrochureUploadControl } from "@/components/brochure-upload";
 import { ActionForm, ActionMessage, InlineSpinner, SubmitButton } from "@/components/admin/action-feedback";
 import { optimizedImageUrl } from "@/lib/image-urls";
 import type { PublishStatus, ResortCuratedMoment } from "@/lib/types";
@@ -916,6 +917,10 @@ export function ResortEditor({
             helper={`Primary hero image for the ${labels.singular.toLowerCase()} listing, homepage feature, and property page.`}
             onChange={setHeroImageUrl}
           />
+
+          {propertyType === "resort" && resort.id ? (
+            <BrochureUploadControl resortId={resort.id} resortName={resort.name ?? "Resort"} initialPath={resort.brochurePath ?? ""} />
+          ) : null}
 
           <div className="field field--full">
             <span className="field__label">Optional Gallery URLs</span>

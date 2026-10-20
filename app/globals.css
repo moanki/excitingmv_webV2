@@ -20337,6 +20337,17 @@ html {
   line-height: 1.45;
 }
 
+.property-detail-fact__download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #123a58;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .property-detail-overview {
   display: grid;
   justify-items: center;

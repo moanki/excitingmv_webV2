@@ -10,6 +10,7 @@ import { useAdminActionFeedback } from "@/components/admin/admin-action-feedback
 import type { ImportCheckpointRecord, ImportExecutionResult, ImportLogEntry } from "@/lib/services/import-service";
 import { ExcelSyncPanel } from "@/app/admin/imports/excel-sync-panel";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { BrochureImportPanel } from "@/components/brochure-upload";
 import { toErrorMessage } from "@/lib/error-message";
 
 type UploadStage = "idle" | "uploading" | "processing" | "complete" | "error";
@@ -1428,6 +1429,7 @@ export function ImportCenterForms({ checkpoints }: { checkpoints: ImportCheckpoi
       </div>
       <ImportDrivePanel />
       <PhotoImportPanel />
+      <BrochureImportPanel />
       <ExcelSyncPanel />
       <ImportUploadPanel />
     </div>

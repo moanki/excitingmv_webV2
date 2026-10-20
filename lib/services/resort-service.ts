@@ -44,6 +44,7 @@ export type ResortRecord = {
   mealPlans: string[];
   curatedMoments: ResortCuratedMoment[];
   butlerService: ResortButlerService;
+  brochurePath: string;
   status: PublishStatus;
   isFeaturedHomepage: boolean;
   seoTitle: string;
@@ -78,6 +79,7 @@ type ResortRow = {
   meal_plans: unknown;
   curated_moments?: unknown;
   butler_service?: unknown;
+  brochure_path?: string | null;
   seo_title: string | null;
   seo_description: string | null;
   seo_summary: string | null;
@@ -248,6 +250,7 @@ function mapResortRow(row: ResortRow): ResortRecord {
     mealPlans: toStringArray(row.meal_plans),
     curatedMoments: toCuratedMoments(row.curated_moments),
     butlerService: toButlerService(row.butler_service),
+    brochurePath: row.brochure_path ?? "",
     status: row.status,
     isFeaturedHomepage: Boolean(row.is_featured_homepage),
     seoTitle: row.seo_title ?? row.name,
