@@ -11,6 +11,7 @@ import type { ImportCheckpointRecord, ImportExecutionResult, ImportLogEntry } fr
 import { ExcelSyncPanel } from "@/app/admin/imports/excel-sync-panel";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { BrochureImportPanel } from "@/components/brochure-upload";
+import { ResortMapImportPanel } from "@/components/resort-map-import";
 import { toErrorMessage } from "@/lib/error-message";
 
 type UploadStage = "idle" | "uploading" | "processing" | "complete" | "error";
@@ -1430,6 +1431,7 @@ export function ImportCenterForms({ checkpoints }: { checkpoints: ImportCheckpoi
       <ImportDrivePanel />
       <PhotoImportPanel />
       <BrochureImportPanel />
+      <ResortMapImportPanel />
       <ExcelSyncPanel />
       <ImportUploadPanel />
     </div>
