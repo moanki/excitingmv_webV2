@@ -45,6 +45,9 @@ export type ResortRecord = {
   curatedMoments: ResortCuratedMoment[];
   butlerService: ResortButlerService;
   brochurePath: string;
+  mapEmbedUrl: string;
+  latitude: number | null;
+  longitude: number | null;
   status: PublishStatus;
   isFeaturedHomepage: boolean;
   seoTitle: string;
@@ -80,6 +83,9 @@ type ResortRow = {
   curated_moments?: unknown;
   butler_service?: unknown;
   brochure_path?: string | null;
+  map_embed_url?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   seo_title: string | null;
   seo_description: string | null;
   seo_summary: string | null;
@@ -251,6 +257,9 @@ function mapResortRow(row: ResortRow): ResortRecord {
     curatedMoments: toCuratedMoments(row.curated_moments),
     butlerService: toButlerService(row.butler_service),
     brochurePath: row.brochure_path ?? "",
+    mapEmbedUrl: row.map_embed_url ?? "",
+    latitude: row.latitude ?? null,
+    longitude: row.longitude ?? null,
     status: row.status,
     isFeaturedHomepage: Boolean(row.is_featured_homepage),
     seoTitle: row.seo_title ?? row.name,
@@ -927,6 +936,9 @@ export async function saveResort(input: {
   roomTypes: ResortRoomSummary[];
   status: PublishStatus;
   isFeaturedHomepage: boolean;
+  mapEmbedUrl?: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }) {
   const supabase = createSupabaseAdminClient();
   const now = new Date().toISOString();
@@ -979,6 +991,11 @@ export async function saveResort(input: {
     const tablePayload = {
       ...basePayload,
       ...(input.curatedMoments !== undefined ? { curated_moments: input.curatedMoments } : {}),
+      ...(propertyType === "resort" && input.mapEmbedUrl !== undefined ? {
+        map_embed_url: input.mapEmbedUrl || null,
+        latitude: input.latitude ?? null,
+        longitude: input.longitude ?? null
+      } : {}),
       property_type: propertyTypeForTable(propertyType, tableName)
     };
 

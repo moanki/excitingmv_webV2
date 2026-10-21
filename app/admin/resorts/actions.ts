@@ -5,6 +5,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { requireAdminRole } from "@/lib/auth/require-admin";
 import { generateResortSeoCopy, type ResortSeoGenerationInput } from "@/lib/services/resort-ai-service";
 import { deleteResort, normalizePropertyType, publishDraftProperties, saveResort, seedSampleResorts, type PropertyType } from "@/lib/services/resort-service";
+import { normalizeGoogleMapsEmbedUrl, parseOptionalCoordinates } from "@/lib/resort-map";
 import { uploadSiteAsset } from "@/lib/storage/site-assets";
 import type { PublishStatus } from "@/lib/types";
 import {
@@ -236,6 +237,12 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
       .filter(Boolean)
       .map((item) => normalizeSafeMediaUrl(item));
     const roomTypes = await parseRoomTypes(formData);
+    const mapEmbedUrl = propertyType === "resort"
+      ? normalizeGoogleMapsEmbedUrl(String(formData.get("mapEmbedUrl") ?? ""))
+      : "";
+    const coordinates = propertyType === "resort" && !mapEmbedUrl
+      ? parseOptionalCoordinates(String(formData.get("latitude") ?? ""), String(formData.get("longitude") ?? ""))
+      : { latitude: null, longitude: null };
     const curatedMoments = await parseCuratedMoments(formData);
     const submittedSlug = String(formData.get("slug") ?? "").trim();
     const normalizedSlug = slugify(submittedSlug || name);
@@ -249,6 +256,8 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
       slug: normalizedSlug,
       name,
       location: String(formData.get("location") ?? "").trim(),
+      mapEmbedUrl,
+      ...coordinates,
       category: String(formData.get("category") ?? "").trim(),
       transferType: String(formData.get("transferType") ?? "").trim(),
       description: String(formData.get("description") ?? "").trim(),

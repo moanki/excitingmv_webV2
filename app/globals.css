@@ -20563,6 +20563,49 @@ html {
   background: #fff;
 }
 
+.resort-map-editor__search {
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.resort-map-editor__coordinates summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.resort-map-editor__coordinates .form-grid {
+  margin-top: 0.75rem;
+}
+
+.resort-location-map {
+  display: block;
+  width: 100%;
+  height: clamp(300px, 38vw, 480px);
+  border: 0;
+}
+
+.resort-map-editor .resort-location-map {
+  height: 280px;
+}
+
+.resort-location-map__pin {
+  display: flex;
+  color: #c84443;
+}
+
+.resort-location-map__pin svg {
+  width: 38px;
+  height: 38px;
+  fill: white;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 28%));
+}
+
+.resort-location-section .resort-story-section-heading {
+  margin-bottom: 1.5rem;
+}
+
 .resort-story-page--resort #rooms .resort-story-section-heading {
   justify-content: center;
   margin-bottom: clamp(3rem, 6vw, 5.2rem);

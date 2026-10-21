@@ -26,8 +26,10 @@ import {
 } from "@/app/admin/resorts/actions";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 import { BrochureUploadControl } from "@/components/brochure-upload";
+import { ResortLocationMap } from "@/components/resort-location-map";
 import { ActionForm, ActionMessage, InlineSpinner, SubmitButton } from "@/components/admin/action-feedback";
 import { optimizedImageUrl } from "@/lib/image-urls";
+import { normalizeGoogleMapsEmbedUrl, parseOptionalCoordinates } from "@/lib/resort-map";
 import type { PublishStatus, ResortCuratedMoment } from "@/lib/types";
 import type { PropertyType, ResortRecord } from "@/lib/services/resort-service";
 
@@ -641,6 +643,9 @@ export function ResortEditor({
   const [name, setName] = useState(resort.name ?? "");
   const [slug, setSlug] = useState(resort.slug ?? "");
   const [location, setLocation] = useState(resort.location ?? "");
+  const [mapEmbedValue, setMapEmbedValue] = useState(resort.mapEmbedUrl ?? "");
+  const [latitudeValue, setLatitudeValue] = useState(resort.latitude?.toString() ?? "");
+  const [longitudeValue, setLongitudeValue] = useState(resort.longitude?.toString() ?? "");
   const [category, setCategory] = useState(resort.category ?? "");
   const [transferType, setTransferType] = useState(resort.transferType ?? "");
   const status: PublishStatus = resort.status ?? "draft";
@@ -659,6 +664,19 @@ export function ResortEditor({
   const formId = resort.id ? `resort-editor-form-${resort.id}` : "resort-editor-form-new";
   const previewHref = resort.slug ? `${labels.publicBasePath}/${resort.slug}` : null;
   const homepageFeatured = Boolean(isHomepageFeatured ?? resort.isFeaturedHomepage);
+  let mapPreviewUrl = "";
+  let mapPreviewError = "";
+  try {
+    mapPreviewUrl = normalizeGoogleMapsEmbedUrl(mapEmbedValue);
+  } catch (error) {
+    mapPreviewError = error instanceof Error ? error.message : "Invalid Google Maps link.";
+  }
+  let coordinatePreview: { latitude: number | null; longitude: number | null } = { latitude: null, longitude: null };
+  try {
+    coordinatePreview = parseOptionalCoordinates(latitudeValue, longitudeValue);
+  } catch {
+    // The save action reports incomplete coordinates when submitted.
+  }
 
   useEffect(() => {
     if (state?.message) {
@@ -790,6 +808,48 @@ export function ResortEditor({
                 onChange={(event) => setLocation(event.target.value)}
               />
             </label>
+            {propertyType === "resort" ? (
+              <div className="field field--full resort-map-editor">
+                <span className="field__label">Resort Map</span>
+                <a
+                  className="admin-btn admin-btn--secondary resort-map-editor__search"
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name || "resort"} Maldives`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MapPin className="admin-icon" />
+                  Find {name || "resort"} on Google Maps
+                </a>
+                <p className="field__help">Select the resort in Google Maps, then use Share &gt; Embed a map &gt; Copy HTML. Paste it below. If Google Maps cannot find it, enter coordinates instead.</p>
+                <label className="field">
+                  <span className="field__label">Google Maps Embed Link or HTML</span>
+                  <textarea
+                    className="admin-textarea admin-textarea--compact"
+                    name="mapEmbedUrl"
+                    value={mapEmbedValue}
+                    onChange={(event) => setMapEmbedValue(event.target.value)}
+                    placeholder="Paste Google Maps embed link or copied iframe code"
+                  />
+                </label>
+                {mapPreviewError ? <p className="field__help" role="alert">{mapPreviewError}</p> : null}
+                <details className="resort-map-editor__coordinates">
+                  <summary>Use latitude and longitude instead</summary>
+                  <div className="form-grid">
+                    <label className="field">
+                      <span className="field__label">Latitude</span>
+                      <input className="admin-input" name="latitude" inputMode="decimal" value={latitudeValue} onChange={(event) => setLatitudeValue(event.target.value)} placeholder="3.2028" />
+                    </label>
+                    <label className="field">
+                      <span className="field__label">Longitude</span>
+                      <input className="admin-input" name="longitude" inputMode="decimal" value={longitudeValue} onChange={(event) => setLongitudeValue(event.target.value)} placeholder="73.2207" />
+                    </label>
+                  </div>
+                </details>
+                {mapPreviewUrl || (coordinatePreview.latitude !== null && coordinatePreview.longitude !== null) ? (
+                  <ResortLocationMap name={name || "Resort"} mapEmbedUrl={mapPreviewUrl} {...coordinatePreview} />
+                ) : null}
+              </div>
+            ) : null}
             <label className="field">
               <span className="field__label">Category</span>
               <input

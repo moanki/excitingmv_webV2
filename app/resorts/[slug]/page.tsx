@@ -8,6 +8,7 @@ import {
 import { optimizedImageUrl } from "@/lib/image-urls";
 import { PropertyDetailOverview, propertyFactIcons } from "@/components/property-detail-overview";
 import { PropertyRoomCard } from "@/components/property-room-card";
+import { ResortLocationMap } from "@/components/resort-location-map";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -130,6 +131,20 @@ export default async function ResortDetailPage({
           )}
         </div>
       </section>
+
+      {resort.mapEmbedUrl || (resort.latitude !== null && resort.longitude !== null) ? (
+        <section className="site-section site-section--white resort-location-section" id="location">
+          <div className="site-container">
+            <div className="section-heading resort-story-section-heading">
+              <div>
+                <p className="eyebrow">Location</p>
+                <h2>Find {resort.name}</h2>
+              </div>
+            </div>
+            <ResortLocationMap name={resort.name} mapEmbedUrl={resort.mapEmbedUrl} latitude={resort.latitude} longitude={resort.longitude} />
+          </div>
+        </section>
+      ) : null}
 
       {similarResorts.length ? (
         <section className="site-section site-section--white resort-story-similar" id="similar-resorts">
