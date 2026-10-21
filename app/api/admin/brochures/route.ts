@@ -54,7 +54,7 @@ export async function POST(request: Request) {
           name,
           size: Number(file.size),
           resortId: validPdf && matches.length === 1 ? matches[0].id : "",
-          status: !folder ? "Expected ResortBrochure / Resort Name / file.pdf."
+          status: !folder ? "Expected Parent Folder / Resort Name / file.pdf."
             : !validPdf ? "Only non-empty PDF files are accepted."
             : matches.length === 1 ? "Exact resort folder match" : matches.length > 1 ? "Multiple resorts share this name. Review required." : "No exact resort match. Review required."
         };

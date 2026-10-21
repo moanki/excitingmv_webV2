@@ -189,7 +189,7 @@ export function BrochureImportPanel() {
   }
 
   async function importAccepted() {
-    const accepted = rows.filter((row) => selections[row.relativePath]?.accepted && results[row.relativePath] !== "Uploaded");
+    const accepted = rows.filter((row) => !row.duplicate && selections[row.relativePath]?.accepted && results[row.relativePath] !== "Uploaded");
     const ids = accepted.map((row) => selections[row.relativePath].resortId);
     if (!accepted.length || ids.some((id) => !id) || new Set(ids).size !== ids.length) {
       setMessage("Accept one PDF per resort and resolve any duplicate resort selections.");
@@ -236,7 +236,7 @@ export function BrochureImportPanel() {
     <section className="admin-form-card stack" aria-label="Bulk brochure import">
       <div className="admin-form-section__header">
         <h3 className="admin-form-section__title">Bulk Resort Brochure Import</h3>
-        <p className="admin-form-section__help">Select ResortBrochure / Resort Name / file.pdf. Exact folder names match automatically; review other matches before import.</p>
+        <p className="admin-form-section__help">Select the parent folder containing Resort Name / one file.pdf per subfolder. Exact resort names match automatically; review other matches before import.</p>
       </div>
       <label className="field"><span className="field__label">Brochure folder</span><input className="admin-file-input" type="file" accept="application/pdf,.pdf" multiple {...{ webkitdirectory: "", directory: "" }} onChange={selectFolder} disabled={busy} /></label>
       {rows.length ? (
@@ -253,8 +253,8 @@ export function BrochureImportPanel() {
                   <option value="">Choose resort</option>
                   {resorts.map((resort) => <option value={resort.id} key={resort.id}>{resort.name}{resort.hasBrochure ? " (replace)" : ""}</option>)}
                 </select></td>
-                <td>{results[row.relativePath] || (row.duplicate ? "Multiple PDFs in folder; select one" : row.status)} {pendingPaths[row.relativePath] ? <button type="button" className="admin-btn admin-btn--ghost" disabled={busy} onClick={() => discardPending(row)}>Discard staged PDF</button> : null}</td>
-                <td><input type="checkbox" aria-label={`Accept ${row.name}`} checked={selection.accepted} disabled={invalid || !selection.resortId || busy || results[row.relativePath] === "Uploaded"} onChange={(event) => setSelections((current) => ({ ...current, [row.relativePath]: { ...selection, accepted: event.target.checked } }))} /></td>
+                <td>{results[row.relativePath] || (row.duplicate ? "Multiple PDFs in this resort folder; keep one and preview again" : row.status)} {pendingPaths[row.relativePath] ? <button type="button" className="admin-btn admin-btn--ghost" disabled={busy} onClick={() => discardPending(row)}>Discard staged PDF</button> : null}</td>
+                <td><input type="checkbox" aria-label={`Accept ${row.name}`} checked={selection.accepted} disabled={invalid || row.duplicate || !selection.resortId || busy || results[row.relativePath] === "Uploaded"} onChange={(event) => setSelections((current) => ({ ...current, [row.relativePath]: { ...selection, accepted: event.target.checked } }))} /></td>
               </tr>;
             })}</tbody>
           </table>
@@ -265,7 +265,7 @@ export function BrochureImportPanel() {
         <span>Page {page + 1} of {Math.ceil(rows.length / 50)}</span>
         <button type="button" className="admin-btn admin-btn--ghost" disabled={(page + 1) * 50 >= rows.length || busy} onClick={() => setPage((current) => current + 1)}>Next</button>
       </div> : null}
-      {rows.length ? <div className="admin-form-actions"><button type="button" className="admin-btn admin-btn--secondary" disabled={busy || !rows.some((row) => selections[row.relativePath]?.accepted && results[row.relativePath] !== "Uploaded")} onClick={importAccepted}><UploadCloud className="admin-icon" /> {busy ? "Importing..." : "Import Accepted Brochures"}</button></div> : null}
+      {rows.length ? <div className="admin-form-actions"><button type="button" className="admin-btn admin-btn--secondary" disabled={busy || !rows.some((row) => !row.duplicate && selections[row.relativePath]?.accepted && results[row.relativePath] !== "Uploaded")} onClick={importAccepted}><UploadCloud className="admin-icon" /> {busy ? "Importing..." : "Import Accepted Brochures"}</button></div> : null}
       {message ? <p role="status" className="field__help">{message}</p> : null}
     </section>
   );

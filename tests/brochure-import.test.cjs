@@ -8,14 +8,15 @@ const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.Modu
 const loaded = { exports: {} };
 new Function("exports", "module", compiled)(loaded.exports, loaded);
 
-test("finds a resort folder under ResortBrochure", () => {
+test("finds resort subfolders under any selected parent folder", () => {
+  assert.equal(loaded.exports.brochureFolderName("ResortPDF/Vakkaru Island/Vakkaru Island.pdf"), "Vakkaru Island");
   assert.equal(loaded.exports.brochureFolderName("ResortBrochure/Vakkaru Island/brochure.pdf"), "Vakkaru Island");
   assert.equal(loaded.exports.brochureFolderName("Vakkaru Island\\brochure.pdf"), "Vakkaru Island");
 });
 
 test("rejects unexpected nesting instead of matching the wrong resort", () => {
-  assert.equal(loaded.exports.brochureFolderName("Other/Vakkaru Island/brochure.pdf"), "");
   assert.equal(loaded.exports.brochureFolderName("ResortBrochure/Vakkaru Island/Old/brochure.pdf"), "");
+  assert.equal(loaded.exports.brochureFolderName("brochure.pdf"), "");
 });
 
 test("uses the signed TUS endpoint with its required headers", () => {
