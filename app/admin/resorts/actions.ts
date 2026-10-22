@@ -4,7 +4,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 
 import { requireAdminRole } from "@/lib/auth/require-admin";
 import { generateResortSeoCopy, type ResortSeoGenerationInput } from "@/lib/services/resort-ai-service";
-import { deleteResort, normalizePropertyType, publishDraftProperties, saveResort, seedSampleResorts, type PropertyType } from "@/lib/services/resort-service";
+import { deleteResort, normalizePropertyType, publishDraftProperties, removeCustomResortRating, saveResort, seedSampleResorts, type PropertyType } from "@/lib/services/resort-service";
 import { normalizeGoogleMapsEmbedUrl, parseOptionalCoordinates } from "@/lib/resort-map";
 import { uploadSiteAsset } from "@/lib/storage/site-assets";
 import type { PublishStatus } from "@/lib/types";
@@ -313,6 +313,11 @@ export async function deleteResortAction(_: ActionState, formData: FormData): Pr
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to delete property." };
   }
+}
+
+export async function removeCustomResortRatingAction(label: string) {
+  await requireAdminRole(["super_admin", "admin", "content_manager"]);
+  return removeCustomResortRating(label);
 }
 
 export async function publishSelectedDraftsAction(_: ActionState, formData: FormData): Promise<ActionState> {

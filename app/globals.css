@@ -30947,3 +30947,54 @@ html {
     font-size: 11px;
   }
 }
+
+.admin-body .resort-rating-options {
+  display: grid;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.admin-body .resort-rating-options__row {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 12px;
+}
+
+.admin-body .resort-rating-options__row span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.admin-body .resort-rating-options__row small {
+  color: #6b7280;
+}
+
+.admin-body .resort-rating-options__row button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.admin-body .resort-rating-options__row button:hover {
+  color: #b91c1c;
+}
+
+.admin-body .resort-rating-options__row button:focus-visible {
+  outline: 2px solid #0f766e;
+  outline-offset: 2px;
+}
+
+.admin-body .resort-rating-options__row button:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}

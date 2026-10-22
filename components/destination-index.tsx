@@ -165,7 +165,7 @@ function matchesOption(value: string, options: string[]) {
 
 function inferCategory(kind: DestinationKind, category: string, summary = "") {
   if (kind === "resort") {
-    const rating = category.match(/\b([1-5])\s*[- ]?\s*star\b/i);
+    const rating = category.match(/\b([1-5])\s*[- ]?\s*stars?\b/i);
     return rating ? category : "";
   }
 

@@ -14,13 +14,15 @@ import {
   Search,
   Sparkles,
   Star,
-  Trash2
+  Trash2,
+  X
 } from "lucide-react";
 
 import {
   deleteResortAction,
   generateResortSeoAction,
   publishSelectedDraftsAction,
+  removeCustomResortRatingAction,
   saveResortAction,
   seedResortsAction
 } from "@/app/admin/resorts/actions";
@@ -31,9 +33,10 @@ import { ActionForm, ActionMessage, InlineSpinner, SubmitButton } from "@/compon
 import { optimizedImageUrl } from "@/lib/image-urls";
 import { normalizeGoogleMapsEmbedUrl, parseOptionalCoordinates } from "@/lib/resort-map";
 import type { PublishStatus, ResortCuratedMoment } from "@/lib/types";
-import type { PropertyType, ResortRecord } from "@/lib/services/resort-service";
+import type { CustomResortRating, PropertyType, ResortRecord } from "@/lib/services/resort-service";
 
 type ResortEditorMode = "create" | "edit";
+const emptyCustomRatingOptions: CustomResortRating[] = [];
 type ResortFilter = "all" | "published" | "draft" | "featured" | "archived";
 
 type PropertyLabels = {
@@ -609,6 +612,7 @@ export function ResortEditor({
   title,
   description,
   mediaLibrary,
+  customRatingOptions = emptyCustomRatingOptions,
   mode,
   propertyType = "resort",
   labels = resortLabels,
@@ -618,6 +622,7 @@ export function ResortEditor({
   title: string;
   description: string;
   mediaLibrary: MediaLibraryItem[];
+  customRatingOptions?: CustomResortRating[];
   mode: ResortEditorMode;
   propertyType?: PropertyType;
   labels?: PropertyLabels;
@@ -627,6 +632,9 @@ export function ResortEditor({
   const [state, action, pending] = useActionState(saveResortAction, undefined);
   const [deleteState, deleteAction, deletePending] = useActionState(deleteResortAction, undefined);
   const [isGeneratingSeo, startSeoGeneration] = useTransition();
+  const [isRemovingRating, startRemovingRating] = useTransition();
+  const [ratingOptions, setRatingOptions] = useState(customRatingOptions);
+  const [ratingStatus, setRatingStatus] = useState<{ message?: string; error?: string } | null>(null);
   const [rooms, setRooms] = useState<EditableRoom[]>(
     (resort.roomTypes ?? []).map((room) => ({
       name: room.name,
@@ -648,7 +656,7 @@ export function ResortEditor({
   const [longitudeValue, setLongitudeValue] = useState(resort.longitude?.toString() ?? "");
   const [category, setCategory] = useState(resort.category ?? "");
   const [customRating, setCustomRating] = useState(
-    Boolean(resort.category && !/^[1-5]-Star$/.test(resort.category))
+    Boolean(resort.category && !/^[1-5]-Star$/.test(resort.category) && !customRatingOptions.some((option) => option.label === resort.category))
   );
   const [transferType, setTransferType] = useState(resort.transferType ?? "");
   const status: PublishStatus = resort.status ?? "draft";
@@ -688,12 +696,40 @@ export function ResortEditor({
   }, [router, state?.message]);
 
   useEffect(() => {
+    setRatingOptions(customRatingOptions);
+  }, [customRatingOptions]);
+
+  useEffect(() => {
+    if (customRatingOptions.some((option) => option.label === category)) setCustomRating(false);
+  }, [category, customRatingOptions]);
+
+  useEffect(() => {
     if (!pending) setPendingIntent("");
   }, [pending]);
 
   function trackSubmitIntent(event: FormEvent<HTMLFormElement>) {
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
     setPendingIntent(submitter?.value || "saveDraft");
+  }
+
+  function handleRemoveRating(label: string, count: number) {
+    if (!window.confirm(`Delete "${label}"? This will clear the badge from ${count} resort${count === 1 ? "" : "s"} using it.`)) return;
+
+    setRatingStatus(null);
+    startRemovingRating(async () => {
+      try {
+        const removedCount = await removeCustomResortRatingAction(label);
+        setRatingOptions((current) => current.filter((option) => option.label !== label));
+        if (category === label) {
+          setCategory("");
+          setCustomRating(false);
+        }
+        setRatingStatus({ message: `Removed "${label}" from ${removedCount} resort${removedCount === 1 ? "" : "s"}.` });
+        router.refresh();
+      } catch (error) {
+        setRatingStatus({ error: error instanceof Error ? error.message : "Could not remove the rating." });
+      }
+    });
   }
 
   function handleGenerateSeo() {
@@ -860,9 +896,9 @@ export function ResortEditor({
                 <select
                   id={`${formId}-rating`}
                   className="admin-input"
-                  value={customRating ? "custom" : category}
+                  value={customRating ? "__custom__" : category}
                   onChange={(event) => {
-                    const isCustom = event.target.value === "custom";
+                    const isCustom = event.target.value === "__custom__";
                     setCustomRating(isCustom);
                     setCategory(isCustom ? "" : event.target.value);
                   }}
@@ -871,7 +907,10 @@ export function ResortEditor({
                   {[1, 2, 3, 4, 5].map((stars) => (
                     <option key={stars} value={`${stars}-Star`}>{stars}-Star</option>
                   ))}
-                  <option value="custom">Custom</option>
+                  {ratingOptions.map((option) => (
+                    <option key={option.label} value={option.label}>{option.label}</option>
+                  ))}
+                  <option value="__custom__">Custom</option>
                 </select>
                 {customRating ? (
                   <input
@@ -883,6 +922,24 @@ export function ResortEditor({
                     maxLength={80}
                   />
                 ) : null}
+                {ratingOptions.length ? (
+                  <div className="resort-rating-options" aria-label="Saved custom ratings">
+                    {ratingOptions.map((option) => (
+                      <div className="resort-rating-options__row" key={option.label}>
+                        <span>{option.label} <small>({option.count})</small></span>
+                        <button
+                          type="button"
+                          aria-label={`Delete ${option.label} from ${option.count} resorts`}
+                          title="Delete rating and clear affected resort badges"
+                          disabled={isRemovingRating}
+                          onClick={() => handleRemoveRating(option.label, option.count)}
+                        ><X size={14} aria-hidden="true" /></button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                {ratingStatus?.message ? <p className="admin-alert admin-alert--success" role="status">{ratingStatus.message}</p> : null}
+                {ratingStatus?.error ? <p className="admin-alert admin-alert--error" role="alert">{ratingStatus.error}</p> : null}
               </div>
             ) : (
               <label className="field">
