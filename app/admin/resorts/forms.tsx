@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  ChevronDown,
   Eye,
   ImageIcon,
   MapPin,
@@ -14,24 +15,30 @@ import {
   Search,
   Sparkles,
   Star,
-  Trash2
+  Trash2,
+  X
 } from "lucide-react";
 
 import {
   deleteResortAction,
   generateResortSeoAction,
   publishSelectedDraftsAction,
+  removeCustomResortRatingAction,
   saveResortAction,
   seedResortsAction
 } from "@/app/admin/resorts/actions";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
 import { useAdminActionFeedback } from "@/components/admin/admin-action-feedback";
+import { BrochureUploadControl } from "@/components/brochure-upload";
+import { ResortLocationMap } from "@/components/resort-location-map";
 import { ActionForm, ActionMessage, InlineSpinner, SubmitButton } from "@/components/admin/action-feedback";
 import { optimizedImageUrl } from "@/lib/image-urls";
+import { normalizeGoogleMapsEmbedUrl, parseOptionalCoordinates } from "@/lib/resort-map";
 import type { PublishStatus, ResortCuratedMoment } from "@/lib/types";
-import type { PropertyType, ResortRecord } from "@/lib/services/resort-service";
+import type { CustomResortRating, PropertyType, ResortRecord } from "@/lib/services/resort-service";
 
 type ResortEditorMode = "create" | "edit";
+const emptyCustomRatingOptions: CustomResortRating[] = [];
 type ResortFilter = "all" | "published" | "draft" | "featured" | "archived";
 
 type PropertyLabels = {
@@ -607,6 +614,7 @@ export function ResortEditor({
   title,
   description,
   mediaLibrary,
+  customRatingOptions = emptyCustomRatingOptions,
   mode,
   propertyType = "resort",
   labels = resortLabels,
@@ -616,6 +624,7 @@ export function ResortEditor({
   title: string;
   description: string;
   mediaLibrary: MediaLibraryItem[];
+  customRatingOptions?: CustomResortRating[];
   mode: ResortEditorMode;
   propertyType?: PropertyType;
   labels?: PropertyLabels;
@@ -625,6 +634,12 @@ export function ResortEditor({
   const [state, action, pending] = useActionState(saveResortAction, undefined);
   const [deleteState, deleteAction, deletePending] = useActionState(deleteResortAction, undefined);
   const [isGeneratingSeo, startSeoGeneration] = useTransition();
+  const [isRemovingRating, startRemovingRating] = useTransition();
+  const [ratingOptions, setRatingOptions] = useState(customRatingOptions);
+  const [ratingStatus, setRatingStatus] = useState<{ message?: string; error?: string } | null>(null);
+  const [ratingMenuOpen, setRatingMenuOpen] = useState(false);
+  const ratingMenuRef = useRef<HTMLDivElement>(null);
+  const ratingTriggerRef = useRef<HTMLButtonElement>(null);
   const [rooms, setRooms] = useState<EditableRoom[]>(
     (resort.roomTypes ?? []).map((room) => ({
       name: room.name,
@@ -641,7 +656,13 @@ export function ResortEditor({
   const [name, setName] = useState(resort.name ?? "");
   const [slug, setSlug] = useState(resort.slug ?? "");
   const [location, setLocation] = useState(resort.location ?? "");
+  const [mapEmbedValue, setMapEmbedValue] = useState(resort.mapEmbedUrl ?? "");
+  const [latitudeValue, setLatitudeValue] = useState(resort.latitude?.toString() ?? "");
+  const [longitudeValue, setLongitudeValue] = useState(resort.longitude?.toString() ?? "");
   const [category, setCategory] = useState(resort.category ?? "");
+  const [customRating, setCustomRating] = useState(
+    Boolean(resort.category && !/^[1-5]-Star$/.test(resort.category) && !customRatingOptions.some((option) => option.label === resort.category))
+  );
   const [transferType, setTransferType] = useState(resort.transferType ?? "");
   const status: PublishStatus = resort.status ?? "draft";
   const [heroImageUrl, setHeroImageUrl] = useState(resort.heroImageUrl ?? "");
@@ -659,6 +680,19 @@ export function ResortEditor({
   const formId = resort.id ? `resort-editor-form-${resort.id}` : "resort-editor-form-new";
   const previewHref = resort.slug ? `${labels.publicBasePath}/${resort.slug}` : null;
   const homepageFeatured = Boolean(isHomepageFeatured ?? resort.isFeaturedHomepage);
+  let mapPreviewUrl = "";
+  let mapPreviewError = "";
+  try {
+    mapPreviewUrl = normalizeGoogleMapsEmbedUrl(mapEmbedValue);
+  } catch (error) {
+    mapPreviewError = error instanceof Error ? error.message : "Invalid Google Maps link.";
+  }
+  let coordinatePreview: { latitude: number | null; longitude: number | null } = { latitude: null, longitude: null };
+  try {
+    coordinatePreview = parseOptionalCoordinates(latitudeValue, longitudeValue);
+  } catch {
+    // The save action reports incomplete coordinates when submitted.
+  }
 
   useEffect(() => {
     if (state?.message) {
@@ -667,12 +701,61 @@ export function ResortEditor({
   }, [router, state?.message]);
 
   useEffect(() => {
+    setRatingOptions(customRatingOptions);
+  }, [customRatingOptions]);
+
+  useEffect(() => {
+    if (customRatingOptions.some((option) => option.label === category)) setCustomRating(false);
+  }, [category, customRatingOptions]);
+
+  useEffect(() => {
+    if (!ratingMenuOpen) return;
+    function onPointerDown(event: MouseEvent) {
+      if (!ratingMenuRef.current?.contains(event.target as Node)) setRatingMenuOpen(false);
+    }
+    function onEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setRatingMenuOpen(false);
+        ratingTriggerRef.current?.focus();
+      }
+    }
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onEscape);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onEscape);
+    };
+  }, [ratingMenuOpen]);
+
+  useEffect(() => {
     if (!pending) setPendingIntent("");
   }, [pending]);
 
   function trackSubmitIntent(event: FormEvent<HTMLFormElement>) {
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
     setPendingIntent(submitter?.value || "saveDraft");
+  }
+
+  function handleRemoveRating(label: string, count: number) {
+    if (!window.confirm(`Delete "${label}"? This will clear the badge from ${count} ${labels.singular.toLowerCase()}${count === 1 ? "" : "s"} using it.`)) return;
+
+    setRatingStatus(null);
+    startRemovingRating(async () => {
+      try {
+        const removedCount = await removeCustomResortRatingAction(label, propertyType);
+        setRatingOptions((current) => current.filter((option) => option.label !== label));
+        if (category === label) {
+          setCategory("");
+          setCustomRating(false);
+        }
+        setRatingMenuOpen(false);
+        ratingTriggerRef.current?.focus();
+        setRatingStatus({ message: `Removed "${label}" from ${removedCount} ${labels.singular.toLowerCase()}${removedCount === 1 ? "" : "s"}.` });
+        router.refresh();
+      } catch (error) {
+        setRatingStatus({ error: error instanceof Error ? error.message : "Could not remove the rating." });
+      }
+    });
   }
 
   function handleGenerateSeo() {
@@ -790,15 +873,129 @@ export function ResortEditor({
                 onChange={(event) => setLocation(event.target.value)}
               />
             </label>
-            <label className="field">
-              <span className="field__label">Category</span>
-              <input
-                className="admin-input"
-                name="category"
-                value={category}
-                onChange={(event) => setCategory(event.target.value)}
-              />
-            </label>
+            {propertyType !== "liveaboards" ? (
+              <div className="field field--full resort-map-editor">
+                <span className="field__label">{labels.singular} Map</span>
+                <a
+                  className="admin-btn admin-btn--secondary resort-map-editor__search"
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name || labels.singular.toLowerCase()} Maldives`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MapPin className="admin-icon" />
+                  Find {name || labels.singular.toLowerCase()} on Google Maps
+                </a>
+                <p className="field__help">Select the {labels.singular.toLowerCase()} in Google Maps, then use Share &gt; Embed a map &gt; Copy HTML. Paste it below. If Google Maps cannot find it, enter coordinates instead.</p>
+                <label className="field">
+                  <span className="field__label">Google Maps Embed Link or HTML</span>
+                  <textarea
+                    className="admin-textarea admin-textarea--compact"
+                    name="mapEmbedUrl"
+                    value={mapEmbedValue}
+                    onChange={(event) => setMapEmbedValue(event.target.value)}
+                    placeholder="Paste Google Maps embed link or copied iframe code"
+                  />
+                </label>
+                {mapPreviewError ? <p className="field__help" role="alert">{mapPreviewError}</p> : null}
+                <details className="resort-map-editor__coordinates">
+                  <summary>Use latitude and longitude instead</summary>
+                  <div className="form-grid">
+                    <label className="field">
+                      <span className="field__label">Latitude</span>
+                      <input className="admin-input" name="latitude" inputMode="decimal" value={latitudeValue} onChange={(event) => setLatitudeValue(event.target.value)} placeholder="3.2028" />
+                    </label>
+                    <label className="field">
+                      <span className="field__label">Longitude</span>
+                      <input className="admin-input" name="longitude" inputMode="decimal" value={longitudeValue} onChange={(event) => setLongitudeValue(event.target.value)} placeholder="73.2207" />
+                    </label>
+                  </div>
+                </details>
+                {mapPreviewUrl || (coordinatePreview.latitude !== null && coordinatePreview.longitude !== null) ? (
+                  <ResortLocationMap name={name || labels.singular} mapEmbedUrl={mapPreviewUrl} {...coordinatePreview} />
+                ) : null}
+              </div>
+            ) : null}
+            <div className="field">
+                <span className="field__label" id={`${formId}-rating-label`}>Star Rating</span>
+                <input type="hidden" name="category" value={category} />
+                <div className="resort-rating-select" ref={ratingMenuRef}>
+                  <button
+                    ref={ratingTriggerRef}
+                    type="button"
+                    className="admin-input resort-rating-select__trigger"
+                    aria-labelledby={`${formId}-rating-label ${formId}-rating-value`}
+                    aria-expanded={ratingMenuOpen}
+                    aria-controls={`${formId}-rating-menu`}
+                    onClick={() => setRatingMenuOpen((open) => !open)}
+                  >
+                    <span id={`${formId}-rating-value`}>{customRating ? "Custom" : category || "Not set"}</span>
+                    <ChevronDown size={16} aria-hidden="true" />
+                  </button>
+                  {ratingMenuOpen ? (
+                    <div className="resort-rating-select__menu" id={`${formId}-rating-menu`} role="group" aria-label="Star rating choices">
+                      {["", "1-Star", "2-Star", "3-Star", "4-Star", "5-Star"].map((rating) => (
+                        <button
+                          type="button"
+                          className="resort-rating-select__choice"
+                          key={rating}
+                          aria-current={!customRating && category === rating ? "true" : undefined}
+                          onClick={() => {
+                            setCategory(rating);
+                            setCustomRating(false);
+                            setRatingMenuOpen(false);
+                            ratingTriggerRef.current?.focus();
+                          }}
+                        >{rating || "Not set"}</button>
+                      ))}
+                      {ratingOptions.map((option) => (
+                        <div className="resort-rating-select__row" key={option.label}>
+                          <button
+                            type="button"
+                            className="resort-rating-select__choice"
+                            aria-current={!customRating && category === option.label ? "true" : undefined}
+                            onClick={() => {
+                              setCategory(option.label);
+                              setCustomRating(false);
+                              setRatingMenuOpen(false);
+                              ratingTriggerRef.current?.focus();
+                            }}
+                          >{option.label} <small>({option.count})</small></button>
+                          <button
+                            type="button"
+                            className="resort-rating-select__delete"
+                            aria-label={`Delete ${option.label} from ${option.count} ${labels.plural.toLowerCase()}`}
+                            title={`Delete rating and clear affected ${labels.singular.toLowerCase()} badges`}
+                            disabled={isRemovingRating}
+                            onClick={() => handleRemoveRating(option.label, option.count)}
+                          ><X size={14} aria-hidden="true" /></button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        className="resort-rating-select__choice"
+                        aria-current={customRating ? "true" : undefined}
+                        onClick={() => {
+                          setCategory("");
+                          setCustomRating(true);
+                          setRatingMenuOpen(false);
+                        }}
+                      >Custom</button>
+                    </div>
+                  ) : null}
+                </div>
+                {customRating ? (
+                  <input
+                    className="admin-input"
+                    aria-label="Custom star rating"
+                    value={category}
+                    onChange={(event) => setCategory(event.target.value)}
+                    placeholder="5 Star - Luxury Premium"
+                    maxLength={80}
+                  />
+                ) : null}
+                {ratingStatus?.message ? <p className="admin-alert admin-alert--success" role="status">{ratingStatus.message}</p> : null}
+                {ratingStatus?.error ? <p className="admin-alert admin-alert--error" role="alert">{ratingStatus.error}</p> : null}
+            </div>
             <label className="field">
               <span className="field__label">Transfer Type</span>
               <input
@@ -917,6 +1114,10 @@ export function ResortEditor({
             helper={`Primary hero image for the ${labels.singular.toLowerCase()} listing, homepage feature, and property page.`}
             onChange={setHeroImageUrl}
           />
+
+          {resort.id ? (
+            <BrochureUploadControl resortId={resort.id} resortName={resort.name ?? labels.singular} initialPath={resort.brochurePath ?? ""} propertyType={propertyType} />
+          ) : null}
 
           <div className="field field--full">
             <span className="field__label">Optional Gallery URLs</span>
@@ -1077,7 +1278,7 @@ export function ResortEditor({
         <section className="resort-editor-sidecard">
           <h3>Summary</h3>
           <dl className="resort-editor-summary">
-            <div><dt>Category</dt><dd>{category || "Not set"}</dd></div>
+            <div><dt>Star Rating</dt><dd>{category || "Not set"}</dd></div>
             <div><dt>Atoll</dt><dd>{location || "Not set"}</dd></div>
             <div><dt>Transfer</dt><dd>{transferType || "Not set"}</dd></div>
             <div><dt>Villas</dt><dd>{rooms.length} types</dd></div>

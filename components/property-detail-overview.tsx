@@ -12,6 +12,7 @@ import {
   Coffee,
   ConciergeBell,
   Dumbbell,
+  FileDown,
   Flower2,
   Heart,
   HeartPulse,
@@ -36,6 +37,7 @@ type DetailFact = {
   label: string;
   value: string;
   Icon: LucideIcon;
+  href?: string;
 };
 
 type PropertyDetailOverviewProps = {
@@ -239,7 +241,12 @@ export function PropertyDetailOverview({
             {facts.map((fact) => (
               <div className="property-detail-fact" key={fact.label}>
                 <span>{fact.label}</span>
-                <strong>{fact.value}</strong>
+                {fact.href ? (
+                  <a className="property-detail-fact__download" href={fact.href} download={`${name} Brochure.pdf`}>
+                    <fact.Icon size={18} aria-hidden="true" />
+                    {fact.value}
+                  </a>
+                ) : <strong>{fact.value}</strong>}
               </div>
             ))}
           </div>
@@ -286,6 +293,7 @@ export const propertyFactIcons = {
   BedDouble,
   Car,
   ConciergeBell,
+  FileDown,
   MapPin,
   Plane,
   Sailboat,

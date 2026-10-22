@@ -20297,13 +20297,13 @@ html {
 }
 
 .resort-story-page--resort .property-detail-hero .resort-story-hero__copy h1 {
-  max-width: 14ch !important;
+  max-width: min(20ch, 100%) !important;
   color: #fff !important;
-  font-family: var(--font-sans), sans-serif !important;
-  font-size: clamp(44px, 5.2vw, 72px) !important;
-  font-weight: 800 !important;
+  font-family: var(--font-serif), Georgia, serif !important;
+  font-size: 3.5rem !important;
+  font-weight: 400 !important;
   letter-spacing: 0 !important;
-  line-height: 0.98 !important;
+  line-height: 1.08 !important;
 }
 
 .property-detail-intro {
@@ -20360,6 +20360,23 @@ html {
   line-height: 1.45;
 }
 
+.property-detail-fact__download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #123a58;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.property-detail-fact__download svg {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+}
+
 .property-detail-overview {
   display: grid;
   justify-items: center;
@@ -20391,6 +20408,18 @@ html {
   font-weight: 800 !important;
   letter-spacing: 0 !important;
   line-height: 1.12 !important;
+}
+
+.property-detail-overview h2 {
+  font-family: var(--font-serif), Georgia, serif !important;
+  font-weight: 400 !important;
+  line-height: 1.18 !important;
+}
+
+.resort-story-page--resort .property-detail-curated h2 {
+  font-family: var(--font-serif), Georgia, serif !important;
+  font-weight: 400 !important;
+  line-height: 1.18 !important;
 }
 
 .property-detail-overview__copy {
@@ -20484,6 +20513,12 @@ html {
   line-height: 1.2;
 }
 
+.resort-story-page--resort .property-detail-curated__group-heading h3 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
 .property-detail-curated__chips {
   display: flex;
   flex-wrap: wrap;
@@ -20575,6 +20610,49 @@ html {
   background: #fff;
 }
 
+.resort-map-editor__search {
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
+  white-space: normal;
+}
+
+.resort-map-editor__coordinates summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.resort-map-editor__coordinates .form-grid {
+  margin-top: 0.75rem;
+}
+
+.resort-location-map {
+  display: block;
+  width: 100%;
+  height: clamp(300px, 38vw, 480px);
+  border: 0;
+}
+
+.resort-map-editor .resort-location-map {
+  height: 280px;
+}
+
+.resort-location-map__pin {
+  display: flex;
+  color: #c84443;
+}
+
+.resort-location-map__pin svg {
+  width: 38px;
+  height: 38px;
+  fill: white;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 28%));
+}
+
+.resort-location-section .resort-story-section-heading {
+  margin-bottom: 1.5rem;
+}
+
 .resort-story-page--resort #rooms .resort-story-section-heading {
   justify-content: center;
   margin-bottom: clamp(3rem, 6vw, 5.2rem);
@@ -20585,15 +20663,21 @@ html {
   color: #6b9cbb !important;
 }
 
-.resort-story-page--resort #rooms .resort-story-section-heading h2 {
+.resort-story-page--resort #rooms .resort-story-section-heading h2,
+.resort-story-page--resort #location .resort-story-section-heading h2 {
   color: #123a58 !important;
-  font-family: var(--font-sans), sans-serif !important;
+  font-family: var(--font-serif), Georgia, serif !important;
   font-size: clamp(28px, 3vw, 36px) !important;
-  font-weight: 800 !important;
+  font-weight: 400 !important;
   letter-spacing: 0 !important;
+  line-height: 1.18 !important;
 }
 
 @media (max-width: 900px) {
+  .resort-story-page--resort .property-detail-hero .resort-story-hero__copy h1 {
+    font-size: 3rem !important;
+  }
+
   .property-detail-facts__inner {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -20612,6 +20696,10 @@ html {
 }
 
 @media (max-width: 640px) {
+  .resort-story-page--resort .property-detail-hero .resort-story-hero__copy h1 {
+    font-size: 2.25rem !important;
+  }
+
   .resort-story-page--resort .property-detail-hero,
   .resort-story-page--resort .property-detail-hero .resort-story-hero__inner {
     min-height: 520px !important;
@@ -30881,4 +30969,97 @@ html {
     margin-bottom: 12px;
     font-size: 11px;
   }
+}
+
+.admin-body .resort-rating-select {
+  position: relative;
+}
+
+.admin-body .resort-rating-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-body .resort-rating-select__trigger span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-body .resort-rating-select__trigger svg {
+  flex: none;
+}
+
+.admin-body .resort-rating-select__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 50;
+  width: 100%;
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid var(--cms-hair, #e5e7eb);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+}
+
+.admin-body .resort-rating-select__row {
+  display: flex;
+  align-items: stretch;
+}
+
+.admin-body .resort-rating-select__choice {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 32px;
+  padding: 7px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--cms-ink, #111827);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.admin-body .resort-rating-select__choice small {
+  color: #6b7280;
+}
+
+.admin-body .resort-rating-select__choice:hover,
+.admin-body .resort-rating-select__choice[aria-current="true"] {
+  background: #eef6f4;
+}
+
+.admin-body .resort-rating-select__delete {
+  display: grid;
+  width: 30px;
+  flex: none;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.admin-body .resort-rating-select__delete:hover {
+  color: #b91c1c;
+}
+
+.admin-body .resort-rating-select__menu button:focus-visible {
+  outline: 2px solid #0f766e;
+  outline-offset: -2px;
+}
+
+.admin-body .resort-rating-select__delete:disabled {
+  cursor: wait;
+  opacity: 0.5;
 }

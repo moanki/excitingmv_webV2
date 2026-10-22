@@ -4,7 +4,8 @@ import { revalidatePath, revalidateTag } from "next/cache";
 
 import { requireAdminRole } from "@/lib/auth/require-admin";
 import { generateResortSeoCopy, type ResortSeoGenerationInput } from "@/lib/services/resort-ai-service";
-import { deleteResort, normalizePropertyType, publishDraftProperties, saveResort, seedSampleResorts, type PropertyType } from "@/lib/services/resort-service";
+import { deleteResort, normalizePropertyType, publishDraftProperties, removeCustomResortRating, saveResort, seedSampleResorts, type PropertyType } from "@/lib/services/resort-service";
+import { normalizeGoogleMapsEmbedUrl, parseOptionalCoordinates } from "@/lib/resort-map";
 import { uploadSiteAsset } from "@/lib/storage/site-assets";
 import type { PublishStatus } from "@/lib/types";
 import {
@@ -236,6 +237,12 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
       .filter(Boolean)
       .map((item) => normalizeSafeMediaUrl(item));
     const roomTypes = await parseRoomTypes(formData);
+    const mapEmbedUrl = propertyType !== "liveaboards"
+      ? normalizeGoogleMapsEmbedUrl(String(formData.get("mapEmbedUrl") ?? ""))
+      : "";
+    const coordinates = propertyType !== "liveaboards" && !mapEmbedUrl
+      ? parseOptionalCoordinates(String(formData.get("latitude") ?? ""), String(formData.get("longitude") ?? ""))
+      : { latitude: null, longitude: null };
     const curatedMoments = await parseCuratedMoments(formData);
     const submittedSlug = String(formData.get("slug") ?? "").trim();
     const normalizedSlug = slugify(submittedSlug || name);
@@ -249,6 +256,8 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
       slug: normalizedSlug,
       name,
       location: String(formData.get("location") ?? "").trim(),
+      mapEmbedUrl,
+      ...coordinates,
       category: String(formData.get("category") ?? "").trim(),
       transferType: String(formData.get("transferType") ?? "").trim(),
       description: String(formData.get("description") ?? "").trim(),
@@ -304,6 +313,11 @@ export async function deleteResortAction(_: ActionState, formData: FormData): Pr
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to delete property." };
   }
+}
+
+export async function removeCustomResortRatingAction(label: string, propertyType: PropertyType = "resort") {
+  await requireAdminRole(["super_admin", "admin", "content_manager"]);
+  return removeCustomResortRating(label, normalizePropertyType(propertyType));
 }
 
 export async function publishSelectedDraftsAction(_: ActionState, formData: FormData): Promise<ActionState> {

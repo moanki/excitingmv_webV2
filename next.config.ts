@@ -47,6 +47,7 @@ const nextConfig: NextConfig = {
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "connect-src 'self' https: wss:",
       "media-src 'self' data: blob: https:",
+      "frame-src 'self' https://www.google.com",
       `form-action 'self'`,
       `upgrade-insecure-requests`
     ].join("; ");

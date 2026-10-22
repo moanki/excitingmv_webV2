@@ -8,6 +8,8 @@ import {
 import { optimizedImageUrl } from "@/lib/image-urls";
 import { PropertyDetailOverview, propertyFactIcons } from "@/components/property-detail-overview";
 import { PropertyRoomCard } from "@/components/property-room-card";
+import { ResortLocationMap } from "@/components/resort-location-map";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -60,12 +62,18 @@ export default async function ResortDetailPage({
       : resort.butlerService.displayName?.trim().toLowerCase() === "yes"
         ? "Available"
         : resort.butlerService.displayName?.trim() || resort.butlerService.description?.trim() || "To be confirmed";
+  const brochureUrl = resort.brochurePath
+    ? createSupabaseAdminClient().storage.from("resort-brochures").getPublicUrl(resort.brochurePath, {
+        download: `${resort.name} Brochure.pdf`
+      }).data.publicUrl
+    : "";
   const topFactItems = [
     { label: "Location", value: resort.location || "Maldives", Icon: propertyFactIcons.MapPin },
     { label: "Villas", value: resort.roomTypes.length ? `${resort.roomTypes.length} room types` : "To be confirmed", Icon: propertyFactIcons.BedDouble },
     { label: "Transfer", value: resort.transferType || "Available on request", Icon: propertyFactIcons.Plane },
     { label: "Category", value: resort.category || formatInlineList(resort.mealPlans, "Luxury island resort"), Icon: propertyFactIcons.Sparkles },
-    { label: "Butler Service", value: butlerServiceLabel, Icon: propertyFactIcons.ConciergeBell }
+    { label: "Butler Service", value: butlerServiceLabel, Icon: propertyFactIcons.ConciergeBell },
+    ...(brochureUrl ? [{ label: "Download Brochure", value: `${resort.name} Brochure`, href: brochureUrl, Icon: propertyFactIcons.FileDown }] : [])
   ];
   const topFacts = topFactItems;
   const curatedMoments = resort.curatedMoments.filter((item) => item.title || item.description || item.iconUrl);
@@ -123,6 +131,20 @@ export default async function ResortDetailPage({
           )}
         </div>
       </section>
+
+      {resort.mapEmbedUrl || (resort.latitude !== null && resort.longitude !== null) ? (
+        <section className="site-section site-section--white resort-location-section" id="location">
+          <div className="site-container">
+            <div className="section-heading resort-story-section-heading">
+              <div>
+                <p className="eyebrow">Location</p>
+                <h2>Find {resort.name}</h2>
+              </div>
+            </div>
+            <ResortLocationMap name={resort.name} mapEmbedUrl={resort.mapEmbedUrl} latitude={resort.latitude} longitude={resort.longitude} />
+          </div>
+        </section>
+      ) : null}
 
       {similarResorts.length ? (
         <section className="site-section site-section--white resort-story-similar" id="similar-resorts">

@@ -11,6 +11,7 @@ const PROPERTY_TABLE = "property";
 const PROPERTY_TABLES = [PROPERTY_TABLE] as const;
 const VIEW_LABEL_FEATURE_PREFIX = "__viewLabel:";
 const FEATURED_MIGRATION_ERROR = "Database migration missing: is_featured_homepage column is not available.";
+const standardResortRatings = new Set(["1-Star", "2-Star", "3-Star", "4-Star", "5-Star"]);
 const ADMIN_LIST_COLUMNS =
   "id,property_type,slug,name,atoll,category,transfer_type,description,accommodation_summary,curated_moments,butler_service,seo_summary,status,is_featured_homepage,published_at,created_at,updated_at";
 const ADMIN_LIST_COLUMNS_WITHOUT_OPTIONAL_CONTENT = ADMIN_LIST_COLUMNS.replace("accommodation_summary,curated_moments,butler_service,", "");
@@ -44,6 +45,10 @@ export type ResortRecord = {
   mealPlans: string[];
   curatedMoments: ResortCuratedMoment[];
   butlerService: ResortButlerService;
+  brochurePath: string;
+  mapEmbedUrl: string;
+  latitude: number | null;
+  longitude: number | null;
   status: PublishStatus;
   isFeaturedHomepage: boolean;
   seoTitle: string;
@@ -64,6 +69,64 @@ export type ResortButlerService = {
   description?: string;
 };
 
+export type CustomResortRating = { label: string; count: number };
+
+function isCustomResortRating(label: string) {
+  return /\b[1-5]\s*[- ]?\s*stars?\b/i.test(label) && !standardResortRatings.has(label);
+}
+
+export async function listCustomResortRatings(propertyType: PropertyType = "resort"): Promise<CustomResortRating[]> {
+  const supabase = createSupabaseAdminClient();
+  const counts = new Map<string, number>();
+  const pageSize = 1000;
+
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from(PROPERTY_TABLE)
+      .select("category")
+      .eq("property_type", propertyType)
+      .order("id")
+      .range(from, from + pageSize - 1);
+    if (error) throw new Error(error.message);
+
+    for (const row of data ?? []) {
+      const label = row.category?.trim() ?? "";
+      if (isCustomResortRating(label)) counts.set(label, (counts.get(label) ?? 0) + 1);
+    }
+    if (!data || data.length < pageSize) break;
+  }
+
+  return [...counts].map(([label, count]) => ({ label, count })).sort((a, b) => a.label.localeCompare(b.label));
+}
+
+export async function removeCustomResortRating(label: string, propertyType: PropertyType = "resort") {
+  if (!isCustomResortRating(label) || label !== label.trim()) {
+    throw new Error("Only saved custom star ratings can be removed.");
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { count, error: countError } = await supabase
+    .from(PROPERTY_TABLE)
+    .select("id", { count: "exact", head: true })
+    .eq("property_type", propertyType)
+    .eq("category", label);
+  if (countError) throw new Error(countError.message);
+
+  const { error } = await supabase
+    .from(PROPERTY_TABLE)
+    .update({ category: "", updated_at: new Date().toISOString() })
+    .eq("property_type", propertyType)
+    .eq("category", label);
+  if (error) throw new Error(error.message);
+
+  revalidateTag("resorts-public", "max");
+  const basePath = propertyBasePath(propertyType);
+  revalidatePath(basePath);
+  revalidatePath(`${basePath}/[slug]`, "page");
+  revalidatePath(`/admin${basePath}/[id]/edit`, "page");
+  return count ?? 0;
+}
+
 type ResortRow = {
   id: string;
   property_type?: PropertyType | null;
@@ -78,6 +141,10 @@ type ResortRow = {
   meal_plans: unknown;
   curated_moments?: unknown;
   butler_service?: unknown;
+  brochure_path?: string | null;
+  map_embed_url?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   seo_title: string | null;
   seo_description: string | null;
   seo_summary: string | null;
@@ -248,6 +315,10 @@ function mapResortRow(row: ResortRow): ResortRecord {
     mealPlans: toStringArray(row.meal_plans),
     curatedMoments: toCuratedMoments(row.curated_moments),
     butlerService: toButlerService(row.butler_service),
+    brochurePath: row.brochure_path ?? "",
+    mapEmbedUrl: row.map_embed_url ?? "",
+    latitude: row.latitude ?? null,
+    longitude: row.longitude ?? null,
     status: row.status,
     isFeaturedHomepage: Boolean(row.is_featured_homepage),
     seoTitle: row.seo_title ?? row.name,
@@ -941,6 +1012,9 @@ export async function saveResort(input: {
   roomTypes: ResortRoomSummary[];
   status: PublishStatus;
   isFeaturedHomepage: boolean;
+  mapEmbedUrl?: string;
+  latitude?: number | null;
+  longitude?: number | null;
 }) {
   const supabase = createSupabaseAdminClient();
   const now = new Date().toISOString();
@@ -993,6 +1067,11 @@ export async function saveResort(input: {
     const tablePayload = {
       ...basePayload,
       ...(input.curatedMoments !== undefined ? { curated_moments: input.curatedMoments } : {}),
+      ...(propertyType !== "liveaboards" && input.mapEmbedUrl !== undefined ? {
+        map_embed_url: input.mapEmbedUrl || null,
+        latitude: input.latitude ?? null,
+        longitude: input.longitude ?? null
+      } : {}),
       property_type: propertyTypeForTable(propertyType, tableName)
     };
 

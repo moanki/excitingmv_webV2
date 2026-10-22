@@ -76,9 +76,9 @@ const kindConfig = {
     path: "/resorts",
     placeholder: "Search resorts...",
     portfolioTitle: "Resort Portfolio",
-    categoryLabel: "Resort Category",
-    categoryAllLabel: "All Resort Categories",
-    categoryOptions: ["Budget-Conscious", "Classic 5-Star", "Premium 5-Star", "Luxury 5-Star", "Ultra Luxury 5-Star"],
+    categoryLabel: "Star Rating",
+    categoryAllLabel: "All Star Ratings",
+    categoryOptions: ["1-Star", "2-Star", "3-Star", "4-Star", "5-Star"],
     selectionOptions: ["Marine Experience", "Honeymoon", "All-Inclusive", "Family Oriented", "Adults-only", "Private Islands"],
     locationOptions: [
       "North Male Atoll",
@@ -101,9 +101,9 @@ const kindConfig = {
     path: "/hotels",
     placeholder: "Search hotels...",
     portfolioTitle: "Hotel Portfolio",
-    categoryLabel: "Hotel Category",
-    categoryAllLabel: "All Hotel Categories",
-    categoryOptions: ["Budget-Conscious", "Classic Hotel", "Premium Hotel", "Luxury Hotel", "Business Hotel", "Airport Hotel"],
+    categoryLabel: "Star Rating",
+    categoryAllLabel: "All Star Ratings",
+    categoryOptions: ["1-Star", "2-Star", "3-Star", "4-Star", "5-Star"],
     selectionOptions: ["City Stay", "Business Travel", "Transit Stay", "Family Oriented", "Budget-Conscious", "Premium Stay"],
     locationOptions: ["Male", "Hulhumale", "Velana International Airport Area", "Greater Male Region", "Addu City", "Other Islands"],
     transferOptions: ["Airport Transfer", "City Transfer", "Speedboat", "Domestic"],
@@ -115,9 +115,9 @@ const kindConfig = {
     path: "/liveaboards",
     placeholder: "Search liveaboards...",
     portfolioTitle: "Liveaboard Portfolio",
-    categoryLabel: "Liveaboard Category",
-    categoryAllLabel: "All Liveaboard Categories",
-    categoryOptions: ["Budget-Conscious", "Classic Liveaboard", "Premium Liveaboard", "Luxury Liveaboard", "Diving Specialist", "Private Charter"],
+    categoryLabel: "Star Rating",
+    categoryAllLabel: "All Star Ratings",
+    categoryOptions: ["1-Star", "2-Star", "3-Star", "4-Star", "5-Star"],
     selectionOptions: ["Diving", "Surfing", "Marine Experience", "Private Charter", "Group Travel", "Premium Cruise"],
     locationOptions: ["Male Departure", "Central Atolls", "North Atolls", "South Atolls", "Ari Atoll Route", "Baa Atoll Route", "Deep South Route"],
     transferOptions: ["Male Departure", "Domestic + Vessel", "Speedboat Connection", "Seaplane Connection"],
@@ -163,36 +163,9 @@ function matchesOption(value: string, options: string[]) {
   return options.find((option) => option.toLowerCase() === normalized);
 }
 
-function inferCategory(kind: DestinationKind, category: string, summary = "") {
-  const config = kindConfig[kind];
-  const directMatch = matchesOption(category, config.categoryOptions);
-  if (directMatch) {
-    return directMatch;
-  }
-
-  const text = `${category} ${summary}`.toLowerCase();
-  if (/budget|value|affordable|conscious/.test(text)) return "Budget-Conscious";
-
-  if (kind === "resort") {
-    if (/ultra/.test(text)) return "Ultra Luxury 5-Star";
-    if (/premium/.test(text)) return "Premium 5-Star";
-    if (/classic/.test(text)) return "Classic 5-Star";
-    return /luxury|5/.test(text) ? "Luxury 5-Star" : "Premium 5-Star";
-  }
-
-  if (kind === "hotels") {
-    if (/airport/.test(text)) return "Airport Hotel";
-    if (/business|transit|city/.test(text)) return "Business Hotel";
-    if (/luxury/.test(text)) return "Luxury Hotel";
-    if (/classic/.test(text)) return "Classic Hotel";
-    return "Premium Hotel";
-  }
-
-  if (/charter|private/.test(text)) return "Private Charter";
-  if (/diving|dive/.test(text)) return "Diving Specialist";
-  if (/luxury/.test(text)) return "Luxury Liveaboard";
-  if (/classic/.test(text)) return "Classic Liveaboard";
-  return "Premium Liveaboard";
+function inferCategory(category: string) {
+  const rating = category.match(/\b([1-5])\s*[- ]?\s*stars?\b/i);
+  return rating ? category : "";
 }
 
 function inferLocation(kind: DestinationKind, location: string, summary = "") {
@@ -295,7 +268,7 @@ function inferSelectionTag(kind: DestinationKind, item: ResortSummary, category:
 
 function normalizePortfolioItems(kind: DestinationKind, items: ResortSummary[]) {
   return items.map((item, index) => {
-    const category = inferCategory(kind, normalize(item.category), item.summary);
+    const category = inferCategory(normalize(item.category));
     const transferOptions = inferTransferOptions(kind, item.transferType, item.summary);
     return {
       id: item.id,
@@ -866,15 +839,19 @@ function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem
           <span className="portfolio-card__drawer">
             <span>View {config.singular} <ArrowRight aria-hidden="true" /></span>
           </span>
-          <span className="portfolio-card__badge portfolio-card__badge--image">
-            {item.category}
-          </span>
+          {item.category ? (
+            <span className="portfolio-card__badge portfolio-card__badge--image">
+              {item.category}
+            </span>
+          ) : null}
         </span>
         <span className="portfolio-card__text">
-          <span className="portfolio-card__badge portfolio-card__badge--text">
-            <BadgeCheck size={12} aria-hidden="true" />
-            {item.category}
-          </span>
+          {item.category ? (
+            <span className="portfolio-card__badge portfolio-card__badge--text">
+              <BadgeCheck size={12} aria-hidden="true" />
+              {item.category}
+            </span>
+          ) : null}
           <span className="portfolio-card__title">{item.name}</span>
           <span className="portfolio-card__meta">
             <span>
@@ -1015,8 +992,14 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
   const [isFiltering, setIsFiltering] = useState(false);
   const [visibleCount, setVisibleCount] = useState(initialVisibleCount);
   const hasMounted = useRef(false);
-  const config = kindConfig[activeKind];
   const portfolioItems = useMemo(() => normalizePortfolioItems(activeKind, items), [activeKind, items]);
+  const config = useMemo(() => {
+    const baseConfig = kindConfig[activeKind];
+    const customRatings = [...new Set(portfolioItems.map((item) => item.category))]
+      .filter((rating) => rating && !baseConfig.categoryOptions.includes(rating))
+      .sort((left, right) => left.localeCompare(right));
+    return { ...baseConfig, categoryOptions: [...baseConfig.categoryOptions, ...customRatings] };
+  }, [activeKind, portfolioItems]);
 
   useEffect(() => {
     const nextState = readInitialQueryState(defaultSort);

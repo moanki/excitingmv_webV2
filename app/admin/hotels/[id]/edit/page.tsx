@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { ResortEditor } from "@/app/admin/resorts/forms";
 import { getHomepageFeaturedResortsSetting } from "@/lib/site-content";
-import { getAdminResortById } from "@/lib/services/resort-service";
+import { getAdminResortById, listCustomResortRatings } from "@/lib/services/resort-service";
 import { listSiteAssets } from "@/lib/storage/site-assets";
 
 const labels = {
@@ -18,10 +18,11 @@ export default async function EditAdminHotelPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [hotel, mediaLibrary, { content: featuredResorts }] = await Promise.all([
+  const [hotel, mediaLibrary, { content: featuredResorts }, customRatingOptions] = await Promise.all([
     getAdminResortById(id),
     listSiteAssets(),
-    getHomepageFeaturedResortsSetting("draft")
+    getHomepageFeaturedResortsSetting("draft"),
+    listCustomResortRatings("hotels")
   ]);
 
   if (!hotel || hotel.propertyType !== "hotels") {
@@ -39,6 +40,7 @@ export default async function EditAdminHotelPage({
       title="Edit Hotel"
       description="Work on one selected hotel at a time with dedicated sections for content, rooms, media, and publishing."
       mediaLibrary={mediaLibrary}
+      customRatingOptions={customRatingOptions}
       mode="edit"
       propertyType="hotels"
       labels={labels}
