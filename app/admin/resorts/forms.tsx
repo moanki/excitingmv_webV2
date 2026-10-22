@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useMemo, useState, useTransition, type FormEvent } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  ChevronDown,
   Eye,
   ImageIcon,
   MapPin,
@@ -635,6 +636,9 @@ export function ResortEditor({
   const [isRemovingRating, startRemovingRating] = useTransition();
   const [ratingOptions, setRatingOptions] = useState(customRatingOptions);
   const [ratingStatus, setRatingStatus] = useState<{ message?: string; error?: string } | null>(null);
+  const [ratingMenuOpen, setRatingMenuOpen] = useState(false);
+  const ratingMenuRef = useRef<HTMLDivElement>(null);
+  const ratingTriggerRef = useRef<HTMLButtonElement>(null);
   const [rooms, setRooms] = useState<EditableRoom[]>(
     (resort.roomTypes ?? []).map((room) => ({
       name: room.name,
@@ -704,6 +708,25 @@ export function ResortEditor({
   }, [category, customRatingOptions]);
 
   useEffect(() => {
+    if (!ratingMenuOpen) return;
+    function onPointerDown(event: MouseEvent) {
+      if (!ratingMenuRef.current?.contains(event.target as Node)) setRatingMenuOpen(false);
+    }
+    function onEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setRatingMenuOpen(false);
+        ratingTriggerRef.current?.focus();
+      }
+    }
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onEscape);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onEscape);
+    };
+  }, [ratingMenuOpen]);
+
+  useEffect(() => {
     if (!pending) setPendingIntent("");
   }, [pending]);
 
@@ -724,6 +747,8 @@ export function ResortEditor({
           setCategory("");
           setCustomRating(false);
         }
+        setRatingMenuOpen(false);
+        ratingTriggerRef.current?.focus();
         setRatingStatus({ message: `Removed "${label}" from ${removedCount} resort${removedCount === 1 ? "" : "s"}.` });
         router.refresh();
       } catch (error) {
@@ -891,27 +916,73 @@ export function ResortEditor({
             ) : null}
             {propertyType === "resort" ? (
               <div className="field">
-                <label className="field__label" htmlFor={`${formId}-rating`}>Star Rating</label>
+                <span className="field__label" id={`${formId}-rating-label`}>Star Rating</span>
                 <input type="hidden" name="category" value={category} />
-                <select
-                  id={`${formId}-rating`}
-                  className="admin-input"
-                  value={customRating ? "__custom__" : category}
-                  onChange={(event) => {
-                    const isCustom = event.target.value === "__custom__";
-                    setCustomRating(isCustom);
-                    setCategory(isCustom ? "" : event.target.value);
-                  }}
-                >
-                  <option value="">Not set</option>
-                  {[1, 2, 3, 4, 5].map((stars) => (
-                    <option key={stars} value={`${stars}-Star`}>{stars}-Star</option>
-                  ))}
-                  {ratingOptions.map((option) => (
-                    <option key={option.label} value={option.label}>{option.label}</option>
-                  ))}
-                  <option value="__custom__">Custom</option>
-                </select>
+                <div className="resort-rating-select" ref={ratingMenuRef}>
+                  <button
+                    ref={ratingTriggerRef}
+                    type="button"
+                    className="admin-input resort-rating-select__trigger"
+                    aria-labelledby={`${formId}-rating-label ${formId}-rating-value`}
+                    aria-expanded={ratingMenuOpen}
+                    aria-controls={`${formId}-rating-menu`}
+                    onClick={() => setRatingMenuOpen((open) => !open)}
+                  >
+                    <span id={`${formId}-rating-value`}>{customRating ? "Custom" : category || "Not set"}</span>
+                    <ChevronDown size={16} aria-hidden="true" />
+                  </button>
+                  {ratingMenuOpen ? (
+                    <div className="resort-rating-select__menu" id={`${formId}-rating-menu`} role="group" aria-label="Star rating choices">
+                      {["", "1-Star", "2-Star", "3-Star", "4-Star", "5-Star"].map((rating) => (
+                        <button
+                          type="button"
+                          className="resort-rating-select__choice"
+                          key={rating}
+                          aria-current={!customRating && category === rating ? "true" : undefined}
+                          onClick={() => {
+                            setCategory(rating);
+                            setCustomRating(false);
+                            setRatingMenuOpen(false);
+                            ratingTriggerRef.current?.focus();
+                          }}
+                        >{rating || "Not set"}</button>
+                      ))}
+                      {ratingOptions.map((option) => (
+                        <div className="resort-rating-select__row" key={option.label}>
+                          <button
+                            type="button"
+                            className="resort-rating-select__choice"
+                            aria-current={!customRating && category === option.label ? "true" : undefined}
+                            onClick={() => {
+                              setCategory(option.label);
+                              setCustomRating(false);
+                              setRatingMenuOpen(false);
+                              ratingTriggerRef.current?.focus();
+                            }}
+                          >{option.label} <small>({option.count})</small></button>
+                          <button
+                            type="button"
+                            className="resort-rating-select__delete"
+                            aria-label={`Delete ${option.label} from ${option.count} resorts`}
+                            title="Delete rating and clear affected resort badges"
+                            disabled={isRemovingRating}
+                            onClick={() => handleRemoveRating(option.label, option.count)}
+                          ><X size={14} aria-hidden="true" /></button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        className="resort-rating-select__choice"
+                        aria-current={customRating ? "true" : undefined}
+                        onClick={() => {
+                          setCategory("");
+                          setCustomRating(true);
+                          setRatingMenuOpen(false);
+                        }}
+                      >Custom</button>
+                    </div>
+                  ) : null}
+                </div>
                 {customRating ? (
                   <input
                     className="admin-input"
@@ -921,22 +992,6 @@ export function ResortEditor({
                     placeholder="5 Star - Luxury Premium"
                     maxLength={80}
                   />
-                ) : null}
-                {ratingOptions.length ? (
-                  <div className="resort-rating-options" aria-label="Saved custom ratings">
-                    {ratingOptions.map((option) => (
-                      <div className="resort-rating-options__row" key={option.label}>
-                        <span>{option.label} <small>({option.count})</small></span>
-                        <button
-                          type="button"
-                          aria-label={`Delete ${option.label} from ${option.count} resorts`}
-                          title="Delete rating and clear affected resort badges"
-                          disabled={isRemovingRating}
-                          onClick={() => handleRemoveRating(option.label, option.count)}
-                        ><X size={14} aria-hidden="true" /></button>
-                      </div>
-                    ))}
-                  </div>
                 ) : null}
                 {ratingStatus?.message ? <p className="admin-alert admin-alert--success" role="status">{ratingStatus.message}</p> : null}
                 {ratingStatus?.error ? <p className="admin-alert admin-alert--error" role="alert">{ratingStatus.error}</p> : null}
