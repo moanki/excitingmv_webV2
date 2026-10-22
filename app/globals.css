@@ -20387,6 +20387,12 @@ html {
   line-height: 1.12 !important;
 }
 
+.property-detail-overview h2 {
+  font-family: var(--font-serif), Georgia, serif !important;
+  font-weight: 400 !important;
+  line-height: 1.18 !important;
+}
+
 .property-detail-overview__copy {
   display: grid;
   gap: 1.55rem;
@@ -20624,10 +20630,11 @@ html {
 
 .resort-story-page--resort #rooms .resort-story-section-heading h2 {
   color: #123a58 !important;
-  font-family: var(--font-sans), sans-serif !important;
+  font-family: var(--font-serif), Georgia, serif !important;
   font-size: clamp(28px, 3vw, 36px) !important;
-  font-weight: 800 !important;
+  font-weight: 400 !important;
   letter-spacing: 0 !important;
+  line-height: 1.18 !important;
 }
 
 @media (max-width: 900px) {
