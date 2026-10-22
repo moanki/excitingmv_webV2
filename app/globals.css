@@ -20393,6 +20393,12 @@ html {
   line-height: 1.18 !important;
 }
 
+.resort-story-page--resort .property-detail-curated h2 {
+  font-family: var(--font-serif), Georgia, serif !important;
+  font-weight: 400 !important;
+  line-height: 1.18 !important;
+}
+
 .property-detail-overview__copy {
   display: grid;
   gap: 1.55rem;
@@ -20482,6 +20488,12 @@ html {
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.2;
+}
+
+.resort-story-page--resort .property-detail-curated__group-heading h3 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1rem;
+  font-weight: 400;
 }
 
 .property-detail-curated__chips {
