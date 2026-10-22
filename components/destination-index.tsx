@@ -76,9 +76,9 @@ const kindConfig = {
     path: "/resorts",
     placeholder: "Search resorts...",
     portfolioTitle: "Resort Portfolio",
-    categoryLabel: "Resort Category",
-    categoryAllLabel: "All Resort Categories",
-    categoryOptions: ["Budget-Conscious", "Classic 5-Star", "Premium 5-Star", "Luxury 5-Star", "Ultra Luxury 5-Star"],
+    categoryLabel: "Star Rating",
+    categoryAllLabel: "All Star Ratings",
+    categoryOptions: ["1-Star", "2-Star", "3-Star", "4-Star", "5-Star"],
     selectionOptions: ["Marine Experience", "Honeymoon", "All-Inclusive", "Family Oriented", "Adults-only", "Private Islands"],
     locationOptions: [
       "North Male Atoll",
@@ -164,6 +164,11 @@ function matchesOption(value: string, options: string[]) {
 }
 
 function inferCategory(kind: DestinationKind, category: string, summary = "") {
+  if (kind === "resort") {
+    const rating = category.match(/\b([1-5])\s*[- ]?\s*star\b/i);
+    return rating ? `${rating[1]}-Star` : "";
+  }
+
   const config = kindConfig[kind];
   const directMatch = matchesOption(category, config.categoryOptions);
   if (directMatch) {
@@ -172,13 +177,6 @@ function inferCategory(kind: DestinationKind, category: string, summary = "") {
 
   const text = `${category} ${summary}`.toLowerCase();
   if (/budget|value|affordable|conscious/.test(text)) return "Budget-Conscious";
-
-  if (kind === "resort") {
-    if (/ultra/.test(text)) return "Ultra Luxury 5-Star";
-    if (/premium/.test(text)) return "Premium 5-Star";
-    if (/classic/.test(text)) return "Classic 5-Star";
-    return /luxury|5/.test(text) ? "Luxury 5-Star" : "Premium 5-Star";
-  }
 
   if (kind === "hotels") {
     if (/airport/.test(text)) return "Airport Hotel";
@@ -866,15 +864,19 @@ function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem
           <span className="portfolio-card__drawer">
             <span>View {config.singular} <ArrowRight aria-hidden="true" /></span>
           </span>
-          <span className="portfolio-card__badge portfolio-card__badge--image">
-            {item.category}
-          </span>
+          {item.category ? (
+            <span className="portfolio-card__badge portfolio-card__badge--image">
+              {item.category}
+            </span>
+          ) : null}
         </span>
         <span className="portfolio-card__text">
-          <span className="portfolio-card__badge portfolio-card__badge--text">
-            <BadgeCheck size={12} aria-hidden="true" />
-            {item.category}
-          </span>
+          {item.category ? (
+            <span className="portfolio-card__badge portfolio-card__badge--text">
+              <BadgeCheck size={12} aria-hidden="true" />
+              {item.category}
+            </span>
+          ) : null}
           <span className="portfolio-card__title">{item.name}</span>
           <span className="portfolio-card__meta">
             <span>

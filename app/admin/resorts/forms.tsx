@@ -851,13 +851,18 @@ export function ResortEditor({
               </div>
             ) : null}
             <label className="field">
-              <span className="field__label">Category</span>
-              <input
-                className="admin-input"
-                name="category"
-                value={category}
-                onChange={(event) => setCategory(event.target.value)}
-              />
+              <span className="field__label">{propertyType === "resort" ? "Star Rating" : "Category"}</span>
+              {propertyType === "resort" ? (
+                <select className="admin-input" name="category" value={category} onChange={(event) => setCategory(event.target.value)}>
+                  <option value="">Not set</option>
+                  {category && !/^[1-5]-Star$/.test(category) ? <option value={category}>{category} (current value)</option> : null}
+                  {[1, 2, 3, 4, 5].map((stars) => (
+                    <option key={stars} value={`${stars}-Star`}>{stars}-Star</option>
+                  ))}
+                </select>
+              ) : (
+                <input className="admin-input" name="category" value={category} onChange={(event) => setCategory(event.target.value)} />
+              )}
             </label>
             <label className="field">
               <span className="field__label">Transfer Type</span>
@@ -1141,7 +1146,7 @@ export function ResortEditor({
         <section className="resort-editor-sidecard">
           <h3>Summary</h3>
           <dl className="resort-editor-summary">
-            <div><dt>Category</dt><dd>{category || "Not set"}</dd></div>
+            <div><dt>{propertyType === "resort" ? "Star Rating" : "Category"}</dt><dd>{category || "Not set"}</dd></div>
             <div><dt>Atoll</dt><dd>{location || "Not set"}</dd></div>
             <div><dt>Transfer</dt><dd>{transferType || "Not set"}</dd></div>
             <div><dt>Villas</dt><dd>{rooms.length} types</dd></div>
