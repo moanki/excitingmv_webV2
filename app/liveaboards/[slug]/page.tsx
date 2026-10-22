@@ -4,6 +4,7 @@ import { PropertyDetailOverview, propertyFactIcons } from "@/components/property
 import { PropertyRoomCard } from "@/components/property-room-card";
 import { getResortBySlug } from "@/lib/services/resort-service";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { propertyOverviewCopy } from "@/lib/property-overview";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -38,11 +39,10 @@ export default async function LiveaboardDetailPage({
     { label: "Butler Service", value: butlerServiceLabel, Icon: propertyFactIcons.ConciergeBell },
     ...(brochureUrl ? [{ label: "Download Brochure", value: `${liveaboard.name} Brochure`, href: brochureUrl, Icon: propertyFactIcons.FileDown }] : [])
   ];
-  const overviewCopy =
-    liveaboard.accommodationSummary ||
-    liveaboard.description ||
-    liveaboard.summary ||
-    "Discover a marine-focused Maldives voyage shaped for diving, cruising, and private ocean itineraries.";
+  const overviewCopy = propertyOverviewCopy(
+    liveaboard,
+    "Discover a marine-focused Maldives voyage shaped for diving, cruising, and private ocean itineraries."
+  );
 
   return (
     <main className="resort-detail-page resort-story-page resort-story-page--resort">

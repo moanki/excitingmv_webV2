@@ -5,6 +5,7 @@ import { PropertyRoomCard } from "@/components/property-room-card";
 import { getResortBySlug } from "@/lib/services/resort-service";
 import { ResortLocationMap } from "@/components/resort-location-map";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { propertyOverviewCopy } from "@/lib/property-overview";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -39,7 +40,7 @@ export default async function HotelDetailPage({
     { label: "Butler Service", value: butlerServiceLabel, Icon: propertyFactIcons.ConciergeBell },
     ...(brochureUrl ? [{ label: "Download Brochure", value: `${hotel.name} Brochure`, href: brochureUrl, Icon: propertyFactIcons.FileDown }] : [])
   ];
-  const overviewCopy = hotel.accommodationSummary || hotel.description || hotel.summary || "Discover a curated hotel stay in the Maldives.";
+  const overviewCopy = propertyOverviewCopy(hotel, "Discover a curated hotel stay in the Maldives.");
 
   return (
     <main className="resort-detail-page resort-story-page resort-story-page--resort">

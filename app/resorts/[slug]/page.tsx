@@ -10,6 +10,7 @@ import { PropertyDetailOverview, propertyFactIcons } from "@/components/property
 import { PropertyRoomCard } from "@/components/property-room-card";
 import { ResortLocationMap } from "@/components/resort-location-map";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { propertyOverviewCopy } from "@/lib/property-overview";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -27,20 +28,6 @@ const similarResortFallbackImages = [
   "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=82"
 ];
 
-function buildAboutParagraphs(resort: Awaited<ReturnType<typeof getResortBySlug>>) {
-  if (!resort) {
-    return ["Discover a luxury island stay in the Maldives."];
-  }
-
-  const paragraphs = [resort.description, resort.summary, resort.seoSummary]
-    .map((item) => item?.trim())
-    .filter(Boolean)
-    .filter((item, index, array) => array.indexOf(item) === index)
-    .slice(0, 2);
-
-  return paragraphs.length ? paragraphs : ["Discover a luxury island stay in the Maldives."];
-}
-
 export default async function ResortDetailPage({
   params
 }: {
@@ -54,7 +41,6 @@ export default async function ResortDetailPage({
   }
 
   const similarResorts = await listSimilarPublishedResorts(resort.slug, resort.category, 5);
-  const aboutParagraphs = buildAboutParagraphs(resort);
   const storyTitle = resort.seoTitle?.trim() || `Discover ${resort.name}`;
   const butlerServiceLabel =
     resort.butlerService.available === false
@@ -77,7 +63,7 @@ export default async function ResortDetailPage({
   ];
   const topFacts = topFactItems;
   const curatedMoments = resort.curatedMoments.filter((item) => item.title || item.description || item.iconUrl);
-  const overviewCopy = resort.accommodationSummary || aboutParagraphs[0];
+  const overviewCopy = propertyOverviewCopy(resort, "Discover a luxury island stay in the Maldives.");
 
   return (
     <main className="resort-detail-page resort-story-page resort-story-page--resort">
