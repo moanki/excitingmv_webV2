@@ -20274,13 +20274,13 @@ html {
 }
 
 .resort-story-page--resort .property-detail-hero .resort-story-hero__copy h1 {
-  max-width: 14ch !important;
+  max-width: min(20ch, 100%) !important;
   color: #fff !important;
-  font-family: var(--font-sans), sans-serif !important;
-  font-size: clamp(44px, 5.2vw, 72px) !important;
-  font-weight: 800 !important;
+  font-family: var(--font-serif), Georgia, serif !important;
+  font-size: 3.5rem !important;
+  font-weight: 400 !important;
   letter-spacing: 0 !important;
-  line-height: 0.98 !important;
+  line-height: 1.08 !important;
 }
 
 .property-detail-intro {
@@ -20346,6 +20346,12 @@ html {
   line-height: 1.45;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.property-detail-fact__download svg {
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
 }
 
 .property-detail-overview {
@@ -20625,6 +20631,10 @@ html {
 }
 
 @media (max-width: 900px) {
+  .resort-story-page--resort .property-detail-hero .resort-story-hero__copy h1 {
+    font-size: 3rem !important;
+  }
+
   .property-detail-facts__inner {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -20643,6 +20653,10 @@ html {
 }
 
 @media (max-width: 640px) {
+  .resort-story-page--resort .property-detail-hero .resort-story-hero__copy h1 {
+    font-size: 2.25rem !important;
+  }
+
   .resort-story-page--resort .property-detail-hero,
   .resort-story-page--resort .property-detail-hero .resort-story-hero__inner {
     min-height: 520px !important;
