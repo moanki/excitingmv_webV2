@@ -1,7 +1,11 @@
 import { HomepageWhyUsForm } from "@/app/admin/settings/forms";
-import { getHomepageWhyUs } from "@/lib/site-content";
+import { getHomepageWhyUsContent } from "@/lib/site-content";
+import { listSiteAssets } from "@/lib/storage/site-assets";
 
 export default async function AdminHomepageWhyUsPage() {
-  const { content: items } = await getHomepageWhyUs("draft");
-  return <HomepageWhyUsForm items={items} />;
+  const [{ content }, mediaLibrary] = await Promise.all([
+    getHomepageWhyUsContent("draft"),
+    listSiteAssets()
+  ]);
+  return <HomepageWhyUsForm items={content.items} imageUrl={content.imageUrl} mediaLibrary={mediaLibrary} />;
 }

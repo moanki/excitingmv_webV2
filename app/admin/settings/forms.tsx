@@ -1773,7 +1773,11 @@ export function HomepageServicesForm({
   );
 }
 
-export function HomepageWhyUsForm({ items }: { items: HomepageWhyUsItem[] }) {
+export function HomepageWhyUsForm({ items, imageUrl, mediaLibrary }: {
+  items: HomepageWhyUsItem[];
+  imageUrl: string;
+  mediaLibrary: MediaLibraryItem[];
+}) {
   const [state, action, pending] = useActionState(saveWhyUsDraftAction, undefined);
   const [rows, setRows] = useState(items.length ? items : [{ title: "", description: "" }]);
 
@@ -1782,12 +1786,20 @@ export function HomepageWhyUsForm({ items }: { items: HomepageWhyUsItem[] }) {
       <div className="section-heading">
         <div>
           <p className="eyebrow">Why Us</p>
-          <h2>Manage the homepage value proposition items.</h2>
+          <h2>Manage the homepage Why Us image and value proposition items.</h2>
         </div>
         <PublishAction action={publishWhyUsAction} label="Publish Why Us" />
       </div>
       <form action={action} className="stack">
         <input type="hidden" name="why_count" value={rows.length} />
+        <MediaField
+          label="Why Us image"
+          inputName="whyImageUrl"
+          fileName="whyImageFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          value={imageUrl}
+          library={mediaLibrary}
+        />
         {rows.map((item, index) => (
           <div className="panel panel-soft" key={`${item.title}-${index}`}>
             <div className="section-heading compact">

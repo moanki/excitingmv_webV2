@@ -16,7 +16,7 @@ import {
   defaultHomepageServicesContent,
   defaultHomepageStats,
   defaultHomepageStoryContent,
-  defaultHomepageWhyUs,
+  defaultHomepageWhyUsContent,
   defaultMarketSettings,
   defaultNavbarContent,
   defaultNotificationSettings,
@@ -52,6 +52,7 @@ import {
   type WhatsAppSettings
 } from "@/lib/site-content";
 import { uploadSiteAsset } from "@/lib/storage/site-assets";
+import { normalizeSafeMediaUrl } from "@/lib/validations";
 
 type ActionState = { message?: string; error?: string } | undefined;
 
@@ -655,6 +656,10 @@ export async function publishServicesAction(_: ActionState, _formData: FormData)
 
 export async function saveWhyUsDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    const imageFile = uploadedFile(formData, "whyImageFile");
+    const imageUrl = imageFile
+      ? await uploadSiteAsset(imageFile, "homepage/why-us", "portrait")
+      : normalizeSafeMediaUrl(stringValue(formData, "whyImageUrl"));
     const items: HomepageWhyUsItem[] = indexesFromCount(formData, "why_count", 3).map((index) => ({
       title: stringValue(formData, `item_${index}_title`),
       description: stringValue(formData, `item_${index}_description`)
@@ -662,8 +667,8 @@ export async function saveWhyUsDraftAction(_: ActionState, formData: FormData): 
     return finalizeSettingSave({
       formData,
       key: "homepage.whyus",
-      fallback: defaultHomepageWhyUs,
-      value: items,
+      fallback: defaultHomepageWhyUsContent,
+      value: { imageUrl, items },
       draftMessage: "Why Us draft saved.",
       publishedMessage: "Why Us published."
     });
@@ -673,7 +678,7 @@ export async function saveWhyUsDraftAction(_: ActionState, formData: FormData): 
 }
 
 export async function publishWhyUsAction(_: ActionState, _formData: FormData) {
-  return publishSettingAction("homepage.whyus", defaultHomepageWhyUs, "Why Us published.");
+  return publishSettingAction("homepage.whyus", defaultHomepageWhyUsContent, "Why Us published.");
 }
 
 export async function saveGuideDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {

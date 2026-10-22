@@ -1,6 +1,7 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminRole } from "@/lib/auth/require-admin";
 import { normalizeHomepageServices } from "@/lib/homepage-services";
+import { normalizeHomepageWhyUs } from "@/lib/homepage-why-us";
 
 function supabaseStorageUrl(path: string) {
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
@@ -74,6 +75,11 @@ export type HomepageServicesContent = {
 export type HomepageWhyUsItem = {
   title: string;
   description: string;
+};
+
+export type HomepageWhyUsContent = {
+  imageUrl: string;
+  items: HomepageWhyUsItem[];
 };
 
 export type HomepageGuideItem = {
@@ -481,6 +487,11 @@ export const defaultHomepageWhyUs: HomepageWhyUsItem[] = [
       "Our local operations team handles the detail that protects the experience your clients expect."
   }
 ];
+
+export const defaultHomepageWhyUsContent: HomepageWhyUsContent = {
+  imageUrl: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1800&q=90",
+  items: defaultHomepageWhyUs
+};
 
 export const defaultHomepageGuide: HomepageGuideItem[] = [
   {
@@ -1357,7 +1368,13 @@ export async function getHomepageServices(mode: "draft" | "published" = "publish
 }
 
 export async function getHomepageWhyUs(mode: "draft" | "published" = "published") {
-  return getSiteSettingMode("homepage.whyus", defaultHomepageWhyUs, mode);
+  const entry = await getHomepageWhyUsContent(mode);
+  return { ...entry, content: entry.content.items };
+}
+
+export async function getHomepageWhyUsContent(mode: "draft" | "published" = "published") {
+  const entry = await getSiteSettingMode("homepage.whyus", defaultHomepageWhyUsContent, mode);
+  return { ...entry, content: normalizeHomepageWhyUs(entry.content, defaultHomepageWhyUsContent) };
 }
 
 export async function getHomepageGuide(mode: "draft" | "published" = "published") {

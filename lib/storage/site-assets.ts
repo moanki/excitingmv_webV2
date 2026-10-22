@@ -83,6 +83,7 @@ const SITE_ASSET_PREFIXES = [
   "homepage/features",
   "homepage/ceo",
   "homepage/story",
+  "homepage/why-us",
   "homepage/guide",
   "homepage/newsletter",
   "homepage/awards",

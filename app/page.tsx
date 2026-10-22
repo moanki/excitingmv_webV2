@@ -22,6 +22,7 @@ import {
   getHomepageStats,
   getHomepageStoryContent,
   getHomepageWhyUs,
+  getHomepageWhyUsContent,
   getMarketSettings,
   getNavbarContent,
   type HomepageGuideItem,
@@ -48,10 +49,6 @@ const serviceImages = [
   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=90",
   "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=90",
   "https://images.unsplash.com/photo-1493558103817-58b2924bce98?auto=format&fit=crop&w=1600&q=90"
-];
-
-const whyImages = [
-  "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1800&q=90"
 ];
 
 const marketDescriptions = [
@@ -324,6 +321,7 @@ function MobileHomeV2({
   markets,
   services,
   whyUs,
+  whyImageUrl,
   awards,
   guide,
   newsletter,
@@ -338,6 +336,7 @@ function MobileHomeV2({
   markets: MarketSettings;
   services: Awaited<ReturnType<typeof getHomepageServices>>["content"];
   whyUs: Awaited<ReturnType<typeof getHomepageWhyUs>>["content"];
+  whyImageUrl: string;
   awards: Awaited<ReturnType<typeof getHomepageAwardsContent>>["content"];
   guide: HomepageGuideItem[];
   newsletter: Awaited<ReturnType<typeof getHomepageNewsletterContent>>["content"];
@@ -541,7 +540,7 @@ function MobileHomeV2({
         <p className="mv2-subcopy">Commercial fluency and resort relationships that protect high-value bookings.</p>
         <img
           className="mv2-story-image mv2-editorial-image"
-          src={optimizedImageUrl(whyImages[0], { width: 760, height: 520, quality: 84 })}
+          src={optimizedImageUrl(whyImageUrl, { width: 760, height: 520, quality: 84 })}
           alt="Travel designer support in the Maldives"
           loading="lazy"
         />
@@ -636,7 +635,7 @@ export default async function HomePage() {
     { content: ceo },
     { content: story },
     { content: services },
-    { content: whyUs },
+    { content: whyUsContent },
     { content: awards },
     { content: guide },
     { content: newsletter },
@@ -650,7 +649,7 @@ export default async function HomePage() {
     getHomepageCeoContent("published"),
     getHomepageStoryContent("published"),
     getHomepageServices("published"),
-    getHomepageWhyUs("published"),
+    getHomepageWhyUsContent("published"),
     getHomepageAwardsContent("published"),
     getHomepageGuide("published"),
     getHomepageNewsletterContent("published"),
@@ -659,6 +658,7 @@ export default async function HomePage() {
     listHomepageFeaturedResorts(5)
   ]);
 
+  const whyUs = whyUsContent.items;
   const activeMarkets = markets.options.filter((market) => market.enabled);
   const marketList = activeMarkets.length ? activeMarkets : markets.options;
   const marketLabels = marketList.map((market) => market.label);
@@ -682,6 +682,7 @@ export default async function HomePage() {
         markets={{ ...markets, options: marketList }}
         services={services}
         whyUs={whyUs}
+        whyImageUrl={whyUsContent.imageUrl}
         awards={awards}
         guide={guide}
         newsletter={newsletter}
@@ -830,7 +831,7 @@ export default async function HomePage() {
       <section className="lux-section lux-section--white why-trust-section" id="why-travel-designers">
         <WhyUsParallax
           items={whyUs}
-          images={whyImages}
+          images={[whyUsContent.imageUrl]}
           title="Why Travel Designers Choose Us"
           description="Local precision, commercial fluency, and resort relationships that protect high-value bookings."
         />
