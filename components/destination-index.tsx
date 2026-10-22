@@ -166,7 +166,7 @@ function matchesOption(value: string, options: string[]) {
 function inferCategory(kind: DestinationKind, category: string, summary = "") {
   if (kind === "resort") {
     const rating = category.match(/\b([1-5])\s*[- ]?\s*star\b/i);
-    return rating ? `${rating[1]}-Star` : "";
+    return rating ? category : "";
   }
 
   const config = kindConfig[kind];
@@ -1016,8 +1016,16 @@ export function DestinationIndex({ activeKind, items }: DestinationIndexProps) {
   const [isFiltering, setIsFiltering] = useState(false);
   const [visibleCount, setVisibleCount] = useState(initialVisibleCount);
   const hasMounted = useRef(false);
-  const config = kindConfig[activeKind];
   const portfolioItems = useMemo(() => normalizePortfolioItems(activeKind, items), [activeKind, items]);
+  const config = useMemo(() => {
+    const baseConfig = kindConfig[activeKind];
+    if (activeKind !== "resort") return baseConfig;
+
+    const customRatings = [...new Set(portfolioItems.map((item) => item.category))]
+      .filter((rating) => rating && !baseConfig.categoryOptions.includes(rating))
+      .sort((left, right) => left.localeCompare(right));
+    return { ...baseConfig, categoryOptions: [...baseConfig.categoryOptions, ...customRatings] };
+  }, [activeKind, portfolioItems]);
 
   useEffect(() => {
     const nextState = readInitialQueryState();

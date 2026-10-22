@@ -647,6 +647,9 @@ export function ResortEditor({
   const [latitudeValue, setLatitudeValue] = useState(resort.latitude?.toString() ?? "");
   const [longitudeValue, setLongitudeValue] = useState(resort.longitude?.toString() ?? "");
   const [category, setCategory] = useState(resort.category ?? "");
+  const [customRating, setCustomRating] = useState(
+    Boolean(resort.category && !/^[1-5]-Star$/.test(resort.category))
+  );
   const [transferType, setTransferType] = useState(resort.transferType ?? "");
   const status: PublishStatus = resort.status ?? "draft";
   const [heroImageUrl, setHeroImageUrl] = useState(resort.heroImageUrl ?? "");
@@ -850,20 +853,43 @@ export function ResortEditor({
                 ) : null}
               </div>
             ) : null}
-            <label className="field">
-              <span className="field__label">{propertyType === "resort" ? "Star Rating" : "Category"}</span>
-              {propertyType === "resort" ? (
-                <select className="admin-input" name="category" value={category} onChange={(event) => setCategory(event.target.value)}>
+            {propertyType === "resort" ? (
+              <div className="field">
+                <label className="field__label" htmlFor={`${formId}-rating`}>Star Rating</label>
+                <input type="hidden" name="category" value={category} />
+                <select
+                  id={`${formId}-rating`}
+                  className="admin-input"
+                  value={customRating ? "custom" : category}
+                  onChange={(event) => {
+                    const isCustom = event.target.value === "custom";
+                    setCustomRating(isCustom);
+                    setCategory(isCustom ? "" : event.target.value);
+                  }}
+                >
                   <option value="">Not set</option>
-                  {category && !/^[1-5]-Star$/.test(category) ? <option value={category}>{category} (current value)</option> : null}
                   {[1, 2, 3, 4, 5].map((stars) => (
                     <option key={stars} value={`${stars}-Star`}>{stars}-Star</option>
                   ))}
+                  <option value="custom">Custom</option>
                 </select>
-              ) : (
+                {customRating ? (
+                  <input
+                    className="admin-input"
+                    aria-label="Custom star rating"
+                    value={category}
+                    onChange={(event) => setCategory(event.target.value)}
+                    placeholder="5 Star - Luxury Premium"
+                    maxLength={80}
+                  />
+                ) : null}
+              </div>
+            ) : (
+              <label className="field">
+                <span className="field__label">Category</span>
                 <input className="admin-input" name="category" value={category} onChange={(event) => setCategory(event.target.value)} />
-              )}
-            </label>
+              </label>
+            )}
             <label className="field">
               <span className="field__label">Transfer Type</span>
               <input
