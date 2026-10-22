@@ -18,6 +18,7 @@ import {
   getHomepageGuide,
   getHomepageHeroContent,
   getHomepageNewsletterContent,
+  getHomepagePartnerContent,
   getHomepageServices,
   getHomepageStats,
   getHomepageStoryContent,
@@ -60,8 +61,6 @@ const marketDescriptions = [
 ];
 
 const marketStatuses = ["Core", "Core", "Strategic", "Growth", "Strategic"];
-
-const partnerBenefits = ["Priority Support", "Exclusive Rates", "Access to Offers"];
 
 const defaultPartnerLogos = ["Soneva", "JOALI", "Patina", "Milaidhoo", "Baros", "Anantara"];
 
@@ -325,6 +324,7 @@ function MobileHomeV2({
   awards,
   guide,
   newsletter,
+  partner,
   marketLabels
 }: {
   hero: Awaited<ReturnType<typeof getHomepageHeroContent>>["content"];
@@ -340,6 +340,7 @@ function MobileHomeV2({
   awards: Awaited<ReturnType<typeof getHomepageAwardsContent>>["content"];
   guide: HomepageGuideItem[];
   newsletter: Awaited<ReturnType<typeof getHomepageNewsletterContent>>["content"];
+  partner: Awaited<ReturnType<typeof getHomepagePartnerContent>>["content"];
   marketLabels: string[];
 }) {
   const heroImage = hero.mediaUrl || heroFallback;
@@ -604,13 +605,14 @@ function MobileHomeV2({
       </section>
 
       <section className="mv2-section mv2-section--white">
-        <div className="mv2-partner-cta">
-          <h2>Join Our Global Network of Travel Professionals</h2>
-          <p>Apply for protected access to curated resort intelligence, trade-ready offers, and responsive Maldives support.</p>
+        <div className="mv2-partner-cta" style={{ backgroundImage: `linear-gradient(145deg,rgba(13,79,83,.92),rgba(16,32,35,.8)),url(${JSON.stringify(optimizedImageUrl(partner.imageUrl, { width: 900, quality: 84 }))})`, backgroundSize: "cover", backgroundPosition: "center" }}>
+          <p className="mv2-eyebrow">{partner.sectionLabel}</p>
+          <h2>{partner.title}</h2>
+          <p>{partner.summary}</p>
           <div className="mv2-perks">
-            {partnerBenefits.map((benefit) => <span key={benefit}>{benefit}</span>)}
+            {partner.tags.map((benefit) => <span key={benefit}>{benefit}</span>)}
           </div>
-          <PartnerModalButton className="mv2-cta mv2-cta--dark">Become a Travel Partner</PartnerModalButton>
+          <PartnerModalButton className="mv2-cta mv2-cta--dark">{partner.buttonLabel}</PartnerModalButton>
           <Link href={partnerLoginHref} className="mv2-cta mv2-cta--light">Partner Login</Link>
         </div>
       </section>
@@ -639,6 +641,7 @@ export default async function HomePage() {
     { content: awards },
     { content: guide },
     { content: newsletter },
+    { content: partner },
     { content: markets },
     { content: navbar },
     resorts
@@ -653,6 +656,7 @@ export default async function HomePage() {
     getHomepageAwardsContent("published"),
     getHomepageGuide("published"),
     getHomepageNewsletterContent("published"),
+    getHomepagePartnerContent("published"),
     getMarketSettings("published"),
     getNavbarContent("published"),
     listHomepageFeaturedResorts(5)
@@ -686,6 +690,7 @@ export default async function HomePage() {
         awards={awards}
         guide={guide}
         newsletter={newsletter}
+        partner={partner}
         marketLabels={marketLabels}
       />
 
@@ -866,21 +871,18 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="lux-partner-cta">
+      <section className="lux-partner-cta" style={{ backgroundImage: `linear-gradient(90deg,rgba(7,19,31,.92),rgba(7,19,31,.62)),url(${JSON.stringify(optimizedImageUrl(partner.imageUrl, { width: 1800, quality: 84 }))})` }}>
         <div className="lux-container lux-partner-cta__inner">
-          <p className="lux-eyebrow">Partner Network</p>
-          <h2>Join Our Global Network of Travel Professionals</h2>
-          <p>
-            Apply for protected access to curated resort intelligence, trade-ready offers, and responsive Maldives
-            support from a team built around B2B luxury selling.
-          </p>
+          <p className="lux-eyebrow">{partner.sectionLabel}</p>
+          <h2>{partner.title}</h2>
+          <p>{partner.summary}</p>
           <div className="lux-benefit-pills">
-            {partnerBenefits.map((benefit) => (
+            {partner.tags.map((benefit) => (
               <span key={benefit}>{benefit}</span>
             ))}
           </div>
           <PartnerModalButton className="lux-button lux-button--gold">
-            Become a Travel Partner <ArrowRight size={16} />
+            {partner.buttonLabel} <ArrowRight size={16} />
           </PartnerModalButton>
         </div>
       </section>

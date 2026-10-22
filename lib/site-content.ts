@@ -101,6 +101,24 @@ export type HomepageGuideItem = {
   lastUpdated: string;
 };
 
+export type HomepagePartnerContent = {
+  sectionLabel: string;
+  title: string;
+  summary: string;
+  imageUrl: string;
+  tags: string[];
+  buttonLabel: string;
+};
+
+export const defaultHomepagePartnerContent: HomepagePartnerContent = {
+  sectionLabel: "Partner Network",
+  title: "Join Our Global Network of Travel Professionals",
+  summary: "Apply for protected access to curated resort intelligence, trade-ready offers, and responsive Maldives support from a team built around B2B luxury selling.",
+  imageUrl: "https://images.unsplash.com/photo-1512100356356-de1b84283e18?auto=format&fit=crop&w=1800&q=84",
+  tags: ["Priority Support", "Exclusive Rates", "Access to Offers"],
+  buttonLabel: "Become a Travel Partner"
+};
+
 export type HomepageNewsletterContent = {
   sectionLabel: string;
   title: string;
@@ -1387,6 +1405,10 @@ export async function getHomepageGuide(mode: "draft" | "published" = "published"
 
 export async function getHomepageNewsletterContent(mode: "draft" | "published" = "published") {
   return getSiteSettingMode("homepage.newsletter", defaultHomepageNewsletterContent, mode);
+}
+
+export async function getHomepagePartnerContent(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode("homepage.partner", defaultHomepagePartnerContent, mode);
 }
 
 export async function getHomepageAwardsContent(mode: "draft" | "published" = "published") {
