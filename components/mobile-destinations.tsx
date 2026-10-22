@@ -166,7 +166,8 @@ export function MobileDestinations({ activeKind, items }: MobileDestinationsProp
                 <span className="mobile-explore-v8__badge">{item.category || details.label}</span>
                 <div className="mobile-explore-v8__overlay">
                   <h2>{item.name}</h2>
-                  <p>
+                  {/* Keep Safari's prefix inline so CSS optimization cannot remove it. */}
+                  <p style={{ WebkitTextSizeAdjust: "100%" }}>
                     <span><MapPin aria-hidden="true" />{item.location || "Maldives"}</span>
                     <i aria-hidden="true" />
                     <span><TransferIcon label={item.transferType} />{item.transferType || "Transfer"}</span>
