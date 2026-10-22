@@ -13,7 +13,7 @@ import {
   defaultHeroContent,
   defaultHomepageFeatures,
   defaultHomepageNewsletterContent,
-  defaultHomepageServices,
+  defaultHomepageServicesContent,
   defaultHomepageStats,
   defaultHomepageStoryContent,
   defaultHomepageWhyUs,
@@ -42,6 +42,7 @@ import {
   type HomepageHeroContent,
   type HomepageNewsletterContent,
   type HomepageServiceItem,
+  type HomepageServicesContent,
   type HomepageStat,
   type HomepageStoryContent,
   type HomepageWhyUsItem,
@@ -616,7 +617,7 @@ export async function saveServicesDraftAction(_: ActionState, formData: FormData
       : stringValue(formData, "servicesSectionImageUrl");
     const sectionImageAlt = stringValue(formData, "servicesSectionImageAlt");
 
-    const services: HomepageServiceItem[] = await Promise.all(
+    const items: HomepageServiceItem[] = await Promise.all(
       indexesFromCount(formData, "service_count", 6).map(async (index) => {
         return {
           title: stringValue(formData, `service_${index}_title`),
@@ -629,13 +630,19 @@ export async function saveServicesDraftAction(_: ActionState, formData: FormData
         };
       })
     );
+    const services: HomepageServicesContent = {
+      sectionLabel: stringValue(formData, "servicesSectionLabel"),
+      title: stringValue(formData, "servicesTitle"),
+      description: stringValue(formData, "servicesDescription"),
+      items
+    };
     return finalizeSettingSave({
       formData,
       key: "homepage.services",
-      fallback: defaultHomepageServices,
+      fallback: defaultHomepageServicesContent,
       value: services,
-      draftMessage: "Services draft saved.",
-      publishedMessage: "Services published."
+      draftMessage: "Destination Management draft saved.",
+      publishedMessage: "Destination Management published."
     });
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to save services." };
@@ -643,7 +650,7 @@ export async function saveServicesDraftAction(_: ActionState, formData: FormData
 }
 
 export async function publishServicesAction(_: ActionState, _formData: FormData) {
-  return publishSettingAction("homepage.services", defaultHomepageServices, "Services published.");
+  return publishSettingAction("homepage.services", defaultHomepageServicesContent, "Destination Management published.");
 }
 
 export async function saveWhyUsDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {

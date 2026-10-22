@@ -12,7 +12,7 @@ const sections = [
   { label: "Footer", href: "/admin/settings/footer", icon: PanelBottom },
   { label: "WhatsApp", href: "/admin/settings/whatsapp", icon: MessageCircle },
   { label: "Contact", href: "/admin/settings/contact", icon: Contact },
-  { label: "Markets", href: "/admin/settings/markets", icon: Globe2 },
+  { label: "Primary Markets", href: "/admin/settings/markets", icon: Globe2 },
   { label: "Notifications", href: "/admin/settings/notifications", icon: Bell },
   { label: "Admin Login", href: "/admin/settings/admin-login", icon: KeyRound }
 ];

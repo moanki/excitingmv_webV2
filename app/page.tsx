@@ -149,7 +149,7 @@ function MarketEditorial({ markets }: { markets: MarketSettings }) {
   return (
     <div className="market-editorial">
       <div className="market-editorial__copy">
-        <p className="lux-eyebrow">{markets.sectionTitle || "Global Markets"}</p>
+        <p className="lux-eyebrow">{markets.sectionTitle || "Primary Markets"}</p>
         <h2>{markets.heading}</h2>
         <p>{markets.description}</p>
         <div className="market-editorial__rows">
@@ -381,7 +381,7 @@ function MobileHomeV2({
   const logoItems = [...tickerLogos, ...tickerLogos]
     .slice(0, 12);
   const activeMarkets = markets.options.filter((market) => market.enabled).slice(0, 4);
-  const displayServices = services.filter((service) => service.enabled && service.title).slice(0, 4);
+  const displayServices = services.items.filter((service) => service.enabled && service.title).slice(0, 4);
   const displayWhy = whyUs.filter((item) => item.title).slice(0, 3);
   const displayAwards = awards.items.filter((item) => item.enabled && (item.imageUrl || item.name)).slice(0, 4);
   const displayGuides = guide.filter((item) => item.published && item.title).slice(0, 3);
@@ -489,9 +489,9 @@ function MobileHomeV2({
       </section>
 
       <section className="mv2-section mv2-section--paper">
-        <p className="mv2-eyebrow">PRIMARY MARKETS</p>
-        <h2>Connected to Premium Markets</h2>
-        <p className="mv2-subcopy">Supporting travel designers and agencies across global markets.</p>
+        <p className="mv2-eyebrow">{markets.sectionTitle || "Primary Markets"}</p>
+        <h2>{markets.heading}</h2>
+        <p className="mv2-subcopy">{markets.description}</p>
         <div className="mv2-editorial-visual mv2-editorial-visual--map" aria-label="Primary markets map">
           <GlobalMarketMap
             markets={markets.options}
@@ -515,9 +515,9 @@ function MobileHomeV2({
       </section>
 
       <section className="mv2-section mv2-section--white">
-        <p className="mv2-eyebrow">DESTINATION MANAGEMENT</p>
-        <h2>Built around every Maldives booking.</h2>
-        <p className="mv2-subcopy">Local precision across every stage of the journey.</p>
+        <p className="mv2-eyebrow">{services.sectionLabel}</p>
+        <h2>{services.title}</h2>
+        <p className="mv2-subcopy">{services.description}</p>
         <img
           className="mv2-story-image mv2-editorial-image"
           src={optimizedImageUrl(serviceImages[0], { width: 760, height: 520, quality: 84 })}
@@ -825,8 +825,6 @@ export default async function HomePage() {
         <ServicesParallax
           services={services}
           images={serviceImages}
-          title="Built around every Maldives booking."
-          description="We support travel professionals with resort intelligence, transfer planning, arrival handling, and in-destination support â€” all managed with local precision."
         />
       </section>
       <section className="lux-section lux-section--white why-trust-section" id="why-travel-designers">

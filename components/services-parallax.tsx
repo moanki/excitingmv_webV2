@@ -1,50 +1,32 @@
 "use client";
 
-import { ArrowRight, BadgeCheck, Handshake, Headphones, Plane, Sparkles } from "lucide-react";
+import { ArrowRight, BadgeCheck, BadgePercent, BriefcaseBusiness, Handshake, Headphones, Plane, Route, Sparkles, UsersRound } from "lucide-react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
-import type { HomepageServiceItem } from "@/lib/site-content";
+import type { HomepageServicesContent } from "@/lib/site-content";
 
 type ServicesParallaxProps = {
-  services: HomepageServiceItem[];
+  services: HomepageServicesContent;
   images: string[];
-  title?: string;
-  description?: string;
 };
 
 const servicesFallbackImage =
   "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1600&q=92";
 
-const dmcServices = [
-  {
-    title: "Resort Contracting",
-    description: "Preferred resort access, commercial clarity, and product-fit guidance.",
-    Icon: Handshake,
-  },
-  {
-    title: "Itinerary & Transfer Planning",
-    description: "Seaplane, domestic flight, and speedboat coordination across islands.",
-    Icon: Plane,
-  },
-  {
-    title: "VIP / CIP Arrival",
-    description: "Airport handling, lounge support, meet-and-greet, and arrival flow.",
-    Icon: BadgeCheck,
-  },
-  {
-    title: "Concierge & Experiences",
-    description: "Private dining, celebrations, wellness, family, and special requests.",
-    Icon: Sparkles,
-  },
-  {
-    title: "Partner Operations",
-    description: "Live booking support, urgent requests, updates, and tactical offers.",
-    Icon: Headphones,
-  },
-];
+const serviceIcons = {
+  "badge-check": BadgeCheck,
+  "badge-percent": BadgePercent,
+  "briefcase-business": BriefcaseBusiness,
+  handshake: Handshake,
+  headphones: Headphones,
+  plane: Plane,
+  route: Route,
+  sparkles: Sparkles,
+  "users-round": UsersRound
+};
 
-export function ServicesParallax({ services, images, title, description }: ServicesParallaxProps) {
-  const enabledServices = services.filter((service) => service.enabled && service.title);
+export function ServicesParallax({ services, images }: ServicesParallaxProps) {
+  const enabledServices = services.items.filter((service) => service.enabled && service.title);
   const heroImage = enabledServices.find((service) => service.imageUrl)?.imageUrl || images[0] || servicesFallbackImage;
 
   return (
@@ -62,26 +44,24 @@ export function ServicesParallax({ services, images, title, description }: Servi
 
       <div className="services-editorial__content">
         <div className="services-editorial__heading">
-          <p className="lux-eyebrow">Destination Management</p>
-          <h2>{title || "Built around every Maldives booking."}</h2>
-          <p>
-            {description ||
-              "We support travel professionals with resort intelligence, transfer planning, arrival handling, and in-destination support — all managed with local precision."}
-          </p>
+          <p className="lux-eyebrow">{services.sectionLabel}</p>
+          <h2>{services.title}</h2>
+          <p>{services.description}</p>
         </div>
 
-        <div className="services-editorial__list" aria-label="Destination management services">
-          {dmcServices.map(({ title: serviceTitle, description: serviceDescription, Icon }) => (
-            <div className="services-editorial__row" key={serviceTitle}>
+        <div className="services-editorial__list" aria-label={`${services.sectionLabel} services`}>
+          {enabledServices.map((service) => {
+            const Icon = serviceIcons[service.icon as keyof typeof serviceIcons] ?? Handshake;
+            return <div className="services-editorial__row" key={service.title}>
               <span className="services-editorial__icon">
                 <Icon size={22} aria-hidden="true" />
               </span>
               <span className="services-editorial__text">
-                <strong>{serviceTitle}</strong>
-                <span>{serviceDescription}</span>
+                <strong>{service.title}</strong>
+                <span>{service.description}</span>
               </span>
-            </div>
-          ))}
+            </div>;
+          })}
         </div>
 
         <div className="services-editorial__cta">

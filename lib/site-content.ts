@@ -1,5 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminRole } from "@/lib/auth/require-admin";
+import { normalizeHomepageServices } from "@/lib/homepage-services";
 
 function supabaseStorageUrl(path: string) {
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
@@ -61,6 +62,13 @@ export type HomepageServiceItem = {
   imageAlt: string;
   displayOrder: number;
   enabled: boolean;
+};
+
+export type HomepageServicesContent = {
+  sectionLabel: string;
+  title: string;
+  description: string;
+  items: HomepageServiceItem[];
 };
 
 export type HomepageWhyUsItem = {
@@ -449,6 +457,13 @@ export const defaultHomepageServices: HomepageServiceItem[] = [
   }
 ];
 
+export const defaultHomepageServicesContent: HomepageServicesContent = {
+  sectionLabel: "Destination Management",
+  title: "Built around every Maldives booking.",
+  description: "We support travel professionals with resort intelligence, transfer planning, arrival handling, and in-destination support — all managed with local precision.",
+  items: defaultHomepageServices
+};
+
 export const defaultHomepageWhyUs: HomepageWhyUsItem[] = [
   {
     title: "Deep Resort Relationships",
@@ -784,7 +799,7 @@ export const defaultNotificationSettings: NotificationSettings = {
 };
 
 export const defaultMarketSettings: MarketSettings = {
-  sectionTitle: "Global Markets",
+  sectionTitle: "Primary Markets",
   heading: "Connected to the markets shaping premium Maldives demand",
   description:
     "A focused DMC presence for travel designers and agencies across the regions driving premium Maldives bookings, trade offers, and repeat luxury demand.",
@@ -980,26 +995,6 @@ async function getSiteSettingMode<T>(key: string, fallback: T, mode: "draft" | "
 function numericValue(value: unknown, fallback: number) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
-}
-
-function normalizeHomepageServices(items: unknown): HomepageServiceItem[] {
-  const source = Array.isArray(items) ? items : defaultHomepageServices;
-  return source
-    .map((item, index) => {
-      const value = item as Partial<HomepageServiceItem>;
-      const fallback = defaultHomepageServices[index] ?? defaultHomepageServices[0];
-
-      return {
-        title: value.title ?? fallback.title,
-        description: value.description ?? fallback.description,
-        icon: value.icon ?? fallback.icon,
-        imageUrl: value.imageUrl ?? fallback.imageUrl,
-        imageAlt: value.imageAlt ?? fallback.imageAlt,
-        displayOrder: numericValue(value.displayOrder, index + 1),
-        enabled: value.enabled ?? true
-      };
-    })
-    .sort((a, b) => a.displayOrder - b.displayOrder);
 }
 
 function slugify(value: string, fallback: string) {
@@ -1354,10 +1349,10 @@ export async function getHomepageStoryContent(mode: "draft" | "published" = "pub
 }
 
 export async function getHomepageServices(mode: "draft" | "published" = "published") {
-  const entry = await getSiteSettingMode("homepage.services", defaultHomepageServices, mode);
+  const entry = await getSiteSettingMode("homepage.services", defaultHomepageServicesContent, mode);
   return {
     ...entry,
-    content: normalizeHomepageServices(entry.content)
+    content: normalizeHomepageServices(entry.content, defaultHomepageServicesContent)
   };
 }
 

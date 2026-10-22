@@ -63,6 +63,7 @@ import type {
   HomepageHeroContent,
   HomepageNewsletterContent,
   HomepageServiceItem,
+  HomepageServicesContent,
   HomepageStat,
   HomepageStoryContent,
   HomepageWhyUsItem,
@@ -1391,15 +1392,15 @@ export function MarketSettingsForm({ markets }: { markets: MarketSettings }) {
       <form action={action} className="stack">
         <div className="form-grid">
           <label className="field" style={{ gridColumn: "1 / -1" }}>
-            Section Title
+            Section Label
             <input name="sectionTitle" defaultValue={markets.sectionTitle} />
           </label>
           <label className="field" style={{ gridColumn: "1 / -1" }}>
-            Homepage Heading
+            Heading
             <input name="heading" defaultValue={markets.heading} />
           </label>
           <label className="field" style={{ gridColumn: "1 / -1" }}>
-            Homepage Subtitle
+            Summary
             <textarea name="description" defaultValue={markets.description} />
           </label>
         </div>
@@ -1648,11 +1649,11 @@ export function HomepageServicesForm({
   services,
   mediaLibrary
 }: {
-  services: HomepageServiceItem[];
+  services: HomepageServicesContent;
   mediaLibrary: MediaLibraryItem[];
 }) {
   const [state, action, pending] = useActionState(saveServicesDraftAction, undefined);
-  const [serviceRows, setServiceRows] = useState(services.length ? services : [blankService(0)]);
+  const [serviceRows, setServiceRows] = useState(services.items.length ? services.items : [blankService(0)]);
   const sectionImageUrl = serviceRows.find((service) => service.imageUrl)?.imageUrl || "";
   const sectionImageAlt = serviceRows.find((service) => service.imageAlt)?.imageAlt || "";
 
@@ -1660,12 +1661,26 @@ export function HomepageServicesForm({
     <div className="panel">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Homepage Services</p>
-          <h2>Manage the DMC services cards shown on the homepage.</h2>
+          <p className="eyebrow">Destination Management</p>
+          <h2>Manage the Destination Management section on the homepage.</h2>
         </div>
-        <PublishAction action={publishServicesAction} label="Publish Services" />
+        <PublishAction action={publishServicesAction} label="Publish Destination Management" />
       </div>
       <form action={action} className="stack">
+        <div className="form-grid">
+          <label className="field">
+            Section Label
+            <input name="servicesSectionLabel" defaultValue={services.sectionLabel} />
+          </label>
+          <label className="field">
+            Heading
+            <input name="servicesTitle" defaultValue={services.title} />
+          </label>
+          <label className="field" style={{ gridColumn: "1 / -1" }}>
+            Summary
+            <textarea name="servicesDescription" defaultValue={services.description} />
+          </label>
+        </div>
         <div className="panel panel-soft">
           <div className="section-heading compact">
             <div>
@@ -1710,10 +1725,13 @@ export function HomepageServicesForm({
               <label className="field">
                 Icon
                 <select name={`service_${index}_icon`} defaultValue={item.icon}>
+                  <option value="handshake">Handshake</option>
                   <option value="briefcase-business">Contracting</option>
                   <option value="route">Itinerary</option>
                   <option value="plane">Arrival</option>
+                  <option value="badge-check">VIP Arrival</option>
                   <option value="headphones">Support</option>
+                  <option value="sparkles">Experiences</option>
                   <option value="users-round">Groups</option>
                   <option value="badge-percent">Offers</option>
                 </select>
@@ -1743,10 +1761,10 @@ export function HomepageServicesForm({
         </button>
         <div className="admin-form-actions">
           <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
-            {pending ? "Saving..." : "Save Services Draft"}
+            {pending ? "Saving..." : "Save Destination Management Draft"}
           </button>
           <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
-            {pending ? "Publishing..." : "Save & Publish Services"}
+            {pending ? "Publishing..." : "Save & Publish Destination Management"}
           </button>
         </div>
         <StatusMessage message={state?.message} error={state?.error} />

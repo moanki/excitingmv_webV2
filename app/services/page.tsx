@@ -1,15 +1,18 @@
 import Link from "next/link";
-import { BadgePercent, BriefcaseBusiness, Headphones, Plane, Route, UsersRound } from "lucide-react";
+import { BadgeCheck, BadgePercent, BriefcaseBusiness, Handshake, Headphones, Plane, Route, Sparkles, UsersRound } from "lucide-react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
 import { getHomepageFeatures, getHomepageServices, getHomepageWhyUs } from "@/lib/site-content";
 
 const iconMap = {
+  "badge-check": BadgeCheck,
   "badge-percent": BadgePercent,
   "briefcase-business": BriefcaseBusiness,
+  handshake: Handshake,
   headphones: Headphones,
   plane: Plane,
   route: Route,
+  sparkles: Sparkles,
   "users-round": UsersRound
 };
 
@@ -23,7 +26,7 @@ export default async function ServicesPage() {
     getHomepageFeatures("published"),
     getHomepageWhyUs("published")
   ]);
-  const enabledServices = services.filter((service) => service.enabled && service.title);
+  const enabledServices = services.items.filter((service) => service.enabled && service.title);
   const heroImage =
     enabledServices.find((service) => service.imageUrl)?.imageUrl ||
     "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1800&q=86";

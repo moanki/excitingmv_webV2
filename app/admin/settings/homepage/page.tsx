@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Award, BarChart3, BookOpen, GripVertical, Home, Image, Mail, MessageSquareText, Pencil, ShieldCheck, Sparkles } from "lucide-react";
+import { Award, BarChart3, BookOpen, Globe2, GripVertical, Home, Image, Mail, MessageSquareText, Pencil, ShieldCheck, Sparkles } from "lucide-react";
 
 const homepageSections = [
   { title: "Hero Banner", description: "Main headline, subtext, media and CTA", href: "/admin/settings/homepage/hero", icon: Image },
@@ -7,7 +7,8 @@ const homepageSections = [
   { title: "Stats Bar", description: "Key expertise numbers", href: "/admin/settings/homepage/stats", icon: BarChart3 },
   { title: "CEO Message", description: "Personal note from leadership", href: "/admin/settings/homepage/ceo", icon: MessageSquareText },
   { title: "Our Story", description: "Company introduction", href: "/admin/settings/homepage/story", icon: Home },
-  { title: "Services", description: "DMC service highlights", href: "/admin/settings/homepage/services", icon: ShieldCheck },
+  { title: "Primary Markets", description: "Market heading, summary, and map locations", href: "/admin/settings/markets", icon: Globe2 },
+  { title: "Destination Management", description: "Section copy, image, and service highlights", href: "/admin/settings/homepage/services", icon: ShieldCheck },
   { title: "Why Us", description: "Reasons to choose Exciting Maldives", href: "/admin/settings/homepage/why-us", icon: Sparkles },
   { title: "Awards", description: "Industry recognition", href: "/admin/settings/homepage/awards", icon: Award },
   { title: "Travel Guide", description: "Curated guide preview", href: "/admin/settings/homepage/guide", icon: BookOpen },
