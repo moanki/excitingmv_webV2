@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 
 import { requireAdminJson } from "@/lib/auth/require-admin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
-import { brochureFolderName } from "@/lib/brochure-import";
+import { brochureFolderName, brochureStoragePrefix } from "@/lib/brochure-import";
+import type { PropertyType } from "@/lib/services/resort-service";
 
 export const runtime = "nodejs";
 
@@ -11,13 +12,13 @@ const BROCHURE_BUCKET = "resort-brochures";
 
 type ResortOption = { id: string; name: string; slug: string; brochure_path: string | null };
 
-async function listResorts() {
+async function listProperties(propertyType: PropertyType) {
   const supabase = createSupabaseAdminClient();
   const resorts: ResortOption[] = [];
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase.from("property")
       .select("id,name,slug,brochure_path")
-      .eq("property_type", "resort")
+      .eq("property_type", propertyType)
       .order("name")
       .range(from, from + 999);
     if (error) throw error;
@@ -34,6 +35,12 @@ export async function POST(request: Request) {
   try {
     const input = await request.json();
     const mode = String(input?.mode ?? "");
+    const propertyType = input?.propertyType ?? "resort";
+    if (propertyType !== "resort" && propertyType !== "hotels" && propertyType !== "liveaboards") {
+      return NextResponse.json({ ok: false, error: "Invalid property type." }, { status: 400 });
+    }
+    const folderType = propertyType === "resort" ? "resorts" : propertyType;
+    const singular = propertyType === "resort" ? "resort" : propertyType === "hotels" ? "hotel" : "liveaboard";
     const supabase = createSupabaseAdminClient();
 
     if (mode === "preview") {
@@ -41,7 +48,7 @@ export async function POST(request: Request) {
       if (files.length > 1000) {
         return NextResponse.json({ ok: false, error: "Import up to 1,000 PDFs at a time." }, { status: 400 });
       }
-      const resorts = await listResorts();
+      const resorts = await listProperties(propertyType);
       const rows = files.map((file: { relativePath?: string; size?: number }) => {
         const relativePath = String(file.relativePath ?? "");
         const folder = brochureFolderName(relativePath);
@@ -54,9 +61,9 @@ export async function POST(request: Request) {
           name,
           size: Number(file.size),
           resortId: validPdf && matches.length === 1 ? matches[0].id : "",
-          status: !folder ? "Expected Parent Folder / Resort Name / file.pdf."
+          status: !folder ? `Expected Parent Folder / ${singular} Name / file.pdf.`
             : !validPdf ? "Only non-empty PDF files are accepted."
-            : matches.length === 1 ? "Exact resort folder match" : matches.length > 1 ? "Multiple resorts share this name. Review required." : "No exact resort match. Review required."
+            : matches.length === 1 ? `Exact ${singular} folder match` : matches.length > 1 ? `Multiple ${propertyType} share this name. Review required.` : `No exact ${singular} match. Review required.`
         };
       });
       const counts = new Map<string, number>();
@@ -73,9 +80,9 @@ export async function POST(request: Request) {
     }
     const { data: resort, error: resortError } = await supabase.from("property")
       .select("id,name,slug,brochure_path")
-      .eq("id", resortId).eq("property_type", "resort").maybeSingle();
+      .eq("id", resortId).eq("property_type", propertyType).maybeSingle();
     if (resortError) throw resortError;
-    if (!resort) return NextResponse.json({ ok: false, error: "Resort not found." }, { status: 404 });
+    if (!resort) return NextResponse.json({ ok: false, error: `${singular} not found.` }, { status: 404 });
 
     if (mode === "sign") {
       const filename = String(input?.filename ?? "");
@@ -83,7 +90,7 @@ export async function POST(request: Request) {
       if (!/\.pdf$/i.test(filename) || !Number.isFinite(size) || size <= 0) {
         return NextResponse.json({ ok: false, error: "Choose a non-empty PDF." }, { status: 400 });
       }
-      const path = `resorts/${resortId}/brochures/${Date.now()}-${crypto.randomUUID()}.pdf`;
+      const path = `${brochureStoragePrefix(propertyType, resortId)}${Date.now()}-${crypto.randomUUID()}.pdf`;
       const signed = await supabase.storage.from(BROCHURE_BUCKET).createSignedUploadUrl(path);
       if (signed.error || !signed.data) throw signed.error ?? new Error("Could not prepare PDF upload.");
       return NextResponse.json({ ok: true, data: { bucket: BROCHURE_BUCKET, path, token: signed.data.token } });
@@ -91,7 +98,7 @@ export async function POST(request: Request) {
 
     if (mode === "attach" || mode === "discard") {
       const path = String(input?.path ?? "");
-      const prefix = `resorts/${resortId}/brochures/`;
+      const prefix = brochureStoragePrefix(propertyType, resortId);
       const basename = path.slice(prefix.length);
       if (!path.startsWith(prefix) || !/^[0-9]+-[0-9a-f-]+\.pdf$/i.test(basename)) {
         return NextResponse.json({ ok: false, error: "Invalid brochure Storage path." }, { status: 400 });
@@ -109,7 +116,7 @@ export async function POST(request: Request) {
       if (storageError) throw storageError;
       const object = stored?.find((item) => item.name === basename && item.id);
       if (!object || (object.metadata?.mimetype && object.metadata.mimetype !== "application/pdf")) {
-        return NextResponse.json({ ok: false, error: "Uploaded PDF was not found in this resort's brochure folder." }, { status: 400 });
+        return NextResponse.json({ ok: false, error: `Uploaded PDF was not found in this ${singular}'s brochure folder.` }, { status: 400 });
       }
       const { error } = await supabase.from("property").update({ brochure_path: path }).eq("id", resortId);
       if (error) throw error;
@@ -117,18 +124,18 @@ export async function POST(request: Request) {
         const removed = await supabase.storage.from(BROCHURE_BUCKET).remove([resort.brochure_path]);
         if (removed.error) console.warn("Old brochure cleanup failed", removed.error);
       }
-      revalidatePath(`/resorts/${resort.slug}`);
+      revalidatePath(`/${folderType}/${resort.slug}`);
       return NextResponse.json({ ok: true, data: { path, name: resort.name } });
     }
 
     if (mode === "remove") {
       const { error } = await supabase.from("property").update({ brochure_path: null }).eq("id", resortId);
       if (error) throw error;
-      if (resort.brochure_path?.startsWith(`resorts/${resortId}/brochures/`)) {
+      if (resort.brochure_path?.startsWith(brochureStoragePrefix(propertyType, resortId))) {
         const removed = await supabase.storage.from(BROCHURE_BUCKET).remove([resort.brochure_path]);
         if (removed.error) console.warn("Brochure cleanup failed", removed.error);
       }
-      revalidatePath(`/resorts/${resort.slug}`);
+      revalidatePath(`/${folderType}/${resort.slug}`);
       return NextResponse.json({ ok: true });
     }
 

@@ -28,3 +28,9 @@ test("uses the signed TUS endpoint with its required headers", () => {
     }
   );
 });
+
+test("separates brochure storage paths by property type", () => {
+  assert.equal(loaded.exports.brochureStoragePrefix("resort", "abc"), "resorts/abc/brochures/");
+  assert.equal(loaded.exports.brochureStoragePrefix("hotels", "abc"), "hotels/abc/brochures/");
+  assert.equal(loaded.exports.brochureStoragePrefix("liveaboards", "abc"), "liveaboards/abc/brochures/");
+});

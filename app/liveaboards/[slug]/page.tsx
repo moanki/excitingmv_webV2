@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PropertyDetailOverview, propertyFactIcons } from "@/components/property-detail-overview";
 import { PropertyRoomCard } from "@/components/property-room-card";
 import { getResortBySlug } from "@/lib/services/resort-service";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -19,11 +20,23 @@ export default async function LiveaboardDetailPage({
     notFound();
   }
 
+  const brochureUrl = liveaboard.brochurePath
+    ? createSupabaseAdminClient().storage.from("resort-brochures").getPublicUrl(liveaboard.brochurePath, {
+        download: `${liveaboard.name} Brochure.pdf`
+      }).data.publicUrl
+    : "";
+  const butlerServiceLabel = liveaboard.butlerService.available === false
+    ? "Not available"
+    : liveaboard.butlerService.displayName?.trim().toLowerCase() === "yes"
+      ? "Available"
+      : liveaboard.butlerService.displayName?.trim() || liveaboard.butlerService.description?.trim() || "To be confirmed";
   const facts = [
     { label: "Route / Atoll", value: liveaboard.location || "Maldives", Icon: propertyFactIcons.MapPin },
     { label: "Cabins", value: liveaboard.roomTypes.length ? `${liveaboard.roomTypes.length} cabin types` : "To be confirmed", Icon: propertyFactIcons.BedDouble },
     { label: "Transfer", value: liveaboard.transferType || "Available on request", Icon: propertyFactIcons.Sailboat },
-    { label: "Category", value: liveaboard.category || "Liveaboard", Icon: propertyFactIcons.Sparkles }
+    { label: "Category", value: liveaboard.category || "Liveaboard", Icon: propertyFactIcons.Sparkles },
+    { label: "Butler Service", value: butlerServiceLabel, Icon: propertyFactIcons.ConciergeBell },
+    ...(brochureUrl ? [{ label: "Download Brochure", value: `${liveaboard.name} Brochure`, href: brochureUrl, Icon: propertyFactIcons.FileDown }] : [])
   ];
   const overviewCopy =
     liveaboard.accommodationSummary ||

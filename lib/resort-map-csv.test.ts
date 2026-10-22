@@ -50,3 +50,15 @@ test("Google map and coordinates in the same row require review", () => {
   ]), resorts);
   assert.equal(rows[0].status, "invalid");
 });
+
+test("hotel slugs use the same reviewed CSV matching without resort data", () => {
+  const hotels: ResortMapRecord[] = [
+    { id: "hotel-1", name: "Example Hotel", slug: "example-hotel", map_embed_url: null, latitude: null, longitude: null }
+  ];
+  const rows = previewResortMapCsv(csv([
+    ["example-hotel", "", "4.2", "73.5"],
+    ["vakkaru-island", "", "5.2", "72.9"]
+  ]), hotels);
+  assert.deepEqual(rows.map((row) => row.status), ["ready", "unmatched"]);
+  assert.equal(rows[0].resortId, "hotel-1");
+});

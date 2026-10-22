@@ -7,7 +7,8 @@ import type { ResortMapPreviewRow } from "@/lib/resort-map-csv";
 
 type RowResult = { index: number; status: "updated" | "failed"; detail: string };
 
-export function ResortMapImportPanel() {
+export function ResortMapImportPanel({ propertyType = "resort" }: { propertyType?: "resort" | "hotels" }) {
+  const singular = propertyType === "resort" ? "Resort" : "Hotel";
   const [file, setFile] = useState<File | null>(null);
   const [rows, setRows] = useState<ResortMapPreviewRow[]>([]);
   const [page, setPage] = useState(0);
@@ -35,6 +36,7 @@ export function ResortMapImportPanel() {
     try {
       const form = new FormData();
       form.set("mode", mode);
+      form.set("propertyType", propertyType);
       form.set("file", file);
       if (mode === "apply") form.set("selected", JSON.stringify(indexes));
       const response = await fetch("/api/admin/resort-locations", { method: "POST", body: form });
@@ -44,7 +46,7 @@ export function ResortMapImportPanel() {
         rows?: ResortMapPreviewRow[];
         results?: RowResult[];
       };
-      if (!response.ok || !payload.ok) throw new Error(payload.error || "Resort map import failed.");
+      if (!response.ok || !payload.ok) throw new Error(payload.error || `${singular} map import failed.`);
 
       if (mode === "preview") {
         setRows(payload.rows ?? []);
@@ -58,10 +60,10 @@ export function ResortMapImportPanel() {
         setSelected(new Set());
         const updated = (payload.results ?? []).filter((result) => result.status === "updated").length;
         const failed = (payload.results ?? []).length - updated;
-        setMessage(`${updated} resort maps updated${failed ? `, ${failed} failed` : ""}. Review the row results below.`);
+        setMessage(`${updated} ${singular.toLowerCase()} maps updated${failed ? `, ${failed} failed` : ""}. Review the row results below.`);
       }
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Resort map import failed.");
+      setError(cause instanceof Error ? cause.message : `${singular} map import failed.`);
     } finally {
       setBusy(false);
     }
@@ -71,18 +73,18 @@ export function ResortMapImportPanel() {
   const selectedReady = ready.filter((row) => selected.has(row.index));
 
   return (
-    <section className="admin-form-card stack" aria-label="Bulk resort map import">
+    <section className="admin-form-card stack" aria-label={`Bulk ${singular.toLowerCase()} map import`}>
       <div className="admin-form-section__header">
-        <h3 className="admin-form-section__title">Bulk Resort Map Import</h3>
-        <p className="admin-form-section__help">Match by exact resort slug. For Google Maps, use Share &gt; Embed a map &gt; Copy HTML; otherwise enter latitude and longitude.</p>
+        <h3 className="admin-form-section__title">Bulk {singular} Map Import</h3>
+        <p className="admin-form-section__help">Match by exact {singular.toLowerCase()} slug. For Google Maps, use Share &gt; Embed a map &gt; Copy HTML; otherwise enter latitude and longitude.</p>
       </div>
       <div className="admin-form-actions">
-        <a className="admin-btn admin-btn--secondary" href="/api/admin/resort-locations">
-          <Download className="admin-icon" /> Download Resort CSV
+        <a className="admin-btn admin-btn--secondary" href={`/api/admin/resort-locations?propertyType=${propertyType}`}>
+          <Download className="admin-icon" /> Download {singular} CSV
         </a>
       </div>
       <label className="field">
-        <span className="field__label">Completed Resort CSV</span>
+        <span className="field__label">Completed {singular} CSV</span>
         <input className="admin-file-input" type="file" accept=".csv,text/csv" onChange={selectFile} disabled={busy} />
       </label>
       <div className="admin-form-actions">
@@ -106,14 +108,14 @@ export function ResortMapImportPanel() {
                 <th>
                   <input
                     type="checkbox"
-                    aria-label="Select all ready resort maps"
+                    aria-label={`Select all ready ${singular.toLowerCase()} maps`}
                     checked={ready.length > 0 && ready.every((row) => selected.has(row.index))}
                     disabled={!ready.length || busy}
                     onChange={(event) => setSelected(event.target.checked ? new Set(ready.map((row) => row.index)) : new Set())}
                   />
                 </th>
                 <th>CSV row</th>
-                <th>Resort match</th>
+                <th>{singular} match</th>
                 <th>Current</th>
                 <th>New location</th>
                 <th>Status</th>

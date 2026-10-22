@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { ResortEditor } from "@/app/admin/resorts/forms";
 import { getHomepageFeaturedResortsSetting } from "@/lib/site-content";
-import { getAdminResortById } from "@/lib/services/resort-service";
+import { getAdminResortById, listCustomResortRatings } from "@/lib/services/resort-service";
 import { listSiteAssets } from "@/lib/storage/site-assets";
 
 const labels = {
@@ -18,10 +18,11 @@ export default async function EditAdminLiveaboardPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [liveaboard, mediaLibrary, { content: featuredResorts }] = await Promise.all([
+  const [liveaboard, mediaLibrary, { content: featuredResorts }, customRatingOptions] = await Promise.all([
     getAdminResortById(id),
     listSiteAssets(),
-    getHomepageFeaturedResortsSetting("draft")
+    getHomepageFeaturedResortsSetting("draft"),
+    listCustomResortRatings("liveaboards")
   ]);
 
   if (!liveaboard || liveaboard.propertyType !== "liveaboards") {
@@ -39,6 +40,7 @@ export default async function EditAdminLiveaboardPage({
       title="Edit Liveaboard"
       description="Work on one selected liveaboard at a time with dedicated sections for content, rooms, media, and publishing."
       mediaLibrary={mediaLibrary}
+      customRatingOptions={customRatingOptions}
       mode="edit"
       propertyType="liveaboards"
       labels={labels}

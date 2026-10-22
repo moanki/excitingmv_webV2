@@ -8,13 +8,13 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-async function listResorts(): Promise<ResortMapRecord[]> {
+async function listProperties(propertyType: "resort" | "hotels"): Promise<ResortMapRecord[]> {
   const supabase = createSupabaseAdminClient();
   const resorts: ResortMapRecord[] = [];
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase.from("property")
       .select("id,name,slug,map_embed_url,latitude,longitude")
-      .eq("property_type", "resort")
+      .eq("property_type", propertyType)
       .order("slug")
       .range(from, from + 999);
     if (error) throw error;
@@ -24,16 +24,22 @@ async function listResorts(): Promise<ResortMapRecord[]> {
   return resorts;
 }
 
-export async function GET() {
+function mapPropertyType(value: unknown): "resort" | "hotels" {
+  if (value === "resort" || value === "hotels") return value;
+  throw new Error("Map import is available for resorts and hotels only.");
+}
+
+export async function GET(request: Request) {
   const auth = await requireAdminJson(["super_admin", "admin", "content_manager"]);
   if (!auth.ok) return auth.response;
 
   try {
-    const csv = createResortMapTemplate(await listResorts());
+    const propertyType = mapPropertyType(new URL(request.url).searchParams.get("propertyType") ?? "resort");
+    const csv = createResortMapTemplate(await listProperties(propertyType));
     return new Response(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": 'attachment; filename="resort-map-locations.csv"',
+        "Content-Disposition": `attachment; filename="${propertyType === "resort" ? "resort" : "hotel"}-map-locations.csv"`,
         "Cache-Control": "no-store"
       }
     });
@@ -48,6 +54,7 @@ export async function POST(request: Request) {
 
   try {
     const form = await request.formData();
+    const propertyType = mapPropertyType(form.get("propertyType") ?? "resort");
     const file = form.get("file");
     const mode = form.get("mode");
     if (!(file instanceof File) || !/\.csv$/i.test(file.name) || file.size === 0 || file.size > 5 * 1024 * 1024) {
@@ -57,7 +64,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: "Invalid import action." }, { status: 400 });
     }
 
-    const rows = previewResortMapCsv(await file.text(), await listResorts());
+    const rows = previewResortMapCsv(await file.text(), await listProperties(propertyType));
     if (mode === "preview") {
       return NextResponse.json({ ok: true, rows, ignoredBlankRows: "Rows without a map link or coordinates are skipped." });
     }
@@ -85,14 +92,15 @@ export async function POST(request: Request) {
           longitude: row.longitude
         })
         .eq("id", row.resortId)
-        .eq("property_type", "resort")
+        .eq("property_type", propertyType)
         .select("id")
         .maybeSingle();
       if (error || !data) {
-        results.push({ index: row.index, status: "failed", detail: error?.message ?? "Resort no longer exists." });
+        results.push({ index: row.index, status: "failed", detail: error?.message ?? "Property no longer exists." });
       } else {
-        revalidatePath(`/resorts/${row.slug}`);
-        revalidatePath(`/admin/resorts/${row.resortId}/edit`);
+        const basePath = propertyType === "resort" ? "resorts" : "hotels";
+        revalidatePath(`/${basePath}/${row.slug}`);
+        revalidatePath(`/admin/${basePath}/${row.resortId}/edit`);
         results.push({ index: row.index, status: "updated", detail: "Map location updated." });
       }
     }

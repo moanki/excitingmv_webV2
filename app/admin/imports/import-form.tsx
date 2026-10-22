@@ -1431,7 +1431,10 @@ export function ImportCenterForms({ checkpoints }: { checkpoints: ImportCheckpoi
       <ImportDrivePanel />
       <PhotoImportPanel />
       <BrochureImportPanel />
+      <BrochureImportPanel propertyType="hotels" />
+      <BrochureImportPanel propertyType="liveaboards" />
       <ResortMapImportPanel />
+      <ResortMapImportPanel propertyType="hotels" />
       <ExcelSyncPanel />
       <ImportUploadPanel />
     </div>

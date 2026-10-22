@@ -52,7 +52,7 @@ export function previewResortMapCsv(text: string, resorts: ResortMapRecord[]): R
     }
   }) as CsvRecord[];
 
-  if (records.length > 250) throw new Error("Import up to 250 resort rows in one CSV.");
+  if (records.length > 250) throw new Error("Import up to 250 property rows in one CSV.");
 
   const activeRecords = records.map((record, index) => ({ record, index: index + 1 }))
     .filter(({ record }) => record.map_embed_url || record.latitude || record.longitude);
@@ -81,13 +81,13 @@ export function previewResortMapCsv(text: string, resorts: ResortMapRecord[]): R
     };
 
     if (!slug) {
-      row.detail = "Resort slug is required.";
+      row.detail = "Property slug is required.";
     } else if ((counts.get(slug) ?? 0) > 1) {
       row.status = "duplicate";
-      row.detail = "This resort slug appears more than once in the CSV.";
+      row.detail = "This property slug appears more than once in the CSV.";
     } else if (!resort) {
       row.status = "unmatched";
-      row.detail = "No resort has this exact slug on the test site.";
+      row.detail = "No matching property has this exact slug on the test site.";
     } else {
       try {
         if (record.map_embed_url && (record.latitude || record.longitude)) {

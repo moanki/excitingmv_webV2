@@ -736,12 +736,12 @@ export function ResortEditor({
   }
 
   function handleRemoveRating(label: string, count: number) {
-    if (!window.confirm(`Delete "${label}"? This will clear the badge from ${count} resort${count === 1 ? "" : "s"} using it.`)) return;
+    if (!window.confirm(`Delete "${label}"? This will clear the badge from ${count} ${labels.singular.toLowerCase()}${count === 1 ? "" : "s"} using it.`)) return;
 
     setRatingStatus(null);
     startRemovingRating(async () => {
       try {
-        const removedCount = await removeCustomResortRatingAction(label);
+        const removedCount = await removeCustomResortRatingAction(label, propertyType);
         setRatingOptions((current) => current.filter((option) => option.label !== label));
         if (category === label) {
           setCategory("");
@@ -749,7 +749,7 @@ export function ResortEditor({
         }
         setRatingMenuOpen(false);
         ratingTriggerRef.current?.focus();
-        setRatingStatus({ message: `Removed "${label}" from ${removedCount} resort${removedCount === 1 ? "" : "s"}.` });
+        setRatingStatus({ message: `Removed "${label}" from ${removedCount} ${labels.singular.toLowerCase()}${removedCount === 1 ? "" : "s"}.` });
         router.refresh();
       } catch (error) {
         setRatingStatus({ error: error instanceof Error ? error.message : "Could not remove the rating." });
@@ -872,19 +872,19 @@ export function ResortEditor({
                 onChange={(event) => setLocation(event.target.value)}
               />
             </label>
-            {propertyType === "resort" ? (
+            {propertyType !== "liveaboards" ? (
               <div className="field field--full resort-map-editor">
-                <span className="field__label">Resort Map</span>
+                <span className="field__label">{labels.singular} Map</span>
                 <a
                   className="admin-btn admin-btn--secondary resort-map-editor__search"
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name || "resort"} Maldives`)}`}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name || labels.singular.toLowerCase()} Maldives`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   <MapPin className="admin-icon" />
-                  Find {name || "resort"} on Google Maps
+                  Find {name || labels.singular.toLowerCase()} on Google Maps
                 </a>
-                <p className="field__help">Select the resort in Google Maps, then use Share &gt; Embed a map &gt; Copy HTML. Paste it below. If Google Maps cannot find it, enter coordinates instead.</p>
+                <p className="field__help">Select the {labels.singular.toLowerCase()} in Google Maps, then use Share &gt; Embed a map &gt; Copy HTML. Paste it below. If Google Maps cannot find it, enter coordinates instead.</p>
                 <label className="field">
                   <span className="field__label">Google Maps Embed Link or HTML</span>
                   <textarea
@@ -910,12 +910,11 @@ export function ResortEditor({
                   </div>
                 </details>
                 {mapPreviewUrl || (coordinatePreview.latitude !== null && coordinatePreview.longitude !== null) ? (
-                  <ResortLocationMap name={name || "Resort"} mapEmbedUrl={mapPreviewUrl} {...coordinatePreview} />
+                  <ResortLocationMap name={name || labels.singular} mapEmbedUrl={mapPreviewUrl} {...coordinatePreview} />
                 ) : null}
               </div>
             ) : null}
-            {propertyType === "resort" ? (
-              <div className="field">
+            <div className="field">
                 <span className="field__label" id={`${formId}-rating-label`}>Star Rating</span>
                 <input type="hidden" name="category" value={category} />
                 <div className="resort-rating-select" ref={ratingMenuRef}>
@@ -963,8 +962,8 @@ export function ResortEditor({
                           <button
                             type="button"
                             className="resort-rating-select__delete"
-                            aria-label={`Delete ${option.label} from ${option.count} resorts`}
-                            title="Delete rating and clear affected resort badges"
+                            aria-label={`Delete ${option.label} from ${option.count} ${labels.plural.toLowerCase()}`}
+                            title={`Delete rating and clear affected ${labels.singular.toLowerCase()} badges`}
                             disabled={isRemovingRating}
                             onClick={() => handleRemoveRating(option.label, option.count)}
                           ><X size={14} aria-hidden="true" /></button>
@@ -995,13 +994,7 @@ export function ResortEditor({
                 ) : null}
                 {ratingStatus?.message ? <p className="admin-alert admin-alert--success" role="status">{ratingStatus.message}</p> : null}
                 {ratingStatus?.error ? <p className="admin-alert admin-alert--error" role="alert">{ratingStatus.error}</p> : null}
-              </div>
-            ) : (
-              <label className="field">
-                <span className="field__label">Category</span>
-                <input className="admin-input" name="category" value={category} onChange={(event) => setCategory(event.target.value)} />
-              </label>
-            )}
+            </div>
             <label className="field">
               <span className="field__label">Transfer Type</span>
               <input
@@ -1121,8 +1114,8 @@ export function ResortEditor({
             onChange={setHeroImageUrl}
           />
 
-          {propertyType === "resort" && resort.id ? (
-            <BrochureUploadControl resortId={resort.id} resortName={resort.name ?? "Resort"} initialPath={resort.brochurePath ?? ""} />
+          {resort.id ? (
+            <BrochureUploadControl resortId={resort.id} resortName={resort.name ?? labels.singular} initialPath={resort.brochurePath ?? ""} propertyType={propertyType} />
           ) : null}
 
           <div className="field field--full">
@@ -1284,7 +1277,7 @@ export function ResortEditor({
         <section className="resort-editor-sidecard">
           <h3>Summary</h3>
           <dl className="resort-editor-summary">
-            <div><dt>{propertyType === "resort" ? "Star Rating" : "Category"}</dt><dd>{category || "Not set"}</dd></div>
+            <div><dt>Star Rating</dt><dd>{category || "Not set"}</dd></div>
             <div><dt>Atoll</dt><dd>{location || "Not set"}</dd></div>
             <div><dt>Transfer</dt><dd>{transferType || "Not set"}</dd></div>
             <div><dt>Villas</dt><dd>{rooms.length} types</dd></div>

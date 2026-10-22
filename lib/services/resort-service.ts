@@ -75,7 +75,7 @@ function isCustomResortRating(label: string) {
   return /\b[1-5]\s*[- ]?\s*stars?\b/i.test(label) && !standardResortRatings.has(label);
 }
 
-export async function listCustomResortRatings(): Promise<CustomResortRating[]> {
+export async function listCustomResortRatings(propertyType: PropertyType = "resort"): Promise<CustomResortRating[]> {
   const supabase = createSupabaseAdminClient();
   const counts = new Map<string, number>();
   const pageSize = 1000;
@@ -84,7 +84,7 @@ export async function listCustomResortRatings(): Promise<CustomResortRating[]> {
     const { data, error } = await supabase
       .from(PROPERTY_TABLE)
       .select("category")
-      .eq("property_type", "resort")
+      .eq("property_type", propertyType)
       .order("id")
       .range(from, from + pageSize - 1);
     if (error) throw new Error(error.message);
@@ -99,7 +99,7 @@ export async function listCustomResortRatings(): Promise<CustomResortRating[]> {
   return [...counts].map(([label, count]) => ({ label, count })).sort((a, b) => a.label.localeCompare(b.label));
 }
 
-export async function removeCustomResortRating(label: string) {
+export async function removeCustomResortRating(label: string, propertyType: PropertyType = "resort") {
   if (!isCustomResortRating(label) || label !== label.trim()) {
     throw new Error("Only saved custom star ratings can be removed.");
   }
@@ -108,21 +108,22 @@ export async function removeCustomResortRating(label: string) {
   const { count, error: countError } = await supabase
     .from(PROPERTY_TABLE)
     .select("id", { count: "exact", head: true })
-    .eq("property_type", "resort")
+    .eq("property_type", propertyType)
     .eq("category", label);
   if (countError) throw new Error(countError.message);
 
   const { error } = await supabase
     .from(PROPERTY_TABLE)
     .update({ category: "", updated_at: new Date().toISOString() })
-    .eq("property_type", "resort")
+    .eq("property_type", propertyType)
     .eq("category", label);
   if (error) throw new Error(error.message);
 
   revalidateTag("resorts-public", "max");
-  revalidatePath("/resorts");
-  revalidatePath("/resorts/[slug]", "page");
-  revalidatePath("/admin/resorts/[id]/edit", "page");
+  const basePath = propertyBasePath(propertyType);
+  revalidatePath(basePath);
+  revalidatePath(`${basePath}/[slug]`, "page");
+  revalidatePath(`/admin${basePath}/[id]/edit`, "page");
   return count ?? 0;
 }
 
@@ -1049,7 +1050,7 @@ export async function saveResort(input: {
     const tablePayload = {
       ...basePayload,
       ...(input.curatedMoments !== undefined ? { curated_moments: input.curatedMoments } : {}),
-      ...(propertyType === "resort" && input.mapEmbedUrl !== undefined ? {
+      ...(propertyType !== "liveaboards" && input.mapEmbedUrl !== undefined ? {
         map_embed_url: input.mapEmbedUrl || null,
         latitude: input.latitude ?? null,
         longitude: input.longitude ?? null

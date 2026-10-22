@@ -237,10 +237,10 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
       .filter(Boolean)
       .map((item) => normalizeSafeMediaUrl(item));
     const roomTypes = await parseRoomTypes(formData);
-    const mapEmbedUrl = propertyType === "resort"
+    const mapEmbedUrl = propertyType !== "liveaboards"
       ? normalizeGoogleMapsEmbedUrl(String(formData.get("mapEmbedUrl") ?? ""))
       : "";
-    const coordinates = propertyType === "resort" && !mapEmbedUrl
+    const coordinates = propertyType !== "liveaboards" && !mapEmbedUrl
       ? parseOptionalCoordinates(String(formData.get("latitude") ?? ""), String(formData.get("longitude") ?? ""))
       : { latitude: null, longitude: null };
     const curatedMoments = await parseCuratedMoments(formData);
@@ -315,9 +315,9 @@ export async function deleteResortAction(_: ActionState, formData: FormData): Pr
   }
 }
 
-export async function removeCustomResortRatingAction(label: string) {
+export async function removeCustomResortRatingAction(label: string, propertyType: PropertyType = "resort") {
   await requireAdminRole(["super_admin", "admin", "content_manager"]);
-  return removeCustomResortRating(label);
+  return removeCustomResortRating(label, normalizePropertyType(propertyType));
 }
 
 export async function publishSelectedDraftsAction(_: ActionState, formData: FormData): Promise<ActionState> {

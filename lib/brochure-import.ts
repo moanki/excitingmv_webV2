@@ -5,6 +5,11 @@ export function brochureFolderName(relativePath: string) {
   return "";
 }
 
+export function brochureStoragePrefix(propertyType: "resort" | "hotels" | "liveaboards", id: string) {
+  const folder = propertyType === "resort" ? "resorts" : propertyType;
+  return `${folder}/${id}/brochures/`;
+}
+
 export function signedBrochureTusConfig(projectUrl: string, anonKey: string, token: string) {
   const storageUrl = projectUrl.replace(".supabase.co", ".storage.supabase.co");
   return {
