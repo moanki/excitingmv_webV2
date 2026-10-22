@@ -175,9 +175,9 @@ export function MobileDestinations({ activeKind, items }: MobileDestinationsProp
                 </div>
                 <span className="mobile-explore-v8__view">View {details.singular}<ArrowRight aria-hidden="true" /></span>
               </div>
-              <div className="mobile-explore-v8__card-tags">
+              {activeKind !== "resort" ? <div className="mobile-explore-v8__card-tags">
                 {(item.selectionTags?.length ? item.selectionTags : [item.category]).filter(Boolean).slice(0, 2).map((tag) => <span key={tag}>{tag}</span>)}
-              </div>
+              </div> : null}
             </Link>
           ))}
         </section>

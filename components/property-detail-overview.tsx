@@ -243,7 +243,6 @@ export function PropertyDetailOverview({
                 <span>{fact.label}</span>
                 {fact.href ? (
                   <a className="property-detail-fact__download" href={fact.href} download={`${name} Brochure.pdf`}>
-                    <fact.Icon size={18} aria-hidden="true" />
                     {fact.value}
                   </a>
                 ) : <strong>{fact.value}</strong>}

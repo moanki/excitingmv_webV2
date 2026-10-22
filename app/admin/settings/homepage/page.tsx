@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Award, BarChart3, BookOpen, Globe2, GripVertical, Home, Image, Mail, MessageSquareText, Pencil, ShieldCheck, Sparkles } from "lucide-react";
 
 const homepageSections = [
+  { title: "Partner Network", description: "Photo, heading, summary, tags, and button text", href: "/admin/settings/homepage/partner", icon: Globe2 },
   { title: "Hero Banner", description: "Main headline, subtext, media and CTA", href: "/admin/settings/homepage/hero", icon: Image },
   { title: "Featured Retreats", description: "Section copy, selected resorts, and display order", href: "/admin/settings/homepage/features", icon: Sparkles },
   { title: "Stats Bar", description: "Key expertise numbers", href: "/admin/settings/homepage/stats", icon: BarChart3 },

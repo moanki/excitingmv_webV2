@@ -3,6 +3,8 @@
 import { useActionState, useState } from "react";
 
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
+import { savePartnerDraftAction, publishPartnerAction } from "@/app/admin/settings/actions";
+import type { HomepagePartnerContent } from "@/lib/site-content";
 import { ActionForm, ActionMessage, type ActionState } from "@/components/admin/action-feedback";
 import { useAdminActionFeedback } from "@/components/admin/admin-action-feedback";
 import {
@@ -1583,6 +1585,37 @@ export function HomepageCeoForm({
           <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
             {pending ? "Publishing..." : "Save & Publish CEO Section"}
           </button>
+        </div>
+        <StatusMessage message={state?.message} error={state?.error} />
+      </form>
+    </div>
+  );
+}
+
+export function HomepagePartnerForm({ partner, mediaLibrary }: {
+  partner: HomepagePartnerContent;
+  mediaLibrary: MediaLibraryItem[];
+}) {
+  const [state, action, pending] = useActionState(savePartnerDraftAction, undefined);
+  return (
+    <div className="panel">
+      <div className="section-heading">
+        <div><p className="eyebrow">Partner Network</p><h2>Manage the partner invitation on the desktop and mobile homepage.</h2></div>
+        <PublishAction action={publishPartnerAction} label="Publish Partner Network" />
+      </div>
+      <form action={action} className="stack">
+        <div className="form-grid">
+          <label className="field">Section label<input name="sectionLabel" defaultValue={partner.sectionLabel} /></label>
+          <label className="field">Heading<input name="title" defaultValue={partner.title} /></label>
+          <label className="field" style={{ gridColumn: "1 / -1" }}>Summary<textarea name="summary" defaultValue={partner.summary} /></label>
+          <label className="field">Tags (one per line)<textarea name="tags" defaultValue={partner.tags.join("\n")} /></label>
+          <label className="field">Button text<input name="buttonLabel" defaultValue={partner.buttonLabel} required /></label>
+        </div>
+        <MediaField label="Partner Network photo" inputName="imageUrl" fileName="partnerImageFile"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml" value={partner.imageUrl} library={mediaLibrary} />
+        <div className="admin-form-actions">
+          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>{pending ? "Saving..." : "Save Draft"}</button>
+          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>{pending ? "Publishing..." : "Save & Publish"}</button>
         </div>
         <StatusMessage message={state?.message} error={state?.error} />
       </form>

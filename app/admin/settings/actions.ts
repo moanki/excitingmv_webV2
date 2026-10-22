@@ -53,8 +53,33 @@ import {
 } from "@/lib/site-content";
 import { uploadSiteAsset } from "@/lib/storage/site-assets";
 import { normalizeSafeMediaUrl } from "@/lib/validations";
+import { defaultHomepagePartnerContent, type HomepagePartnerContent } from "@/lib/site-content";
 
 type ActionState = { message?: string; error?: string } | undefined;
+
+export async function savePartnerDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    const imageFile = uploadedFile(formData, "partnerImageFile");
+    const value: HomepagePartnerContent = {
+      sectionLabel: stringValue(formData, "sectionLabel").trim(),
+      title: stringValue(formData, "title").trim(),
+      summary: stringValue(formData, "summary").trim(),
+      imageUrl: imageFile
+        ? await uploadSiteAsset(imageFile, "homepage/partner", "banner")
+        : normalizeSafeMediaUrl(stringValue(formData, "imageUrl")),
+      tags: Array.from(new Set(stringValue(formData, "tags").split("\n").map((tag) => tag.trim()).filter(Boolean))),
+      buttonLabel: stringValue(formData, "buttonLabel").trim()
+    };
+    return finalizeSettingSave({ formData, key: "homepage.partner", fallback: defaultHomepagePartnerContent, value,
+      draftMessage: "Partner Network draft saved.", publishedMessage: "Partner Network published." });
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Failed to save Partner Network." };
+  }
+}
+
+export async function publishPartnerAction(_: ActionState, _formData: FormData) {
+  return publishSettingAction("homepage.partner", defaultHomepagePartnerContent, "Partner Network published.");
+}
 
 function revalidateSiteContent() {
   revalidatePath("/");

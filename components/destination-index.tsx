@@ -863,10 +863,10 @@ function PortfolioCard({ item, config, priority = false }: { item: PortfolioItem
               {item.primaryTransferDisplay}
             </span>
           </span>
-          <span className="portfolio-card__selection-tags">
+          {item.type !== "resort" ? <span className="portfolio-card__selection-tags">
             <span>{item.selectionTag}</span>
             {item.featured ? <span>Featured</span> : null}
-          </span>
+          </span> : null}
         </span>
       </Link>
     </article>
