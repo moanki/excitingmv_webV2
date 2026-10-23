@@ -30582,3 +30582,8 @@ html {
   cursor: wait;
   opacity: 0.5;
 }
+
+html body:not(.admin-body) .home-page .lux-partner-cta h2,
+html body:not(.admin-body) .home-page .mv2-partner-cta h2 {
+  color: #fff !important;
+}
