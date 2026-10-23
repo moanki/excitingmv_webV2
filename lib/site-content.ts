@@ -2,6 +2,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminRole } from "@/lib/auth/require-admin";
 import { normalizeHomepageServices } from "@/lib/homepage-services";
 import { normalizeHomepageWhyUs } from "@/lib/homepage-why-us";
+import { newestAwardsFirst } from "@/lib/homepage-awards";
 
 function supabaseStorageUrl(path: string) {
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
@@ -694,7 +695,6 @@ export const defaultFooterContent: FooterContent = {
       enabled: true,
       items: [
         { label: "Resorts", href: "/resorts", enabled: true, external: false },
-        { label: "Experiences", href: "/experiences", enabled: true, external: false },
         { label: "Awards", href: "/#prestigious-awards", enabled: true, external: false }
       ]
     },
@@ -1412,7 +1412,8 @@ export async function getHomepagePartnerContent(mode: "draft" | "published" = "p
 }
 
 export async function getHomepageAwardsContent(mode: "draft" | "published" = "published") {
-  return getSiteSettingMode("homepage.awards", defaultHomepageAwardsContent, mode);
+  const entry = await getSiteSettingMode("homepage.awards", defaultHomepageAwardsContent, mode);
+  return { ...entry, content: { ...entry.content, items: newestAwardsFirst(entry.content.items) } };
 }
 
 export async function getNavbarContent(mode: "draft" | "published" = "published") {
