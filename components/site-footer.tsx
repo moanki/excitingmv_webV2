@@ -34,7 +34,7 @@ function footerLink(label: string, href: string): FooterLinkItem {
 function footerItemWithOverrides(item: FooterLinkItem, partnerLoginHref: string): FooterLinkItem | null {
   const normalized = item.label.trim().toLowerCase();
 
-  if (["news & updates", "awards", "dmc services", "marketing hub", "partner support", "resort intelligence", "contact us"].includes(normalized)) {
+  if (item.href.replace(/\/$/, "") === "/experiences" || ["experiences", "news & updates", "awards", "dmc services", "marketing hub", "partner support", "resort intelligence", "contact us"].includes(normalized)) {
     return null;
   }
 
@@ -128,15 +128,15 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
     [
       footerLink("Resorts", "/resorts"),
       footerLink("Hotels", "/hotels"),
-      footerLink("Liveaboards", "/liveaboards"),
-      footerLink("Travel Guide", "/travel-guide")
+      footerLink("Liveaboards", "/liveaboards")
     ]
-  ));
+  )).filter((item) => item.href.replace(/\/$/, "") !== "/travel-guide" && item.label.trim().toLowerCase() !== "travel guide");
 
   const resourceItems = withFooterRules(mergeLinks(
     groupByTitle("resource"),
     groupByTitle("partner"),
     [
+      footerLink("Travel Guide", "/travel-guide"),
       footerLink("Partner Login", partnerLoginHref),
       footerLink("Resources & Documents", "/partner/resources")
     ]
@@ -248,9 +248,9 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
                 {footer.contactWhatsApp}
               </a>
             ) : null}
-            <a href={`mailto:${footer.contactEmail}`}>
+            <a href={`mailto:${footer.contactEmail.toLowerCase()}`} style={{ textTransform: "none" }}>
               <Mail size={15} />
-              {footer.contactEmail}
+              {footer.contactEmail.toLowerCase()}
             </a>
             <p>
               <MapPin size={15} />
