@@ -4,7 +4,7 @@ This branch is based on staging. Deploy it as a feature-branch Preview connected
 
 ## Database and files
 
-Apply 20261025151049_app_security_hardening.sql to testing before deploying. It adds server-only revocable sessions, moves password hashes out of partner notes, adds a status/password access-version trigger, creates an atomic database rate limiter, creates the private partner-resources bucket, and narrows email configuration policies. Existing partner credentials are preserved; future passwords require 12–256 characters.
+Apply 20261025151731_app_security_hardening.sql and 20261025155504_harden_security_helper_permissions.sql to testing before deploying. It adds server-only revocable sessions, moves password hashes out of partner notes, adds a status/password access-version trigger, creates an atomic database rate limiter, creates the private partner-resources bucket, and narrows email configuration policies. Existing partner credentials are preserved; future passwords require 12–256 characters.
 
 Partner unlocking now requires the partner email plus password. All selected resources are checked against protected_resources. Sessions are random opaque tokens stored hashed server-side. Changing status/password invalidates existing sessions, including disable/re-enable cycles. Signed file links expire after 60 seconds; an already issued link can remain usable until expiry.
 
