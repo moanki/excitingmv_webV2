@@ -14,7 +14,12 @@ function hasSupabaseSessionCookie(request: NextRequest) {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-pathname", pathname);
+  // Keep the existing public layout while adding nonce protection to every page.
+  if (pathname.startsWith(ADMIN_PREFIX) || pathname.startsWith(PARTNER_PREFIX) || pathname.startsWith(ADMIN_API_PREFIX)) {
+    requestHeaders.set("x-pathname", pathname);
+  } else {
+    requestHeaders.delete("x-pathname");
+  }
   const nonce=Buffer.from(crypto.randomUUID()).toString("base64");
   const policy=contentSecurityPolicy(nonce,process.env.NODE_ENV==="development");
   requestHeaders.set("x-nonce",nonce);

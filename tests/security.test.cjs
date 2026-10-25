@@ -122,3 +122,14 @@ test('patched image library preserves resize and format conversion',async()=>{
  const webp=await sharp(png).resize({width:4}).webp().toBuffer();const info=await sharp(webp).metadata();
  assert.equal(info.format,'webp');assert.equal(info.width,4);assert.equal(info.height,2);assert.equal(info.hasAlpha,true);
 });
+test('global nonce middleware preserves the existing public layout header behavior',()=>{
+ let forwarded;
+ const {middleware}=load('middleware.ts',{
+  '@/lib/security/csp':load('lib/security/csp.ts'),
+  '@/lib/auth/bootstrap-admin':{ADMIN_LOGIN_PATH:'/admin/login'},
+  'next/server':{NextResponse:{next:options=>{forwarded=options.request.headers;return {headers:new Headers()};}}}
+ });
+ const response=middleware({nextUrl:new URL('https://example.test/'),url:'https://example.test/',headers:new Headers({'x-pathname':'/admin'}),cookies:{getAll:()=>[]}});
+ assert.equal(forwarded.get('x-pathname'),null);
+ assert.ok(forwarded.get('x-nonce'));assert.ok(response.headers.get('content-security-policy'));
+});
