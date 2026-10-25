@@ -1426,7 +1426,7 @@ function ImportUploadPanel() {
             <span className="field__label">Fact Sheet PDF</span>
             <input className="admin-file-input" name="factSheetFile" type="file" accept="application/pdf,.pdf" required />
             <p className="field__help">
-              Upload one resort fact sheet PDF up to 100 MB. The importer will extract details, create SEO content, and skip the
+              Upload one resort fact sheet PDF up to 50 MB. The importer will extract details, create SEO content, and skip the
               resort if it already exists.
             </p>
           </label>

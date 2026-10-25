@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminJson } from "@/lib/auth/require-admin";
-import { createPrivateResourceUpload, PRIVATE_RESOURCE_BUCKET } from "@/lib/storage/partner-resources";
+import { createPrivateResourceUpload, PRIVATE_RESOURCE_BUCKET, validatePrivateResourcePath } from "@/lib/storage/partner-resources";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { readJsonBody } from "@/lib/security/request-body";
 export const runtime = "nodejs";
@@ -8,11 +8,20 @@ export async function POST(request:Request) {
   const auth = await requireAdminJson(); if (!auth.ok) return auth.response;
   try {
     const input = await readJsonBody(request);
+    if(input.mode === "discard") {
+      const path=validatePrivateResourcePath(String(input.path??""));
+      const client=createSupabaseAdminClient();
+      const linked=await client.from("resources").select("id").eq("file_path",path).limit(1);
+      if(linked.error||linked.data?.length) throw new Error("Attached resources cannot be discarded.");
+      const removed=await client.storage.from(PRIVATE_RESOURCE_BUCKET).remove([path]);
+      if(removed.error) throw new Error("Unable to remove unused private file.");
+      return NextResponse.json({ok:true});
+    }
     if (input.mode !== "migrate") return NextResponse.json({ok:true,data:await createPrivateResourceUpload(String(input.filename??""),Number(input.size))});
     const client = createSupabaseAdminClient();
     const {data:resource,error} = await client.from("resources").select("id,file_path").eq("id",String(input.resourceId??"")).single();
     if (error || !resource) throw new Error("Resource not found.");
-    if (resource.file_path.startsWith("files/")) return NextResponse.json({ok:true});
+    if (resource.file_path.startsWith("files/")) return NextResponse.json({ok:true,data:{destination:resource.file_path}});
     const url = new URL(resource.file_path);
     if (url.origin !== new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).origin || !url.pathname.startsWith("/storage/v1/object/public/site-assets/")) throw new Error("Re-upload external documents using private upload.");
     const source = decodeURIComponent(url.pathname.slice("/storage/v1/object/public/site-assets/".length));

@@ -33,3 +33,24 @@ def test_rejects_unapproved_and_private_document_sources():
     for value in ["http://127.0.0.1/file.pdf", "https://example.com/file.pdf?source=drive.google.com", "https://drive.google.com.evil.invalid/file.pdf"]:
         with pytest.raises(ValueError):
             download_document(value)
+
+
+def test_allowed_hostname_cannot_resolve_to_a_private_address(monkeypatch):
+    import pytest
+    import socket
+    from api.markitdown_convert import download_document
+    monkeypatch.setattr(socket, "getaddrinfo", lambda *args, **kwargs: [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 443))])
+    with pytest.raises(ValueError, match="Private"):
+        download_document("https://drive.google.com/file.pdf")
+
+
+def test_high_ratio_office_archive_is_rejected():
+    import base64
+    import io
+    import zipfile
+    import pytest
+    stream = io.BytesIO()
+    with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("workbook.xml", b"A" * 300000)
+    with pytest.raises(ValueError, match="ratio"):
+        read_document({"fileExtension": ".xlsx", "contentBase64": base64.b64encode(stream.getvalue()).decode()})

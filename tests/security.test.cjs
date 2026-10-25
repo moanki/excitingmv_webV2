@@ -95,3 +95,30 @@ test('ExcelJS remains functional with its patched UUID dependency',async()=>{
  const bytes=await workbook.xlsx.writeBuffer();const parsed=new Excel.Workbook();await parsed.xlsx.load(bytes);
  assert.equal(parsed.worksheets[0].getCell('A2').value,'Fixture Resort');assert.equal(parsed.worksheets[0].getCell('E2').value.result,2);
 });
+test('import redirects are revalidated before another connection',async()=>{
+ const {EventEmitter}=require('node:events');let requests=0;
+ const safe=load('lib/security/safe-fetch.ts',{
+  'node:dns/promises':{lookup:async()=>[{address:'8.8.8.8',family:4}]},
+  'node:https':{request:(_url,_options,receive)=>{
+   requests++;const request=new EventEmitter();request.end=()=>queueMicrotask(()=>{const response=new EventEmitter();response.statusCode=302;response.headers={location:'http://127.0.0.1/internal'};response.resume=()=>{};receive(response);request.emit('close');});request.destroy=error=>{request.emit('error',error);request.emit('close');};return request;
+  }}
+ });
+ await assert.rejects(()=>safe.safeFetch('https://drive.google.com/start'));assert.equal(requests,1);
+});
+test('private upload cleanup refuses files still referenced by a resource',async()=>{
+ let deletes=0;
+ const privateStorage=load('lib/storage/partner-resources.ts');
+ const api=load('app/api/admin/resource-files/route.ts',{
+  '@/lib/auth/require-admin':{requireAdminJson:async()=>({ok:true})},
+  '@/lib/security/request-body':load('lib/security/request-body.ts'),
+  '@/lib/storage/partner-resources':privateStorage,
+  '@/lib/supabase/admin':{createSupabaseAdminClient:()=>({from:()=>({select:()=>({eq:()=>({limit:async()=>({data:[{id:'attached'}]})})})}),storage:{from:()=>({remove:async()=>{deletes++;return {};}})}})}
+ });
+ const response=await api.POST(new Request('https://example.test',{method:'POST',body:JSON.stringify({mode:'discard',path:'files/fixture.pdf'})}));
+ assert.equal(response.status,400);assert.equal(deletes,0);
+});
+test('patched image library preserves resize and format conversion',async()=>{
+ const sharp=require('sharp');const png=await sharp({create:{width:8,height:4,channels:4,background:{r:1,g:2,b:3,alpha:0.5}}}).png().toBuffer();
+ const webp=await sharp(png).resize({width:4}).webp().toBuffer();const info=await sharp(webp).metadata();
+ assert.equal(info.format,'webp');assert.equal(info.width,4);assert.equal(info.height,2);assert.equal(info.hasAlpha,true);
+});
