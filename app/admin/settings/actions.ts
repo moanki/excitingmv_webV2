@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { requireAdminRole } from "@/lib/auth/require-admin";
 
 import {
   defaultAboutPageContent,
@@ -59,6 +60,7 @@ type ActionState = { message?: string; error?: string } | undefined;
 
 export async function savePartnerDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const imageFile = uploadedFile(formData, "partnerImageFile");
     const value: HomepagePartnerContent = {
       sectionLabel: stringValue(formData, "sectionLabel").trim(),
@@ -100,6 +102,7 @@ function revalidateSiteContent() {
 
 async function publishSettingAction<T>(key: string, fallback: T, message: string): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     await publishSiteSetting(key, fallback);
     revalidateSiteContent();
     return { message };
@@ -131,7 +134,7 @@ function shouldPublish(formData: FormData) {
 
 function countValue(formData: FormData, name: string, fallback: number) {
   const value = Number(stringValue(formData, name));
-  return Number.isFinite(value) && value >= 0 ? value : fallback;
+  return Number.isInteger(value) && value >= 0 && value <= 100 ? value : Math.min(fallback,100);
 }
 
 function indexesFromCount(formData: FormData, name: string, fallback: number) {
@@ -167,6 +170,7 @@ async function finalizeSettingSave<T>({
 
 export async function saveAdminLoginDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const backgroundFile = uploadedFile(formData, "backgroundImageFile");
     const logoFile = uploadedFile(formData, "logoImageFile");
     const settings: AdminLoginContent = {
@@ -261,6 +265,7 @@ async function parseAboutLogos(formData: FormData): Promise<AboutLogoItem[]> {
 
 export async function saveAboutDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const heroFile = uploadedFile(formData, "aboutHeroImageFile");
     const storyFile = uploadedFile(formData, "aboutStoryImageFile");
     const ctaFile = uploadedFile(formData, "aboutCtaImageFile");
@@ -434,6 +439,7 @@ function validateContactContent(contact: ContactPageContent) {
 
 export async function saveContactDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const contact: ContactPageContent = {
       title: stringValue(formData, "title"),
       subtitle: stringValue(formData, "subtitle"),
@@ -464,6 +470,7 @@ export async function publishContactAction(_: ActionState, _formData: FormData) 
 
 export async function saveHeroDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const heroMediaFile = uploadedFile(formData, "heroMediaFile");
     const heroPosterFile = uploadedFile(formData, "heroPosterFile");
     const featuredResortLogos = await Promise.all(
@@ -521,6 +528,7 @@ export async function publishHeroAction(_: ActionState, _formData: FormData) {
 
 export async function saveFeaturesDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const features: HomepageFeatureCard[] = await Promise.all(
       [0, 1, 2].map(async (index) => {
         const imageFile = uploadedFile(formData, `feature_${index}_imageFile`);
@@ -555,6 +563,7 @@ export async function publishFeaturesAction(_: ActionState, _formData: FormData)
 
 export async function saveStatsDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const stats: HomepageStat[] = [0, 1, 2, 3].map((index) => ({
       value: stringValue(formData, `stat_${index}_value`),
       label: stringValue(formData, `stat_${index}_label`)
@@ -578,6 +587,7 @@ export async function publishStatsAction(_: ActionState, _formData: FormData) {
 
 export async function saveCeoDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const photoFile = uploadedFile(formData, "photoFile");
     const ceo: HomepageCeoContent = {
       sectionLabel: stringValue(formData, "sectionLabel"),
@@ -608,6 +618,7 @@ export async function publishCeoAction(_: ActionState, _formData: FormData) {
 
 export async function saveStoryDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const imageFile = uploadedFile(formData, "storyImageFile");
     const story: HomepageStoryContent = {
       sectionLabel: stringValue(formData, "sectionLabel"),
@@ -636,6 +647,7 @@ export async function publishStoryAction(_: ActionState, _formData: FormData) {
 
 export async function saveServicesDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const sectionImageFile = uploadedFile(formData, "servicesSectionImageFile");
     const sectionImageUrl = sectionImageFile
       ? await uploadSiteAsset(sectionImageFile, "homepage/services", "card")
@@ -680,6 +692,7 @@ export async function publishServicesAction(_: ActionState, _formData: FormData)
 
 export async function saveWhyUsDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const imageFile = uploadedFile(formData, "whyImageFile");
     const imageUrl = imageFile
       ? await uploadSiteAsset(imageFile, "homepage/why-us", "portrait")
@@ -707,6 +720,7 @@ export async function publishWhyUsAction(_: ActionState, _formData: FormData) {
 
 export async function saveGuideDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const guide: HomepageGuideItem[] = await Promise.all(
       indexesFromCount(formData, "guide_count", 4).map(async (index) => {
         const imageFile = uploadedFile(formData, `guide_${index}_imageFile`);
@@ -758,6 +772,7 @@ export async function publishGuideAction(_: ActionState, _formData: FormData) {
 
 export async function saveNewsletterContentDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const imageFile = uploadedFile(formData, "newsletterImageFile");
     const newsletter: HomepageNewsletterContent = {
       sectionLabel: stringValue(formData, "sectionLabel"),
@@ -786,6 +801,7 @@ export async function publishNewsletterContentAction(_: ActionState, _formData: 
 
 export async function saveAwardsDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const awards = await parseHomepageAwards(formData);
     return finalizeSettingSave({
       formData,
@@ -806,6 +822,7 @@ export async function publishAwardsAction(_: ActionState, _formData: FormData) {
 
 export async function saveNavbarDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const primaryLogoFile = uploadedFile(formData, "primaryLogoFile");
     const whiteLogoFile = uploadedFile(formData, "whiteLogoFile");
     const blackLogoFile = uploadedFile(formData, "blackLogoFile");
@@ -852,6 +869,7 @@ export async function publishNavbarAction(_: ActionState, _formData: FormData): 
 
 export async function saveFooterDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const companyLogoFile = uploadedFile(formData, "companyLogoFile");
     const footer: FooterContent = {
       companyLabel: stringValue(formData, "companyLabel"),
@@ -888,6 +906,7 @@ export async function publishFooterAction(_: ActionState, _formData: FormData) {
 
 export async function saveWhatsAppDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const whatsApp: WhatsAppSettings = {
       enabled: booleanValue(formData, "enabled"),
       label: stringValue(formData, "label"),
@@ -915,6 +934,7 @@ export async function publishWhatsAppAction(_: ActionState, _formData: FormData)
 
 export async function saveNotificationDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const notifications: NotificationSettings = {
       partnerRequestEmail: stringValue(formData, "partnerRequestEmail"),
       newsletterEmail: stringValue(formData, "newsletterEmail"),
@@ -942,6 +962,7 @@ export async function publishNotificationAction(_: ActionState, _formData: FormD
 
 export async function saveMarketDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const markets: MarketSettings = {
       sectionTitle: stringValue(formData, "sectionTitle"),
       heading: stringValue(formData, "heading"),

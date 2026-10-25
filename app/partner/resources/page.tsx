@@ -1,5 +1,5 @@
 import { ResourceAccessPanel } from "@/app/partner/resources/resource-access-panel";
-import { hasResourceAccessSession } from "@/lib/partner-resource-access";
+import { getResourceAccessSession } from "@/lib/partner-resource-access";
 import { listPublishedResources } from "@/lib/services/resource-service";
 
 export default async function PartnerResourcesPage({
@@ -7,11 +7,9 @@ export default async function PartnerResourcesPage({
 }: {
   searchParams: Promise<{ access?: string }>;
 }) {
-  const [resources, hasAccess, params] = await Promise.all([
-    listPublishedResources(),
-    hasResourceAccessSession(),
-    searchParams
-  ]);
+  const [session, params] = await Promise.all([getResourceAccessSession(), searchParams]);
+  const hasAccess = Boolean(session);
+  const resources = await listPublishedResources(session?.agentId);
 
   const safeResources = resources.map(({ id, title, description, resourceType, audienceType }) => ({
     id,
@@ -28,7 +26,7 @@ export default async function PartnerResourcesPage({
         <p className="eyebrow">Resources</p>
         <h1 className="section-title">Rates, offers, kits, and collateral.</h1>
         <p>
-          Enter the password provided by our team to unlock the shared partner resource library.
+          Enter your partner email and the password provided by our team to unlock the shared partner resource library.
         </p>
       </div>
 

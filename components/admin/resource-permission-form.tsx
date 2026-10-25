@@ -39,7 +39,7 @@ export function ResourcePermissionForm({ permission, resources }: Props) {
             <input
               className="admin-input"
               name="password"
-              type="password"
+              type="password" minLength={12} maxLength={256}
               placeholder={permission ? "Leave blank to keep existing password" : "Set resource password"}
               required={!permission}
             />

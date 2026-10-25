@@ -4,7 +4,8 @@ import { useActionState } from "react";
 import type { ResourceRecord } from "@/lib/services/resource-service";
 
 import { saveResourceAction } from "@/app/admin/resources/actions";
-import { MediaField, type MediaLibraryItem } from "@/components/media-field";
+import type { MediaLibraryItem } from "@/components/media-field";
+import { PrivateResourceFileField } from "@/components/private-resource-file-field";
 import { ActionMessage, SubmitButton } from "@/components/admin/action-feedback";
 
 type Props = {
@@ -64,15 +65,7 @@ export function ResourceEditorForm({ resource, mediaLibrary = [] }: Props) {
             <textarea className="admin-textarea" name="description" defaultValue={resource?.description ?? ""} />
           </label>
         </div>
-        <MediaField
-          label="Upload or select document"
-          inputName="filePath"
-          fileName="resourceFile"
-          accept="image/png,image/jpeg,image/webp,image/svg+xml,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/csv,video/mp4,video/webm,video/quicktime"
-          value={resource?.filePath ?? ""}
-          library={mediaLibrary}
-          helper="Upload documents, images, videos, or select an existing file from the media library."
-        />
+        <PrivateResourceFileField value={resource?.filePath ?? ""} resourceId={resource?.id} />
       </section>
 
       <div className="admin-form-actions">

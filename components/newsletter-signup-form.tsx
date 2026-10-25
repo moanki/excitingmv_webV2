@@ -1,4 +1,5 @@
 "use client";
+import { TurnstileField } from "@/components/turnstile-field";
 
 import { useState } from "react";
 
@@ -6,6 +7,7 @@ export function NewsletterSignupForm({ markets }: { markets: string[] }) {
   const [message, setMessage] = useState<string>();
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
+  const [verificationVersion,setVerificationVersion]=useState(0);
 
   async function onSubmit(formData: FormData) {
     setPending(true);
@@ -27,7 +29,7 @@ export function NewsletterSignupForm({ markets }: { markets: string[] }) {
       const response = await fetch("/api/newsletter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, turnstileToken: String(formData.get("turnstileToken") ?? "") })
       });
       const json = await response.json().catch(() => null);
       if (!response.ok) throw new Error(json?.error ?? "Failed to submit the form.");
@@ -36,6 +38,7 @@ export function NewsletterSignupForm({ markets }: { markets: string[] }) {
       setError(error instanceof Error ? error.message : "Failed to submit the form.");
     } finally {
       setPending(false);
+      setVerificationVersion(value=>value+1);
     }
   }
 
@@ -75,6 +78,7 @@ export function NewsletterSignupForm({ markets }: { markets: string[] }) {
       </button>
       {message ? <p className="auth-note">{message}</p> : null}
       {error ? <p className="auth-error">{error}</p> : null}
+      <TurnstileField resetKey={verificationVersion} />
     </form>
   );
 }

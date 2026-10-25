@@ -1,67 +1,35 @@
 import "server-only";
-
-import { createHmac, timingSafeEqual } from "node:crypto";
-
+import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
-
-import { env } from "@/lib/env";
-
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 export const RESOURCE_ACCESS_COOKIE = "emv_resource_access";
 export const RESOURCE_ACCESS_MAX_AGE_SECONDS = 60 * 60 * 6;
-
-type ResourceAccessPayload = {
-  scope: "partner_resources";
-  exp: number;
-};
-
-function secret() {
-  return env.SUPABASE_SERVICE_ROLE_KEY || env.NEXT_PUBLIC_SUPABASE_URL;
+export type ResourceSession = { agentId: string };
+const hashToken = (token: string) => createHash("sha256").update(token).digest("hex");
+export async function createResourceAccessToken(agentId: string, accessVersion: number) {
+  const token = randomBytes(32).toString("base64url");
+  const client = createSupabaseAdminClient();
+  await client.from("partner_resource_sessions").delete().lt("expires_at", new Date().toISOString());
+  const { error } = await client.from("partner_resource_sessions").insert({
+    token_hash: hashToken(token), agent_id: agentId, access_version: accessVersion,
+    expires_at: new Date(Date.now() + RESOURCE_ACCESS_MAX_AGE_SECONDS * 1000).toISOString()
+  });
+  if (error) throw new Error("Unable to create resource session.");
+  return token;
 }
-
-function base64Url(value: string) {
-  return Buffer.from(value).toString("base64url");
+export async function verifyResourceAccessToken(token?: string): Promise<ResourceSession | null> {
+  if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token)) return null;
+  const client = createSupabaseAdminClient();
+  const { data: session, error } = await client.from("partner_resource_sessions")
+    .select("agent_id,access_version,expires_at").eq("token_hash", hashToken(token)).maybeSingle();
+  if (error || !session || Date.parse(session.expires_at) <= Date.now()) return null;
+  const { data: agent, error: agentError } = await client.from("agents")
+    .select("id,status,resource_access_version").eq("id", session.agent_id).maybeSingle();
+  if (agentError || agent?.status !== "approved" || agent.resource_access_version !== session.access_version) return null;
+  return { agentId: agent.id };
 }
-
-function sign(value: string) {
-  return createHmac("sha256", secret()).update(value).digest("base64url");
-}
-
-function safeEqual(a: string, b: string) {
-  const left = Buffer.from(a);
-  const right = Buffer.from(b);
-
-  return left.length === right.length && timingSafeEqual(left, right);
-}
-
-export function createResourceAccessToken() {
-  const payload: ResourceAccessPayload = {
-    scope: "partner_resources",
-    exp: Date.now() + RESOURCE_ACCESS_MAX_AGE_SECONDS * 1000
-  };
-  const encoded = base64Url(JSON.stringify(payload));
-
-  return `${encoded}.${sign(encoded)}`;
-}
-
-export function verifyResourceAccessToken(token?: string) {
-  if (!token) {
-    return false;
-  }
-
-  const [encoded, signature] = token.split(".");
-  if (!encoded || !signature || !safeEqual(sign(encoded), signature)) {
-    return false;
-  }
-
-  try {
-    const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as ResourceAccessPayload;
-    return payload.scope === "partner_resources" && payload.exp > Date.now();
-  } catch {
-    return false;
-  }
-}
-
-export async function hasResourceAccessSession() {
+export async function getResourceAccessSession() {
   const store = await cookies();
   return verifyResourceAccessToken(store.get(RESOURCE_ACCESS_COOKIE)?.value);
 }
+export async function hasResourceAccessSession() { return Boolean(await getResourceAccessSession()); }

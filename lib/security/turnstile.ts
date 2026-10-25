@@ -2,10 +2,10 @@ export async function verifyTurnstileToken(token: unknown, request: Request) {
   const secret = process.env.TURNSTILE_SECRET_KEY;
 
   if (!secret) {
-    return { ok: true, skipped: true };
+    return { ok: process.env.NODE_ENV === "development" && process.env.ALLOW_INSECURE_LOCAL_CAPTCHA_BYPASS === "true", skipped: false };
   }
 
-  if (typeof token !== "string" || !token.trim()) {
+  if (typeof token !== "string" || !token.trim() || token.length > 4096) {
     return { ok: false, skipped: false };
   }
 
@@ -20,10 +20,11 @@ export async function verifyTurnstileToken(token: unknown, request: Request) {
 
   const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
     method: "POST",
+    signal: AbortSignal.timeout(10000),
     body: formData
-  });
+  }).catch(() => null);
 
-  if (!response.ok) {
+  if (!response?.ok) {
     return { ok: false, skipped: false };
   }
 

@@ -1,4 +1,5 @@
 "use client";
+import { TurnstileField } from "@/components/turnstile-field";
 
 import { useState } from "react";
 
@@ -6,6 +7,7 @@ export function PartnerRegisterForm() {
   const [message, setMessage] = useState<string>();
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
+  const [verificationVersion,setVerificationVersion]=useState(0);
 
   async function onSubmit(formData: FormData) {
     setPending(true);
@@ -24,7 +26,7 @@ export function PartnerRegisterForm() {
       const response = await fetch("/api/partner-registration", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, turnstileToken: String(formData.get("turnstileToken") ?? "") })
       });
       const json = await response.json().catch(() => null);
       if (!response.ok) throw new Error(json?.error ?? "Failed to submit partner request.");
@@ -33,6 +35,7 @@ export function PartnerRegisterForm() {
       setError(error instanceof Error ? error.message : "Failed to submit partner request.");
     } finally {
       setPending(false);
+      setVerificationVersion(value=>value+1);
     }
   }
 
@@ -65,6 +68,7 @@ export function PartnerRegisterForm() {
       </button>
       {message ? <p className="auth-note">{message}</p> : null}
       {error ? <p className="auth-error">{error}</p> : null}
+      <TurnstileField resetKey={verificationVersion} />
     </form>
   );
 }

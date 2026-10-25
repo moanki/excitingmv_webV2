@@ -6,7 +6,7 @@ import { sendAdminTestEmail } from "@/lib/email/smtp-service";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const auth = await requireAdminJson();
+  const auth = await requireAdminJson(["super_admin", "admin"]);
   if (!auth.ok) return auth.response;
 
   const body = (await request.json().catch(() => ({}))) as { to?: unknown };

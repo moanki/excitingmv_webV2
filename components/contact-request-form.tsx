@@ -1,4 +1,5 @@
 "use client";
+import { TurnstileField } from "@/components/turnstile-field";
 
 import { useState } from "react";
 
@@ -6,6 +7,7 @@ export function ContactRequestForm() {
   const [message, setMessage] = useState<string>();
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
+  const [verificationVersion,setVerificationVersion]=useState(0);
 
   async function onSubmit(formData: FormData) {
     setPending(true);
@@ -22,7 +24,7 @@ export function ContactRequestForm() {
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ ...payload, turnstileToken: String(formData.get("turnstileToken") ?? "") })
       });
       const json = await response.json().catch(() => null);
       if (!response.ok) throw new Error(json?.error ?? "Failed to send your message.");
@@ -31,6 +33,7 @@ export function ContactRequestForm() {
       setError(error instanceof Error ? error.message : "Failed to send your message.");
     } finally {
       setPending(false);
+      setVerificationVersion(value=>value+1);
     }
   }
 
@@ -55,6 +58,7 @@ export function ContactRequestForm() {
       </button>
       {message ? <p className="auth-note">{message}</p> : null}
       {error ? <p className="auth-error">{error}</p> : null}
+      <TurnstileField resetKey={verificationVersion} />
     </form>
   );
 }

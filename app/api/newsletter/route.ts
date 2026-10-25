@@ -1,3 +1,4 @@
+import { readJsonBody } from "@/lib/security/request-body";
 import { NextResponse } from "next/server";
 
 import { getClientIp, checkRateLimit } from "@/lib/security/rate-limit";
@@ -6,7 +7,7 @@ import { createNewsletterSubmission } from "@/lib/services/newsletter-service";
 import { newsletterSubmissionSchema } from "@/lib/validations";
 
 export async function POST(request: Request) {
-  const json = await request.json().catch(() => null);
+  const json = await readJsonBody(request).catch(() => null);
   const body = json && typeof json === "object" ? (json as Record<string, unknown>) : {};
 
   if (isHoneypotFilled(body.website) || isHoneypotFilled(body.companyWebsite)) {
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
 
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const ip = getClientIp(request);
-  const rateLimit = checkRateLimit({ key: `newsletter:${ip}:${email}`, limit: 5, windowMs: 10 * 60 * 1000 });
+  const rateLimit = await checkRateLimit({ key: `newsletter:${ip}`, limit: 5, windowMs: 10 * 60 * 1000 });
   if (!rateLimit.allowed) {
     return NextResponse.json({ ok: false, error: "Please wait before trying again." }, { status: 429 });
   }

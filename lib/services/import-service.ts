@@ -1,3 +1,4 @@
+import { safeFetch } from "@/lib/security/safe-fetch";
 import {
   extractImportedResortsFromPdf,
   type ImportedResort,
@@ -461,7 +462,7 @@ async function resolveGoogleDriveSources(url: string) {
   const candidates = [url, `${embeddedUrl.toString()}#list`];
   const htmlPayloads = await Promise.all(
     candidates.map(async (candidate) => {
-      const response = await fetch(candidate, { cache: "no-store" });
+      const response = await safeFetch(candidate, { cache: "no-store" });
       if (!response.ok) {
         return "";
       }
@@ -553,7 +554,7 @@ function deriveBatchStatus(importedCount: number, errorCount: number) {
 }
 
 async function downloadPdfSource(sourceUrl: string, index: number): Promise<DownloadedPdf> {
-  const response = await fetch(sourceUrl, { cache: "no-store" });
+  const response = await safeFetch(sourceUrl, { cache: "no-store" });
   if (!response.ok) {
     throw new Error(`Failed to download PDF from ${sourceUrl}`);
   }

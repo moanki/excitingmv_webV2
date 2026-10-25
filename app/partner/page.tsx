@@ -1,8 +1,10 @@
+import { getResourceAccessSession } from "@/lib/partner-resource-access";
 import { listPublishedResources } from "@/lib/services/resource-service";
 import { getResortCounts } from "@/lib/services/resort-service";
 
 export default async function PartnerDashboardPage() {
-  const [resources, resortCounts] = await Promise.all([listPublishedResources(), getResortCounts()]);
+  const session = await getResourceAccessSession();
+  const [resources, resortCounts] = await Promise.all([listPublishedResources(session?.agentId), getResortCounts()]);
 
   return (
     <section>

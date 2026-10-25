@@ -1,3 +1,4 @@
+import { safeFetch } from "@/lib/security/safe-fetch";
 import ExcelJS from "exceljs";
 
 import { toErrorMessage } from "@/lib/error-message";
@@ -1091,6 +1092,7 @@ function diffHasChanges(diff: ExcelResortDiff, model: ExcelResortImportModel, re
 
 async function resolveGoogleDriveExcelSources(url: string) {
   const explicitUrls = splitExcelSourceInput(url);
+  if (explicitUrls.length > 50) throw new Error("Import up to 50 source documents at a time.");
   if (explicitUrls.length > 1) {
     return Array.from(new Set(explicitUrls.map((item) => normalizeGoogleDriveExcelUrl(item))));
   }
@@ -1099,7 +1101,7 @@ async function resolveGoogleDriveExcelSources(url: string) {
   const folderMatch = parsed.pathname.match(/\/drive\/folders\/([^/?]+)/);
   if (!folderMatch?.[1]) return [normalizeGoogleDriveExcelUrl(url)];
 
-  const html = (await fetch(url, { cache: "no-store" }).then((response) => response.text()))
+  const html = (await safeFetch(url, { cache: "no-store" }).then((response) => response.text()))
     .replaceAll("\\/", "/")
     .replaceAll("\\u003d", "=")
     .replaceAll("\\u0026", "&");
@@ -1183,7 +1185,7 @@ function guessExcelFilename(url: string, index: number) {
 }
 
 async function downloadExcelSource(sourceUrl: string, index: number) {
-  const response = await fetch(sourceUrl, { cache: "no-store" });
+  const response = await safeFetch(sourceUrl, { cache: "no-store" });
   if (!response.ok) throw new Error(`Failed to download Excel workbook from ${sourceUrl}`);
   const bytes = new Uint8Array(await response.arrayBuffer());
   const disposition = response.headers.get("content-disposition");

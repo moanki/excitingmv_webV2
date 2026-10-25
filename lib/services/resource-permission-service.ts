@@ -21,6 +21,8 @@ type AgentRow = {
   email: string;
   status: "pending" | "approved" | "rejected" | "suspended";
   notes?: string | null;
+  resource_password_hash?: string | null;
+  resource_access_version?: number;
   created_at: string;
 };
 
@@ -50,7 +52,6 @@ function toAgentStatus(status: ResourcePermissionStatus): AgentRow["status"] {
 const scryptAsync = promisify(scrypt);
 const RESOURCE_PASSWORD_PREFIX = "scrypt";
 const RESOURCE_PASSWORD_KEY_LENGTH = 64;
-const RESOURCE_PASSWORD_NOTE_PREFIX = "[resource_password_hash]:";
 
 async function hashResourcePassword(password: string) {
   const salt = randomBytes(16).toString("hex");
@@ -69,25 +70,6 @@ async function verifyResourcePassword(password: string, storedHash: string) {
   const actual = (await scryptAsync(password, salt, expected.length)) as Buffer;
 
   return expected.length === actual.length && timingSafeEqual(expected, actual);
-}
-
-function resourcePasswordHashFromNotes(notes?: string | null) {
-  return (notes ?? "")
-    .split("\n")
-    .find((line) => line.startsWith(RESOURCE_PASSWORD_NOTE_PREFIX))
-    ?.slice(RESOURCE_PASSWORD_NOTE_PREFIX.length)
-    .trim() ?? "";
-}
-
-function notesWithResourcePasswordHash(notes: string | null | undefined, hash: string) {
-  const publicNotes = (notes ?? "")
-    .split("\n")
-    .filter((line) => !line.startsWith(RESOURCE_PASSWORD_NOTE_PREFIX))
-    .join("\n")
-    .trim();
-  const marker = `${RESOURCE_PASSWORD_NOTE_PREFIX}${hash}`;
-
-  return publicNotes ? `${publicNotes}\n${marker}` : marker;
 }
 
 export async function listResourcePermissions() {
@@ -151,19 +133,10 @@ export async function saveResourcePermission(input: {
   const supabase = createSupabaseAdminClient();
   let agentId = input.agentId;
   const password = input.password?.trim();
-  let passwordPatch: { notes?: string } = {};
-
+  let passwordPatch: { resource_password_hash?: string } = {};
   if (password) {
-    const hash = await hashResourcePassword(password);
-    const currentNotes = agentId
-      ? await supabase
-          .from("agents")
-          .select("notes")
-          .eq("id", agentId)
-          .maybeSingle()
-          .then(({ data }) => (data as Pick<AgentRow, "notes"> | null)?.notes ?? "")
-      : "";
-    passwordPatch = { notes: notesWithResourcePasswordHash(currentNotes, hash) };
+    if (password.length < 12 || password.length > 256) throw new Error("Use a resource password between 12 and 256 characters.");
+    passwordPatch = { resource_password_hash: await hashResourcePassword(password) };
   }
 
   if (agentId) {
@@ -171,7 +144,7 @@ export async function saveResourcePermission(input: {
       .from("agents")
       .update({
         agency_name: input.agencyName,
-        email: input.username,
+        email: input.username.trim().toLowerCase(),
         contact_name: input.agencyName,
         status: toAgentStatus(input.status),
         ...passwordPatch
@@ -187,7 +160,7 @@ export async function saveResourcePermission(input: {
       .insert({
         agency_name: input.agencyName,
         contact_name: input.agencyName,
-        email: input.username,
+        email: input.username.trim().toLowerCase(),
         status: toAgentStatus(input.status),
         ...passwordPatch
       })
@@ -251,43 +224,13 @@ export async function enableResourcePermission(agentId: string) {
   }
 }
 
-export async function validateActiveResourcePassword(password: string) {
-  const candidate = password.trim();
-  if (!candidate) {
-    return false;
-  }
-
-  const supabase = createSupabaseAdminClient();
-  const [{ data, error }, { data: protectedRows, error: protectedError }] = await Promise.all([
-    supabase
-      .from("agents")
-      .select("id, status, notes")
-      .eq("status", "approved")
-      .not("notes", "is", null),
-    supabase.from("protected_resources").select("agent_id")
-  ]);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (protectedError) {
-    throw new Error(protectedError.message);
-  }
-
-  const protectedAgentIds = new Set(
-    ((protectedRows ?? []) as Array<{ agent_id: string | null }>).map((row) => row.agent_id).filter(Boolean)
-  );
-  for (const agent of (data ?? []) as Pick<AgentRow, "id" | "notes">[]) {
-    const hash = resourcePasswordHashFromNotes(agent.notes);
-    if (!hash || !protectedAgentIds.has(agent.id)) {
-      continue;
-    }
-
-    if (await verifyResourcePassword(candidate, hash)) {
-      return true;
-    }
-  }
-
-  return false;
+export async function validateActiveResourcePassword(password: string, username: string) {
+  if (!password || password.length > 256 || !username || username.length > 254) return null;
+  const client = createSupabaseAdminClient();
+  const { data, error } = await client.from("agents")
+    .select("id,resource_password_hash,resource_access_version")
+    .eq("status", "approved").eq("email", username.trim().toLowerCase()).maybeSingle();
+  if (error || !data?.resource_password_hash) return null;
+  if (!await verifyResourcePassword(password, data.resource_password_hash)) return null;
+  return { agentId: data.id, accessVersion: data.resource_access_version };
 }

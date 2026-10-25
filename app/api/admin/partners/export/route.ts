@@ -1,9 +1,7 @@
 import { requireAdminJson } from "@/lib/auth/require-admin";
 import { listPartnerRequests } from "@/lib/services/partner-service";
 
-function csvEscape(value: string) {
-  return `"${String(value ?? "").replace(/"/g, '""')}"`;
-}
+import { csvEscape } from "@/lib/security/csv";
 
 export async function GET(request: Request) {
   const auth = await requireAdminJson();

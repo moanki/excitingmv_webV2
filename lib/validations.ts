@@ -43,7 +43,7 @@ const optionalSafeMediaUrlSchema = z
   .string()
   .trim()
   .default("")
-  .refine((value) => !safeMediaUrlError(value), (value) => ({ message: safeMediaUrlError(value) || "Invalid media URL." }));
+  .refine((value) => !safeMediaUrlError(value), { message: "Enter a valid HTTPS media URL." });
 
 const safeStringArraySchema = z
   .array(z.string())
@@ -128,7 +128,7 @@ export const adminResortPayloadSchema = z.object({
 export const partnerRegistrationSchema = z.object({
   agencyName: z.string().min(2),
   contactName: z.string().min(2),
-  email: z.string().email(),
+  email: z.string().max(254).email(),
   market: z.string().min(2),
   notes: z.string().max(2000).optional()
 });
@@ -138,16 +138,16 @@ export const newsletterSubmissionSchema = z.object({
   agencyName: z.string().min(2),
   countryOfOrigin: z.string().min(2),
   contactNumber: z.string().min(5),
-  email: z.string().email(),
+  email: z.string().max(254).email(),
   primaryMarket: z.string().optional().default(""),
   additionalNotes: z.string().max(2000).optional(),
   source: z.string().min(1).default("website")
 });
 
 export const contactSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  message: z.string().min(10)
+  name: z.string().min(2).max(200),
+  email: z.string().max(254).email(),
+  message: z.string().min(10).max(10000)
 });
 
 export const aiImportRequestSchema = z.object({
@@ -155,7 +155,7 @@ export const aiImportRequestSchema = z.object({
     .string()
     .url()
     .refine(
-      (value) => value.includes("drive.google.com") || value.includes("docs.google.com"),
+      (value) => { const url = new URL(value); return url.protocol === "https:" && ["drive.google.com", "docs.google.com"].includes(url.hostname); },
       "Enter a valid Google Drive or Google Docs URL."
     ),
   propertyType: z
@@ -165,7 +165,7 @@ export const aiImportRequestSchema = z.object({
 });
 
 export const resortSeoGenerationInputSchema = z.object({
-  name: z.string().min(2),
+  name: z.string().min(2).max(200),
   location: z.string().optional().default(""),
   category: z.string().optional().default(""),
   transferType: z.string().optional().default(""),

@@ -36,21 +36,6 @@ const nextConfig: NextConfig = {
     ];
   },
   async headers() {
-    const csp = [
-      "default-src 'self'",
-      "base-uri 'self'",
-      "frame-ancestors 'none'",
-      "object-src 'none'",
-      "img-src 'self' data: blob: https:",
-      "font-src 'self' data:",
-      "style-src 'self' 'unsafe-inline'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-      "connect-src 'self' https: wss:",
-      "media-src 'self' data: blob: https:",
-      "frame-src 'self' https://www.google.com",
-      `form-action 'self'`,
-      `upgrade-insecure-requests`
-    ].join("; ");
 
     return [
       {
@@ -61,7 +46,6 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-          { key: "Content-Security-Policy-Report-Only", value: csp }
         ]
       }
     ];

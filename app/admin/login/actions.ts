@@ -1,6 +1,7 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import { checkRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { redirect } from "next/navigation";
 
 import {
@@ -32,6 +33,13 @@ export async function loginToAdmin(_: { error?: string } | undefined, formData: 
   const password = String(formData.get("password") ?? "");
   const next = String(formData.get("next") ?? "/admin");
 
+  if (!email || email.length>254 || !password || password.length>256) return {error:"Invalid admin credentials."};
+  const ip=getClientIp({headers:await headers()});
+  const limits=await Promise.all([
+    checkRateLimit({key:`admin-ip:${ip}`,limit:15,windowMs:15*60*1000}),
+    checkRateLimit({key:`admin-account:${email}`,limit:8,windowMs:15*60*1000})
+  ]);
+  if(limits.some(limit=>!limit.allowed))return {error:"Too many attempts. Please try again later."};
   const supabase = await createSupabaseServerClient();
   const signIn = await supabase.auth.signInWithPassword({ email, password });
 

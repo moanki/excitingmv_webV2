@@ -1,6 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { samplePartnerResources } from "@/lib/sample-data";
-import { SITE_ASSET_BUCKET } from "@/lib/storage/site-assets";
+import { PRIVATE_RESOURCE_BUCKET, validatePrivateResourcePath } from "@/lib/storage/partner-resources";
 import type { PublishStatus, ResourceAudience } from "@/lib/types";
 
 export type ResourceRecord = {
@@ -78,56 +78,24 @@ export async function listResources() {
   }
 }
 
-export async function listPublishedResources() {
-  const resources = await listResources();
-  return resources.filter((resource) => resource.status === "published");
+export async function listPublishedResources(agentId?: string) {
+  if (!agentId) return [];
+  const resources = await queryResources();
+  const { data, error } = await createSupabaseAdminClient().from("protected_resources").select("resource_id").eq("agent_id",agentId);
+  if (error) throw new Error("Unable to check resource permissions.");
+  const allowed = new Set((data ?? []).map(row => row.resource_id));
+  return resources.filter(resource => resource.status === "published" && (resource.audienceType === "all_partners" || allowed.has(resource.id)));
 }
-
-export async function getPublishedResource(id: string) {
-  const resources = await listPublishedResources();
-  return resources.find((resource) => resource.id === id) ?? null;
+export async function getPublishedResource(id: string, agentId: string) {
+  return (await listPublishedResources(agentId)).find(resource => resource.id === id) ?? null;
 }
-
-function storagePathFromResourceUrl(url: string) {
-  try {
-    const parsed = new URL(url);
-    const publicMarker = `/object/public/${SITE_ASSET_BUCKET}/`;
-    const signedMarker = `/object/sign/${SITE_ASSET_BUCKET}/`;
-    const marker = parsed.pathname.includes(publicMarker) ? publicMarker : signedMarker;
-    const index = parsed.pathname.indexOf(marker);
-
-    if (index === -1) {
-      return "";
-    }
-
-    return decodeURIComponent(parsed.pathname.slice(index + marker.length));
-  } catch {
-    return "";
-  }
-}
-
 export async function createProtectedResourceUrl(resource: ResourceRecord, mode: "view" | "download") {
-  if (!resource.filePath || resource.filePath === "#") {
-    return "#";
-  }
-
-  const storagePath = storagePathFromResourceUrl(resource.filePath);
-  if (!storagePath) {
-    return resource.filePath;
-  }
-
-  const supabase = createSupabaseAdminClient();
-  const signed = await supabase.storage.from(SITE_ASSET_BUCKET).createSignedUrl(
-    storagePath,
-    60 * 5,
-    mode === "download" ? { download: resource.title } : undefined
+  const storagePath = validatePrivateResourcePath(resource.filePath);
+  const { data,error } = await createSupabaseAdminClient().storage.from(PRIVATE_RESOURCE_BUCKET).createSignedUrl(
+    storagePath, 60, mode === "download" ? { download: resource.title } : undefined
   );
-
-  if (signed.error || !signed.data?.signedUrl) {
-    throw new Error(signed.error?.message ?? "Failed to create protected resource link.");
-  }
-
-  return signed.data.signedUrl;
+  if (error || !data?.signedUrl) throw new Error("Unable to prepare resource download.");
+  return data.signedUrl;
 }
 
 export async function saveResource(input: {
@@ -141,11 +109,12 @@ export async function saveResource(input: {
   sortOrder: number;
 }) {
   const supabase = createSupabaseAdminClient();
+  const privatePath = validatePrivateResourcePath(input.filePath);
   const { error } = await supabase.from("resources").upsert({
     id: input.id,
     title: input.title,
     description: input.description,
-    file_path: input.filePath,
+    file_path: privatePath,
     resource_type: input.resourceType,
     audience_type: input.audienceType,
     status: input.status,

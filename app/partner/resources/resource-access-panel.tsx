@@ -142,19 +142,20 @@ export function ResourceAccessPanel({ resources, hasAccess, openOnLoad }: Props)
             onMouseDown={(event) => event.stopPropagation()}
           >
             <button className="resource-modal__close" type="button" onClick={() => setIsModalOpen(false)} aria-label="Close resource access modal">
-              ×
+              Ã—
             </button>
             <p className="eyebrow">Partner Library</p>
             <h2 id={titleId}>Access Resources</h2>
             <p id={descriptionId}>
-              Enter the password provided by our team to view and download partner resources.
+              Enter your partner email and the password provided by our team to view and download partner resources.
             </p>
             <form action={formAction} className="resource-modal__form">
+              <label><span>Partner email</span><input name="resourceUsername" type="email" autoComplete="username" required maxLength={254} /></label>
               <label>
                 <span>Resource Password</span>
                 <input
                   autoComplete="current-password"
-                  name="resourcePassword"
+                  name="resourcePassword" maxLength={256}
                   placeholder="Enter password"
                   ref={inputRef}
                   required
