@@ -19855,7 +19855,7 @@ html {
 }
 
 .property-detail-fact--brochure {
-  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .property-detail-fact span {
@@ -19911,7 +19911,8 @@ html {
 @media (min-width: 1100px) {
   .property-detail-facts__inner {
     flex-wrap: nowrap;
-    gap: clamp(12px, 1.25vw, 18px);
+    justify-content: space-between;
+    gap: 24px;
   }
 
   .property-detail-fact {
@@ -19921,9 +19922,14 @@ html {
 
   .property-detail-fact--location,
   .property-detail-fact--transfer {
-    flex: 1 1 0;
+    flex: 0 1 auto;
+    max-width: 280px;
   }
 
+  .property-detail-fact--location strong,
+  .property-detail-fact--transfer strong {
+    max-width: 200px;
+  }
 }
 
 .property-detail-overview {
