@@ -304,12 +304,6 @@ function TravelGuideMagazine({ guide }: { guide: HomepageGuideItem[] }) {
   );
 }
 
-function shortText(value: string | undefined, fallback = "", maxLength = 148) {
-  const source = (value || fallback).replace(/\s+/g, " ").trim();
-  if (source.length <= maxLength) return source;
-  return `${source.slice(0, maxLength).trim()}...`;
-}
-
 function MobileHomeV2({
   hero,
   navbar,
@@ -319,7 +313,9 @@ function MobileHomeV2({
   story,
   markets,
   services,
+  servicesImageUrl,
   whyUs,
+  whyUsIntro,
   whyImageUrl,
   awards,
   guide,
@@ -335,7 +331,9 @@ function MobileHomeV2({
   story: Awaited<ReturnType<typeof getHomepageStoryContent>>["content"];
   markets: MarketSettings;
   services: Awaited<ReturnType<typeof getHomepageServices>>["content"];
+  servicesImageUrl: string;
   whyUs: Awaited<ReturnType<typeof getHomepageWhyUs>>["content"];
+  whyUsIntro: { title: string; heading: string; description: string };
   whyImageUrl: string;
   awards: Awaited<ReturnType<typeof getHomepageAwardsContent>>["content"];
   guide: HomepageGuideItem[];
@@ -381,9 +379,9 @@ function MobileHomeV2({
   const logoItems = [...tickerLogos, ...tickerLogos]
     .slice(0, 12);
   const activeMarkets = markets.options.filter((market) => market.enabled).slice(0, 4);
-  const displayServices = services.items.filter((service) => service.enabled && service.title).slice(0, 4);
-  const displayWhy = whyUs.filter((item) => item.title).slice(0, 3);
-  const displayAwards = awards.items.filter((item) => item.enabled && (item.imageUrl || item.name)).slice(0, 4);
+  const displayServices = services.items.filter((service) => service.enabled && service.title);
+  const displayWhy = whyUs.filter((item) => item.title).slice(0, 4);
+  const displayAwards = awards.items.filter((item) => item.enabled && (item.imageUrl || item.name));
   const displayGuides = guide.filter((item) => item.published && item.title).slice(0, 3);
 
   return (
@@ -468,15 +466,14 @@ function MobileHomeV2({
         <p className="mv2-eyebrow">{ceo.sectionLabel || "CEO's Message"}</p>
         <article className="mv2-ceo">
           <div className="mv2-ceo__top">
-            {ceo.photoUrl ? <img src={optimizedImageUrl(ceo.photoUrl, { width: 120, height: 120, quality: 80 })} alt={ceo.name} /> : <span>{ceo.name?.charAt(0) || "E"}</span>}
+            <img src={optimizedImageUrl(ceo.photoUrl || featuredImages[2], { width: 120, height: 120, quality: 80 })} alt={ceo.name} />
             <div>
               <strong>{ceo.name}</strong>
               <p>{ceo.title}</p>
             </div>
           </div>
           <h2>{ceo.quote}</h2>
-          <p>{shortText(ceo.message, "", 210)}</p>
-          <Link href="/about" className="mv2-read-more-link">Read more <ArrowRight size={14} /></Link>
+          <p>{ceo.message}</p>
         </article>
       </section>
 
@@ -484,8 +481,7 @@ function MobileHomeV2({
         <p className="mv2-eyebrow">{story.sectionLabel || "Our Story"}</p>
         <h2>{story.title}</h2>
         <img className="mv2-story-image" src={optimizedImageUrl(story.imageUrl || featuredImages[1], { width: 760, height: 520, quality: 84 })} alt="Exciting Maldives story" loading="lazy" />
-        <p className="mv2-muted-copy">{shortText(story.description, "", 230)}</p>
-        <Link href="/about" className="mv2-inline-link">Read more <ArrowRight size={14} /></Link>
+        <p className="mv2-muted-copy">{story.description}</p>
       </section>
 
       <section className="mv2-section mv2-section--paper">
@@ -520,7 +516,7 @@ function MobileHomeV2({
         <p className="mv2-subcopy">{services.description}</p>
         <img
           className="mv2-story-image mv2-editorial-image"
-          src={optimizedImageUrl(serviceImages[0], { width: 760, height: 520, quality: 84 })}
+          src={optimizedImageUrl(servicesImageUrl, { width: 760, height: 520, quality: 84 })}
           alt="Destination management in the Maldives"
           loading="lazy"
         />
@@ -536,9 +532,9 @@ function MobileHomeV2({
       </section>
 
       <section className="mv2-section mv2-section--paper">
-        <p className="mv2-eyebrow">WHY TRAVEL DESIGNERS CHOOSE US</p>
-        <h2>Local precision for more than a resort list.</h2>
-        <p className="mv2-subcopy">Commercial fluency and resort relationships that protect high-value bookings.</p>
+        <p className="mv2-eyebrow">{whyUsIntro.title}</p>
+        <h2>{whyUsIntro.heading}</h2>
+        <p className="mv2-subcopy">{whyUsIntro.description}</p>
         <img
           className="mv2-story-image mv2-editorial-image"
           src={optimizedImageUrl(whyImageUrl, { width: 760, height: 520, quality: 84 })}
@@ -578,7 +574,7 @@ function MobileHomeV2({
         <div className="mv2-section__header">
           <div>
             <p className="mv2-eyebrow">MALDIVES TRAVEL GUIDE</p>
-            <h2>Editorial intelligence for sharper selling</h2>
+            <h2>Editorial intelligence for sharper destination selling</h2>
           </div>
           <Link href="/travel-guide">All insights</Link>
         </div>
@@ -663,6 +659,12 @@ export default async function HomePage() {
   ]);
 
   const whyUs = whyUsContent.items;
+  const whyUsIntro = {
+    title: "Why Travel Designers Choose Us",
+    heading: "Local precision for partners who need more than a resort list.",
+    description: "Local precision, commercial fluency, and resort relationships that protect high-value bookings."
+  };
+  const servicesImageUrl = services.items.find((service) => service.enabled && service.title && service.imageUrl)?.imageUrl || serviceImages[0];
   const activeMarkets = markets.options.filter((market) => market.enabled);
   const marketList = activeMarkets.length ? activeMarkets : markets.options;
   const marketLabels = marketList.map((market) => market.label);
@@ -685,7 +687,9 @@ export default async function HomePage() {
         story={story}
         markets={{ ...markets, options: marketList }}
         services={services}
+        servicesImageUrl={servicesImageUrl}
         whyUs={whyUs}
+        whyUsIntro={whyUsIntro}
         whyImageUrl={whyUsContent.imageUrl}
         awards={awards}
         guide={guide}
@@ -830,15 +834,14 @@ export default async function HomePage() {
       <section className="lux-section lux-section--sand services-editorial-section" id="destination-management">
         <ServicesParallax
           services={services}
-          images={serviceImages}
+          imageUrl={servicesImageUrl}
         />
       </section>
       <section className="lux-section lux-section--white why-trust-section" id="why-travel-designers">
         <WhyUsParallax
           items={whyUs}
           images={[whyUsContent.imageUrl]}
-          title="Why Travel Designers Choose Us"
-          description="Local precision, commercial fluency, and resort relationships that protect high-value bookings."
+          {...whyUsIntro}
         />
       </section>
 
