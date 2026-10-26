@@ -143,15 +143,15 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
   ));
 
   const legalItems = [
-    footerLink("Terms & Conditions", "#"),
-    footerLink("Privacy Policy", "#"),
-    footerLink("Cookie Policy", "#")
+    footerLink("Privacy Policy", "/privacy-policy"),
+    footerLink("Cookie Policy", "/cookie-policy")
   ];
 
   const mobileFooterGroups = [
     { title: "Destinations", items: destinationItems },
     { title: "Company", items: companyItems },
-    { title: "Resources", items: resourceItems }
+    { title: "Resources", items: resourceItems },
+    { title: "Policies", items: legalItems }
   ].filter((group) => group.items.length);
 
   const enabledMemberships = footer.memberships.filter((item) => item.enabled && item.name);

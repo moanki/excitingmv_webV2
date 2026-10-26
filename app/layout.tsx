@@ -6,7 +6,9 @@ import "@/app/globals.css";
 import "@/app/reference-redesign.css";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNavbar } from "@/components/site-navbar";
-import { getFooterContent, getNavbarContent, getWhatsAppSettings } from "@/lib/site-content";
+import { getFooterContent, getNavbarContent, getWhatsAppSettings, getSitePolicy } from "@/lib/site-content";
+import { CookieNotice } from "@/components/cookie-notice";
+import "@/app/policies.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -45,10 +47,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     );
   }
 
-  const [{ content: navbar }, { content: footer }, { content: whatsApp }] = await Promise.all([
+  const [{ content: navbar }, { content: footer }, { content: whatsApp }, { content: cookies }] = await Promise.all([
     getNavbarContent("published"),
     getFooterContent("published"),
-    getWhatsAppSettings("published")
+    getWhatsAppSettings("published"),
+    getSitePolicy("cookies")
   ]);
 
   return (
@@ -57,6 +60,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <SiteNavbar navbar={navbar} />
         {children}
         <SiteFooter footer={footer} navbar={navbar} />
+        <CookieNotice enabled={cookies.noticeEnabled ?? true} text={cookies.noticeText ?? ""} />
         {whatsApp.enabled ? (
           <a
             href={whatsApp.link}
