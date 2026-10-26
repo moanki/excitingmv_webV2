@@ -18,7 +18,7 @@ export const defaultPolicies: Record<PolicyId, SitePolicy> = {
   cookies: {
     title: "Cookie Policy", body: "", effectiveDate: "",
     noticeEnabled: true,
-    noticeText: "Essential cookies keep sign-in secure. Choose which cookies to allow."
+    noticeText: "Essential cookies keep sign-in secure, and we remember this notice on your browser."
   }
 };
 
@@ -62,13 +62,11 @@ export const COOKIE_NOTICE_STORAGE_KEY = "excitingmv.cookie-notice.v1";
 export const COOKIE_NOTICE_EVENT = "excitingmv:cookie-notice";
 export const COOKIE_NOTICE_MAX_AGE = 180 * 24 * 60 * 60 * 1000;
 
-export type CookieConsentChoice = "all" | "essential";
-
-export function readCookieConsent(raw: string | null, text: string, now = Date.now()): CookieConsentChoice | null {
+export function hasCurrentCookieAcknowledgement(raw: string | null, text: string, now = Date.now()) {
   try {
     const value = JSON.parse(raw ?? "null");
-    return value?.text === text && (value.choice === "all" || value.choice === "essential") && typeof value.at === "number" && value.at <= now && now - value.at < COOKIE_NOTICE_MAX_AGE ? value.choice : null;
+    return value?.text === text && typeof value.at === "number" && value.at <= now && now - value.at < COOKIE_NOTICE_MAX_AGE;
   } catch {
-    return null;
+    return false;
   }
 }
