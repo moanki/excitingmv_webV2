@@ -19902,6 +19902,7 @@ html {
 @media (min-width: 1100px) {
   .property-detail-facts__inner {
     flex-wrap: nowrap;
+    gap: clamp(12px, 1.25vw, 18px);
   }
 
   .property-detail-fact {
@@ -19921,6 +19922,7 @@ html {
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     overflow: hidden;
+    overflow-wrap: normal;
     white-space: normal;
   }
 }
