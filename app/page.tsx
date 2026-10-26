@@ -399,7 +399,6 @@ function MobileHomeV2({
           </Link>
         </div>
         <div className="mv2-hero__copy">
-          <p>{hero.eyebrow || "Luxury B2B Partner Platform"}</p>
           <h1>{hero.title || "The Art of Maldivian Luxury"}</h1>
           <p className="mv2-hero__description">{normalizeHeroDescription(hero.description)}</p>
           <div className="mv2-hero__actions">
