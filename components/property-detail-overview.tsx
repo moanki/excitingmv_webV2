@@ -239,13 +239,13 @@ export function PropertyDetailOverview({
         <div className="property-detail-facts" aria-label={`${name} quick facts`}>
           <div className="site-container property-detail-facts__inner">
             {facts.map((fact) => (
-              <div className="property-detail-fact" key={fact.label}>
-                <span>{fact.label}</span>
+              <div className={`property-detail-fact${fact.href ? " property-detail-fact--brochure" : ""}`} key={fact.label}>
                 {fact.href ? (
-                  <a className="property-detail-fact__download" href={fact.href} download={`${name} Brochure.pdf`}>
-                    {fact.value}
+                  <a className="property-detail-fact__download" href={fact.href} download={`${name} Brochure.pdf`} aria-label={`Download ${name} brochure`}>
+                    <fact.Icon size={14} aria-hidden="true" />
+                    Brochure
                   </a>
-                ) : <strong>{fact.value}</strong>}
+                ) : <><span>{fact.label}</span><strong>{fact.value}</strong></>}
               </div>
             ))}
           </div>
