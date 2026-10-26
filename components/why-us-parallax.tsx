@@ -5,10 +5,11 @@ type WhyUsParallaxProps = {
   items: HomepageWhyUsItem[];
   images: string[];
   title?: string;
+  heading: string;
   description?: string;
 };
 
-export function WhyUsParallax({ items, images, title, description }: WhyUsParallaxProps) {
+export function WhyUsParallax({ items, images, title, heading, description }: WhyUsParallaxProps) {
   const enabledItems = items.filter((item) => item.title).slice(0, 4);
 
   return (
@@ -16,7 +17,7 @@ export function WhyUsParallax({ items, images, title, description }: WhyUsParall
       <div className="why-trust__content">
         <div className="why-trust__intro">
           <p className="lux-eyebrow">{title || "Why Travel Designers Choose Us"}</p>
-          <h2>Local precision for partners who need more than a resort list.</h2>
+          <h2>{heading}</h2>
           {description ? <p>{description}</p> : null}
         </div>
 

@@ -7,11 +7,8 @@ import type { HomepageServicesContent } from "@/lib/site-content";
 
 type ServicesParallaxProps = {
   services: HomepageServicesContent;
-  images: string[];
+  imageUrl: string;
 };
-
-const servicesFallbackImage =
-  "https://images.unsplash.com/photo-1573843981267-be1999ff37cd?auto=format&fit=crop&w=1600&q=92";
 
 const serviceIcons = {
   "badge-check": BadgeCheck,
@@ -25,15 +22,14 @@ const serviceIcons = {
   "users-round": UsersRound
 };
 
-export function ServicesParallax({ services, images }: ServicesParallaxProps) {
+export function ServicesParallax({ services, imageUrl }: ServicesParallaxProps) {
   const enabledServices = services.items.filter((service) => service.enabled && service.title);
-  const heroImage = enabledServices.find((service) => service.imageUrl)?.imageUrl || images[0] || servicesFallbackImage;
 
   return (
     <div className="lux-container services-editorial">
       <div className="services-editorial__media">
         <img
-          src={optimizedImageUrl(heroImage, { width: 980, height: 1320, quality: 92 })}
+          src={optimizedImageUrl(imageUrl, { width: 980, height: 1320, quality: 92 })}
           alt="Maldives destination management services"
           width={980}
           height={1320}
