@@ -10,9 +10,8 @@ export function PolicyForm({ id, policy }: { id: PolicyId; policy: SitePolicy })
   const [state, action, pending] = useActionState(savePolicyAction, undefined);
   return <section className="panel">
     <div className="section-heading">
-      <div><p className="eyebrow">Footer / {id === "privacy" ? "Privacy Policy" : "Cookie Policy"}</p>
+      <div className="policy-editor-heading"><p className="eyebrow">Footer / {id === "privacy" ? "Privacy Policy" : "Cookie Policy"}</p>
         <h2>{id === "privacy" ? "Privacy Policy" : "Cookie Policy"}</h2>
-        <p className="admin-page-lede">Add your policy wording, save a draft, then publish it to the website.</p>
       </div>
       <Link className="button-muted" href={policyPaths[id]} target="_blank" rel="noreferrer">View published page</Link>
     </div>
