@@ -21438,6 +21438,15 @@ html {
     line-height: 1.02;
   }
 
+  .mv2-hero__copy .mv2-hero__description {
+    margin: 12px 0 0;
+    color: #fff;
+    font-size: 0.95rem;
+    letter-spacing: 0;
+    line-height: 1.5;
+    text-transform: none;
+  }
+
   .mv2-hero__actions {
     display: flex;
     flex-wrap: wrap;
