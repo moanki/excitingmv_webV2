@@ -13,6 +13,7 @@
     "@phosphor-icons/react": "^2.1.10",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.49.8",
+    "@vercel/oidc": "4.0.3",
     "clsx": "^2.1.1",
     "csv-parse": "7.0.3",
     "csv-stringify": "6.9.0",

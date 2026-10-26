@@ -2,6 +2,7 @@ import { gatewayModelConfig } from "@/lib/ai/gateway-model-config";
 import { env } from "@/lib/env";
 import { toErrorMessage } from "@/lib/error-message";
 import { z } from "zod";
+import { getVercelOidcToken } from "@vercel/oidc";
 
 export type ImportedRoom = {
   name: string;
@@ -166,12 +167,15 @@ export async function convertDocumentToMarkdown(document: GatewayDocumentInput):
 
   const deploymentHost = env.VERCEL_URL?.trim().replace(/^https?:\/\//u, "").replace(/\/$/u, "");
   const origin = deploymentHost ? `https://${deploymentHost}` : env.NEXT_PUBLIC_APP_URL.replace(/\/$/u, "");
+  // The deployment URL requires Vercel authentication before Python checks the service token.
+  const oidcToken = deploymentHost ? await getVercelOidcToken() : undefined;
   const response = await fetch(`${origin}/api/markitdown_convert`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${serviceToken}`,
-      "X-MarkItDown-Token": serviceToken
+      "X-MarkItDown-Token": serviceToken,
+      ...(oidcToken ? { "x-vercel-trusted-oidc-idp-token": oidcToken } : {})
     },
     body: JSON.stringify({
       ...(document.sourceUrl.startsWith("https://") ? { sourceUrl: document.sourceUrl } : { contentBase64: Buffer.from(document.bytes).toString("base64") }),
@@ -183,7 +187,10 @@ export async function convertDocumentToMarkdown(document: GatewayDocumentInput):
   const payload = (await response.json().catch(() => null)) as (MarkItDownResult & { ok?: boolean; error?: unknown }) | null;
   if (!response.ok || !payload?.ok || !payload.markdown?.trim()) {
     if (response.status === 401) {
-      throw new Error("Microsoft MarkItDown rejected the staging service token. Check SUPABASE_SERVICE_ROLE_KEY in the staging/Preview environment and redeploy.");
+      if (payload?.error && typeof payload.error === "object" && "code" in payload.error) {
+        throw new Error("Microsoft MarkItDown request was blocked by Vercel Deployment Protection (HTTP 401). Check the deployment OIDC token and Trusted Sources self-access.");
+      }
+      throw new Error("Microsoft MarkItDown service authentication failed (HTTP 401). Check that MARKITDOWN_SERVICE_TOKEN or SUPABASE_SERVICE_ROLE_KEY matches in the web and Python functions.");
     }
     const message = toErrorMessage(payload?.error, `Microsoft MarkItDown conversion failed (HTTP ${response.status}).`);
     console.error("[markitdown] conversion request failed", { status: response.status, message });
