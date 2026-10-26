@@ -19911,7 +19911,7 @@ html {
 
   .property-detail-fact--location,
   .property-detail-fact--transfer {
-    flex: 0 1 auto;
+    flex: 1 1 0;
   }
 
   .property-detail-fact--location strong,
