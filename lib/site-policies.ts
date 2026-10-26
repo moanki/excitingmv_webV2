@@ -18,7 +18,7 @@ export const defaultPolicies: Record<PolicyId, SitePolicy> = {
   cookies: {
     title: "Cookie Policy", body: "", effectiveDate: "",
     noticeEnabled: true,
-    noticeText: "Essential cookies support sign-in and secure access to this website. We also remember when you acknowledge this notice on this browser. Read our policies to find out more."
+    noticeText: "Essential cookies keep sign-in secure, and we remember this notice on your browser."
   }
 };
 
