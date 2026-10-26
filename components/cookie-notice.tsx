@@ -30,10 +30,10 @@ export function CookieNotice({ enabled, text }: { enabled: boolean; text: string
 
   if (!enabled || !text.trim() || !visible) return null;
   return <section className="cookie-notice" role="region" aria-labelledby="cookie-notice-title">
-    <div className="cookie-notice__copy"><h2 id="cookie-notice-title">Cookies on Exciting Maldives</h2>
-      <p>{text}</p>
+    <p className="cookie-notice__copy"><strong id="cookie-notice-title">Cookies.</strong> {text}</p>
+    <div className="cookie-notice__actions">
       <div className="cookie-notice__links"><Link href="/cookie-policy">Cookie Policy</Link><Link href="/privacy-policy">Privacy Policy</Link></div>
+      <button type="button" className="cookie-notice__dismiss" onClick={acknowledge}>Got it</button>
     </div>
-    <button type="button" className="cookie-notice__dismiss" onClick={acknowledge}>Got it</button>
   </section>;
 }
