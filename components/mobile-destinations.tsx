@@ -104,7 +104,7 @@ export function MobileDestinations({ activeKind, items }: MobileDestinationsProp
         {tabOrder.map((kind) => {
           const tab = kindDetails[kind];
           return (
-            <Link href={tab.path} className={kind === activeKind ? "is-active" : ""} aria-current={kind === activeKind ? "page" : undefined} key={kind}>
+            <Link href={tab.path} prefetch={true} className={kind === activeKind ? "is-active" : ""} aria-current={kind === activeKind ? "page" : undefined} key={kind}>
               <TabIcon kind={kind} />
               {tab.label}
             </Link>

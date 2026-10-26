@@ -351,13 +351,13 @@ body:has(.mobile-explore-v8) .site-nav.is-explore-listing.is-scrolled{background
 
 /* One CMS-driven banner shared by desktop and mobile catalogue layouts. */
 @media (max-width:768px){
-.catalogue-banner-shell .portfolio-hero{position:relative;min-height:320px;margin-top:-82px;overflow:hidden;padding:0!important;background:#0c2629}
-.catalogue-banner-shell .destination-hero__image{display:block!important;background-position:center;background-size:cover}
-.catalogue-banner-shell .destination-hero__image::after{background:linear-gradient(180deg,rgba(8,24,22,.2),rgba(8,24,22,.3) 40%,rgba(8,24,22,.76))!important}
-.catalogue-banner-shell .destination-hero__content{min-height:320px;align-items:flex-end;padding:188px 20px 31px!important}
-.catalogue-banner-shell .destination-hero__copy{max-width:330px}
-.catalogue-banner-shell .destination-hero__copy .lux-eyebrow{margin:0 0 12px;color:rgba(255,255,255,.5)!important;font-size:9.5px!important;font-weight:500!important;letter-spacing:.22em!important}
-.catalogue-banner-shell .destination-hero__copy h1{max-width:330px;margin:0 0 10px;color:#fff!important;font-family:var(--font-serif),Georgia,serif!important;font-size:32px!important;font-weight:600!important;letter-spacing:-.01em!important;line-height:1.1!important}
-.catalogue-banner-shell .destination-hero__copy p:not(.lux-eyebrow){max-width:300px;margin:0;color:rgba(255,255,255,.72)!important;font-size:13px!important;line-height:1.6!important}
-.catalogue-banner-shell .destination-title-rule{display:none}
+html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .portfolio-hero{position:relative;min-height:340px!important;margin-top:0;overflow:hidden;padding:0!important;background:#0c2629!important}
+html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__image{display:block!important;background-position:center;background-size:cover}
+html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__image::after{background:linear-gradient(180deg,rgba(8,24,22,.25),rgba(8,24,22,.35) 40%,rgba(8,24,22,.85))!important}
+html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__content{display:flex!important;min-height:340px!important;align-items:flex-end;padding:132px 22px 32px!important}
+html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy{max-width:100%!important}
+html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy .lux-eyebrow{margin:0 0 12px!important;color:rgba(255,255,255,.8)!important;font-size:9.5px!important;font-weight:500!important;letter-spacing:.18em!important;line-height:1.5!important}
+html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy h1{max-width:100%!important;margin:0 0 12px!important;color:#fff!important;font-family:var(--font-serif),Georgia,serif!important;font-size:clamp(1.65rem,7.2vw,2rem)!important;font-weight:500!important;letter-spacing:-.01em!important;line-height:1.12!important;overflow-wrap:break-word}
+html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy p:not(.lux-eyebrow){max-width:100%!important;margin:0!important;color:rgba(255,255,255,.9)!important;font-size:13px!important;line-height:1.6!important}
+html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-title-rule{display:none}
 }
