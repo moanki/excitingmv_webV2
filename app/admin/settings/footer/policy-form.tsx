@@ -30,7 +30,7 @@ export function PolicyForm({ id, policy }: { id: PolicyId; policy: SitePolicy })
         <legend>First-visit cookie notice</legend>
         <label className="admin-checkbox-inline"><input type="checkbox" name="noticeEnabled" defaultChecked={policy.noticeEnabled} /> Show the notice at the bottom of the website</label>
         <label className="field">Notice text<textarea name="noticeText" defaultValue={policy.noticeText} rows={3} maxLength={1000} /></label>
-        <p className="field__help">Visitors can choose “Allow all cookies” or “Essential only”, and change their choice on the Cookie Policy page. Preferences are remembered for 180 days. No optional trackers are currently configured; any future analytics or advertising must respect the saved choice before running.</p>
+        <p className="field__help">This essential-cookie notice has a single “OK” button. Dismissal is remembered for 180 days, and visitors can reopen the notice from the Cookie Policy page.</p>
       </fieldset> : null}
       <div className="admin-form-actions">
         <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>{pending ? "Saving..." : "Save Draft"}</button>
