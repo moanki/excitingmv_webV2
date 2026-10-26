@@ -28,7 +28,7 @@ export function PolicyForm({ id, policy }: { id: PolicyId; policy: SitePolicy })
       </label>
       {id === "cookies" ? <fieldset className="panel panel-soft stack">
         <legend>First-visit cookie notice</legend>
-        <label className="field"><span><input type="checkbox" name="noticeEnabled" defaultChecked={policy.noticeEnabled} /> Show the notice at the bottom of the website</span></label>
+        <label className="admin-checkbox-inline"><input type="checkbox" name="noticeEnabled" defaultChecked={policy.noticeEnabled} /> Show the notice at the bottom of the website</label>
         <label className="field">Notice text<textarea name="noticeText" defaultValue={policy.noticeText} rows={3} maxLength={1000} /></label>
         <p className="field__help">This is an essential-cookie notice with a “Got it” button. It remembers acknowledgement for 180 days. If you add analytics or advertising cookies, those services must be connected to consent controls before they run.</p>
       </fieldset> : null}
