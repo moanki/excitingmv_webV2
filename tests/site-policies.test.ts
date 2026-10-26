@@ -56,4 +56,3 @@ test("cookie consent expires, updates with notice text, and rejects corrupt stor
   assert.equal(readCookieConsent(JSON.stringify({ text: "Notice", choice: "all", at: now + 1 }), "Notice", now), null);
   for (const raw of [null, "broken", "{}", "null"]) assert.equal(readCookieConsent(raw, "Notice", now), null);
 });
-
