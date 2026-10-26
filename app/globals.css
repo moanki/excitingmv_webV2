@@ -19909,10 +19909,12 @@ html {
     white-space: nowrap;
   }
 
+  .property-detail-fact--location,
   .property-detail-fact--transfer {
     flex: 0 1 auto;
   }
 
+  .property-detail-fact--location strong,
   .property-detail-fact--transfer strong {
     min-width: 0;
     display: -webkit-box;
