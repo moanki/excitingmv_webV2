@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { COOKIE_NOTICE_MAX_AGE, defaultPolicies, hasCurrentCookieAcknowledgement, isPolicyId, normalizeSitePolicy, policyFromForm } from "../lib/site-policies";
+import { COOKIE_NOTICE_MAX_AGE, defaultPolicies, readCookieConsent, isPolicyId, normalizeSitePolicy, policyFromForm } from "../lib/site-policies";
 
 test("new settings retain explicit blanks and a disabled cookie notice", () => {
   assert.deepEqual(normalizeSitePolicy(null, "privacy"), defaultPolicies.privacy);
@@ -44,12 +44,16 @@ test("an enabled cookie notice needs text, while a disabled notice can be blank"
   assert.equal(policyFromForm(data, "cookies").noticeEnabled, false);
 });
 
-test("cookie acknowledgement expires, updates with notice text, and rejects corrupt storage", () => {
+test("cookie consent expires, updates with notice text, and rejects corrupt storage", () => {
   const now = 1_000_000_000_000;
-  const stored = JSON.stringify({ text: "Notice", at: now - 1000 });
-  assert.equal(hasCurrentCookieAcknowledgement(stored, "Notice", now), true);
-  assert.equal(hasCurrentCookieAcknowledgement(stored, "Changed notice", now), false);
-  assert.equal(hasCurrentCookieAcknowledgement(stored, "Notice", now + COOKIE_NOTICE_MAX_AGE), false);
-  assert.equal(hasCurrentCookieAcknowledgement(JSON.stringify({ text: "Notice", at: now + 1 }), "Notice", now), false);
-  for (const raw of [null, "broken", "{}", "null"]) assert.equal(hasCurrentCookieAcknowledgement(raw, "Notice", now), false);
+  const stored = JSON.stringify({ text: "Notice", choice: "essential", at: now - 1000 });
+  assert.equal(readCookieConsent(stored, "Notice", now), "essential");
+  assert.equal(readCookieConsent(JSON.stringify({ text: "Notice", choice: "all", at: now }), "Notice", now), "all");
+  assert.equal(readCookieConsent(JSON.stringify({ text: "Notice", at: now }), "Notice", now), null);
+  assert.equal(readCookieConsent(JSON.stringify({ text: "Notice", choice: "invalid", at: now }), "Notice", now), null);
+  assert.equal(readCookieConsent(stored, "Changed notice", now), null);
+  assert.equal(readCookieConsent(stored, "Notice", now + COOKIE_NOTICE_MAX_AGE), null);
+  assert.equal(readCookieConsent(JSON.stringify({ text: "Notice", choice: "all", at: now + 1 }), "Notice", now), null);
+  for (const raw of [null, "broken", "{}", "null"]) assert.equal(readCookieConsent(raw, "Notice", now), null);
 });
+
