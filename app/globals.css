@@ -19899,6 +19899,30 @@ html {
   color: var(--lux-gold);
 }
 
+@media (min-width: 1100px) {
+  .property-detail-facts__inner {
+    flex-wrap: nowrap;
+  }
+
+  .property-detail-fact {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .property-detail-fact--transfer {
+    flex: 0 1 auto;
+  }
+
+  .property-detail-fact--transfer strong {
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    white-space: normal;
+  }
+}
+
 .property-detail-overview {
   display: grid;
   justify-items: center;
