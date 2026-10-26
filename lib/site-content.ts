@@ -3,6 +3,7 @@ import { requireAdminRole } from "@/lib/auth/require-admin";
 import { normalizeHomepageServices } from "@/lib/homepage-services";
 import { normalizeHomepageWhyUs } from "@/lib/homepage-why-us";
 import { newestAwardsFirst } from "@/lib/homepage-awards";
+import { defaultPolicies, normalizeSitePolicy, type PolicyId } from "@/lib/site-policies";
 
 function supabaseStorageUrl(path: string) {
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
@@ -1446,6 +1447,11 @@ export async function getFooterContent(mode: "draft" | "published" = "published"
     ...entry,
     content: normalizeFooterContent(entry.content)
   };
+}
+
+export async function getSitePolicy(id: PolicyId, mode: "draft" | "published" = "published") {
+  const entry = await getSiteSettingMode(`site.policy.${id}`, defaultPolicies[id], mode);
+  return { ...entry, content: normalizeSitePolicy(entry.content, id) };
 }
 
 export async function getCatalogueContent(kind: CatalogueKind, mode: "draft" | "published" = "published") {
