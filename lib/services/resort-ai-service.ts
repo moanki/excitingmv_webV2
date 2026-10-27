@@ -287,13 +287,9 @@ const importedResortJsonSchema = {
   }
 } as const;
 
-function getGatewayToken() {
-  const token = env.AI_GATEWAY_API_KEY || env.VERCEL_OIDC_TOKEN;
-  if (!token) {
-    throw new Error("AI_GATEWAY_API_KEY or VERCEL_OIDC_TOKEN is required for resort AI requests.");
-  }
-
-  return token;
+async function getGatewayToken() {
+  if (env.AI_GATEWAY_API_KEY) return env.AI_GATEWAY_API_KEY;
+  return getVercelOidcToken();
 }
 
 function sanitizeLine(value: string, maxLength: number) {
@@ -357,7 +353,7 @@ async function fetchGateway(path: "/v1/messages" | "/v1/responses", body: object
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${getGatewayToken()}`
+        Authorization: `Bearer ${await getGatewayToken()}`
       },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(GATEWAY_TIMEOUT_MS)
