@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
-import { FaFacebookF, FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
+import { FaFacebookF, FaInstagram, FaLinkedinIn, FaTiktok, FaWhatsapp } from "react-icons/fa6";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
 import type { FooterBadge, FooterContent, FooterLinkItem, NavbarContent } from "@/lib/site-content";
@@ -176,14 +176,17 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
             )}
             <p className="site-footer__summary">{footer.description}</p>
             <div className="site-footer__social" aria-label="Social links">
-              <a href="#" aria-label="LinkedIn">
+              <a href="https://mv.linkedin.com/company/excitingmv" aria-label="LinkedIn" target="_blank" rel="noreferrer">
                 <FaLinkedinIn size={16} />
               </a>
-              <a href="#" aria-label="Instagram">
+              <a href="https://www.instagram.com/excitingmv/" aria-label="Instagram" target="_blank" rel="noreferrer">
                 <FaInstagram size={16} />
               </a>
-              <a href="#" aria-label="Facebook">
+              <a href="https://www.facebook.com/excitingmv/" aria-label="Facebook" target="_blank" rel="noreferrer">
                 <FaFacebookF size={16} />
+              </a>
+              <a href="https://www.tiktok.com/tag/exciting" aria-label="TikTok" target="_blank" rel="noreferrer">
+                <FaTiktok size={16} />
               </a>
             </div>
           </div>
