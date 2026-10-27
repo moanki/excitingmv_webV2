@@ -350,19 +350,23 @@ body:has(.mobile-explore-v8) .site-nav.is-explore-listing.is-scrolled{background
 }
 
 /* One CMS-driven banner shared by desktop and mobile catalogue layouts. */
+html body:not(.admin-body) .home-page .lux-hero h1,
+html body:not(.admin-body) .mobile-v2-home .mv2-hero__copy h1,
+html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy h1,
+html body:not(.admin-body) .property-detail-hero .resort-story-hero__copy h1{font-family:var(--font-serif),serif!important;font-weight:100!important;letter-spacing:-.035em!important}
 @media (min-width:769px){
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy h1,
-html body:not(.admin-body) .property-detail-hero .resort-story-hero__copy h1{font-family:var(--font-serif),serif!important;font-weight:100!important;letter-spacing:-.035em!important;line-height:.95!important}
+html body:not(.admin-body) .property-detail-hero .resort-story-hero__copy h1{line-height:.95!important}
 }
 @media (max-width:768px){
-html body:not(.admin-body) .property-detail-hero .resort-story-hero__copy h1{font-family:var(--font-sans),Inter,system-ui,sans-serif!important;font-size:clamp(1.72rem,7.4vw,2rem)!important;font-weight:400!important;letter-spacing:-.035em!important;line-height:1.06!important;overflow-wrap:break-word}
+html body:not(.admin-body) .property-detail-hero .resort-story-hero__copy h1{font-size:clamp(1.72rem,7.4vw,2rem)!important;line-height:1.06!important;overflow-wrap:break-word}
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .portfolio-hero{position:relative;min-height:340px!important;margin-top:0;overflow:hidden;padding:0!important;background:#0c2629!important}
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__image{display:block!important;background-position:center;background-size:cover}
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__image::after{background:linear-gradient(180deg,rgba(8,24,22,.25),rgba(8,24,22,.35) 40%,rgba(8,24,22,.85))!important}
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__content{display:flex!important;min-height:340px!important;align-items:flex-end;padding:132px 22px 32px!important}
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy{max-width:100%!important}
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy .lux-eyebrow{margin:0 0 12px!important;color:rgba(255,255,255,.8)!important;font-size:9.5px!important;font-weight:500!important;letter-spacing:.18em!important;line-height:1.5!important}
-html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy h1{max-width:100%!important;margin:0 0 12px!important;color:#fff!important;font-family:var(--font-sans),Inter,system-ui,sans-serif!important;font-size:clamp(1.72rem,7.4vw,2rem)!important;font-weight:400!important;letter-spacing:-.035em!important;line-height:1.06!important;overflow-wrap:break-word}
+html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy h1{max-width:100%!important;margin:0 0 12px!important;color:#fff!important;font-size:clamp(1.72rem,7.4vw,2rem)!important;line-height:1.06!important;overflow-wrap:break-word}
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy p:not(.lux-eyebrow){max-width:100%!important;margin:0!important;color:rgba(255,255,255,.9)!important;font-family:var(--font-sans),Inter,system-ui,sans-serif!important;font-size:.95rem!important;font-weight:400!important;line-height:1.5!important}
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-title-rule{display:none}
 }
