@@ -380,5 +380,5 @@ html body:not(.admin-body) .site-nav.is-property-detail .site-nav__brand{pointer
 .property-detail-hero .mobile-detail-actions button:first-of-type{margin:0}
 }
 @media (max-width:360px){
-.property-detail-hero .mobile-detail-actions a,.property-detail-hero .mobile-detail-actions button{width:36px;height:36px}
+html body:not(.admin-body) .site-nav.is-property-detail:not(.is-scrolled) .site-nav__brand-logo{width:120px;max-width:120px!important;height:56px!important}
 }
