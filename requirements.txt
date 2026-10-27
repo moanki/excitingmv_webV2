@@ -1,1 +1,1 @@
-markitdown[pdf]==0.1.6
+markitdown[pdf,xlsx,docx]==0.1.6
