@@ -41,6 +41,7 @@ export type ResortRecord = {
   summary: string;
   description: string;
   accommodationSummary: string;
+  villaTypeCount?: number | null;
   highlights: string[];
   mealPlans: string[];
   curatedMoments: ResortCuratedMoment[];
@@ -137,6 +138,7 @@ type ResortRow = {
   transfer_type: string | null;
   description: string | null;
   accommodation_summary?: string | null;
+  villa_type_count?: number | null;
   highlights: unknown;
   meal_plans: unknown;
   curated_moments?: unknown;
@@ -311,6 +313,7 @@ function mapResortRow(row: ResortRow): ResortRecord {
     summary: seoSummary || description,
     description,
     accommodationSummary: row.accommodation_summary ?? "",
+    villaTypeCount: row.villa_type_count ?? null,
     highlights: toStringArray(row.highlights),
     mealPlans: toStringArray(row.meal_plans),
     curatedMoments: toCuratedMoments(row.curated_moments),
@@ -998,6 +1001,7 @@ export async function saveResort(input: {
   slug: string;
   name: string;
   location: string;
+  villaTypeCount?: number | null;
   category: string;
   transferType: string;
   description: string;
@@ -1025,6 +1029,7 @@ export async function saveResort(input: {
     slug: input.slug,
     name: input.name,
     atoll: input.location,
+    ...(input.villaTypeCount !== undefined ? { villa_type_count: input.villaTypeCount } : {}),
     category: input.category,
     transfer_type: input.transferType,
     description: input.description,
