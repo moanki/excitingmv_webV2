@@ -873,6 +873,13 @@ export function ResortEditor({
                 onChange={(event) => setLocation(event.target.value)}
               />
             </label>
+            {propertyType === "resort" ? (
+              <label className="field">
+                <span className="field__label">Villas (room type count)</span>
+                <input className="admin-input" name="villaTypeCount" type="number" min="0" step="1" defaultValue={resort.villaTypeCount ?? ""} />
+                <span className="field__help">Shown beside Location. Leave blank to use the number of saved room types.</span>
+              </label>
+            ) : null}
             {propertyType !== "liveaboards" ? (
               <div className="field field--full resort-map-editor">
                 <span className="field__label">{labels.singular} Map</span>

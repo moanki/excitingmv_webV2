@@ -256,6 +256,11 @@ export async function saveResortAction(_: ActionState, formData: FormData) {
       slug: normalizedSlug,
       name,
       location: String(formData.get("location") ?? "").trim(),
+      villaTypeCount: formData.has("villaTypeCount")
+        ? String(formData.get("villaTypeCount") ?? "").trim() === ""
+          ? null
+          : Number(formData.get("villaTypeCount"))
+        : undefined,
       mapEmbedUrl,
       ...coordinates,
       category: String(formData.get("category") ?? "").trim(),

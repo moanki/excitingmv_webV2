@@ -41,6 +41,7 @@ export default async function ResortDetailPage({
   }
 
   const similarResorts = await listSimilarPublishedResorts(resort.slug, resort.category, 5);
+  const villaTypeCount = resort.villaTypeCount ?? resort.roomTypes.length;
   const storyTitle = resort.seoTitle?.trim() || `Discover ${resort.name}`;
   const butlerServiceLabel =
     resort.butlerService.available === false
@@ -55,7 +56,7 @@ export default async function ResortDetailPage({
     : "";
   const topFactItems = [
     { label: "Location", value: resort.location || "Maldives", Icon: propertyFactIcons.MapPin },
-    { label: "Villas", value: resort.roomTypes.length ? `${resort.roomTypes.length} room types` : "To be confirmed", Icon: propertyFactIcons.BedDouble },
+    { label: "Villas", value: resort.villaTypeCount != null || villaTypeCount > 0 ? `${villaTypeCount} room ${villaTypeCount === 1 ? "type" : "types"}` : "To be confirmed", Icon: propertyFactIcons.BedDouble },
     { label: "Transfer", value: resort.transferType || "Available on request", Icon: propertyFactIcons.Plane },
     { label: "Category", value: resort.category || formatInlineList(resort.mealPlans, "Luxury island resort"), Icon: propertyFactIcons.Sparkles },
     { label: "Butler Service", value: butlerServiceLabel, Icon: propertyFactIcons.ConciergeBell },
