@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, X } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { ContactRequestForm } from "@/components/contact-request-form";
@@ -41,10 +42,10 @@ export function PropertyInquiry({ name }: { name: string }) {
           {submitted ? (
             <div className="property-inquiry-success" role="status">
               <CheckCircle2 size={72} aria-hidden="true" />
-              <h2 id={headingId}>Submitted</h2>
-              <p>Your inquiry for {name} has been submitted.</p>
-              <p>You can close this window to view more properties.</p>
-              <button type="button" className="button" autoFocus onClick={() => dialog.current?.close()}>Close</button>
+              <h2 id={headingId}>Inquiry sent</h2>
+              <p>Thank you. Your inquiry for {name} has been successfully sent. Our team will get back to you as soon as possible.</p>
+              <p>For immediate or urgent inquiries, please contact our <Link href="/contact">regional managers</Link>.</p>
+              <button type="button" className="newsletter-form__submit" autoFocus onClick={() => dialog.current?.close()}>Close</button>
             </div>
           ) : (
             <>

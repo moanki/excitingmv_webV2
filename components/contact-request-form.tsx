@@ -38,24 +38,24 @@ export function ContactRequestForm({ propertyName, onSuccess }: { propertyName?:
   }
 
   return (
-    <form action={onSubmit} className="stack">
-      <div className="form-grid">
-        {propertyName ? <label className="field field--full">Property<input value={propertyName} readOnly /></label> : null}
-        <label className="field">
-          Name
+    <form action={onSubmit} className="newsletter-form public-request-form">
+      <div className="newsletter-form__grid">
+        {propertyName ? <label className="newsletter-field newsletter-field--full"><span>Property</span><input value={propertyName} readOnly /></label> : null}
+        <label className="newsletter-field">
+          <span>Name</span>
           <input name="name" autoComplete="name" minLength={2} maxLength={200} placeholder="Your full name" required />
         </label>
-        <label className="field">
-          Email
+        <label className="newsletter-field">
+          <span>Email</span>
           <input name="email" type="email" autoComplete="email" maxLength={254} placeholder="you@agency.com" required />
         </label>
-        <label className="field" style={{ gridColumn: "1 / -1" }}>
-          Message
+        <label className="newsletter-field newsletter-field--full">
+          <span>Message</span>
           <textarea name="message" minLength={10} maxLength={5000} placeholder={propertyName ? "Tell us your travel dates, number of guests, and preferences." : "Tell us how we can help."} required />
         </label>
       </div>
       <div hidden aria-hidden="true"><label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
-      <button className="button" type="submit" disabled={pending}>
+      <button className="newsletter-form__submit" type="submit" disabled={pending}>
         {pending ? "Sending..." : propertyName ? "Submit Inquiry" : "Send Message"}
       </button>
       {message ? <p className="auth-note" role="status">{message}</p> : null}

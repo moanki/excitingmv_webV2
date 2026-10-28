@@ -31,7 +31,7 @@ export function NewsletterSignupForm({ markets }: { markets: string[] }) {
       });
       const json = await response.json().catch(() => null);
       if (!response.ok) throw new Error(json?.error ?? "Failed to submit the form.");
-      setMessage("Thank you. Your details have been saved for the Exciting Maldives team.");
+      setMessage("Thank you. You have been subscribed to our newsletter.");
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to submit the form.");
     } finally {

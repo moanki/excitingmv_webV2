@@ -37,30 +37,30 @@ export function PartnerRegisterForm() {
   }
 
   return (
-    <form action={onSubmit} className="stack">
-      <div className="form-grid">
-        <label className="field">
-          Agency Name
+    <form action={onSubmit} className="newsletter-form public-request-form">
+      <div className="newsletter-form__grid">
+        <label className="newsletter-field">
+          <span>Agency Name</span>
           <input name="agencyName" placeholder="Agency or company name" />
         </label>
-        <label className="field">
-          Contact Name
+        <label className="newsletter-field">
+          <span>Contact Name</span>
           <input name="contactName" placeholder="Primary contact" />
         </label>
-        <label className="field">
-          Business Email
+        <label className="newsletter-field">
+          <span>Business Email</span>
           <input name="email" type="email" placeholder="name@agency.com" />
         </label>
-        <label className="field">
-          Market
+        <label className="newsletter-field">
+          <span>Market</span>
           <input name="market" placeholder="Country or region" />
         </label>
-        <label className="field" style={{ gridColumn: "1 / -1" }}>
-          Notes
+        <label className="newsletter-field newsletter-field--full">
+          <span>Notes</span>
           <textarea name="notes" placeholder="Tell us about your market and partner requirements." />
         </label>
       </div>
-      <button className="button" type="submit" disabled={pending}>
+      <button className="newsletter-form__submit" type="submit" disabled={pending}>
         {pending ? "Submitting..." : "Apply To Become A Partner"}
       </button>
       {message ? <p className="auth-note">{message}</p> : null}

@@ -8668,7 +8668,8 @@ select {
   padding: clamp(1rem, 2vw, 1.5rem);
 }
 
-.lux-contact-card .newsletter-form {
+.lux-contact-card .newsletter-form,
+.public-request-form {
   margin: 0;
   padding: clamp(1.1rem, 2vw, 1.5rem);
   border: 1px solid rgba(255, 255, 255, 0.62);
@@ -8677,31 +8678,40 @@ select {
   box-shadow: none;
 }
 
-.lux-contact-card .newsletter-form__grid {
+.lux-contact-card .newsletter-form__grid,
+.public-request-form .newsletter-form__grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .lux-contact-card .newsletter-field,
 .lux-contact-card .newsletter-field:nth-child(4),
 .lux-contact-card .newsletter-field:nth-child(5),
-.lux-contact-card .newsletter-field:nth-child(6) {
+.lux-contact-card .newsletter-field:nth-child(6),
+.public-request-form .newsletter-field {
   grid-column: span 1;
 }
 
-.lux-contact-card .newsletter-field--full {
+.lux-contact-card .newsletter-field--full,
+.public-request-form .newsletter-field.newsletter-field--full {
   grid-column: 1 / -1;
 }
 
 .lux-contact-card .newsletter-field input,
 .lux-contact-card .newsletter-field select,
-.lux-contact-card .newsletter-field textarea {
+.lux-contact-card .newsletter-field textarea,
+.public-request-form .newsletter-field input,
+.public-request-form .newsletter-field select,
+.public-request-form .newsletter-field textarea {
   border-color: rgba(19, 32, 43, 0.14);
   background: rgba(255, 255, 255, 0.72);
 }
 
 .lux-contact-card .newsletter-field input:focus,
 .lux-contact-card .newsletter-field select:focus,
-.lux-contact-card .newsletter-field textarea:focus {
+.lux-contact-card .newsletter-field textarea:focus,
+.public-request-form .newsletter-field input:focus,
+.public-request-form .newsletter-field select:focus,
+.public-request-form .newsletter-field textarea:focus {
   border-color: var(--lux-gold);
   outline: 3px solid rgba(200, 161, 90, 0.18);
 }
@@ -11180,7 +11190,8 @@ select {
   .lux-why-grid,
   .lux-awards-strip,
   .lux-market-cards,
-  .lux-contact-card .newsletter-form__grid {
+  .lux-contact-card .newsletter-form__grid,
+  .public-request-form .newsletter-form__grid {
     grid-template-columns: 1fr;
   }
 
@@ -11207,7 +11218,8 @@ select {
   .lux-contact-card .newsletter-field:nth-child(4),
   .lux-contact-card .newsletter-field:nth-child(5),
   .lux-contact-card .newsletter-field:nth-child(6),
-  .lux-contact-card .newsletter-field--full {
+  .lux-contact-card .newsletter-field--full,
+  .public-request-form .newsletter-field.newsletter-field--full {
     grid-column: 1;
   }
 }
@@ -20068,7 +20080,17 @@ html {
 }
 
 .property-inquiry-success > svg {
-  color: #16834b;
+  color: var(--brand-teal);
+}
+
+.property-inquiry-success a {
+  color: var(--brand-teal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.property-inquiry-success p {
+  line-height: 1.7;
 }
 
 .property-inquiry-dialog .property-inquiry-success h2,
@@ -20095,7 +20117,7 @@ html {
     padding-bottom: calc(11rem + env(safe-area-inset-bottom));
   }
 
-  .property-inquiry-dialog .form-grid {
+  .property-inquiry-dialog .newsletter-form__grid {
     grid-template-columns: 1fr;
   }
 }
