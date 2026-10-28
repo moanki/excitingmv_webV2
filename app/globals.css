@@ -19818,7 +19818,7 @@ html {
 }
 
 .property-detail-facts {
-  --property-fact-font-size: clamp(9.5px, 0.8vw, 10.5px);
+  --property-fact-font-size: clamp(14px, calc(12px + 0.25vw), 16px);
   padding: 0 clamp(1rem, 4vw, 2rem);
   background: #fff;
 }
@@ -19851,7 +19851,7 @@ html {
   flex-shrink: 0;
   color: #8a94a0;
   font-family: var(--font-sans), sans-serif;
-  font-size: var(--property-fact-font-size);
+  font-size: clamp(11px, 0.8vw, 12px);
   font-weight: 600;
   letter-spacing: 0.1em;
   line-height: 1.2;
@@ -20091,8 +20091,9 @@ html {
     letter-spacing: -0.035em;
   }
 
-  .property-detail-facts {
-    --property-fact-font-size: 12px;
+  .property-detail-fact span {
+    font-size: 12px;
+    letter-spacing: 0.04em;
   }
 
   .property-detail-facts__inner {
