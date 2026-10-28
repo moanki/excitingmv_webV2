@@ -173,9 +173,6 @@ export default async function ResortDetailPage({
           </div>
         </section>
       ) : null}
-      <div className="mobile-sticky-inquiry">
-        <a href="/#newsletter">Inquire Now</a>
-      </div>
     </main>
   );
 }

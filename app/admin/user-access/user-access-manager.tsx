@@ -14,10 +14,6 @@ import type { AdminRoleRecord, AdminUserRecord } from "@/lib/services/admin-user
 
 type ModalMode = "create" | "edit-email" | "reset-password" | null;
 
-function StatusMessage({ message, error }: { message?: string; error?: string }) {
-  return <ActionMessage state={error || message ? { error, message } : undefined} />;
-}
-
 function CreateUserForm({ roles, onClose }: { roles: AdminRoleRecord[]; onClose: () => void }) {
   const [state, action, pending] = useActionState(createAdminUserAction, undefined);
   const formRef = useRef<HTMLFormElement | null>(null);
@@ -77,7 +73,7 @@ function CreateUserForm({ roles, onClose }: { roles: AdminRoleRecord[]; onClose:
           {pending ? "Creating..." : "Create User"}
         </button>
       </div>
-      <StatusMessage error={state?.error} />
+      <ActionMessage state={state} />
     </form>
   );
 }
@@ -97,7 +93,7 @@ function EmailForm({ user }: { user: AdminUserRecord }) {
           {pending ? "Saving..." : "Change User"}
         </button>
       </div>
-      <StatusMessage message={state?.message} error={state?.error} />
+      <ActionMessage state={state} />
     </form>
   );
 }
@@ -117,7 +113,7 @@ function ResetPasswordForm({ user }: { user: AdminUserRecord }) {
           {pending ? "Resetting..." : "Reset Password"}
         </button>
       </div>
-      <StatusMessage message={state?.message} error={state?.error} />
+      <ActionMessage state={state} />
     </form>
   );
 }

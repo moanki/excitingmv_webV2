@@ -146,9 +146,10 @@ export const newsletterSubmissionSchema = z.object({
 });
 
 export const contactSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  message: z.string().min(10)
+  name: z.string().trim().min(2).max(200),
+  email: z.string().trim().email().max(254),
+  message: z.string().trim().min(10).max(5000),
+  propertyName: z.string().trim().min(1).max(300).optional()
 });
 
 export const aiImportRequestSchema = z.object({

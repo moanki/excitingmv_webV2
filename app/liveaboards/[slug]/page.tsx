@@ -93,9 +93,6 @@ export default async function LiveaboardDetailPage({
         </section>
       ) : null}
 
-      <div className="mobile-sticky-inquiry">
-        <a href="/#newsletter">Inquire Now</a>
-      </div>
     </main>
   );
 }

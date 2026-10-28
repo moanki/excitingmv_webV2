@@ -32,6 +32,7 @@ import type { LucideIcon } from "lucide-react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
 import type { ResortCuratedMoment } from "@/lib/types";
+import { PropertyInquiry } from "@/components/property-inquiry";
 
 type DetailFact = {
   label: string;
@@ -260,9 +261,12 @@ export function PropertyDetailOverview({
                 <p key={index}>{paragraph}</p>
               ))}
             </div>
-            <a href={roomsHref} className="property-detail-overview__button">
-              {roomsLabel}
-            </a>
+            <div className="property-detail-overview__actions">
+              <a href={roomsHref} className="property-detail-overview__button">
+                {roomsLabel}
+              </a>
+              <PropertyInquiry name={name} />
+            </div>
           </article>
         </div>
       </section>

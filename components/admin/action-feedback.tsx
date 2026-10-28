@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, type ButtonHTMLAttributes, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import { useAdminActionFeedback } from "@/components/admin/admin-action-feedback";
@@ -15,8 +15,11 @@ export function InlineSpinner() {
 export function ActionMessage({ state }: { state: ActionState }) {
   const router = useRouter();
   const { finishLatestAction } = useAdminActionFeedback();
+  const handledState = useRef<ActionState>(undefined);
 
   useEffect(() => {
+    if (!state || handledState.current === state) return;
+    handledState.current = state;
     if (state?.error) {
       finishLatestAction({ title: state.error, status: "error" });
     } else if (state?.message) {

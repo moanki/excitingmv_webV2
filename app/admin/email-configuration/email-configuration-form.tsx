@@ -16,10 +16,6 @@ const providerDefaults: Record<EmailProvider, { smtpHost: string; smtpPort: numb
   custom_smtp: { smtpHost: "", smtpPort: 587, smtpSecure: false, smtpRequireTls: true }
 };
 
-function StatusMessage({ message, error }: { message?: string; error?: string }) {
-  return <ActionMessage state={error || message ? { error, message } : undefined} />;
-}
-
 export function EmailConfigurationForm({ config }: { config: EmailConfiguration }) {
   const [saveState, saveAction, savePending] = useActionState(saveEmailConfigurationAction, undefined);
   const [verifyState, verifyAction, verifyPending] = useActionState(testSmtpConnectionAction, undefined);
@@ -112,7 +108,7 @@ export function EmailConfigurationForm({ config }: { config: EmailConfiguration 
         <div className="email-config-v3__actions">
           <button className="button" type="submit" disabled={savePending}>{savePending ? "Saving..." : "Save Configuration"}</button>
         </div>
-        <StatusMessage message={saveState?.message} error={saveState?.error} />
+        <ActionMessage state={saveState} />
       </form>
 
       <section className="email-section email-test-section">
@@ -126,7 +122,8 @@ export function EmailConfigurationForm({ config }: { config: EmailConfiguration 
             <button className="button-muted" type="submit" disabled={testPending}>{testPending ? "Sending..." : "Send Test Email"}</button>
           </form>
         </div>
-        <StatusMessage message={verifyState?.message || testState?.message} error={verifyState?.error || testState?.error} />
+        <ActionMessage state={verifyState} />
+        <ActionMessage state={testState} />
         <p className="email-audit-line">Last test: {config.lastTestStatus || "Not configured"}{config.lastTestedAt ? ` - ${config.lastTestedAt}` : ""}</p>
       </section>
     </div>
