@@ -19943,7 +19943,7 @@ html {
   text-transform: uppercase !important;
 }
 
-.property-detail-overview h2,
+.property-detail-overview > h2,
 .property-detail-curated h2 {
   margin: 0;
   color: #123a58 !important;
@@ -19954,7 +19954,7 @@ html {
   line-height: 1.12 !important;
 }
 
-.property-detail-overview h2 {
+.property-detail-overview > h2 {
   font-family: var(--font-serif), Georgia, serif !important;
   font-weight: 400 !important;
   line-height: 1.18 !important;
