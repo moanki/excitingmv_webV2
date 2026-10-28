@@ -15405,7 +15405,7 @@ select {
   }
 
   .mobile-sticky-inquiry {
-    position: sticky;
+    position: fixed;
     right: 0;
     bottom: 0;
     left: 0;
@@ -15416,11 +15416,13 @@ select {
     border-top: 1px solid rgba(19, 32, 43, 0.08);
   }
 
-  .mobile-sticky-inquiry a {
+  .mobile-sticky-inquiry button {
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 50px;
+    width: 100%;
+    border: 0;
     border-radius: 14px;
     background: #c89a3d;
     color: #fff;
@@ -20011,6 +20013,91 @@ html {
   font-weight: 800;
   letter-spacing: 0;
   text-decoration: none;
+}
+
+.property-detail-overview__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.property-inquiry-trigger {
+  border: 0;
+  background: #c89a3d;
+  cursor: pointer;
+}
+
+.property-inquiry-dialog {
+  width: min(640px, calc(100% - 2rem));
+  max-height: 90dvh;
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  background: #fff;
+  color: var(--brand-navy);
+  box-shadow: 0 28px 90px rgba(7, 19, 31, 0.28);
+}
+
+.property-inquiry-dialog::backdrop {
+  background: rgba(7, 19, 31, 0.58);
+}
+
+.property-inquiry-dialog__panel {
+  position: relative;
+  padding: clamp(1.25rem, 4vw, 2rem);
+}
+
+.property-inquiry-dialog__panel h2 {
+  margin: 0 2rem 1.5rem 0;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+}
+
+.property-inquiry-dialog__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.property-inquiry-success {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.property-inquiry-success > svg {
+  color: #16834b;
+}
+
+.property-inquiry-dialog .property-inquiry-success h2,
+.property-inquiry-success p {
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .property-inquiry-trigger {
+    display: none;
+  }
+
+  .mobile-sticky-inquiry {
+    right: 88px;
+    bottom: calc(104px + env(safe-area-inset-bottom));
+    left: 16px;
+    z-index: 150;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .resort-detail-page {
+    padding-bottom: calc(11rem + env(safe-area-inset-bottom));
+  }
+
+  .property-inquiry-dialog .form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .property-detail-curated {

@@ -75,10 +75,6 @@ import type {
   WhatsAppSettings
 } from "@/lib/site-content";
 
-function StatusMessage({ message, error }: { message?: string; error?: string }) {
-  return <ActionMessage state={error || message ? { error, message } : undefined} />;
-}
-
 function PublishAction({ action, label }: { action: (state: ActionState, formData: FormData) => Promise<ActionState>; label: string }) {
   return <ActionForm action={action} idleLabel={label} pendingLabel="Publishing..." variant="secondary" buttonClassName="button-muted" />;
 }
@@ -485,7 +481,7 @@ export function AboutSettingsForm({
             {pending ? "Publishing..." : "Save & Publish About"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -536,7 +532,7 @@ export function AdminLoginSettingsForm({
             {pending ? "Publishing..." : "Publish Admin Login"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -819,7 +815,7 @@ export function HeroSettingsForm({
             {pending ? "Publishing..." : "Save & Publish Hero"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -899,7 +895,7 @@ export function FeaturesSettingsForm({
             {pending ? "Publishing..." : "Save & Publish Heading"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -1013,7 +1009,8 @@ export function NavbarSettingsForm({
             {pending ? "Publishing..." : "Save & Publish Navbar"}
           </button>
         </div>
-        <StatusMessage message={state?.message || publishState?.message} error={state?.error || publishState?.error} />
+        <ActionMessage state={state} />
+        <ActionMessage state={publishState} />
       </form>
     </div>
   );
@@ -1097,7 +1094,7 @@ export function FooterSettingsForm({
             {pending ? "Publishing..." : "Save & Publish Footer"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -1248,7 +1245,7 @@ export function ContactSettingsForm({
             {pending ? "Publishing..." : "Save & Publish Contact"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -1294,7 +1291,7 @@ export function WhatsAppSettingsForm({ whatsApp }: { whatsApp: WhatsAppSettings 
             {pending ? "Publishing..." : "Save & Publish WhatsApp"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -1371,8 +1368,8 @@ export function NotificationSettingsForm({
             {testState.pending ? "Sending..." : "Send Test Email"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
-        <StatusMessage message={testState.message} error={testState.error} />
+        <ActionMessage state={state} />
+        <ActionMessage state={testState} />
       </form>
     </div>
   );
@@ -1482,7 +1479,7 @@ export function MarketSettingsForm({ markets }: { markets: MarketSettings }) {
             {pending ? "Publishing..." : "Save & Publish Markets"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -1523,7 +1520,7 @@ export function HomepageStatsForm({ stats }: { stats: HomepageStat[] }) {
             {pending ? "Publishing..." : "Save & Publish Stats"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -1586,7 +1583,7 @@ export function HomepageCeoForm({
             {pending ? "Publishing..." : "Save & Publish CEO Section"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -1617,7 +1614,7 @@ export function HomepagePartnerForm({ partner, mediaLibrary }: {
           <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>{pending ? "Saving..." : "Save Draft"}</button>
           <button className="button" type="submit" name="intent" value="publish" disabled={pending}>{pending ? "Publishing..." : "Save & Publish"}</button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -1672,7 +1669,7 @@ export function HomepageStoryForm({
             {pending ? "Publishing..." : "Save & Publish Story"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -1800,7 +1797,7 @@ export function HomepageServicesForm({
             {pending ? "Publishing..." : "Save & Publish Destination Management"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -1872,7 +1869,7 @@ export function HomepageWhyUsForm({ items, imageUrl, mediaLibrary }: {
             {pending ? "Publishing..." : "Save & Publish Why Us"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -2032,7 +2029,7 @@ export function HomepageGuideForm({
             {pending ? "Publishing..." : "Save & Publish Guide"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -2086,7 +2083,7 @@ export function HomepageNewsletterContentForm({
             {pending ? "Publishing..." : "Save & Publish Newsletter"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );
@@ -2179,7 +2176,7 @@ export function HomepageAwardsForm({
             {pending ? "Publishing..." : "Save & Publish Awards"}
           </button>
         </div>
-        <StatusMessage message={state?.message} error={state?.error} />
+        <ActionMessage state={state} />
       </form>
     </div>
   );

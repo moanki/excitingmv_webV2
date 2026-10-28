@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function ContactRequestForm() {
+export function ContactRequestForm({ propertyName, onSuccess }: { propertyName?: string; onSuccess?: () => void } = {}) {
   const [message, setMessage] = useState<string>();
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState(false);
@@ -15,7 +15,9 @@ export function ContactRequestForm() {
     const payload = {
       name: String(formData.get("name") ?? ""),
       email: String(formData.get("email") ?? ""),
-      message: String(formData.get("message") ?? "")
+      message: String(formData.get("message") ?? ""),
+      propertyName,
+      website: String(formData.get("website") ?? "")
     };
 
     try {
@@ -27,6 +29,7 @@ export function ContactRequestForm() {
       const json = await response.json().catch(() => null);
       if (!response.ok) throw new Error(json?.error ?? "Failed to send your message.");
       setMessage("Thank you. Your message has been sent to the Exciting Maldives team.");
+      onSuccess?.();
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to send your message.");
     } finally {
@@ -37,24 +40,26 @@ export function ContactRequestForm() {
   return (
     <form action={onSubmit} className="stack">
       <div className="form-grid">
+        {propertyName ? <label className="field field--full">Property<input value={propertyName} readOnly /></label> : null}
         <label className="field">
           Name
-          <input name="name" placeholder="Your full name" required />
+          <input name="name" autoComplete="name" minLength={2} maxLength={200} placeholder="Your full name" required />
         </label>
         <label className="field">
           Email
-          <input name="email" type="email" placeholder="you@agency.com" required />
+          <input name="email" type="email" autoComplete="email" maxLength={254} placeholder="you@agency.com" required />
         </label>
         <label className="field" style={{ gridColumn: "1 / -1" }}>
           Message
-          <textarea name="message" placeholder="Tell us how we can help." required />
+          <textarea name="message" minLength={10} maxLength={5000} placeholder={propertyName ? "Tell us your travel dates, number of guests, and preferences." : "Tell us how we can help."} required />
         </label>
       </div>
+      <div hidden aria-hidden="true"><label>Website<input name="website" tabIndex={-1} autoComplete="off" /></label></div>
       <button className="button" type="submit" disabled={pending}>
-        {pending ? "Sending..." : "Send Message"}
+        {pending ? "Sending..." : propertyName ? "Submit Inquiry" : "Send Message"}
       </button>
-      {message ? <p className="auth-note">{message}</p> : null}
-      {error ? <p className="auth-error">{error}</p> : null}
+      {message ? <p className="auth-note" role="status">{message}</p> : null}
+      {error ? <p className="auth-error" role="alert">{error}</p> : null}
     </form>
   );
 }

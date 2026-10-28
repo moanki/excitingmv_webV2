@@ -92,35 +92,21 @@ export function AdminActionFeedbackProvider({ children }: { children: ReactNode 
       ? { ...action, ...input, progress: null, status: input.status }
       : action));
 
-    if (input.status === "success") {
-      const previous = dismissTimers.current.get(id);
-      if (previous) clearTimeout(previous);
-      dismissTimers.current.set(id, setTimeout(() => dismissAction(id), 3800));
-    }
-  }, [dismissAction]);
+  }, []);
 
   const finishLatestAction = useCallback((input: FinishActionInput) => {
     setActions((current) => {
       const latest = [...current].reverse().find((action) => action.status === "loading");
       if (!latest) {
         const id = actionId();
-        if (input.status === "success") {
-          dismissTimers.current.set(id, setTimeout(() => dismissAction(id), 3800));
-        }
         return [...current, { id, ...input, type: "loading", progress: null, status: input.status }];
-      }
-
-      if (input.status === "success") {
-        const previous = dismissTimers.current.get(latest.id);
-        if (previous) clearTimeout(previous);
-        dismissTimers.current.set(latest.id, setTimeout(() => dismissAction(latest.id), 3800));
       }
 
       return current.map((action) => action.id === latest.id
         ? { ...action, ...input, progress: null, status: input.status }
         : action);
     });
-  }, [dismissAction]);
+  }, []);
 
   const notifyLoading = useCallback((title: string, message?: string) => startAction({ title, message }), [startAction]);
   const notifySuccess = useCallback((title: string, message?: string) => {
@@ -146,6 +132,21 @@ export function AdminActionFeedbackProvider({ children }: { children: ReactNode 
   }), [dismissAction, finishAction, finishLatestAction, notifyError, notifyLoading, notifySuccess, startAction, updateAction]);
 
   useEffect(() => {
+    const successfulIds = new Set(actions.filter((action) => action.status === "success").map((action) => action.id));
+    for (const [id, timer] of dismissTimers.current) {
+      if (!successfulIds.has(id)) {
+        clearTimeout(timer);
+        dismissTimers.current.delete(id);
+      }
+    }
+    for (const id of successfulIds) {
+      if (!dismissTimers.current.has(id)) {
+        dismissTimers.current.set(id, setTimeout(() => dismissAction(id), 3800));
+      }
+    }
+  }, [actions, dismissAction]);
+
+  useEffect(() => {
     function onSubmit(event: SubmitEvent) {
       const button = event.submitter instanceof HTMLButtonElement || event.submitter instanceof HTMLInputElement ? event.submitter : null;
       queueMicrotask(() => {
@@ -155,11 +156,12 @@ export function AdminActionFeedbackProvider({ children }: { children: ReactNode 
       });
     }
 
+    const handledAlerts = new WeakMap<Element, string>();
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         const candidates = mutation.type === "childList"
-          ? Array.from(mutation.addedNodes).flatMap((node) => node instanceof Element ? [node, ...node.querySelectorAll(".admin-alert, .auth-error, .auth-note, .form-status")] : [])
-          : mutation.target instanceof Element ? [mutation.target] : [];
+          ? [mutation.target, ...Array.from(mutation.addedNodes).flatMap((node) => node instanceof Element ? [node, ...node.querySelectorAll(".admin-alert, .auth-error, .auth-note, .form-status")] : [])]
+          : mutation.target.parentElement ? [mutation.target.parentElement] : [];
 
         for (const candidate of candidates) {
           if (!(candidate instanceof HTMLElement) || candidate.dataset.adminFeedbackHandled === "true" || candidate.dataset.adminFeedbackIgnore === "true") continue;
@@ -167,7 +169,13 @@ export function AdminActionFeedbackProvider({ children }: { children: ReactNode 
             ? candidate
             : candidate.closest(".admin-alert, .auth-error, .auth-note, .form-status");
           const message = alert?.textContent?.trim();
-          if (!alert || !message || (alert instanceof HTMLElement && alert.dataset.adminFeedbackIgnore === "true")) continue;
+          if (!alert || alert.closest('[data-admin-feedback-handled="true"], [data-admin-feedback-ignore="true"]')) continue;
+          if (!message) {
+            handledAlerts.delete(alert);
+            continue;
+          }
+          if (handledAlerts.get(alert) === message) continue;
+          handledAlerts.set(alert, message);
           const isError = alert.classList.contains("admin-alert--error") || alert.classList.contains("auth-error") || alert.classList.contains("error");
           finishLatestAction({ title: message, status: isError ? "error" : "success" });
           return;
