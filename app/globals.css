@@ -14670,8 +14670,7 @@ select {
 .site-nav__mobile-spacer,
 .site-nav__mobile-drawer,
 .lux-hero__mobile-dots,
-.mobile-detail-actions,
-.mobile-sticky-inquiry {
+.mobile-detail-actions {
   display: none;
 }
 
@@ -15414,31 +15413,6 @@ select {
 
   .resort-story-room-card__media {
     min-height: 0;
-  }
-
-  .mobile-sticky-inquiry {
-    position: fixed;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 20;
-    display: block;
-    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
-    background: rgba(255, 255, 255, 0.92);
-    border-top: 1px solid rgba(19, 32, 43, 0.08);
-  }
-
-  .mobile-sticky-inquiry button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 50px;
-    width: 100%;
-    border: 0;
-    border-radius: 14px;
-    background: #c89a3d;
-    color: #fff;
-    font-weight: 800;
   }
 
   .guide-directory {
@@ -20099,22 +20073,17 @@ html {
 }
 
 @media (max-width: 900px) {
-  .property-inquiry-trigger {
-    display: none;
+  .property-detail-overview__actions {
+    width: min(100%, 420px);
+    flex-wrap: nowrap;
   }
 
-  .mobile-sticky-inquiry {
-    right: 88px;
-    bottom: calc(104px + env(safe-area-inset-bottom));
-    left: 16px;
-    z-index: 150;
-    padding: 0;
-    border: 0;
-    background: transparent;
-  }
-
-  .resort-detail-page {
-    padding-bottom: calc(11rem + env(safe-area-inset-bottom));
+  .property-detail-overview__actions .property-detail-overview__button {
+    flex: 1;
+    min-width: 0;
+    padding: 0 0.65rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
   }
 
   .property-inquiry-dialog .newsletter-form__grid {
