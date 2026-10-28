@@ -20081,8 +20081,18 @@ html {
     display: none;
   }
 
+  .mobile-sticky-inquiry {
+    right: 88px;
+    bottom: calc(104px + env(safe-area-inset-bottom));
+    left: 16px;
+    z-index: 150;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
   .resort-detail-page {
-    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(11rem + env(safe-area-inset-bottom));
   }
 
   .property-inquiry-dialog .form-grid {
