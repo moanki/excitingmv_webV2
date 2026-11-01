@@ -911,31 +911,31 @@ function identitySimilarity(left: string, right: string) {
 }
 
 function matchResort(model: ExcelResortImportModel, existing: ResortRecord[], manualResortId?: string, savedResortId?: string): ExcelResortMatch {
-  if (savedResortId) {
-    const saved = existing.find((resort) => resort.id === savedResortId);
-    if (saved) {
-      return { status: "matched", resortId: saved.id, resortName: saved.name, confidence: "exact" };
-    }
-  }
+  const normalizedName = model.providedResortFields.includes("name") ? normalizeIdentity(model.resort.name) : "";
+  // A remembered or selected ID must never override an explicit workbook identity.
+  const eligible = normalizedName
+    ? existing.filter((resort) => normalizeIdentity(resort.name) === normalizedName)
+    : existing;
   if (manualResortId) {
-    const manual = existing.find((resort) => resort.id === manualResortId);
+    const manual = eligible.find((resort) => resort.id === manualResortId);
     if (manual) {
       return { status: "matched", resortId: manual.id, resortName: manual.name, confidence: "manual" };
     }
   }
+  if (savedResortId) {
+    const saved = eligible.find((resort) => resort.id === savedResortId);
+    if (saved) {
+      return { status: "matched", resortId: saved.id, resortName: saved.name, confidence: "exact" };
+    }
+  }
 
   const slug = slugify(model.resort.slug || model.resort.name);
-  const normalizedName = model.providedResortFields.includes("name") ? normalizeIdentity(model.resort.name) : "";
   const filenameName = normalizedName ? "" : normalizeIdentity(model.sourceFile.filename.replace(/\.[^.]+$/u, ""));
-  const exactMatches = existing.filter(
+  const exactMatches = eligible.filter(
     (resort) =>
       slugify(resort.slug || resort.name) === slug ||
-      (normalizedName.length >= 5 && normalizeIdentity(resort.name) === normalizedName) ||
-      (filenameName.length >= 5 && (
-        normalizeIdentity(resort.name) === filenameName ||
-        normalizeIdentity(resort.name).includes(filenameName) ||
-        filenameName.includes(normalizeIdentity(resort.name))
-      ))
+      (Boolean(normalizedName) && normalizeIdentity(resort.name) === normalizedName) ||
+      (filenameName.length >= 5 && normalizeIdentity(resort.name) === filenameName)
   );
 
   if (exactMatches.length === 1) {
@@ -1706,13 +1706,13 @@ export async function applyExcelResortSyncPreview(stagingId: string, decision: "
     }
 
     const supabase = createSupabaseAdminClient();
-    let effectiveMatch = payload.match;
-    if (payload.match.status === "new_candidate") {
-      const latestResorts = await listAdminResorts(payload.propertyType);
-      effectiveMatch = matchResort(payload.model, latestResorts);
-      if (effectiveMatch.status === "review_required") {
-        return { ok: false, error: "A possible existing resort match was found after preview. Review the workbook again before applying it.", status: 409 };
-      }
+    const latestResorts = await listAdminResorts(payload.propertyType);
+    const effectiveMatch = matchResort(payload.model, latestResorts,
+      payload.match.status === "matched" ? payload.match.resortId : undefined);
+    if (payload.match.status === "matched"
+      ? effectiveMatch.status !== "matched" || effectiveMatch.resortId !== payload.match.resortId
+      : effectiveMatch.status !== "new_candidate") {
+      return { ok: false, error: "The property match has changed or conflicts with the workbook name. Upload the workbook again and review a fresh preview.", status: 409 };
     }
 
     let result: { id: string; name: string; warnings?: string[] };
