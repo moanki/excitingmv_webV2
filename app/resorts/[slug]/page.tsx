@@ -51,7 +51,7 @@ export default async function ResortDetailPage({
         : resort.butlerService.displayName?.trim() || resort.butlerService.description?.trim() || "To be confirmed";
   const brochureUrl = resort.brochurePath
     ? createSupabaseAdminClient().storage.from("resort-brochures").getPublicUrl(resort.brochurePath, {
-        download: `${resort.name} Brochure.pdf`
+        download: `${resort.name} Factsheet.pdf`
       }).data.publicUrl
     : "";
   const topFactItems = [
@@ -60,7 +60,7 @@ export default async function ResortDetailPage({
     { label: "Transfer", value: resort.transferType || "Available on request", Icon: propertyFactIcons.Plane },
     { label: "Category", value: resort.category || formatInlineList(resort.mealPlans, "Luxury island resort"), Icon: propertyFactIcons.Sparkles },
     { label: "Butler Service", value: butlerServiceLabel, Icon: propertyFactIcons.ConciergeBell },
-    ...(brochureUrl ? [{ label: "Download Brochure", value: `${resort.name} Brochure`, href: brochureUrl, Icon: propertyFactIcons.FileDown }] : [])
+    ...(brochureUrl ? [{ label: "Download Factsheet", value: `${resort.name} Factsheet`, href: brochureUrl, Icon: propertyFactIcons.FileDown }] : [])
   ];
   const topFacts = topFactItems;
   const curatedMoments = resort.curatedMoments.filter((item) => item.title || item.description || item.iconUrl);

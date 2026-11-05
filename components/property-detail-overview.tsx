@@ -242,9 +242,9 @@ export function PropertyDetailOverview({
             {facts.map((fact) => (
               <div className={`property-detail-fact${fact.href ? " property-detail-fact--brochure" : ""}${["Location", "Route / Atoll", "Transfer"].includes(fact.label) ? ` property-detail-fact--${fact.label === "Transfer" ? "transfer" : "location"}` : ""}`} key={fact.label}>
                 {fact.href ? (
-                  <a className="property-detail-fact__download" href={fact.href} download={`${name} Brochure.pdf`} aria-label={`Download ${name} brochure`}>
+                  <a className="property-detail-fact__download" href={fact.href} download={`${name} Factsheet.pdf`} aria-label={`Download ${name} factsheet`}>
                     <fact.Icon size={14} aria-hidden="true" />
-                    Brochure
+                    Factsheet
                   </a>
                 ) : <><span>{fact.label}</span><strong title={["Location", "Route / Atoll", "Transfer"].includes(fact.label) ? fact.value : undefined}>{fact.value}</strong></>}
               </div>

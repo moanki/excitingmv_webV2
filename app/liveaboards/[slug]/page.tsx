@@ -23,7 +23,7 @@ export default async function LiveaboardDetailPage({
 
   const brochureUrl = liveaboard.brochurePath
     ? createSupabaseAdminClient().storage.from("resort-brochures").getPublicUrl(liveaboard.brochurePath, {
-        download: `${liveaboard.name} Brochure.pdf`
+        download: `${liveaboard.name} Factsheet.pdf`
       }).data.publicUrl
     : "";
   const butlerServiceLabel = liveaboard.butlerService.available === false
@@ -37,7 +37,7 @@ export default async function LiveaboardDetailPage({
     { label: "Transfer", value: liveaboard.transferType || "Available on request", Icon: propertyFactIcons.Sailboat },
     { label: "Category", value: liveaboard.category || "Liveaboard", Icon: propertyFactIcons.Sparkles },
     { label: "Butler Service", value: butlerServiceLabel, Icon: propertyFactIcons.ConciergeBell },
-    ...(brochureUrl ? [{ label: "Download Brochure", value: `${liveaboard.name} Brochure`, href: brochureUrl, Icon: propertyFactIcons.FileDown }] : [])
+    ...(brochureUrl ? [{ label: "Download Factsheet", value: `${liveaboard.name} Factsheet`, href: brochureUrl, Icon: propertyFactIcons.FileDown }] : [])
   ];
   const overviewCopy = propertyOverviewCopy(
     liveaboard,

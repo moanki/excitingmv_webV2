@@ -69,7 +69,7 @@ async function uploadBrochure(resortId: string, file: File, propertyType: Proper
 
 function brochureUrl(path: string, name: string) {
   return createSupabaseBrowserClient().storage.from("resort-brochures").getPublicUrl(path, {
-    download: `${name} Brochure.pdf`
+    download: `${name} Factsheet.pdf`
   }).data.publicUrl;
 }
 

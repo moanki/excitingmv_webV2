@@ -24,7 +24,7 @@ export default async function HotelDetailPage({
 
   const brochureUrl = hotel.brochurePath
     ? createSupabaseAdminClient().storage.from("resort-brochures").getPublicUrl(hotel.brochurePath, {
-        download: `${hotel.name} Brochure.pdf`
+        download: `${hotel.name} Factsheet.pdf`
       }).data.publicUrl
     : "";
   const butlerServiceLabel = hotel.butlerService.available === false
@@ -38,7 +38,7 @@ export default async function HotelDetailPage({
     { label: "Transfer", value: hotel.transferType || "Available on request", Icon: propertyFactIcons.Plane },
     { label: "Category", value: hotel.category || "Hotel", Icon: propertyFactIcons.Sparkles },
     { label: "Butler Service", value: butlerServiceLabel, Icon: propertyFactIcons.ConciergeBell },
-    ...(brochureUrl ? [{ label: "Download Brochure", value: `${hotel.name} Brochure`, href: brochureUrl, Icon: propertyFactIcons.FileDown }] : [])
+    ...(brochureUrl ? [{ label: "Download Factsheet", value: `${hotel.name} Factsheet`, href: brochureUrl, Icon: propertyFactIcons.FileDown }] : [])
   ];
   const overviewCopy = propertyOverviewCopy(hotel, "Discover a curated hotel stay in the Maldives.");
 
