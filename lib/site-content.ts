@@ -1,3 +1,4 @@
+import { defaultTeamDepartments, normalizeTeamDepartments, type TeamDepartment } from "@/lib/team-departments";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { requireAdminRole } from "@/lib/auth/require-admin";
 import { normalizeHomepageServices } from "@/lib/homepage-services";
@@ -203,6 +204,7 @@ export type FooterContent = {
 };
 
 export type ContactRegion = {
+  departmentId: string;
   regionTitle: string;
   location: string;
   contactName: string;
@@ -215,6 +217,7 @@ export type ContactRegion = {
 };
 
 export type ContactPageContent = {
+  departments: TeamDepartment[];
   title: string;
   subtitle: string;
   regions: ContactRegion[];
@@ -633,7 +636,7 @@ export const defaultNavbarContent: NavbarContent = {
     { label: "Resort", href: "/resorts", enabled: true, external: false },
     { label: "Hotels", href: "/hotels", enabled: true, external: false },
     { label: "Liveaboard", href: "/liveaboards", enabled: true, external: false },
-    { label: "Contact", href: "/contact", enabled: true, external: false },
+    { label: "Team", href: "/contact", enabled: true, external: false },
     { label: "Travel Guide", href: "/travel-guide", enabled: true, external: false }
   ],
   partnerLoginHref: "/partner/login",
@@ -771,11 +774,13 @@ export const defaultFooterContent: FooterContent = {
 };
 
 export const defaultContactPageContent: ContactPageContent = {
-  title: "Contact Us",
+  departments: defaultTeamDepartments,
+  title: "Meet Our Team",
   subtitle:
     "Connect with the right Exciting Maldives representative for your region, partnership enquiries, and destination support.",
   regions: [
     {
+      departmentId: "sales-reservations",
       regionTitle: "HEAD OFFICE",
       location: "Male, Maldives",
       contactName: "Aishath Ibrahim",
@@ -787,6 +792,7 @@ export const defaultContactPageContent: ContactPageContent = {
       enabled: true
     },
     {
+      departmentId: "sales-reservations",
       regionTitle: "EUROPE",
       location: "London, UK",
       contactName: "Sophie Laurent",
@@ -798,6 +804,7 @@ export const defaultContactPageContent: ContactPageContent = {
       enabled: true
     },
     {
+      departmentId: "sales-reservations",
       regionTitle: "MIDDLE EAST",
       location: "Dubai, UAE",
       contactName: "Partner Relations",
@@ -1108,9 +1115,9 @@ function normalizeNavbarContent(settings: unknown): NavbarContent {
     const label = item.label ?? fallback.label;
     const normalizedLabel = label.trim().toLowerCase();
 
-    if (normalizedLabel === "map" || normalizedLabel === "maps") {
+    if (normalizedLabel === "map" || normalizedLabel === "maps" || ((item.href ?? fallback.href) === "/contact" && normalizedLabel === "contact")) {
       return {
-        label: "Contact",
+        label: "Team",
         href: "/contact",
         enabled: item.enabled ?? fallback.enabled,
         external: false
@@ -1210,7 +1217,10 @@ function normalizeContactPageContent(settings: unknown): ContactPageContent {
   const sourceRegions = Array.isArray(source.regions) ? source.regions : defaultContactPageContent.regions;
 
   return {
-    title: source.title || defaultContactPageContent.title,
+    departments: normalizeTeamDepartments(source.departments),
+    title: !source.departments && ["Contact", "Contact Us"].includes(source.title ?? "")
+      ? defaultContactPageContent.title
+      : source.title || defaultContactPageContent.title,
     subtitle: source.subtitle || defaultContactPageContent.subtitle,
     regions: sourceRegions
       .map((item, index) => {
@@ -1218,13 +1228,14 @@ function normalizeContactPageContent(settings: unknown): ContactPageContent {
         const fallback = defaultContactPageContent.regions[index] ?? defaultContactPageContent.regions[0];
 
         return {
-          regionTitle: value.regionTitle || fallback.regionTitle,
-          location: value.location || fallback.location,
-          contactName: value.contactName || fallback.contactName,
-          role: value.role || fallback.role,
+          departmentId: value.departmentId ?? "sales-reservations",
+          regionTitle: value.regionTitle ?? fallback.regionTitle,
+          location: value.location ?? fallback.location,
+          contactName: value.contactName ?? fallback.contactName,
+          role: value.role ?? fallback.role,
           photoUrl: value.photoUrl || fallback.photoUrl || "",
-          email: value.email || fallback.email,
-          whatsapp: value.whatsapp || fallback.whatsapp,
+          email: value.email ?? fallback.email,
+          whatsapp: value.whatsapp ?? fallback.whatsapp,
           displayOrder: numericValue(value.displayOrder, index + 1),
           enabled: value.enabled ?? true
         };

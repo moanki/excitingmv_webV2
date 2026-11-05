@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { groupTeamContacts } from "@/lib/team-departments";
 import { Mail, MessageCircle } from "lucide-react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
@@ -24,11 +25,11 @@ export default async function ContactPage() {
     getContactPageContent("published"),
     getCatalogueContent("contact")
   ]);
-  const regions = content.regions.filter((region) => region.enabled);
+  const departments = groupTeamContacts(content.departments, content.regions);
   const heroImageUrl = optimizedImageUrl(catalogue.heroImageUrl, { width: 2200, height: 1100, quality: 92 });
 
   return (
-    <main className="public-lux-page contact-registry-page">
+    <main className="public-lux-page contact-registry-page team-directory">
       <section className="contact-registry-hero">
         <div
           className="contact-registry-hero__image"
@@ -37,50 +38,53 @@ export default async function ContactPage() {
         />
         <div className="contact-registry-hero__overlay" aria-hidden="true" />
         <div className="lux-container">
-          <p className="lux-eyebrow">{catalogue.eyebrow || "Partner Support"}</p>
-          <h1>{catalogue.title || content.title}</h1>
-          <p>{catalogue.body || content.subtitle}</p>
+          <h1>{content.title}</h1>
+          <p>{content.subtitle}</p>
         </div>
       </section>
 
       <section className="contact-registry-section">
         <div className="lux-container">
-          <div className="contact-registry-grid">
-            {regions.map((region) => (
-              <article className="contact-registry-entry" key={`${region.regionTitle}-${region.email}`}>
-                <div className="contact-registry-entry__heading">
-                  <p>{region.regionTitle}</p>
-                  <span>{region.location}</span>
-                </div>
-                <div className="contact-registry-entry__profile">
-                  <div className="contact-registry-entry__portrait" aria-hidden="true">
-                    {region.photoUrl ? (
-                      <img
-                        src={optimizedImageUrl(region.photoUrl, { width: 240, height: 240, quality: 82 })}
-                        alt=""
-                      />
-                    ) : (
-                      <span>{initials(region.contactName || region.regionTitle)}</span>
-                    )}
-                  </div>
-                  <div className="contact-registry-entry__person">
-                    <strong>{region.contactName}</strong>
-                    {region.role ? <span>{region.role}</span> : null}
-                  </div>
-                </div>
-                <div className="contact-registry-entry__links">
-                  <a href={`mailto:${region.email}`}>
-                    <Mail className="contact-registry-entry__link-icon" aria-hidden="true" />
-                    <span>{region.email}</span>
-                  </a>
-                  <a href={whatsappHref(region.whatsapp)} target="_blank" rel="noreferrer">
-                    <MessageCircle className="contact-registry-entry__link-icon" aria-hidden="true" />
-                    <span>{region.whatsapp} WhatsApp</span>
-                  </a>
-                </div>
-              </article>
-            ))}
-          </div>
+          {departments.map((department) => (
+            <section className="contact-team-department" key={department.id} aria-label={department.name}>
+              <h2>{department.name}</h2>
+              <div className="contact-registry-grid">
+                {department.contacts.map((region, index) => (
+                  <article className="contact-registry-entry" key={`${region.email}-${index}`}>
+                    <div className="contact-registry-entry__profile">
+                      <div className="contact-registry-entry__portrait" aria-hidden="true">
+                        {region.photoUrl ? (
+                          <img
+                            src={optimizedImageUrl(region.photoUrl, { width: 240, height: 240, quality: 82 })}
+                            alt=""
+                          />
+                        ) : (
+                          <span>{initials(region.contactName || region.regionTitle)}</span>
+                        )}
+                      </div>
+                      <div className="contact-registry-entry__person">
+                        <strong>{region.contactName}</strong>
+                        {region.role ? <span>{region.role}</span> : null}
+                      </div>
+                    </div>
+                    {region.regionTitle || region.location ? (
+                      <p className="contact-registry-entry__market">{[region.regionTitle, region.location].filter(Boolean).join(" · ")}</p>
+                    ) : null}
+                    <div className="contact-registry-entry__links">
+                      {region.email ? <a href={`mailto:${region.email}`}>
+                        <Mail className="contact-registry-entry__link-icon" aria-hidden="true" />
+                        <span>{region.email}</span>
+                      </a> : null}
+                      {region.whatsapp ? <a href={whatsappHref(region.whatsapp)} target="_blank" rel="noreferrer">
+                        <MessageCircle className="contact-registry-entry__link-icon" aria-hidden="true" />
+                        <span>{region.whatsapp} · WhatsApp</span>
+                      </a> : null}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ))}
 
           <div className="contact-registry-cta">
             <p>{content.ctaText}</p>

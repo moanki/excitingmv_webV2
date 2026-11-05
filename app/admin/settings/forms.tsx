@@ -1105,6 +1105,7 @@ export function FooterSettingsForm({
 
 function blankContactRegion(index: number): ContactRegion {
   return {
+    departmentId: "sales-reservations",
     regionTitle: "",
     location: "",
     contactName: "",
@@ -1125,110 +1126,148 @@ export function ContactSettingsForm({
   mediaLibrary: MediaLibraryItem[];
 }) {
   const [state, action, pending] = useActionState(saveContactDraftAction, undefined);
-  const [regions, setRegions] = useState<ContactRegion[]>(
-    contact.regions.length ? contact.regions : [blankContactRegion(0)]
+  const [page, setPage] = useState({ title: contact.title, subtitle: contact.subtitle, ctaText: contact.ctaText, ctaLabel: contact.ctaLabel, ctaHref: contact.ctaHref });
+  const [departments, setDepartments] = useState(contact.departments);
+  const [regions, setRegions] = useState(
+    contact.regions.map((region, index) => ({ ...region, formKey: `contact-${index}` }))
   );
+
+  function updateRegion(formKey: string, changes: Partial<ContactRegion>) {
+    setRegions((items) => items.map((item) => item.formKey === formKey ? { ...item, ...changes } : item));
+  }
 
   return (
     <div className="panel">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">Contact Us</p>
-          <h2>Manage regional contact entries for the public contact registry.</h2>
+          <h2>Team</h2>
+          <p>Manage the page title, departments, and team contacts.</p>
         </div>
-        <PublishAction action={publishContactAction} label="Publish Contact Us" />
+        <PublishAction action={publishContactAction} label="Publish Team" />
       </div>
       <form action={action} className="stack">
         <div className="form-grid">
           <label className="field">
             Page Title
-            <input name="title" defaultValue={contact.title} />
+            <input name="title" value={page.title} onChange={(event) => setPage((value) => ({ ...value, title: event.target.value }))} required />
           </label>
           <label className="field">
             CTA Label
-            <input name="ctaLabel" defaultValue={contact.ctaLabel} />
+            <input name="ctaLabel" value={page.ctaLabel} onChange={(event) => setPage((value) => ({ ...value, ctaLabel: event.target.value }))} />
           </label>
           <label className="field" style={{ gridColumn: "1 / -1" }}>
             Page Subtitle
-            <textarea name="subtitle" defaultValue={contact.subtitle} />
+            <textarea name="subtitle" value={page.subtitle} onChange={(event) => setPage((value) => ({ ...value, subtitle: event.target.value }))} />
           </label>
           <label className="field">
             CTA Text
-            <input name="ctaText" defaultValue={contact.ctaText} />
+            <input name="ctaText" value={page.ctaText} onChange={(event) => setPage((value) => ({ ...value, ctaText: event.target.value }))} />
           </label>
           <label className="field">
             CTA Link
-            <input name="ctaHref" defaultValue={contact.ctaHref} />
+            <input name="ctaHref" value={page.ctaHref} onChange={(event) => setPage((value) => ({ ...value, ctaHref: event.target.value }))} />
           </label>
         </div>
 
+        <section className="stack" aria-labelledby="team-departments-title">
+          <h3 id="team-departments-title" className="settings-subtitle">Departments</h3>
+          <p className="field__help">Departments appear in this order. Reassign contacts before removing their department.</p>
+          <input type="hidden" name="department_count" value={departments.length} />
+          {departments.map((department, index) => (
+            <div className="team-department-editor" key={department.id}>
+              <input type="hidden" name={`department_${index}_id`} value={department.id} />
+              <label className="field">
+                Department name {index + 1}
+                <input name={`department_${index}_name`} value={department.name} required
+                  onChange={(event) => setDepartments((items) => items.map((item) => item.id === department.id ? { ...item, name: event.target.value } : item))} />
+              </label>
+              <button className="button-muted" type="button"
+                aria-label={`Remove ${department.name || "department"}`}
+                disabled={pending || departments.length === 1 || regions.some((region) => region.departmentId === department.id)}
+                onClick={() => setDepartments((items) => items.filter((item) => item.id !== department.id))}>Remove</button>
+            </div>
+          ))}
+          <button className="button-muted" type="button" disabled={pending}
+            onClick={() => setDepartments((items) => [...items, { id: crypto.randomUUID(), name: "" }])}>Add Department</button>
+        </section>
+
+        <h3 className="settings-subtitle">Contacts</h3>
         <input type="hidden" name="contact_count" value={regions.length} />
         <div className="settings-repeatable-list">
           {regions.map((region, index) => (
-            <div className="settings-mini-card" key={`${region.regionTitle}-${index}`}>
+            <div className="settings-mini-card" key={region.formKey}>
               <div className="settings-mini-card__heading">
                 <div>
-                  <p className="eyebrow">Contact Region {index + 1}</p>
-                  <h3 className="settings-subtitle">{region.regionTitle || "New regional contact"}</h3>
+                  <p>Contact {index + 1}</p>
+                  <h3 className="settings-subtitle">{region.contactName || "New contact"}</h3>
                 </div>
                 <button
                   className="button-muted"
                   type="button"
                   onClick={() => {
-                    if (window.confirm("Delete this contact region? Save changes afterwards to publish the removal.")) {
+                    if (window.confirm("Remove this contact? Save and publish to apply the removal.")) {
                       setRegions((items) => items.filter((_, itemIndex) => itemIndex !== index));
                     }
                   }}
-                  disabled={regions.length === 1}
+                  disabled={pending}
                 >
                   Delete
                 </button>
               </div>
               <div className="form-grid">
                 <label className="field">
-                  Region Title
-                  <input name={`contact_${index}_regionTitle`} defaultValue={region.regionTitle} required />
+                  Department
+                  <select name={`contact_${index}_departmentId`} value={region.departmentId} required
+                    onChange={(event) => updateRegion(region.formKey, { departmentId: event.target.value })}>
+                    <option value="" disabled>Select department</option>
+                    {departments.map((department) => <option key={department.id} value={department.id}>{department.name || "Unnamed department"}</option>)}
+                  </select>
+                </label>
+                <label className="field">
+                  Region / Market
+                  <input name={`contact_${index}_regionTitle`} value={region.regionTitle} onChange={(event) => updateRegion(region.formKey, { regionTitle: event.target.value })} />
                 </label>
                 <label className="field">
                   Location
-                  <input name={`contact_${index}_location`} defaultValue={region.location} />
+                  <input name={`contact_${index}_location`} value={region.location} onChange={(event) => updateRegion(region.formKey, { location: event.target.value })} />
                 </label>
                 <label className="field">
                   Contact Name
-                  <input name={`contact_${index}_contactName`} defaultValue={region.contactName} required />
+                  <input name={`contact_${index}_contactName`} value={region.contactName} onChange={(event) => updateRegion(region.formKey, { contactName: event.target.value })} required />
                 </label>
                 <label className="field">
                   Designation / Role
-                  <input name={`contact_${index}_role`} defaultValue={region.role} />
+                  <input name={`contact_${index}_role`} value={region.role} onChange={(event) => updateRegion(region.formKey, { role: event.target.value })} />
                 </label>
                 <div style={{ gridColumn: "1 / -1" }}>
                   <MediaField
-                    label="Regional Manager Photo"
+                    label="Contact Photo"
                     inputName={`contact_${index}_photoUrl`}
                     fileName={`contact_${index}_photoFile`}
                     accept="image/png,image/jpeg,image/webp"
                     value={region.photoUrl}
+                    onChange={(photoUrl) => updateRegion(region.formKey, { photoUrl })}
                     library={mediaLibrary}
-                    helper="Upload or select a portrait image for this contact region."
+                    helper="Upload or select a portrait image for this contact."
                   />
                 </div>
                 <label className="field">
                   Email Address
-                  <input name={`contact_${index}_email`} type="email" defaultValue={region.email} required />
+                  <input name={`contact_${index}_email`} type="email" value={region.email} onChange={(event) => updateRegion(region.formKey, { email: event.target.value })} />
                 </label>
                 <label className="field">
                   WhatsApp Number
-                  <input name={`contact_${index}_whatsapp`} defaultValue={region.whatsapp} required />
+                  <input name={`contact_${index}_whatsapp`} value={region.whatsapp} onChange={(event) => updateRegion(region.formKey, { whatsapp: event.target.value })} />
                 </label>
                 <label className="field">
                   Display Order
-                  <input name={`contact_${index}_displayOrder`} type="number" min="1" defaultValue={region.displayOrder} />
+                  <input name={`contact_${index}_displayOrder`} type="number" min="1" value={region.displayOrder} onChange={(event) => updateRegion(region.formKey, { displayOrder: Number(event.target.value) })} />
                 </label>
-                <ToggleField
-                  name={`contact_${index}_enabled`}
-                  label="Active on frontend"
-                  defaultChecked={region.enabled}
-                />
+                <label className="field">
+                  <span>Active on frontend</span>
+                  <input name={`contact_${index}_enabled`} type="checkbox" checked={region.enabled}
+                    onChange={(event) => updateRegion(region.formKey, { enabled: event.target.checked })} />
+                </label>
               </div>
             </div>
           ))}
@@ -1236,16 +1275,17 @@ export function ContactSettingsForm({
         <button
           className="button-muted"
           type="button"
-          onClick={() => setRegions((items) => [...items, blankContactRegion(items.length)])}
+          disabled={pending || !departments.length}
+          onClick={() => setRegions((items) => [...items, { ...blankContactRegion(items.length), departmentId: departments[0]?.id ?? "", formKey: crypto.randomUUID() }])}
         >
-          Add Contact Region
+          Add Contact
         </button>
         <div className="admin-form-actions">
           <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
-            {pending ? "Saving..." : "Save Contact Draft"}
+            {pending ? "Saving..." : "Save Team Draft"}
           </button>
           <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
-            {pending ? "Publishing..." : "Save & Publish Contact"}
+            {pending ? "Publishing..." : "Save & Publish Team"}
           </button>
         </div>
         <StatusMessage message={state?.message} error={state?.error} />
