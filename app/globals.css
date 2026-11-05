@@ -30736,9 +30736,6 @@ html body:not(.admin-body) .team-directory .contact-registry-entry__link-icon {
   height: 14px;
   color: #0d7376;
 }
-.team-department-editor { display: flex; align-items: end; gap: 12px; }
-.team-department-editor .field { flex: 1; min-width: 0; }
 @media (max-width: 720px) {
   .contact-team-department + .contact-team-department { margin-top: 40px; }
-  .team-department-editor { flex-wrap: wrap; }
 }
