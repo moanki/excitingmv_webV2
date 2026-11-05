@@ -1141,7 +1141,6 @@ export function ContactSettingsForm({
       <div className="section-heading">
         <div>
           <h2>Team</h2>
-          <p>Manage the page title, departments, and team contacts.</p>
         </div>
         <PublishAction action={publishContactAction} label="Publish Team" />
       </div>
