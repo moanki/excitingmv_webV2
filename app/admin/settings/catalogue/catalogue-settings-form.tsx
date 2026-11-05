@@ -40,7 +40,7 @@ export function CatalogueSettingsForm({
           </div>
           {kind === "contact" ? (
             <>
-              <p>Edit the page title and subtitle in <Link href="/admin/settings/contact">Team settings</Link>.</p>
+              <p>Edit the page title and subtitle in <Link href="/admin/settings/team">Team settings</Link>.</p>
               <input type="hidden" name="contactEyebrow" value={catalogues.contact.eyebrow} />
               <input type="hidden" name="contactTitle" value={catalogues.contact.title} />
               <input type="hidden" name="contactBody" value={catalogues.contact.body} />

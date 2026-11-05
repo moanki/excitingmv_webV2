@@ -37,7 +37,7 @@ export function ContactSettingsForm({ contact, mediaLibrary }: {
     <div className="team-editor">
       <header className="te-header">
         <h1>Team</h1>
-        <Link className="button-muted" href="/contact" target="_blank" rel="noreferrer">View team page</Link>
+        <Link className="button-muted" href="/team" target="_blank" rel="noreferrer">View team page</Link>
       </header>
 
       <form action={action} className="te-form" onInvalidCapture={(event) => {

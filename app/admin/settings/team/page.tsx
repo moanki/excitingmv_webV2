@@ -1,5 +1,5 @@
-import { ContactSettingsForm } from "@/app/admin/settings/contact/contact-settings-form";
-import "@/app/admin/settings/contact/team-settings.css";
+import { ContactSettingsForm } from "@/app/admin/settings/team/contact-settings-form";
+import "@/app/admin/settings/team/team-settings.css";
 import { getContactPageContent } from "@/lib/site-content";
 import { listSiteAssets } from "@/lib/storage/site-assets";
 

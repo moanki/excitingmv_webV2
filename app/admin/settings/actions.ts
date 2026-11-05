@@ -87,7 +87,7 @@ function revalidateSiteContent() {
   revalidatePath("/", "layout");
   revalidatePath("/about");
   revalidatePath("/awards");
-  revalidatePath("/contact");
+  revalidatePath("/team");
   revalidatePath("/services");
   revalidatePath("/partner/register");
   revalidatePath("/resorts");

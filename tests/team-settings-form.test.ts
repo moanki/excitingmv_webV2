@@ -11,7 +11,7 @@ import { defaultTeamDepartments } from "../lib/team-departments";
 test("collapsed contact editors keep the complete save payload and separate draft and publish actions", () => {
   const require = createRequire(import.meta.url);
   const exports: Record<string, any> = {};
-  const source = readFileSync(new URL("../app/admin/settings/contact/contact-settings-form.tsx", import.meta.url), "utf8");
+  const source = readFileSync(new URL("../app/admin/settings/team/contact-settings-form.tsx", import.meta.url), "utf8");
   const modules: Record<string, any> = {
     react: { ...React, useActionState: () => [undefined, "/test-save", false] },
     "next/link": { default: ({ children, ...props }: any) => React.createElement("a", props, children) },

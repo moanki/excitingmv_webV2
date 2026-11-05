@@ -52,7 +52,7 @@ test("team settings preserve legacy contacts, save drafts separately, publish as
   assert.equal(published.regions[0].regionTitle, "");
   assert.equal(published.regions[0].whatsapp, "");
   assert.equal(departments.groupTeamContacts(published.departments, published.regions)[0].name, "Finance");
-  assert(revalidated.includes("/contact"));
+  assert(revalidated.includes("/team"));
 
   form.set("intent", "publish");
   form.set("title", "Contact Us");
@@ -70,4 +70,22 @@ test("team settings preserve legacy contacts, save drafts separately, publish as
   authorized = false;
   assert.equal((await actions.saveContactDraftAction(undefined, form)).error, "Unauthorized.");
   assert.equal(JSON.stringify(stored), beforeInvalid);
+
+  const legacyNavigation = { navItems: [
+    { label: "Contact", href: "/contact", enabled: true },
+    { label: "Team", href: "/contact", enabled: false },
+    { label: "Resorts", href: "/resorts", enabled: true }
+  ] };
+  stored = { draft: legacyNavigation, published: legacyNavigation };
+  const navigation = (await content.getNavbarContent()).content.navItems;
+  assert.equal(navigation[0].label, "Team");
+  assert.equal(navigation[0].href, "/team");
+  assert.equal(navigation[1].href, "/team");
+  assert.equal(navigation[1].enabled, false);
+  assert.equal(navigation[2].href, "/resorts");
+  const legacyFooter = { linkGroups: [{ title: "Company", enabled: true, items: [{ label: "Contact", href: "/contact", enabled: true, external: false }] }] };
+  stored = { draft: legacyFooter, published: legacyFooter };
+  const footerLink = (await content.getFooterContent()).content.linkGroups[0].items[0];
+  assert.equal(footerLink.label, "Team");
+  assert.equal(footerLink.href, "/team");
 });

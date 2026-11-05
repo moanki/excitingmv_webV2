@@ -636,7 +636,7 @@ export const defaultNavbarContent: NavbarContent = {
     { label: "Resort", href: "/resorts", enabled: true, external: false },
     { label: "Hotels", href: "/hotels", enabled: true, external: false },
     { label: "Liveaboard", href: "/liveaboards", enabled: true, external: false },
-    { label: "Team", href: "/contact", enabled: true, external: false },
+    { label: "Team", href: "/team", enabled: true, external: false },
     { label: "Travel Guide", href: "/travel-guide", enabled: true, external: false }
   ],
   partnerLoginHref: "/partner/login",
@@ -717,7 +717,7 @@ export const defaultFooterContent: FooterContent = {
       items: [
         { label: "About Us", href: "/about", enabled: true, external: false },
         { label: "Awards", href: "/#prestigious-awards", enabled: true, external: false },
-        { label: "Contact", href: "/contact", enabled: true, external: false },
+        { label: "Team", href: "/team", enabled: true, external: false },
         { label: "", href: "", enabled: false, external: false }
       ]
     },
@@ -890,7 +890,7 @@ export const defaultAboutPageContent: AboutPageContent = {
     primaryCtaLabel: "Become a Partner",
     primaryCtaHref: "#partner",
     secondaryCtaLabel: "Contact Us",
-    secondaryCtaHref: "/contact",
+    secondaryCtaHref: "/team",
     stats: [
       { value: "4x", label: "TTM Top Producer", enabled: true },
       { value: "Strong", label: "Resort Partnerships", enabled: true },
@@ -978,7 +978,7 @@ export const defaultAboutPageContent: AboutPageContent = {
     primaryCtaLabel: "Become a Partner",
     primaryCtaHref: "#partner",
     secondaryCtaLabel: "Contact Us",
-    secondaryCtaHref: "/contact",
+    secondaryCtaHref: "/team",
     tertiaryCtaLabel: "Explore Destinations",
     tertiaryCtaHref: "/resorts",
     backgroundImageUrl: "",
@@ -1114,11 +1114,12 @@ function normalizeNavbarContent(settings: unknown): NavbarContent {
   const normalizeNavItem = (item: Partial<FooterLinkItem>, fallback: FooterLinkItem): FooterLinkItem => {
     const label = item.label ?? fallback.label;
     const normalizedLabel = label.trim().toLowerCase();
+    const href = item.href ?? fallback.href;
 
-    if (normalizedLabel === "map" || normalizedLabel === "maps" || ((item.href ?? fallback.href) === "/contact" && normalizedLabel === "contact")) {
+    if (normalizedLabel === "map" || normalizedLabel === "maps" || (["/contact", "/team"].includes(href) && normalizedLabel === "contact")) {
       return {
         label: "Team",
-        href: "/contact",
+        href: "/team",
         enabled: item.enabled ?? fallback.enabled,
         external: false
       };
@@ -1135,7 +1136,7 @@ function normalizeNavbarContent(settings: unknown): NavbarContent {
 
     return {
       label,
-      href: item.href ?? fallback.href,
+      href: href === "/contact" ? "/team" : href,
       enabled: item.enabled ?? fallback.enabled,
       external: item.external ?? fallback.external
     };
@@ -1197,7 +1198,14 @@ function normalizeFooterContent(settings: unknown): FooterContent {
     address: source.address ?? defaultFooterContent.address,
     samoaUrl: source.samoaUrl ?? defaultFooterContent.samoaUrl,
     companyLogoUrl: source.companyLogoUrl ?? defaultFooterContent.companyLogoUrl,
-    linkGroups: Array.isArray(source.linkGroups) ? source.linkGroups : defaultFooterContent.linkGroups,
+    linkGroups: (Array.isArray(source.linkGroups) ? source.linkGroups : defaultFooterContent.linkGroups).map((group) => ({
+      ...group,
+      items: group.items.map((item) => ({
+        ...item,
+        href: item.href === "/contact" ? "/team" : item.href,
+        label: ["/contact", "/team"].includes(item.href) && item.label.toLowerCase() === "contact" ? "Team" : item.label
+      }))
+    })),
     memberships: Array.isArray(source.memberships) ? source.memberships : defaultFooterContent.memberships,
     awards: Array.isArray(source.awards) ? source.awards : defaultFooterContent.awards
   };
