@@ -30623,22 +30623,59 @@ html body:not(.admin-body) .contact-team-department h2 {
 }
 html body:not(.admin-body) .team-directory .contact-registry-grid { gap: 16px; }
 html body:not(.admin-body) .team-directory .contact-registry-entry {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  min-height: 0;
+  gap: 18px;
+  min-height: 248px;
+  overflow: hidden;
   padding: 20px;
-  border: 1px solid #d7e3e1;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: none;
+  border: 1px solid #dce1de;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f5f8f7, #fbf9f5);
+  box-shadow: 0 12px 32px rgb(16 32 35 / 7%);
   transform: none;
 }
-html body:not(.admin-body) .team-directory .contact-registry-entry::before { display: none; }
-html body:not(.admin-body) .team-directory .contact-registry-entry__profile { gap: 12px; }
+html body:not(.admin-body) .team-directory .contact-registry-entry::before {
+  content: "";
+  display: block;
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, #0d4f53, #c9a96e);
+}
+html body:not(.admin-body) .team-directory .contact-registry-entry__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+html body:not(.admin-body) .team-directory .contact-registry-entry__heading p {
+  margin: 0;
+  padding: 4px 9px;
+  border: 1px solid #cbdcda;
+  border-radius: 999px;
+  background: #e6eeee;
+  color: #165a61 !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.2 !important;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+html body:not(.admin-body) .team-directory .contact-registry-entry__heading span {
+  margin: 0 0 0 auto;
+  color: #627274;
+  font-size: 10px !important;
+  line-height: 1.4;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+html body:not(.admin-body) .team-directory .contact-registry-entry__profile { display: flex; align-items: center; gap: 12px; }
 html body:not(.admin-body) .team-directory .contact-registry-entry__portrait {
-  width: 46px;
-  height: 46px;
+  width: 52px;
+  height: 52px;
   border: 0;
   background: #dcedea;
   color: #0d5b5c;
@@ -30648,34 +30685,23 @@ html body:not(.admin-body) .team-directory .contact-registry-entry__portrait {
 html body:not(.admin-body) .team-directory .contact-registry-entry__person { min-width: 0; }
 html body:not(.admin-body) .team-directory .contact-registry-entry__person strong {
   color: #123337 !important;
-  font-family: var(--font-sans), sans-serif;
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  line-height: 1.35 !important;
+  font-family: var(--font-serif), serif !important;
+  font-size: clamp(22px, 1.8vw, 26px) !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.15 !important;
   overflow-wrap: anywhere;
 }
 html body:not(.admin-body) .team-directory .contact-registry-entry__person span {
   margin-top: 3px;
-  color: #4e686b;
-  font-size: 12px;
+  color: #627274;
+  font-size: 11px !important;
   line-height: 1.5;
-}
-html body:not(.admin-body) .team-directory .contact-registry-entry__market {
-  align-self: flex-start;
-  margin: 0;
-  padding: 4px 10px;
-  border-radius: 20px;
-  background: #f5efdf;
-  color: #79571e;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
 }
 html body:not(.admin-body) .team-directory .contact-registry-entry__links {
   display: grid;
-  gap: 4px;
-  margin-top: auto;
+  gap: 6px;
+  margin-top: 8px;
   padding-top: 12px;
   border-top: 1px solid #e8efed;
 }
@@ -30685,14 +30711,22 @@ html body:not(.admin-body) .team-directory .contact-registry-entry__links a {
   align-items: center;
   gap: 8px;
   width: 100%;
-  min-height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid #e3e7e5;
+  border-radius: 11px;
+  background: rgb(255 255 255 / 80%);
   color: #24464a;
-  font-size: 13px;
+  font-size: 11px !important;
   line-height: 1.5;
+}
+html body:not(.admin-body) .team-directory .contact-registry-entry__links a:hover {
+  border-color: #a6c1bd;
+  background: #fff;
+}
+html body:not(.admin-body) .team-directory .contact-registry-entry__links a:focus-visible {
+  outline: 2px solid #0d7376;
+  outline-offset: 3px;
 }
 html body:not(.admin-body) .team-directory .contact-registry-entry__links a span { overflow-wrap: anywhere; }
 html body:not(.admin-body) .team-directory .contact-registry-entry__link-icon {

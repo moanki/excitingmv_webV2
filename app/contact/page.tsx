@@ -51,6 +51,12 @@ export default async function ContactPage() {
               <div className="contact-registry-grid">
                 {department.contacts.map((region, index) => (
                   <article className="contact-registry-entry" key={`${region.email}-${index}`}>
+                    {region.regionTitle || region.location ? (
+                      <div className="contact-registry-entry__heading">
+                        {region.regionTitle ? <p>{region.regionTitle}</p> : null}
+                        {region.location ? <span>{region.location}</span> : null}
+                      </div>
+                    ) : null}
                     <div className="contact-registry-entry__profile">
                       <div className="contact-registry-entry__portrait" aria-hidden="true">
                         {region.photoUrl ? (
@@ -67,9 +73,6 @@ export default async function ContactPage() {
                         {region.role ? <span>{region.role}</span> : null}
                       </div>
                     </div>
-                    {region.regionTitle || region.location ? (
-                      <p className="contact-registry-entry__market">{[region.regionTitle, region.location].filter(Boolean).join(" · ")}</p>
-                    ) : null}
                     <div className="contact-registry-entry__links">
                       {region.email ? <a href={`mailto:${region.email}`}>
                         <Mail className="contact-registry-entry__link-icon" aria-hidden="true" />
@@ -77,7 +80,7 @@ export default async function ContactPage() {
                       </a> : null}
                       {region.whatsapp ? <a href={whatsappHref(region.whatsapp)} target="_blank" rel="noreferrer">
                         <MessageCircle className="contact-registry-entry__link-icon" aria-hidden="true" />
-                        <span>{region.whatsapp} · WhatsApp</span>
+                        <span>{region.whatsapp} WhatsApp</span>
                       </a> : null}
                     </div>
                   </article>
