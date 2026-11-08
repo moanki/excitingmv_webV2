@@ -53,6 +53,12 @@ const navGroups: NavGroup[] = [
     title: "Content",
     items: [
       {
+        href: "/admin/upcoming-resorts",
+        label: "Upcoming Resorts",
+        description: "Opening calendar, dates, and page content",
+        icon: Building2
+      },
+      {
         href: "/admin/resorts",
         label: "Resorts",
         description: "Property inventory and publishing",

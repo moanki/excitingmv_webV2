@@ -53,6 +53,7 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
   const isExploreListing = /^\/(resorts|hotels|liveaboards)$/.test(pathname);
   const isPropertyDetail = /^\/(resorts|hotels|liveaboards)\/[^/]+/.test(pathname);
   const isContactPage = pathname === "/team";
+  const isOpeningCalendar = pathname === "/upcoming-resorts";
   const hasMobileHero =
     pathname === "/"
     || pathname.startsWith("/resorts")
@@ -60,10 +61,12 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     || pathname.startsWith("/liveaboards")
     || pathname === "/about"
     || pathname === "/travel-guide"
+    || isOpeningCalendar
     || isContactPage;
   const usesHeroOverlayNav =
     pathname === "/"
     || pathname === "/travel-guide"
+    || isOpeningCalendar
     || isContactPage
     || isExploreListing
     || isPropertyDetail;
