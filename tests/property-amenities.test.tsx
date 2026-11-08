@@ -34,3 +34,13 @@ test("long lists remain accessible through view more and custom icons are preser
   assert.ok(html.indexOf("Amenity 20") > html.indexOf("<details"));
   assert.match(html, /https:\/\/example.com\/icon.png/);
 });
+
+test("reference feature phrases receive the matching outline icons", () => {
+  const html = renderAmenities([
+    "Three connected islands", "No waiting", "13 room types",
+    "Couples, families and groups", "Many restaurants"
+  ].map(title => ({ title, description: "" })));
+  for (const icon of ["network", "circle-check", "bed-double", "users-round", "utensils"]) {
+    assert.match(html, new RegExp(`lucide-${icon}`));
+  }
+});

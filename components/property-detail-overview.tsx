@@ -10,6 +10,7 @@ import {
   BottleWine,
   Car,
   ChefHat,
+  CircleCheck,
   Clock,
   Coffee,
   ConciergeBell,
@@ -19,6 +20,7 @@ import {
   Heart,
   HeartPulse,
   MapPin,
+  Network,
   Plane,
   Sailboat,
   Share2,
@@ -26,6 +28,7 @@ import {
   Sparkles,
   TreePalm,
   Utensils,
+  UsersRound,
   Waves,
   Wifi
 } from "lucide-react";
@@ -62,6 +65,10 @@ type AmenityIconRule = {
 };
 
 const curatedIconRules: AmenityIconRule[] = [
+  { terms: /\bconnected islands?\b/i, Icon: Network },
+  { terms: /\bno waiting\b/i, Icon: CircleCheck },
+  { terms: /\b(room types?|bedrooms?|villas?|residences?|houses?)\b/i, Icon: BedDouble },
+  { terms: /\b(couples?|famil(?:y|ies)|groups?)\b/i, Icon: UsersRound },
   { terms: /\b(wi[ -]?fi|wireless|internet)\b/i, Icon: Wifi },
   { terms: /\b(spas?|massages?|saunas?|steam|therapy)\b/i, Icon: Flower2 },
   { terms: /\b(wellness|yoga|meditation|relaxation)\b/i, Icon: HeartPulse },
@@ -133,7 +140,7 @@ function CuratedAmenities({ items }: { items: ResortCuratedMoment[] }) {
                 aria-hidden="true"
               />
             ) : (
-              <Icon size={18} aria-hidden="true" />
+              <Icon size={32} strokeWidth={1.6} aria-hidden="true" />
             )}
             <span>{item.title || item.description}</span>
           </li>
@@ -226,18 +233,20 @@ export function PropertyDetailOverview({
 
       {visibleCuratedMoments.length ? (
         <section className="property-detail-curated" id="experiences" aria-labelledby="property-detail-curated-heading">
-          <div className="site-container">
+          <div className="site-container property-detail-curated__layout">
             <div className="property-detail-curated__heading">
-              <h2 id="property-detail-curated-heading">What stands out here</h2>
+              <h2 id="property-detail-curated-heading">What stands <br />out here</h2>
               <p>A curated look at {name}'s most-loved amenities.</p>
             </div>
-            <CuratedAmenities items={initialCuratedMoments} />
-            {remainingCuratedMoments.length ? (
-              <details className="property-detail-curated__more">
-                <summary>view more</summary>
-                <CuratedAmenities items={remainingCuratedMoments} />
-              </details>
-            ) : null}
+            <div className="property-detail-curated__content">
+              <CuratedAmenities items={initialCuratedMoments} />
+              {remainingCuratedMoments.length ? (
+                <details className="property-detail-curated__more">
+                  <summary>view more</summary>
+                  <CuratedAmenities items={remainingCuratedMoments} />
+                </details>
+              ) : null}
+            </div>
           </div>
         </section>
       ) : null}

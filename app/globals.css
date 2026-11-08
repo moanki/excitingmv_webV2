@@ -19945,8 +19945,7 @@ html {
   text-transform: uppercase !important;
 }
 
-.property-detail-overview > h2,
-.property-detail-curated h2 {
+.property-detail-overview > h2 {
   margin: 0;
   color: #123a58 !important;
   font-family: var(--font-sans), sans-serif !important;
@@ -19957,12 +19956,6 @@ html {
 }
 
 .property-detail-overview > h2 {
-  font-family: var(--font-serif), Georgia, serif !important;
-  font-weight: 400 !important;
-  line-height: 1.18 !important;
-}
-
-.resort-story-page--resort .property-detail-curated h2 {
   font-family: var(--font-serif), Georgia, serif !important;
   font-weight: 400 !important;
   line-height: 1.18 !important;
@@ -20146,32 +20139,54 @@ html {
 }
 
 .property-detail-curated {
-  padding: clamp(2.4rem, 4vw, 3.1rem) 0 clamp(2.6rem, 4vw, 3.4rem);
-  background: #f2ede3;
+  padding: clamp(4rem, 9.7vw, 8.75rem) 0;
+  background: #efeadc;
+  scroll-margin-top: 100px;
+}
+
+.property-detail-curated__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  align-items: start;
+  gap: clamp(3rem, 7.8vw, 7rem);
+  max-width: 1200px;
 }
 
 .property-detail-curated__heading {
   display: grid;
-  justify-items: center;
-  gap: 0.4rem;
-  margin-bottom: 1.55rem;
-  text-align: center;
+  justify-items: start;
+  gap: 1.75rem;
+  text-align: left;
+}
+
+.property-detail-curated .property-detail-curated__heading h2 {
+  margin: 0;
+  color: #14232c;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(2.5rem, 4.72vw, 4.25rem);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.04;
 }
 
 .property-detail-curated__heading p {
   margin: 0;
-  color: rgba(18, 58, 88, 0.64);
+  max-width: 390px;
+  color: #3b4953;
   font-family: var(--font-sans), sans-serif;
-  font-size: 1rem;
+  font-size: 1.125rem;
   letter-spacing: 0;
+  line-height: 1.6;
+}
+
+.property-detail-curated__content {
+  min-width: 0;
 }
 
 .property-detail-curated__list {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem 1.5rem;
-  max-width: 1040px;
-  margin: 0 auto;
+  gap: 2rem;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -20180,51 +20195,51 @@ html {
   display: flex;
   align-items: flex-start;
   min-width: 0;
-  gap: 0.6rem;
+  gap: 1.75rem;
   max-width: 100%;
-  min-height: 24px;
   padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: #123a58;
+  color: #14232c;
   box-shadow: none;
-  font-family: var(--font-sans), sans-serif;
-  font-size: 0.95rem;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.5rem, 3.05vw, 2.75rem);
   font-weight: 400;
   letter-spacing: 0;
-  line-height: 1.5;
+  line-height: 1.15;
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .property-detail-curated__item svg {
-  color: #008d58;
+  width: 32px;
+  height: 32px;
+  color: #14825b;
   flex: 0 0 auto;
-  margin-top: 0.15rem;
+  margin-top: 0.3rem;
 }
 
 .property-detail-curated__uploaded-icon {
-  width: 16px;
-  height: 16px;
+  width: 32px;
+  height: 32px;
   flex: 0 0 auto;
-  margin-top: 0.2rem;
-  border-radius: 999px;
+  margin-top: 0.3rem;
   background-image: var(--curated-icon-url);
   background-position: center;
-  background-size: cover;
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 .property-detail-curated__more {
   display: grid;
   gap: 0.85rem;
-  max-width: 1040px;
-  margin: 0.95rem auto 0;
+  margin: 2rem 0 0;
 }
 
 .property-detail-curated__more summary {
   display: inline-flex;
-  justify-self: center;
+  justify-self: start;
   align-items: center;
   min-height: 40px;
   padding: 0 1rem;
@@ -20333,8 +20348,9 @@ html {
     font-size: 3rem !important;
   }
 
-  .property-detail-curated__list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .property-detail-curated__layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.75rem;
   }
 }
 
@@ -20352,9 +20368,27 @@ html {
     padding: 4rem 0 4.5rem;
   }
 
+  .property-detail-curated__heading {
+    gap: 1.25rem;
+  }
+
+  .property-detail-curated__heading p {
+    font-size: 1rem;
+  }
+
   .property-detail-curated__list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.9rem 1rem;
+    gap: 1.5rem;
+  }
+
+  .property-detail-curated__item {
+    gap: 1.25rem;
+  }
+
+  .property-detail-curated__item svg,
+  .property-detail-curated__uploaded-icon {
+    width: 24px;
+    height: 24px;
+    margin-top: 0.1rem;
   }
 
   .property-detail-facts {
