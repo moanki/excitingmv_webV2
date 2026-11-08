@@ -12,7 +12,6 @@ import {
   publishAdminLoginAction,
   publishAwardsAction,
   publishCeoAction,
-  publishContactAction,
   publishFeaturesAction,
   publishFooterAction,
   publishGuideAction,
@@ -30,7 +29,6 @@ import {
   saveAdminLoginDraftAction,
   saveAwardsDraftAction,
   saveCeoDraftAction,
-  saveContactDraftAction,
   saveFeaturesDraftAction,
   saveFooterDraftAction,
   saveGuideDraftAction,
@@ -53,8 +51,6 @@ import type {
   AboutStatCard,
   AboutWhyPoint,
   AdminLoginContent,
-  ContactPageContent,
-  ContactRegion,
   FooterBadge,
   FooterContent,
   FooterLinkGroup,
@@ -1092,157 +1088,6 @@ export function FooterSettingsForm({
           </button>
           <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
             {pending ? "Publishing..." : "Save & Publish Footer"}
-          </button>
-        </div>
-        <ActionMessage state={state} />
-      </form>
-    </div>
-  );
-}
-
-function blankContactRegion(index: number): ContactRegion {
-  return {
-    regionTitle: "",
-    location: "",
-    contactName: "",
-    role: "",
-    photoUrl: "",
-    email: "",
-    whatsapp: "",
-    displayOrder: index + 1,
-    enabled: true
-  };
-}
-
-export function ContactSettingsForm({
-  contact,
-  mediaLibrary
-}: {
-  contact: ContactPageContent;
-  mediaLibrary: MediaLibraryItem[];
-}) {
-  const [state, action, pending] = useActionState(saveContactDraftAction, undefined);
-  const [regions, setRegions] = useState<ContactRegion[]>(
-    contact.regions.length ? contact.regions : [blankContactRegion(0)]
-  );
-
-  return (
-    <div className="panel">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">Contact Us</p>
-          <h2>Manage regional contact entries for the public contact registry.</h2>
-        </div>
-        <PublishAction action={publishContactAction} label="Publish Contact Us" />
-      </div>
-      <form action={action} className="stack">
-        <div className="form-grid">
-          <label className="field">
-            Page Title
-            <input name="title" defaultValue={contact.title} />
-          </label>
-          <label className="field">
-            CTA Label
-            <input name="ctaLabel" defaultValue={contact.ctaLabel} />
-          </label>
-          <label className="field" style={{ gridColumn: "1 / -1" }}>
-            Page Subtitle
-            <textarea name="subtitle" defaultValue={contact.subtitle} />
-          </label>
-          <label className="field">
-            CTA Text
-            <input name="ctaText" defaultValue={contact.ctaText} />
-          </label>
-          <label className="field">
-            CTA Link
-            <input name="ctaHref" defaultValue={contact.ctaHref} />
-          </label>
-        </div>
-
-        <input type="hidden" name="contact_count" value={regions.length} />
-        <div className="settings-repeatable-list">
-          {regions.map((region, index) => (
-            <div className="settings-mini-card" key={`${region.regionTitle}-${index}`}>
-              <div className="settings-mini-card__heading">
-                <div>
-                  <p className="eyebrow">Contact Region {index + 1}</p>
-                  <h3 className="settings-subtitle">{region.regionTitle || "New regional contact"}</h3>
-                </div>
-                <button
-                  className="button-muted"
-                  type="button"
-                  onClick={() => {
-                    if (window.confirm("Delete this contact region? Save changes afterwards to publish the removal.")) {
-                      setRegions((items) => items.filter((_, itemIndex) => itemIndex !== index));
-                    }
-                  }}
-                  disabled={regions.length === 1}
-                >
-                  Delete
-                </button>
-              </div>
-              <div className="form-grid">
-                <label className="field">
-                  Region Title
-                  <input name={`contact_${index}_regionTitle`} defaultValue={region.regionTitle} required />
-                </label>
-                <label className="field">
-                  Location
-                  <input name={`contact_${index}_location`} defaultValue={region.location} />
-                </label>
-                <label className="field">
-                  Contact Name
-                  <input name={`contact_${index}_contactName`} defaultValue={region.contactName} required />
-                </label>
-                <label className="field">
-                  Designation / Role
-                  <input name={`contact_${index}_role`} defaultValue={region.role} />
-                </label>
-                <div style={{ gridColumn: "1 / -1" }}>
-                  <MediaField
-                    label="Regional Manager Photo"
-                    inputName={`contact_${index}_photoUrl`}
-                    fileName={`contact_${index}_photoFile`}
-                    accept="image/png,image/jpeg,image/webp"
-                    value={region.photoUrl}
-                    library={mediaLibrary}
-                    helper="Upload or select a portrait image for this contact region."
-                  />
-                </div>
-                <label className="field">
-                  Email Address
-                  <input name={`contact_${index}_email`} type="email" defaultValue={region.email} required />
-                </label>
-                <label className="field">
-                  WhatsApp Number
-                  <input name={`contact_${index}_whatsapp`} defaultValue={region.whatsapp} required />
-                </label>
-                <label className="field">
-                  Display Order
-                  <input name={`contact_${index}_displayOrder`} type="number" min="1" defaultValue={region.displayOrder} />
-                </label>
-                <ToggleField
-                  name={`contact_${index}_enabled`}
-                  label="Active on frontend"
-                  defaultChecked={region.enabled}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-        <button
-          className="button-muted"
-          type="button"
-          onClick={() => setRegions((items) => [...items, blankContactRegion(items.length)])}
-        >
-          Add Contact Region
-        </button>
-        <div className="admin-form-actions">
-          <button className="button-muted" type="submit" name="intent" value="draft" disabled={pending}>
-            {pending ? "Saving..." : "Save Contact Draft"}
-          </button>
-          <button className="button" type="submit" name="intent" value="publish" disabled={pending}>
-            {pending ? "Publishing..." : "Save & Publish Contact"}
           </button>
         </div>
         <ActionMessage state={state} />

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { validateTeamDepartments } from "@/lib/team-departments";
 
 import {
   defaultAboutPageContent,
@@ -86,7 +87,7 @@ function revalidateSiteContent() {
   revalidatePath("/", "layout");
   revalidatePath("/about");
   revalidatePath("/awards");
-  revalidatePath("/contact");
+  revalidatePath("/team");
   revalidatePath("/services");
   revalidatePath("/partner/register");
   revalidatePath("/resorts");
@@ -404,6 +405,7 @@ async function parseHomepageAwards(formData: FormData): Promise<HomepageAwardsCo
 function parseContactRegions(formData: FormData): ContactRegion[] {
   return indexesFromCount(formData, "contact_count", 1)
     .map((index) => ({
+      departmentId: stringValue(formData, `contact_${index}_departmentId`).trim(),
       regionTitle: stringValue(formData, `contact_${index}_regionTitle`).trim(),
       location: stringValue(formData, `contact_${index}_location`).trim(),
       contactName: stringValue(formData, `contact_${index}_contactName`).trim(),
@@ -419,14 +421,19 @@ function parseContactRegions(formData: FormData): ContactRegion[] {
 }
 
 function validateContactContent(contact: ContactPageContent) {
+  validateTeamDepartments(contact.departments, contact.regions);
+  if (!contact.title.trim()) throw new Error("Enter a page title.");
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   contact.regions.forEach((region, index) => {
     const label = region.regionTitle || `Contact ${index + 1}`;
-    if (!region.regionTitle || !region.contactName || !region.email || !region.whatsapp) {
-      throw new Error(`${label} needs region title, contact name, email, and WhatsApp.`);
+    if (!region.contactName || (!region.email && !region.whatsapp)) {
+      throw new Error(`${label} needs a contact name and an email address or WhatsApp number.`);
     }
-    if (!emailPattern.test(region.email)) {
+    if (region.whatsapp && region.whatsapp.replace(/\D/g, "").length < 5) {
+      throw new Error(`${label} needs a valid WhatsApp number.`);
+    }
+    if (region.email && !emailPattern.test(region.email)) {
       throw new Error(`${label} has an invalid email address.`);
     }
   });
@@ -434,8 +441,16 @@ function validateContactContent(contact: ContactPageContent) {
 
 export async function saveContactDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    for (const [field, limit] of [["department_count", 100], ["contact_count", 500]] as const) {
+      const count = Number(formData.get(field));
+      if (!Number.isInteger(count) || count < 0 || count > limit) throw new Error("Too many or invalid team entries.");
+    }
     const contact: ContactPageContent = {
-      title: stringValue(formData, "title"),
+      departments: indexesFromCount(formData, "department_count", 0).map((index) => ({
+        id: stringValue(formData, `department_${index}_id`).trim(),
+        name: stringValue(formData, `department_${index}_name`).trim()
+      })),
+      title: stringValue(formData, "title").trim(),
       subtitle: stringValue(formData, "subtitle"),
       regions: parseContactRegions(formData),
       ctaText: stringValue(formData, "ctaText"),
@@ -445,21 +460,21 @@ export async function saveContactDraftAction(_: ActionState, formData: FormData)
 
     validateContactContent(contact);
 
-    return finalizeSettingSave({
+    return await finalizeSettingSave({
       formData,
       key: "site.contact",
       fallback: defaultContactPageContent,
       value: contact,
-      draftMessage: "Contact Us draft saved.",
-      publishedMessage: "Contact Us page published."
+      draftMessage: "Team draft saved.",
+      publishedMessage: "Team page published."
     });
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "Failed to save Contact Us page." };
+    return { error: error instanceof Error ? error.message : "Failed to save Team page." };
   }
 }
 
 export async function publishContactAction(_: ActionState, _formData: FormData) {
-  return publishSettingAction("site.contact", defaultContactPageContent, "Contact Us page published.");
+  return publishSettingAction("site.contact", defaultContactPageContent, "Team page published.");
 }
 
 export async function saveHeroDraftAction(_: ActionState, formData: FormData): Promise<ActionState> {

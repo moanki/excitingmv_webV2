@@ -28,6 +28,8 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      { source: "/contact", destination: "/team", permanent: true },
+      { source: "/admin/settings/contact", destination: "/admin/settings/team", permanent: true },
       {
         source: "/favicon.ico",
         destination: "/icon.svg",

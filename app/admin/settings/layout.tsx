@@ -11,7 +11,7 @@ const sections = [
   { label: "Navbar", href: "/admin/settings/navbar", icon: Menu },
   { label: "Footer", href: "/admin/settings/footer", icon: PanelBottom },
   { label: "WhatsApp", href: "/admin/settings/whatsapp", icon: MessageCircle },
-  { label: "Contact", href: "/admin/settings/contact", icon: Contact },
+  { label: "Team", href: "/admin/settings/team", icon: Contact },
   { label: "Primary Markets", href: "/admin/settings/markets", icon: Globe2 },
   { label: "Notifications", href: "/admin/settings/notifications", icon: Bell },
   { label: "Admin Login", href: "/admin/settings/admin-login", icon: KeyRound }

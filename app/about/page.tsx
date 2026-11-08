@@ -21,7 +21,7 @@ function Cta({ href, children, variant = "gold" }: { href: string; children: Rea
   }
 
   return (
-    <Link href={href || "/contact"} className={className}>
+    <Link href={href || "/team"} className={className}>
       {children}
     </Link>
   );
@@ -276,7 +276,7 @@ export default async function AboutPage() {
           </div>
           <div className="about-company-cta__actions">
             <Cta href={content.cta.primaryCtaHref || "#partner"}>{content.cta.primaryCtaLabel || "Become a Partner"}</Cta>
-            <Cta href={content.cta.secondaryCtaHref || "/contact"} variant="light">
+            <Cta href={content.cta.secondaryCtaHref || "/team"} variant="light">
               {content.cta.secondaryCtaLabel || "Contact Us"}
             </Cta>
           </div>

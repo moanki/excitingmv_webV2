@@ -62,7 +62,7 @@ export function ServicesParallax({ services, imageUrl }: ServicesParallaxProps) 
 
         <div className="services-editorial__cta">
           <span>Need support for a Maldives booking?</span>
-          <a href="/contact">
+          <a href="/team">
             Speak to our team
             <ArrowRight size={17} aria-hidden="true" />
           </a>

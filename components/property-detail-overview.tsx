@@ -3,7 +3,9 @@ import type { CSSProperties } from "react";
 import {
   Accessibility,
   ArrowLeft,
+  Armchair,
   Baby,
+  Bath,
   BedDouble,
   BottleWine,
   Car,
@@ -20,7 +22,6 @@ import {
   Plane,
   Sailboat,
   Share2,
-  ShieldCheck,
   ShipWheel,
   Sparkles,
   TreePalm,
@@ -55,36 +56,34 @@ type PropertyDetailOverviewProps = {
   roomsLabel?: string;
 };
 
-type CuratedCategory = {
-  label: string;
-  terms: string[];
+type AmenityIconRule = {
+  terms: RegExp;
   Icon: LucideIcon;
 };
 
-const curatedIconRules: CuratedCategory[] = [
-  { label: "Connectivity", terms: ["wifi", "internet"], Icon: Wifi },
-  { label: "Spa", terms: ["spa", "massage", "sauna", "steam", "therapy"], Icon: Flower2 },
-  { label: "Wellness", terms: ["wellness", "yoga", "meditation", "relaxation"], Icon: HeartPulse },
-  { label: "Fitness", terms: ["fitness", "gym", "training"], Icon: Dumbbell },
-  { label: "Pools & Lagoon", terms: ["pool", "beach", "lagoon", "private beach", "sundeck"], Icon: Waves },
-  { label: "Diving & Marine", terms: ["snorkel", "dive", "diving", "reef", "marine", "house reef"], Icon: Waves },
-  { label: "Access", terms: ["wheelchair", "accessible", "disabled", "grab rails"], Icon: Accessibility },
-  { label: "Family", terms: ["kid", "family", "child", "children", "club", "babysitting"], Icon: Baby },
-  { label: "Restaurants", terms: ["restaurant", "dining", "breakfast", "meal", "food"], Icon: Utensils },
-  { label: "Culinary", terms: ["chef", "culinary", "kitchen"], Icon: ChefHat },
-  { label: "Bars", terms: ["bar", "wine", "cocktail", "champagne"], Icon: BottleWine },
-  { label: "Cafes", terms: ["coffee", "cafe"], Icon: Coffee },
-  { label: "Transfers", terms: ["seaplane", "plane", "transfer", "airport", "car", "taxi"], Icon: Plane },
-  { label: "Boating", terms: ["boat", "yacht", "liveaboard", "charter", "sail", "cruise"], Icon: Sailboat },
-  { label: "Guest Services", terms: ["front desk", "concierge", "butler", "jadugar", "service", "room service"], Icon: ConciergeBell },
-  { label: "Island Life", terms: ["garden", "island", "palm", "terrace", "outdoor", "cycling", "bike"], Icon: TreePalm },
-  { label: "Experiences", terms: ["anchor", "excursion", "activity", "experience", "adventure"], Icon: ShipWheel },
-  { label: "Essentials", terms: ["24-hour", "24 hour", "open", "clock"], Icon: Clock }
+const curatedIconRules: AmenityIconRule[] = [
+  { terms: /\b(wi[ -]?fi|wireless|internet)\b/i, Icon: Wifi },
+  { terms: /\b(spas?|massages?|saunas?|steam|therapy)\b/i, Icon: Flower2 },
+  { terms: /\b(wellness|yoga|meditation|relaxation)\b/i, Icon: HeartPulse },
+  { terms: /\b(fitness|gyms?|training)\b/i, Icon: Dumbbell },
+  { terms: /\b(pools?|beaches?|lagoon|sundeck)\b/i, Icon: Waves },
+  { terms: /\b(snorkel(l?ing)?|diving|dive|reefs?|marine)\b/i, Icon: Waves },
+  { terms: /\b(wheelchair|accessib(le|ility)|disabled|grab rails)\b/i, Icon: Accessibility },
+  { terms: /\b(baths?|bathroom|shower|toilet)\b/i, Icon: Bath },
+  { terms: /\b(seating|sofa|living area|desk)\b/i, Icon: Armchair },
+  { terms: /\b(kids?|family|child|children|babysitting)\b/i, Icon: Baby },
+  { terms: /\b(restaurants?|dining|breakfast|meals?|food)\b/i, Icon: Utensils },
+  { terms: /\b(chefs?|culinary|kitchen)\b/i, Icon: ChefHat },
+  { terms: /\b(bars?|wine|cocktails?|champagne)\b/i, Icon: BottleWine },
+  { terms: /\b(coffee|caf[eé]s?)\b/i, Icon: Coffee },
+  { terms: /\b(seaplanes?|planes?|transfers?|airport|cars?|taxi)\b/i, Icon: Plane },
+  { terms: /\b(boats?|yachts?|liveaboard|charter|sailing|sail|cruises?)\b/i, Icon: Sailboat },
+  { terms: /\b(front desk|concierge|butler|jadugar|services?)\b/i, Icon: ConciergeBell },
+  { terms: /\b(gardens?|island|palm|terrace|outdoor|cycling|bikes?)\b/i, Icon: TreePalm },
+  { terms: /\b(anchor|excursions?|activities|activity|experiences?|adventures?)\b/i, Icon: ShipWheel },
+  { terms: /\b(24[ -]hour|open|clock)\b/i, Icon: Clock }
 ];
-const fallbackCuratedCategory: CuratedCategory = { label: "Signature Details", terms: [], Icon: ShieldCheck };
-const initialCuratedGroupLimit = 5;
-const initialCuratedItemsPerGroup = 4;
-const curatedCategoryOrder = new Map(curatedIconRules.map((category, index) => [category.label, index]));
+const initialCuratedItemLimit = 20;
 
 function cleanText(value: string | undefined) {
   return value?.trim() ?? "";
@@ -115,78 +114,32 @@ function splitOverviewCopy(copy: string) {
 }
 
 function iconForMoment(item: ResortCuratedMoment) {
-  return categoryForMoment(item).Icon;
+  return curatedIconRules.find((rule) => rule.terms.test(item.title))?.Icon
+    ?? curatedIconRules.find((rule) => rule.terms.test(item.description ?? ""))?.Icon
+    ?? Sparkles;
 }
 
-function categoryForMoment(item: ResortCuratedMoment) {
-  const text = `${item.title} ${item.description}`.toLowerCase();
-  return curatedIconRules.find((rule) => rule.terms.some((term) => text.includes(term))) ?? fallbackCuratedCategory;
-}
-
-function groupCuratedMoments(items: ResortCuratedMoment[]) {
-  const grouped = new Map<string, { label: string; Icon: LucideIcon; items: ResortCuratedMoment[] }>();
-
-  for (const item of items) {
-    const category = categoryForMoment(item);
-    const group = grouped.get(category.label) ?? { label: category.label, Icon: category.Icon, items: [] };
-    group.items.push(item);
-    grouped.set(category.label, group);
-  }
-
-  return [...grouped.values()].sort(
-    (a, b) =>
-      (curatedCategoryOrder.get(a.label) ?? curatedIconRules.length) -
-      (curatedCategoryOrder.get(b.label) ?? curatedIconRules.length)
-  );
-}
-
-function splitCuratedGroups(groups: ReturnType<typeof groupCuratedMoments>) {
-  const initialGroups = groups.slice(0, initialCuratedGroupLimit).map((group) => ({
-    ...group,
-    items: group.items.slice(0, initialCuratedItemsPerGroup)
-  }));
-  const remainingGroups = [
-    ...groups.slice(0, initialCuratedGroupLimit)
-      .map((group) => ({ ...group, items: group.items.slice(initialCuratedItemsPerGroup) }))
-      .filter((group) => group.items.length),
-    ...groups.slice(initialCuratedGroupLimit)
-  ];
-
-  return { initialGroups, remainingGroups };
-}
-
-function CuratedGroups({ groups }: { groups: ReturnType<typeof groupCuratedMoments> }) {
+function CuratedAmenities({ items }: { items: ResortCuratedMoment[] }) {
   return (
-    <div className="property-detail-curated__groups">
-      {groups.map((group) => {
+    <ul className="property-detail-curated__list">
+      {items.map((item, index) => {
+        const Icon = iconForMoment(item);
         return (
-          <article className="property-detail-curated__group" key={group.label}>
-            <div className="property-detail-curated__group-heading">
-              <h3>{group.label}</h3>
-            </div>
-            <div className="property-detail-curated__chips">
-              {group.items.map((item, index) => {
-                const Icon = iconForMoment(item);
-                return (
-                  <span className="property-detail-curated__chip" key={`${item.title}-${index}`}>
-                    {item.iconUrl ? (
-                      <span
-                        className="property-detail-curated__uploaded-icon"
-                        style={{ "--curated-icon-url": `url(${item.iconUrl})` } as CSSProperties}
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <Icon size={15} aria-hidden="true" />
-                    )}
-                    {item.title}
-                  </span>
-                );
-              })}
-            </div>
-          </article>
+          <li className="property-detail-curated__item" key={`${item.title}-${index}`}>
+            {item.iconUrl ? (
+              <span
+                className="property-detail-curated__uploaded-icon"
+                style={{ "--curated-icon-url": `url(${item.iconUrl})` } as CSSProperties}
+                aria-hidden="true"
+              />
+            ) : (
+              <Icon size={18} aria-hidden="true" />
+            )}
+            <span>{item.title || item.description}</span>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }
 
@@ -208,9 +161,9 @@ export function PropertyDetailOverview({
     : "linear-gradient(135deg, #0b4a54 0%, #4fb7ba 48%, #f4f2ec 100%)";
   const visibleCuratedMoments = curatedMoments
     .map(displayCuratedMoment)
-    .filter((item) => item.title || item.description || item.iconUrl);
-  const curatedGroups = groupCuratedMoments(visibleCuratedMoments);
-  const { initialGroups: initialCuratedGroups, remainingGroups: remainingCuratedGroups } = splitCuratedGroups(curatedGroups);
+    .filter((item) => item.title || item.description);
+  const initialCuratedMoments = visibleCuratedMoments.slice(0, initialCuratedItemLimit);
+  const remainingCuratedMoments = visibleCuratedMoments.slice(initialCuratedItemLimit);
   const overviewParagraphs = splitOverviewCopy(overviewCopy);
 
   return (
@@ -278,11 +231,11 @@ export function PropertyDetailOverview({
               <h2 id="property-detail-curated-heading">What stands out here</h2>
               <p>A curated look at {name}'s most-loved amenities.</p>
             </div>
-            <CuratedGroups groups={initialCuratedGroups} />
-            {remainingCuratedGroups.length ? (
+            <CuratedAmenities items={initialCuratedMoments} />
+            {remainingCuratedMoments.length ? (
               <details className="property-detail-curated__more">
                 <summary>view more</summary>
-                <CuratedGroups groups={remainingCuratedGroups} />
+                <CuratedAmenities items={remainingCuratedMoments} />
               </details>
             ) : null}
           </div>
