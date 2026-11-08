@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 
 import { saveCatalogueSettingsAction } from "@/app/admin/settings/catalogue/actions";
 import { ActionMessage, SubmitButton } from "@/components/admin/action-feedback";
@@ -12,7 +13,7 @@ const catalogueLabels: Record<CatalogueKind, string> = {
   resorts: "Resorts Banner",
   hotels: "Hotels Banner",
   liveaboards: "Liveaboards Banner",
-  contact: "Contact Banner",
+  contact: "Team Banner",
   "travel-guide": "Travel Guide Banner"
 };
 
@@ -37,7 +38,14 @@ export function CatalogueSettingsForm({
           <div className="admin-form-section__header">
             <h2 className="admin-form-section__title">{catalogueLabels[kind]}</h2>
           </div>
-          <div className="form-grid">
+          {kind === "contact" ? (
+            <>
+              <p>Edit the page title and subtitle in <Link href="/admin/settings/team">Team settings</Link>.</p>
+              <input type="hidden" name="contactEyebrow" value={catalogues.contact.eyebrow} />
+              <input type="hidden" name="contactTitle" value={catalogues.contact.title} />
+              <input type="hidden" name="contactBody" value={catalogues.contact.body} />
+            </>
+          ) : <div className="form-grid">
             <label className="field field--full">
               <span className="field__label">Eyebrow</span>
               <input className="admin-input" name={`${kind}Eyebrow`} defaultValue={catalogues[kind].eyebrow ?? ""} />
@@ -50,7 +58,7 @@ export function CatalogueSettingsForm({
               <span className="field__label">Banner Description</span>
               <textarea className="admin-textarea" name={`${kind}Body`} defaultValue={catalogues[kind].body ?? ""} />
             </label>
-          </div>
+          </div>}
           <img
             className="catalogue-banner-preview"
             src={optimizedImageUrl(catalogues[kind].heroImageUrl, { width: 640, height: 240, quality: 82 })}

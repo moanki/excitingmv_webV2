@@ -32,7 +32,7 @@ export async function saveCatalogueSettingsAction(
       await publishSiteSetting(`catalogue.${kind}`, fallback);
     }));
 
-    ["/resorts", "/hotels", "/liveaboards", "/contact", "/travel-guide", "/admin/settings/catalogue"].forEach((path) => revalidatePath(path));
+    ["/resorts", "/hotels", "/liveaboards", "/team", "/travel-guide", "/admin/settings/catalogue"].forEach((path) => revalidatePath(path));
     return { message: "Catalogue banners published successfully." };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Failed to publish catalogue banners." };

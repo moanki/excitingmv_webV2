@@ -47,12 +47,12 @@ export function SiteNavbar({ navbar }: { navbar: NavbarContent }) {
     { label: "Home", href: "/", Icon: Home },
     { label: "Explore", href: "/resorts", Icon: Building2, activeRoutes: ["/resorts", "/hotels", "/liveaboards"] },
     { label: "Travel Guide", href: "/travel-guide", Icon: BookOpenText },
-    { label: "Contact", href: "/contact", Icon: Mail },
+    { label: "Team", href: "/team", Icon: Mail },
     { label: "Partner Login", href: partnerLoginHref, Icon: UserCircle, activeRoutes: ["/partner"] }
   ];
   const isExploreListing = /^\/(resorts|hotels|liveaboards)$/.test(pathname);
   const isPropertyDetail = /^\/(resorts|hotels|liveaboards)\/[^/]+/.test(pathname);
-  const isContactPage = pathname === "/contact";
+  const isContactPage = pathname === "/team";
   const hasMobileHero =
     pathname === "/"
     || pathname.startsWith("/resorts")
