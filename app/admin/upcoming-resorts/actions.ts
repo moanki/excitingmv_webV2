@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdminRole } from "@/lib/auth/require-admin";
-import { upcomingPageSchema } from "@/lib/upcoming-resorts";
+import { calendarValidationMessage, upcomingPageSchema } from "@/lib/upcoming-resorts";
 import { saveUpcomingResorts } from "@/lib/services/upcoming-resorts-service";
 
 export async function saveCalendarAction(_: { error?: string; message?: string; revision: string }, form: FormData): Promise<{ error?: string; message?: string; revision: string }> {
@@ -11,10 +11,11 @@ export async function saveCalendarAction(_: { error?: string; message?: string; 
     await requireAdminRole(["super_admin", "admin", "content_manager"]);
     const input = String(form.get("content") ?? "");
     if (input.length > 750000) throw new Error("This calendar is too large to save.");
-    const parsed = upcomingPageSchema.safeParse(JSON.parse(input));
+    const value = JSON.parse(input);
+    const parsed = upcomingPageSchema.safeParse(value);
     if (!parsed.success) {
       const issue = parsed.error.issues[0];
-      throw new Error(`${issue.path.join(" → ")}: ${issue.message}`);
+      throw new Error(calendarValidationMessage(issue, value));
     }
     const publish = form.get("intent") === "publish";
     const nextRevision = await saveUpcomingResorts(parsed.data, revision, publish);

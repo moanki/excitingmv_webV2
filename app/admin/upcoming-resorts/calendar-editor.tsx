@@ -50,7 +50,7 @@ export function CalendarEditor({ initial, revision, library }: { initial: Upcomi
     setContent((c) => ({ ...c, [key]: value }));
   }
   function updateResort<K extends keyof OpeningResort>(key: K, value: OpeningResort[K]) {
-    update("resorts", content.resorts.map((r) => r.id === selected ? { ...r, [key]: value } : r));
+    setContent((c) => ({ ...c, resorts: c.resorts.map((r) => r.id === selected ? { ...r, [key]: value } : r) }));
   }
   function pageField(key: keyof UpcomingPageContent, label: string, multiline = false, hint?: string) {
     return <Field key={key} label={label} value={String(content[key])} multiline={multiline} hint={hint} onChange={(value) => update(key, value)} />;

@@ -156,6 +156,7 @@ const navGroups: NavGroup[] = [
 ];
 
 const pageMeta: Record<string, { title: string; description: string }> = {
+  "/admin/upcoming-resorts": { title: "Upcoming Resorts", description: "Opening calendar and page content" },
   "/admin": {
     title: "Dashboard",
     description: ""
@@ -306,7 +307,11 @@ export function AdminShell({
   }
 
   return (
-    <div className="admin-shell">
+    <div className={`admin-shell${pathname === "/admin/upcoming-resorts" ? " is-calendar-editor" : ""}`}>
+      {pathname === "/admin/upcoming-resorts" && <details className="admin-calendar-mobile-nav">
+        <summary>Exciting Maldives · Admin navigation</summary>
+        <nav aria-label="Admin mobile navigation">{navGroups.flatMap((group) => group.items).map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}</nav>
+      </details>}
       <aside className="admin-sidebar">
         <div className="admin-brand-block">
           <Link href="/" className="admin-brand-row" aria-label="Go to Exciting Maldives website">

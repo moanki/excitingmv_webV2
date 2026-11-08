@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { upcomingPageSchema, openingSchema, openingStats, visibleOpenings, type UpcomingPageContent } from "../lib/upcoming-resorts";
+import { calendarValidationMessage, upcomingPageSchema, openingSchema, openingStats, visibleOpenings, type UpcomingPageContent } from "../lib/upcoming-resorts";
 
 const resort = {
   id: "one", sectionId: "year", name: "Test opening", atoll: "Raa Atoll", operator: "", openingYear: 2027,
@@ -42,4 +42,16 @@ test("statistics and public cards consistently exclude hidden resorts and hidden
   assert.equal(visibleOpenings({ ...c, sections: [{ ...content.sections[0], enabled: false }] }).length, 0);
   assert.equal(openingStats({ ...c, sections: [{ ...content.sections[0], enabled: false }] })[0].displayValue, "0");
   assert.equal(openingStats({ ...c, stats: [{ ...content.stats[0], value: "Around ten" }] })[0].displayValue, "Around ten");
+});
+
+test("validation errors identify the resort, visible field and recovery tab", () => {
+  const invalid = { ...content, resorts: [{ ...resort, launchDate: "2028-03-01" }] };
+  const result = upcomingPageSchema.safeParse(invalid);
+  assert.equal(result.success, false);
+  if (!result.success) {
+    const message = calendarValidationMessage(result.error.issues[0], invalid);
+    assert.match(message, /Test opening — Exact launch date/);
+    assert.match(message, /Open Resort openings/);
+    assert.doesNotMatch(message, /resorts → 0/);
+  }
 });

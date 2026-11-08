@@ -54,6 +54,32 @@ export type UpcomingPageContent = z.infer<typeof upcomingPageSchema>;
 export type OpeningResort = z.infer<typeof openingSchema>;
 export const UPCOMING_SETTING_KEY = "site.upcomingResorts";
 
+export function calendarValidationMessage(issue: z.ZodIssue, input: unknown) {
+  const page = input as Partial<UpcomingPageContent> | null;
+  const [group, index, field] = issue.path;
+  const names: Record<string, string> = {
+    name: "Resort name", atoll: "Atoll", operator: "Operator / developer", openingYear: "Opening year",
+    launchDate: "Exact launch date", dateLabel: "Date shown on page", status: "Status", highlights: "Highlights",
+    keyCount: "Number of keys", keysLabel: "Keys shown on card", officialUrl: "Official website URL",
+    sourceUrl: "Verified source URL", checkedOn: "Source checked on", sectionId: "Year section",
+    imageUrl: "Resort image", imageAlt: "Image description", imageCaption: "Photo / render credit",
+    title: "Main heading", seoTitle: "Search engine title", bannerUrl: "Banner image", label: "Label",
+    jumpLabel: "Jump navigation label", askLabel: "Ask our team link text", officialLabel: "Official website label",
+    sourceLabel: "Verified source label", dateMovedLabel: "Date moved badge", checkedLabel: "Source checked label",
+    emptyMessage: "No openings message"
+  };
+  if (group === "resorts" && typeof index === "number") {
+    const resort = page?.resorts?.[index];
+    return `${resort?.name || `Resort ${index + 1}`} — ${names[String(field)] || "Resort details"}: ${issue.message} Open Resort openings to correct it.`;
+  }
+  if (group === "sections" || group === "stats") {
+    const entry = typeof index === "number" ? page?.[group]?.[index] : null;
+    const title = entry && ("title" in entry ? entry.title : entry.label);
+    return `${title || (group === "sections" ? "Year sections" : "Statistics")}: ${issue.message} Open Years & statistics to correct it.`;
+  }
+  return `${names[String(group)] || "Page settings"}: ${issue.message} Check the corresponding page settings tab.`;
+}
+
 export function visibleOpenings(content: UpcomingPageContent) {
   const sections = new Set(content.sections.filter((s) => s.enabled).map((s) => s.id));
   return content.resorts.filter((resort) => resort.enabled && sections.has(resort.sectionId));
