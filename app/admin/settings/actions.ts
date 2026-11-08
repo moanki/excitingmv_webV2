@@ -7,6 +7,7 @@ import {
   defaultAboutPageContent,
   defaultAdminLoginContent,
   defaultContactPageContent,
+  getContactPageContent,
   defaultHomepageAwardsContent,
   defaultHomepageCeoContent,
   defaultFooterContent,
@@ -446,6 +447,9 @@ export async function saveContactDraftAction(_: ActionState, formData: FormData)
       if (!Number.isInteger(count) || count < 0 || count > limit) throw new Error("Too many or invalid team entries.");
     }
     const contact: ContactPageContent = {
+      heroImageUrl: formData.has("heroImageUrl")
+        ? normalizeSafeMediaUrl(stringValue(formData, "heroImageUrl"))
+        : (await getContactPageContent("draft")).content.heroImageUrl,
       departments: indexesFromCount(formData, "department_count", 0).map((index) => ({
         id: stringValue(formData, `department_${index}_id`).trim(),
         name: stringValue(formData, `department_${index}_name`).trim()
