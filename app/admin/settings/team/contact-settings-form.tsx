@@ -15,6 +15,7 @@ export function ContactSettingsForm({ contact, mediaLibrary }: {
   mediaLibrary: MediaLibraryItem[];
 }) {
   const [state, action, pending] = useActionState(saveContactDraftAction, undefined);
+  const [heroImageUrl, setHeroImageUrl] = useState(contact.heroImageUrl ?? "");
   const [page, setPage] = useState({ title: contact.title, subtitle: contact.subtitle, ctaText: contact.ctaText, ctaLabel: contact.ctaLabel, ctaHref: contact.ctaHref });
   const [departments, setDepartments] = useState(contact.departments);
   const [regions, setRegions] = useState(contact.regions.map((region, index) => ({ ...region, formKey: `contact-${index}` })));
@@ -49,6 +50,13 @@ export function ContactSettingsForm({ contact, mediaLibrary }: {
             <section className="te-section" aria-labelledby="te-page-title">
               <div className="te-section-heading"><h2 id="te-page-title">Page content</h2></div>
               <div className="te-section-body">
+                {heroImageUrl ? <img className="te-banner-preview"
+                  src={optimizedImageUrl(heroImageUrl, { width: 800, height: 400, quality: 82 })}
+                  alt="Team page banner preview" /> : null}
+                <MediaField label="Banner image" inputName="heroImageUrl" fileName="teamBannerFile"
+                  accept="image/png,image/jpeg,image/webp" value={heroImageUrl} onChange={setHeroImageUrl}
+                  folder="team/banner" library={mediaLibrary}
+                  helper="Upload a wide image or choose one from the media library. Recommended: 2200 × 1100 pixels. Save a draft to keep it private, or save & publish to update the website." />
                 <label className="field">Page title
                   <input name="title" value={page.title} onChange={(event) => setPage((value) => ({ ...value, title: event.target.value }))} required />
                 </label>

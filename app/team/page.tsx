@@ -26,7 +26,7 @@ export default async function ContactPage() {
     getCatalogueContent("contact")
   ]);
   const departments = groupTeamContacts(content.departments, content.regions);
-  const heroImageUrl = optimizedImageUrl(catalogue.heroImageUrl, { width: 2200, height: 1100, quality: 92 });
+  const heroImageUrl = optimizedImageUrl(content.heroImageUrl ?? catalogue.heroImageUrl, { width: 2200, height: 1100, quality: 92 });
 
   return (
     <main className="public-lux-page contact-registry-page team-directory">

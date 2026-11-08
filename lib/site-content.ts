@@ -218,6 +218,7 @@ export type ContactRegion = {
 
 export type ContactPageContent = {
   departments: TeamDepartment[];
+  heroImageUrl?: string;
   title: string;
   subtitle: string;
   regions: ContactRegion[];
@@ -1226,6 +1227,7 @@ function normalizeContactPageContent(settings: unknown): ContactPageContent {
 
   return {
     departments: normalizeTeamDepartments(source.departments),
+    heroImageUrl: source.heroImageUrl,
     title: !source.departments && ["Contact", "Contact Us"].includes(source.title ?? "")
       ? defaultContactPageContent.title
       : source.title || defaultContactPageContent.title,

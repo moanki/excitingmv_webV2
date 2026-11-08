@@ -27,9 +27,11 @@ test("collapsed contact editors keep the complete save payload and separate draf
     email: `contact${index}@example.com`, whatsapp: "+960 1234567", photoUrl: "", displayOrder: index + 1, enabled: true
   }));
   const html = renderToStaticMarkup(React.createElement(exports.ContactSettingsForm, {
-    contact: { title: "Meet Our Team", subtitle: "Our team", ctaText: "Contact us", ctaLabel: "Become a partner", ctaHref: "/partner/register", departments: defaultTeamDepartments, regions }, mediaLibrary: []
+    contact: { heroImageUrl: "https://example.com/current-banner.jpg", title: "Meet Our Team", subtitle: "Our team", ctaText: "Contact us", ctaLabel: "Become a partner", ctaHref: "/partner/register", departments: defaultTeamDepartments, regions }, mediaLibrary: []
   }));
   assert.match(html, /<h1>Team<\/h1>/);
+  assert.match(html, /name="heroImageUrl" value="https:\/\/example.com\/current-banner.jpg"/);
+  assert.match(html, /alt="Team page banner preview"/);
   assert.match(html, /name="department_count" value="4"/);
   assert.match(html, /name="contact_count" value="2"/);
   assert.equal((html.match(/data-contact-key=/g) ?? []).length, 2);

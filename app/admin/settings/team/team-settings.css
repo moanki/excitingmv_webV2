@@ -58,6 +58,7 @@
 }
 .admin-body .team-editor .te-section-heading h2 span { color: var(--te-muted); font-size: 13px; font-weight: 400; }
 .admin-body .team-editor .te-section-body { display: grid; gap: 16px; padding: 20px; }
+.admin-body .team-editor .te-banner-preview { width: 100%; aspect-ratio: 2 / 1; object-fit: cover; border-radius: 8px; }
 .admin-body .team-editor .field { display: grid; gap: 8px; min-width: 0; margin: 0; color: var(--te-ink); font-size: 13px !important; font-weight: 500; }
 .admin-body .team-editor .field input,
 .admin-body .team-editor .field select,

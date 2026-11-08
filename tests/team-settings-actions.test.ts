@@ -5,6 +5,7 @@ import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import * as departments from "../lib/team-departments";
 import * as policies from "../lib/site-policies";
+import { normalizeSafeMediaUrl } from "../lib/validations";
 
 test("team settings preserve legacy contacts, save drafts separately, publish assignments, and require admin access", async () => {
   const legacyContact = { regionTitle: "Europe", contactName: "Existing contact", role: "Sales", email: "existing@example.com", whatsapp: "+960 1234567", location: "", photoUrl: "", displayOrder: 1, enabled: true };
@@ -16,7 +17,7 @@ test("team settings preserve legacy contacts, save drafts separately, publish as
     "@/lib/team-departments": departments,
     "@/lib/site-policies": policies,
     "@/lib/homepage-services": {}, "@/lib/homepage-why-us": {}, "@/lib/homepage-awards": {},
-    "@/lib/validations": {}, "@/lib/storage/site-assets": {},
+    "@/lib/validations": { normalizeSafeMediaUrl }, "@/lib/storage/site-assets": {},
     "@/lib/auth/require-admin": { async requireAdminRole() { if (!authorized) throw new Error("Unauthorized."); } },
     "@/lib/supabase/admin": { createSupabaseAdminClient: () => ({ from: () => ({
       select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { value: structuredClone(stored) } }) }) }),
@@ -54,11 +55,29 @@ test("team settings preserve legacy contacts, save drafts separately, publish as
   assert.equal(departments.groupTeamContacts(published.departments, published.regions)[0].name, "Finance");
   assert(revalidated.includes("/team"));
 
+  form.set("heroImageUrl", "https://example.com/team-banner.jpg");
+  assert.equal((await actions.saveContactDraftAction(undefined, form)).message, "Team draft saved.");
+  assert.equal((await content.getContactPageContent("draft")).content.heroImageUrl, "https://example.com/team-banner.jpg");
+  assert.equal((await content.getContactPageContent()).content.heroImageUrl, undefined, "banner drafts stay private");
+  assert.equal((await actions.publishContactAction(undefined, new FormData())).message, "Team page published.");
+  assert.equal((await content.getContactPageContent()).content.heroImageUrl, "https://example.com/team-banner.jpg");
+  form.delete("heroImageUrl");
+  await actions.saveContactDraftAction(undefined, form);
+  assert.equal((await content.getContactPageContent("draft")).content.heroImageUrl, "https://example.com/team-banner.jpg", "older forms preserve the banner");
+  form.set("heroImageUrl", "javascript:alert(1)");
+  const beforeBadBanner = JSON.stringify(stored);
+  assert.match((await actions.saveContactDraftAction(undefined, form)).error, /https/);
+  assert.equal(JSON.stringify(stored), beforeBadBanner);
+  form.set("heroImageUrl", "");
+  await actions.saveContactDraftAction(undefined, form);
+  assert.equal((await content.getContactPageContent("draft")).content.heroImageUrl, "", "clearing remains explicit");
+
   form.set("intent", "publish");
   form.set("title", "Contact Us");
   form.set("department_1_name", "Accounts");
   assert.equal((await actions.saveContactDraftAction(undefined, form)).message, "Team page published.");
   assert.equal((await content.getContactPageContent()).content.title, "Contact Us", "admin titles remain editable after migration");
+  assert.equal((await content.getContactPageContent()).content.heroImageUrl, "");
   const beforeInvalid = JSON.stringify(stored);
   form.set("contact_0_departmentId", "missing");
   assert.match((await actions.saveContactDraftAction(undefined, form)).error, /existing department/);
