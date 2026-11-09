@@ -142,16 +142,16 @@
       "opening-ground": {
         "role": "neutral",
         "displayName": "Opening Ground",
-        "canonical": "#f8f5f0",
+        "canonical": "#f4f6f5",
         "tonalRamp": [
-          "oklch(15% 0.0018 80.72)",
-          "oklch(27% 0.0037 80.72)",
-          "oklch(39% 0.0055 80.72)",
-          "oklch(51% 0.0074 80.72)",
-          "oklch(63% 0.0074 80.72)",
-          "oklch(75% 0.0055 80.72)",
-          "oklch(87% 0.0030 80.72)",
-          "oklch(95% 0.0011 80.72)"
+          "oklch(15% .0007 165)",
+          "oklch(27% .0014 165)",
+          "oklch(39% .0021 165)",
+          "oklch(51% .0028 165)",
+          "oklch(63% .0028 165)",
+          "oklch(75% .0021 165)",
+          "oklch(87% .0011 165)",
+          "oklch(95% .0004 165)"
         ]
       },
       "opening-line": {
@@ -236,7 +236,7 @@
     "shadows": [
       {
         "name": "opening-marker-ring",
-        "value": "0 0 0 5px #f8f5f0",
+        "value": "0 0 0 5px #f4f6f5",
         "purpose": "Ground-colored ring separates the timeline marker from its vertical line."
       }
     ],
