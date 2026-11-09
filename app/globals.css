@@ -19945,11 +19945,16 @@ html {
   text-transform: uppercase !important;
 }
 
+.resort-detail-page {
+  --property-overview-heading-size: clamp(28px, 3vw, 36px);
+  --property-overview-copy-size: clamp(1rem, 1.2vw, 1.08rem);
+}
+
 .property-detail-overview > h2 {
   margin: 0;
   color: #123a58 !important;
   font-family: var(--font-sans), sans-serif !important;
-  font-size: clamp(28px, 3vw, 36px) !important;
+  font-size: var(--property-overview-heading-size) !important;
   font-weight: 800 !important;
   letter-spacing: 0 !important;
   line-height: 1.12 !important;
@@ -19973,7 +19978,7 @@ html {
   margin: 0;
   color: rgba(18, 58, 88, 0.7) !important;
   font-family: var(--font-sans), sans-serif !important;
-  font-size: clamp(1rem, 1.2vw, 1.08rem) !important;
+  font-size: var(--property-overview-copy-size) !important;
   font-weight: 400 !important;
   letter-spacing: 0 !important;
   line-height: 1.75 !important;
@@ -20229,6 +20234,30 @@ html {
   background-position: center;
   background-size: contain;
   background-repeat: no-repeat;
+}
+
+.resort-property-page .property-detail-curated .property-detail-curated__heading h2 {
+  font-size: var(--property-overview-heading-size);
+}
+
+.resort-property-page .property-detail-curated__heading p,
+.resort-property-page .property-detail-curated__item {
+  font-size: var(--property-overview-copy-size);
+  line-height: 1.75;
+}
+
+.resort-property-page .property-detail-curated__list {
+  gap: 1rem;
+}
+
+.resort-property-page .property-detail-curated__item {
+  gap: 0.75rem;
+}
+
+.resort-property-page .property-detail-curated__item :is(svg, .property-detail-curated__uploaded-icon) {
+  width: 20px;
+  height: 20px;
+  margin-top: 0.25rem;
 }
 
 .property-detail-curated__more {

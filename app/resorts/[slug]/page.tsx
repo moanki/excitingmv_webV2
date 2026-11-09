@@ -67,7 +67,7 @@ export default async function ResortDetailPage({
   const overviewCopy = propertyOverviewCopy(resort, "Discover a luxury island stay in the Maldives.");
 
   return (
-    <main className="resort-detail-page resort-story-page resort-story-page--resort">
+    <main className="resort-detail-page resort-story-page resort-story-page--resort resort-property-page">
       <PropertyDetailOverview
         actionLabel="resort"
         backHref="/resorts"
