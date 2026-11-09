@@ -19,22 +19,26 @@
   line-height: 1.15;
 }
 
-.opening-home__header h2 { margin: 0 0 8px; font-size: clamp(1.625rem, 2.7vw, 2.375rem); }
+.opening-home__header h2 { margin: 0 0 8px; font-size: clamp(1.65rem, 2.25vw, 2.15rem); }
 .opening-home__header p {
   max-width: 62ch;
   margin: 0;
   color: var(--opening-home-muted);
-  font-size: clamp(1rem, 1.2vw, 1.0625rem);
+  font-size: clamp(.92rem, .95vw, 1rem);
   line-height: 1.6;
 }
 .opening-home__header .opening-home__eyebrow {
   margin-bottom: 10px;
   color: var(--opening-home-gold);
-  font-size: .8125rem;
+  font-size: .75rem;
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
 }
+
+.mobile-v2-home .opening-home__header h2 { font-size: clamp(1.28rem, 5.8vw, 1.62rem); }
+.mobile-v2-home .opening-home__header p { font-size: .97rem; }
+.mobile-v2-home .opening-home__header .opening-home__eyebrow { font-size: .74rem; }
 
 .opening-home__gallery {
   display: grid;
