@@ -27,7 +27,8 @@ export default async function UpcomingResortsPage() {
       <div className="opening-hero__shade" />
       <div className="opening-wrap opening-hero__content">
         {c.eyebrow && <p className="opening-eyebrow">{c.eyebrow}</p>}
-        <h1>{c.title}{c.subtitle && <span>{c.subtitle}</span>}</h1>
+        <h1>{c.title}</h1>
+        {c.subtitle && <p className="opening-hero__subtitle">{c.subtitle}</p>}
         {c.description && <p className="opening-hero__description">{c.description}</p>}
         <nav className="opening-jumps" aria-label={c.jumpLabel}>
           {sections.map((s) => <a key={s.id} href={`#year-${s.id}`}>{s.jumpLabel || `${c.jumpLabel} ${s.title}`}<ArrowRight size={15} aria-hidden="true" /></a>)}

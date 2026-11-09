@@ -218,7 +218,7 @@
     "typographyMeta": {
       "opening-display": {
         "displayName": "Calendar display",
-        "purpose": "Public opening-calendar hero title; responsive sizes remain route scoped."
+        "purpose": "Public opening-calendar hero title, shared with the catalogue and Team banners."
       },
       "opening-card-title": {
         "displayName": "Resort title",

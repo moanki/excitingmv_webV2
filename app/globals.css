@@ -33,6 +33,7 @@
   html body:not(.admin-body) .guide-directory__featured h2,
   html body:not(.admin-body) .guide-directory__card h2,
   html body:not(.admin-body) .opening-guidance h2,
+  html body:not(.admin-body) .opening-year__heading h2,
   html body:not(.admin-body) .contact-registry-hero h1,
   html body:not(.admin-body) .contact-registry-cta h2,
   html body:not(.admin-body) .contact-team-department h2,
@@ -19081,6 +19082,7 @@ html {
 /* Shared public section title scale. */
 .contact-team-department h2,
 .opening-guidance h2,
+.opening-year__heading h2,
 .home-page .lux-section-heading h2,
 .home-page .market-editorial__copy h2,
 .home-page .services-editorial__heading h2,
@@ -29391,6 +29393,7 @@ html {
 
   html body:not(.admin-body) .portfolio-page .portfolio-hero .destination-hero__copy h1,
   html body:not(.admin-body) .reading-room__hero h1,
+  html body:not(.admin-body) .opening-hero h1,
   html body:not(.admin-body) .contact-registry-hero h1 {
     max-width: 760px;
     color: #fff !important;
@@ -29403,6 +29406,7 @@ html {
 
   html body:not(.admin-body) .portfolio-page .portfolio-hero .destination-hero__copy p:not(.lux-eyebrow),
   html body:not(.admin-body) .reading-room__hero span,
+  html body:not(.admin-body) .opening-hero__description,
   html body:not(.admin-body) .contact-registry-hero p:not(.lux-eyebrow) {
     max-width: 620px;
     color: rgb(255 255 255 / 84%) !important;

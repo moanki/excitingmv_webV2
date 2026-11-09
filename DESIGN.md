@@ -19,16 +19,15 @@ colors:
 typography:
   opening-display:
     fontFamily: "Playfair Display, Georgia, serif"
-    fontSize: "clamp(40px, 5.15vw, 83px)"
-    fontWeight: 400
-    lineHeight: 1.12
+    fontSize: "clamp(2.75rem, 4.2vw, 3.5rem)"
+    fontWeight: 100
+    lineHeight: 0.95
     letterSpacing: "-0.035em"
   opening-card-title:
     fontFamily: "Playfair Display, Georgia, serif"
-    fontSize: "clamp(25px, 2.15vw, 34px)"
-    fontWeight: 400
-    lineHeight: 1.17
-    letterSpacing: "-0.025em"
+    fontSize: "16.5px"
+    fontWeight: 500
+    lineHeight: 1.22
   opening-card-body:
     fontFamily: "Inter, sans-serif"
     fontSize: "14px"
@@ -88,15 +87,15 @@ The incumbent brand teal and gold remain global primitives. The calendar uses it
 
 ### Neutral
 
-Brand paper and navy remain the existing global values. The public calendar and guidance share the cool gray Resorts listing surface on desktop and mobile. Cards use white. The `cal-*` ink, muted text and line tokens belong to the calendar editor, whose sheets sit on the existing admin canvas.
+Brand paper and navy remain the existing global values. The calendar uses the cool gray Resorts listing surface on desktop and mobile, with white cards. Only the guidance band uses sandy beige (`#eee9d9`). The `cal-*` ink, muted text and line tokens belong to the calendar editor, whose sheets sit on the existing admin canvas.
 
 **The Scope Rule.** Apply opening and calendar-editor tokens only to their documented surfaces; retain existing page-specific palettes elsewhere.
 
 ## Typography
 
-`app/layout.tsx` loads Inter through `--font-sans` and Playfair Display through `--font-serif`. Calendar display, years, dates, statistics and resort names use the incumbent serif; descriptions, controls, sources and editor fields use the sans family.
+`app/layout.tsx` loads Inter through `--font-sans` and Playfair Display through `--font-serif`. The calendar banner uses the shared catalogue and Team title styles. Calendar dates, descriptions, controls, sources and editor fields use Inter. Year and guidance headings use the site's shared section styles; resort names use the catalogue's serif card scale.
 
-The display and card-title roles above describe desktop defaults. At widths up to 1000px, the hero title is 60px. At widths up to 650px, it is 42px with a 1.16 line height; resort titles are 29px. Editor text is 14px, with a 25px semibold toolbar title that becomes 22px up to 720px. Small source captions preserve full addresses and wrap anywhere rather than truncate.
+The display and card-title roles above describe desktop defaults. From 769px to 900px the banner title is 1.95rem. At widths up to 768px, it uses `clamp(1.72rem, 7.4vw, 2rem)` with a 1.06 line height; resort titles are 14px. Editor text is 14px, with a 25px semibold toolbar title that becomes 22px up to 720px. Small source captions preserve full addresses and wrap anywhere rather than truncate.
 
 ## Layout
 
