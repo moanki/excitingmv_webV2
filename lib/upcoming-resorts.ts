@@ -30,7 +30,12 @@ export const defaultUpcomingHomepage = {
   title: "Opening soon in the Maldives",
   description: "Track new resorts before they launch. Explore the latest opening targets and see which dates have moved.",
   viewAllLabel: "View all {count} openings",
-  exploreLabel: "Explore upcoming resorts"
+  exploreLabel: "Explore upcoming resorts",
+  openingsLabel: "openings tracked across {atolls} atolls",
+  keysLabel: "keys announced, approximate",
+  movedLabel: "dates have moved",
+  movedLinkLabel: "See what moved",
+  dateNote: "Dates are targets until the resort confirms an opening."
 };
 
 export const upcomingPageSchema = z.object({
@@ -44,7 +49,11 @@ export const upcomingPageSchema = z.object({
   sections: z.array(z.object({ id, title: required, description: text, jumpLabel: short, enabled: z.boolean() })).min(1).max(30),
   guidanceTitle: short, guidanceBody: text, ctaTitle: short, ctaBody: text, ctaLabel: short,
   disclaimer: text, resorts: z.array(openingSchema).max(150),
-  homepage: z.object({ title: required, description: text, viewAllLabel: required, exploreLabel: required }).optional()
+  homepage: z.object({
+    title: required, description: text, viewAllLabel: required, exploreLabel: required,
+    openingsLabel: required.optional(), keysLabel: required.optional(), movedLabel: required.optional(),
+    movedLinkLabel: required.optional(), dateNote: short.optional()
+  }).optional()
 }).superRefine((value, ctx) => {
   for (const [key, entries] of [["sections", value.sections], ["resorts", value.resorts], ["stats", value.stats]] as const) {
     if (new Set(entries.map((entry) => entry.id)).size !== entries.length)
@@ -97,14 +106,16 @@ export function featuredOpenings(content: UpcomingPageContent) {
   return content.enabled ? visibleOpenings(content).filter((resort) => resort.featuredOnHomepage) : [];
 }
 
-export function openingStats(content: UpcomingPageContent) {
-  const resorts = visibleOpenings(content);
-  const figures = {
+export function openingFigures(resorts: OpeningResort[]) {
+  return {
     openings: resorts.length,
     atolls: new Set(resorts.map((r) => r.atoll.trim().toLowerCase()).filter(Boolean)).size,
     keys: resorts.reduce((sum, resort) => sum + (resort.keyCount ?? 0), 0),
-    moved: resorts.filter((r) => r.dateMoved).length,
-    custom: ""
+    moved: resorts.filter((r) => r.dateMoved).length
   };
+}
+
+export function openingStats(content: UpcomingPageContent) {
+  const figures = { ...openingFigures(visibleOpenings(content)), custom: "" };
   return content.stats.map((stat) => ({ ...stat, displayValue: stat.value || String(figures[stat.metric]) }));
 }

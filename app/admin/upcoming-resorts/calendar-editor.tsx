@@ -155,7 +155,7 @@ function HomepageFeatureSettings({ content, update }: {
   content: UpcomingPageContent;
   update: <K extends keyof UpcomingPageContent>(key: K, value: UpcomingPageContent[K]) => void;
 }) {
-  const copy = content.homepage ?? defaultUpcomingHomepage;
+  const copy = { ...defaultUpcomingHomepage, ...content.homepage };
   const visibleIds = new Set(visibleOpenings(content).map((resort) => resort.id));
   const featured = featuredOpenings(content);
 
@@ -165,9 +165,14 @@ function HomepageFeatureSettings({ content, update }: {
       <p>Choose any number of resorts. Publish changes to show them on the homepage in the order listed here. With no visible selections, visitors see a link to the opening calendar.</p>
       <div className="cal-grid">
         <Field label="Section title" value={copy.title} onChange={(title) => update("homepage", { ...copy, title })} />
-        <Field label="View all button" value={copy.viewAllLabel} onChange={(viewAllLabel) => update("homepage", { ...copy, viewAllLabel })} hint="Use {count} for the number of published openings." />
+        <Field label="View all tile" value={copy.viewAllLabel} onChange={(viewAllLabel) => update("homepage", { ...copy, viewAllLabel })} hint="Use {count} for the number of published openings." />
         <Field label="Section introduction" value={copy.description} onChange={(description) => update("homepage", { ...copy, description })} multiline />
         <Field label="Link when no resorts are featured" value={copy.exploreLabel} onChange={(exploreLabel) => update("homepage", { ...copy, exploreLabel })} />
+        <Field label="Openings tile caption" value={copy.openingsLabel} onChange={(openingsLabel) => update("homepage", { ...copy, openingsLabel })} hint="Use {atolls} for the number of atolls." />
+        <Field label="Keys tile caption" value={copy.keysLabel} onChange={(keysLabel) => update("homepage", { ...copy, keysLabel })} />
+        <Field label="Moved dates tile caption" value={copy.movedLabel} onChange={(movedLabel) => update("homepage", { ...copy, movedLabel })} />
+        <Field label="Moved dates link" value={copy.movedLinkLabel} onChange={(movedLinkLabel) => update("homepage", { ...copy, movedLinkLabel })} />
+        <Field label="Opening dates note" value={copy.dateNote} onChange={(dateNote) => update("homepage", { ...copy, dateNote })} />
       </div>
       <h3>{featured.length} visible on the homepage after publishing</h3>
       {!content.enabled && <p>Enable the public calendar in Page settings to show the homepage section.</p>}
