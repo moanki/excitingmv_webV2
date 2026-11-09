@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { calendarValidationMessage, featuredOpenings, upcomingPageSchema, openingSchema, openingStats, visibleOpenings, type UpcomingPageContent } from "../lib/upcoming-resorts";
+import { calendarValidationMessage, defaultUpcomingHomepage, featuredOpenings, homepageImagePosition, upcomingPageSchema, openingSchema, openingStats, visibleOpenings, type UpcomingPageContent } from "../lib/upcoming-resorts";
 
 const resort = {
   id: "one", sectionId: "year", name: "Test opening", atoll: "Raa Atoll", operator: "", openingYear: 2027,
@@ -72,4 +72,23 @@ test("homepage features are opt-in, keep calendar order and respect published vi
   });
   assert.deepEqual(featuredOpenings(calendar).map((entry) => entry.id), selected.map((entry) => entry.id));
   assert.deepEqual(featuredOpenings({ ...calendar, enabled: false }), []);
+});
+
+test("published homepage order and focal points are independent of the opening calendar", () => {
+  const calendar = upcomingPageSchema.parse({
+    ...content,
+    homepage: { ...defaultUpcomingHomepage, featuredOrder: ["second", "hidden", "missing", "one"] },
+    resorts: [
+      { ...resort, featuredOnHomepage: true },
+      { ...resort, id: "second", featuredOnHomepage: true, homepageFocalPoint: { x: 25, y: 80 } },
+      { ...resort, id: "third", featuredOnHomepage: true },
+      { ...resort, id: "hidden", enabled: false, featuredOnHomepage: true },
+    ]
+  });
+  assert.deepEqual(visibleOpenings(calendar).map((entry) => entry.id), ["one", "second", "third"]);
+  const featured = featuredOpenings(calendar);
+  assert.deepEqual(featured.map((entry) => entry.id), ["second", "one", "third"]);
+  assert.equal(homepageImagePosition(featured[0].homepageFocalPoint), "25% 80%");
+  assert.equal(homepageImagePosition(featured[1].homepageFocalPoint), "50% 50%");
+  assert.equal(openingSchema.safeParse({ ...resort, homepageFocalPoint: { x: 101, y: 50 } }).success, false);
 });

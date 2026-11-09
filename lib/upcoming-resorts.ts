@@ -23,7 +23,8 @@ export const openingSchema = z.object({
   dateLabel: required, status: required, dateMoved: z.boolean(), note: text,
   highlights: text, keyCount: z.number().int().min(0).max(10000).nullable(), keysLabel: short,
   imageUrl: url, imageAlt: short, imageCaption: short, officialUrl: url, sourceUrl: url,
-  checkedOn: date, enabled: z.boolean(), featuredOnHomepage: z.boolean().optional()
+  checkedOn: date, enabled: z.boolean(), featuredOnHomepage: z.boolean().optional(),
+  homepageFocalPoint: z.object({ x: z.number().int().min(0).max(100), y: z.number().int().min(0).max(100) }).optional()
 });
 
 export const defaultUpcomingHomepage = {
@@ -49,7 +50,8 @@ export const upcomingPageSchema = z.object({
   homepage: z.object({
     title: required, description: text, viewAllLabel: required, exploreLabel: required,
     eyebrow: short.optional(), openingsLabel: required.optional(), keysLabel: required.optional(), movedLabel: required.optional(),
-    movedLinkLabel: required.optional(), dateNote: short.optional()
+    movedLinkLabel: required.optional(), dateNote: short.optional(),
+    featuredOrder: z.array(id).max(150).optional()
   }).optional()
 }).superRefine((value, ctx) => {
   for (const [key, entries] of [["sections", value.sections], ["resorts", value.resorts], ["stats", value.stats]] as const) {
@@ -67,6 +69,11 @@ export const upcomingPageSchema = z.object({
 export type UpcomingPageContent = z.infer<typeof upcomingPageSchema>;
 export type OpeningResort = z.infer<typeof openingSchema>;
 export const UPCOMING_SETTING_KEY = "site.upcomingResorts";
+export const defaultHomepageFocalPoint = { x: 50, y: 50 };
+
+export function homepageImagePosition({ x, y } = defaultHomepageFocalPoint) {
+  return `${x}% ${y}%`;
+}
 
 export function calendarValidationMessage(issue: z.ZodIssue, input: unknown) {
   const page = input as Partial<UpcomingPageContent> | null;
@@ -82,6 +89,10 @@ export function calendarValidationMessage(issue: z.ZodIssue, input: unknown) {
     sourceLabel: "Verified source label", dateMovedLabel: "Date moved badge", checkedLabel: "Source checked label",
     emptyMessage: "No openings message"
   };
+  if (group === "resorts" && field === "homepageFocalPoint")
+    return `${page?.resorts?.[Number(index)]?.name || "Resort"} — Image focal point: ${issue.message} Open Feature on homepage to correct it.`;
+  if (group === "homepage")
+    return `Homepage settings: ${issue.message} Open Feature on homepage to correct it.`;
   if (group === "resorts" && typeof index === "number") {
     const resort = page?.resorts?.[index];
     return `${resort?.name || `Resort ${index + 1}`} — ${names[String(field)] || "Resort details"}: ${issue.message} Open Resort openings to correct it.`;
@@ -100,7 +111,11 @@ export function visibleOpenings(content: UpcomingPageContent) {
 }
 
 export function featuredOpenings(content: UpcomingPageContent) {
-  return content.enabled ? visibleOpenings(content).filter((resort) => resort.featuredOnHomepage) : [];
+  if (!content.enabled) return [];
+  const resorts = visibleOpenings(content).filter((resort) => resort.featuredOnHomepage);
+  const order = content.homepage?.featuredOrder ?? [];
+  const positions = new Map(order.map((id, index) => [id, index]));
+  return resorts.sort((a, b) => (positions.get(a.id) ?? order.length) - (positions.get(b.id) ?? order.length));
 }
 
 export function openingFigures(resorts: OpeningResort[]) {

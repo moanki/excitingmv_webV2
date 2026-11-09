@@ -24,6 +24,23 @@
 
 .cal-homepage-list li { border-bottom: 1px solid var(--cal-line); }
 .cal-homepage-list .cal-toggle { min-height: 58px; padding: 10px 4px; cursor: pointer; }
-.cal-homepage-list .cal-toggle:has(input:checked) { background: #edf3f1; }
+.cal-homepage-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-inline: 4px; }
+.cal-homepage-row:has(input:checked) { background: #edf3f1; }
 .cal-homepage-list .cal-toggle span { display: grid; gap: 3px; min-width: 0; overflow-wrap: anywhere; }
 .cal-homepage-list small { color: var(--cal-muted); font-size: 12px; }
+
+.cal-homepage-crop { padding: 0 8px; }
+.cal-homepage-crop summary { width: fit-content; padding: 12px 0; color: var(--cal-ink); cursor: pointer; }
+.cal-homepage-crop__editor {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 18px;
+  align-items: start;
+  padding: 4px 0 16px;
+}
+.cal-homepage-crop__previews { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
+.cal-homepage-crop__previews img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; }
+.cal-homepage-crop__previews img + img { aspect-ratio: 4 / 5; }
+.cal-homepage-crop__editor p { margin: 0 0 8px; color: var(--cal-muted); font-size: 12px; }
+.cal-homepage-crop__editor label { display: grid; grid-template-columns: 75px minmax(0, 1fr); align-items: center; min-height: 40px; }
+.cal-homepage-crop__editor input { width: 100%; accent-color: #266d65; }

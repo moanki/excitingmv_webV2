@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowUp, Copy, ExternalLink, Plus, Trash2 } from "lucide-react";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
-import { defaultUpcomingHomepage, featuredOpenings, visibleOpenings, type OpeningResort, type UpcomingPageContent } from "@/lib/upcoming-resorts";
+import { defaultHomepageFocalPoint, defaultUpcomingHomepage, featuredOpenings, homepageImagePosition, visibleOpenings, type OpeningResort, type UpcomingPageContent } from "@/lib/upcoming-resorts";
 import { saveCalendarAction } from "./actions";
 
 function Field({ label, value, onChange, multiline = false, type = "text", hint, required = false }: {
@@ -50,7 +50,14 @@ export function CalendarEditor({ initial, revision, library }: { initial: Upcomi
     setContent((c) => ({ ...c, [key]: value }));
   }
   function updateResort<K extends keyof OpeningResort>(key: K, value: OpeningResort[K]) {
-    setContent((c) => ({ ...c, resorts: c.resorts.map((r) => r.id === selected ? { ...r, [key]: value } : r) }));
+    setContent((c) => ({
+      ...c,
+      resorts: c.resorts.map((r) => r.id === selected ? {
+        ...r,
+        [key]: value,
+        homepageFocalPoint: key === "imageUrl" && value !== r.imageUrl ? undefined : r.homepageFocalPoint
+      } : r)
+    }));
   }
   function pageField(key: keyof UpcomingPageContent, label: string, multiline = false, hint?: string) {
     return <Field key={key} label={label} value={String(content[key])} multiline={multiline} hint={hint} onChange={(value) => update(key, value)} />;
@@ -157,12 +164,22 @@ function HomepageFeatureSettings({ content, update }: {
 }) {
   const copy = { ...defaultUpcomingHomepage, ...content.homepage };
   const visibleIds = new Set(visibleOpenings(content).map((resort) => resort.id));
-  const featured = featuredOpenings(content);
+  const featured = featuredOpenings({ ...content, enabled: true });
+  const positions = new Map(featured.map((resort, index) => [resort.id, index]));
+  const resorts = [...featured, ...content.resorts.filter((resort) => !positions.has(resort.id))];
+
+  function updateGalleryResort(id: string, patch: Partial<OpeningResort>) {
+    update("resorts", content.resorts.map((resort) => resort.id === id ? { ...resort, ...patch } : resort));
+  }
+
+  function moveFeatured(index: number, offset: number) {
+    update("homepage", { ...copy, featuredOrder: move(featured, index, offset).map((resort) => resort.id) });
+  }
 
   return (
     <div className="cal-settings">
       <h2>Feature on homepage</h2>
-      <p>Choose any number of resorts. Publish changes to show them on the homepage in the order listed here. With no visible selections, visitors see a link to the opening calendar.</p>
+      <p>Choose the resorts to feature and use the arrows to set their gallery order. The first resort leads the gallery. Adjust the photo crop for each image, then publish your changes.</p>
       <div className="cal-grid">
         <Field label="Section title" value={copy.title} onChange={(title) => update("homepage", { ...copy, title })} />
         <Field label="View all link" value={copy.viewAllLabel} onChange={(viewAllLabel) => update("homepage", { ...copy, viewAllLabel })} hint="Use {count} to include the number of published openings." />
@@ -171,32 +188,66 @@ function HomepageFeatureSettings({ content, update }: {
         <Field label="Link when no resorts are featured" value={copy.exploreLabel} onChange={(exploreLabel) => update("homepage", { ...copy, exploreLabel })} />
         <Field label="Openings summary caption" value={copy.openingsLabel} onChange={(openingsLabel) => update("homepage", { ...copy, openingsLabel })} hint="Use {atolls} for the number of atolls." />
       </div>
-      <h3>{featured.length} visible on the homepage after publishing</h3>
+      <h3>{content.enabled ? featured.length : 0} visible on the homepage after publishing</h3>
       {!content.enabled && <p>Enable the public calendar in Page settings to show the homepage section.</p>}
       {content.resorts.length === 0 && <p>Add a resort in Resort openings to feature it here.</p>}
       <ul className="cal-homepage-list" aria-label="Select upcoming resorts to feature">
-        {content.resorts.map((resort) => (
+        {resorts.map((resort) => {
+          const index = positions.get(resort.id);
+          return (
           <li key={resort.id}>
-            <label className="cal-toggle">
-              <input
-                type="checkbox"
-                checked={Boolean(resort.featuredOnHomepage)}
-                onChange={(event) => update("resorts", content.resorts.map((item) => item.id === resort.id
-                  ? { ...item, featuredOnHomepage: event.target.checked }
-                  : item))}
-              />
-              <span>
-                <strong>{resort.name}</strong>
-                <small>{[
-                  resort.dateLabel,
-                  !visibleIds.has(resort.id) && "Hidden from calendar",
-                  resort.featuredOnHomepage && "Featured",
-                ].filter(Boolean).join(" · ")}</small>
-              </span>
-            </label>
+            <div className="cal-homepage-row">
+              <label className="cal-toggle">
+                <input
+                  type="checkbox"
+                  checked={Boolean(resort.featuredOnHomepage)}
+                  onChange={(event) => updateGalleryResort(resort.id, { featuredOnHomepage: event.target.checked })}
+                />
+                <span>
+                  <strong>{resort.name}</strong>
+                  <small>{[
+                    resort.dateLabel,
+                    !visibleIds.has(resort.id) && "Hidden from calendar",
+                    index === 0 ? "Lead photo" : index !== undefined && `Gallery position ${index + 1}`,
+                  ].filter(Boolean).join(" · ")}</small>
+                </span>
+              </label>
+              {index !== undefined && <div className="cal-icon-actions">
+                <button type="button" disabled={index === 0} aria-label={`Move ${resort.name} earlier in the gallery`} onClick={() => moveFeatured(index, -1)}><ArrowUp size={15} /></button>
+                <button type="button" disabled={index === featured.length - 1} aria-label={`Move ${resort.name} later in the gallery`} onClick={() => moveFeatured(index, 1)}><ArrowDown size={15} /></button>
+              </div>}
+            </div>
+            {resort.imageUrl && <HomepageFocalPoint resort={resort} onChange={(homepageFocalPoint) => updateGalleryResort(resort.id, { homepageFocalPoint })} />}
           </li>
-        ))}
+          );
+        })}
       </ul>
     </div>
+  );
+}
+
+function HomepageFocalPoint({ resort, onChange }: {
+  resort: OpeningResort;
+  onChange: (point: OpeningResort["homepageFocalPoint"]) => void;
+}) {
+  const point = resort.homepageFocalPoint ?? defaultHomepageFocalPoint;
+  const objectPosition = homepageImagePosition(point);
+
+  return (
+    <details className="cal-homepage-crop">
+      <summary aria-label={`Photo focal point for ${resort.name}`}>Photo focal point</summary>
+      <div className="cal-homepage-crop__editor">
+        <div className="cal-homepage-crop__previews" aria-hidden="true">
+          <img src={resort.imageUrl} alt="" loading="lazy" style={{ objectPosition }} />
+          <img src={resort.imageUrl} alt="" loading="lazy" style={{ objectPosition }} />
+        </div>
+        <div>
+          <p>Preview the same focal point in wide and portrait crops.</p>
+          <label>Horizontal <input type="range" min={0} max={100} value={point.x} aria-valuetext={`${point.x}% from left`} onChange={(event) => onChange({ ...point, x: event.target.valueAsNumber })} /></label>
+          <label>Vertical <input type="range" min={0} max={100} value={point.y} aria-valuetext={`${point.y}% from top`} onChange={(event) => onChange({ ...point, y: event.target.valueAsNumber })} /></label>
+          <button type="button" disabled={!resort.homepageFocalPoint} onClick={() => onChange(undefined)}>Reset to center</button>
+        </div>
+      </div>
+    </details>
   );
 }

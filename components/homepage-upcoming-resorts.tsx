@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { defaultUpcomingHomepage, featuredOpenings, openingFigures, visibleOpenings, type OpeningResort, type UpcomingPageContent } from "@/lib/upcoming-resorts";
+import { defaultUpcomingHomepage, featuredOpenings, homepageImagePosition, openingFigures, visibleOpenings, type OpeningResort, type UpcomingPageContent } from "@/lib/upcoming-resorts";
 import "./homepage-upcoming-resorts.css";
 
 const calendarPath = "/upcoming-resorts";
@@ -11,7 +11,7 @@ function OpeningPhoto({ resort }: { resort: OpeningResort }) {
   return (
     <article className="opening-home__photo">
       {resort.imageUrl && <div className="opening-home__media">
-        <img src={resort.imageUrl} alt={resort.imageAlt} loading="lazy" decoding="async" />
+        <img src={resort.imageUrl} alt={resort.imageAlt} loading="lazy" decoding="async" style={{ objectPosition: homepageImagePosition(resort.homepageFocalPoint) }} />
       </div>}
       <div className="opening-home__caption">
         <h3><Link href={`${calendarPath}#opening-${resort.id}`}>{resort.name}</Link></h3>
@@ -34,8 +34,8 @@ export function HomepageUpcomingResorts({ content }: { content: UpcomingPageCont
     </section>;
   }
 
-  const gallery = featured.slice(0, 3);
-  const additional = featured.slice(3);
+  const preset = Math.min(featured.length, 6);
+  const split = preset === 4 || preset === 5;
   const figures = openingFigures(visibleOpenings(content));
   const count = figures.openings.toLocaleString("en-GB");
   const atolls = figures.atolls.toLocaleString("en-GB");
@@ -50,12 +50,14 @@ export function HomepageUpcomingResorts({ content }: { content: UpcomingPageCont
           <h2>{copy.title}</h2>
           {copy.description && <p>{copy.description}</p>}
         </header>
-        <div className="opening-home__gallery" data-count={gallery.length}>
-          {gallery.map((resort) => <OpeningPhoto key={resort.id} resort={resort} />)}
+        <div className="opening-home__gallery" data-preset={preset} data-odd={featured.length % 2 === 1}>
+          {split ? <>
+            <OpeningPhoto resort={featured[0]} />
+            <div className="opening-home__companions">
+              {featured.slice(1).map((resort) => <OpeningPhoto key={resort.id} resort={resort} />)}
+            </div>
+          </> : featured.map((resort) => <OpeningPhoto key={resort.id} resort={resort} />)}
         </div>
-        {additional.length > 0 && <div className="opening-home__extras">
-          {additional.map((resort) => <OpeningPhoto key={resort.id} resort={resort} />)}
-        </div>}
         <footer className="opening-home__footer">
           <p>{summary}</p>
           <Link className="opening-home__link" href={calendarPath}>{viewAll}<ArrowRight size={18} aria-hidden="true" /></Link>
