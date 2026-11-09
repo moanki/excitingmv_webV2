@@ -66,7 +66,7 @@
 .opening-home__photo::before,
 .opening-home__select { position: absolute; inset: 0; }
 .opening-home__image {
-  z-index: -2;
+  z-index: -3;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -115,7 +115,6 @@
 .opening-home__caption h3 { margin: 0 0 6px; font-size: clamp(1.5rem, 2.8vw, 2.5rem); }
 .opening-home__caption a { color: inherit; text-decoration: none; pointer-events: auto; }
 .opening-home__caption a svg { display: inline-block; vertical-align: .05em; }
-.opening-home__caption a:hover { text-decoration: underline; text-underline-offset: 4px; }
 .opening-home__caption p { margin: 0; font-size: .875rem; line-height: 1.5; }
 
 .opening-home__footer {
@@ -138,6 +137,23 @@
 .opening-home--empty { padding-block: clamp(18px, 3vw, 38px); }
 
 .opening-home .opening-home__caption a:focus-visible { outline-color: var(--brand-white); }
+
+@media (hover: hover) and (pointer: fine) {
+  .opening-home__image { transition: transform 420ms cubic-bezier(.22, 1, .36, 1); }
+  .opening-home__photo:hover .opening-home__image { transform: scale(1.035); }
+  .opening-home__photo:where(:has(.opening-home__image))::after {
+    position: absolute;
+    inset: 48% 0 0;
+    z-index: -2;
+    opacity: 0;
+    backdrop-filter: blur(5px);
+    mask-image: linear-gradient(to top, #000, transparent);
+    transition: opacity 260ms ease-out;
+    content: "";
+    pointer-events: none;
+  }
+  .opening-home__photo:hover::after { opacity: 1; }
+}
 
 @media (max-width: 760px) {
   .opening-home { --opening-home-gap: 10px; }
@@ -164,5 +180,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .opening-home__photo { transition: none; }
+  .opening-home__photo,
+  .opening-home__image,
+  .opening-home__photo::after { transition: none; }
+  .opening-home__photo:hover .opening-home__image { transform: none; }
 }
