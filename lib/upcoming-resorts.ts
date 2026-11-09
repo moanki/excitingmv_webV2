@@ -27,15 +27,12 @@ export const openingSchema = z.object({
 });
 
 export const defaultUpcomingHomepage = {
+  eyebrow: "Opening watch",
   title: "Opening soon in the Maldives",
   description: "Track new resorts before they launch. Explore the latest opening targets and see which dates have moved.",
-  viewAllLabel: "View all {count} openings",
+  viewAllLabel: "View all openings",
   exploreLabel: "Explore upcoming resorts",
-  openingsLabel: "openings tracked across {atolls} atolls",
-  keysLabel: "keys announced, approximate",
-  movedLabel: "dates have moved",
-  movedLinkLabel: "See what moved",
-  dateNote: "Dates are targets until the resort confirms an opening."
+  openingsLabel: "openings across {atolls} atolls"
 };
 
 export const upcomingPageSchema = z.object({
@@ -51,7 +48,7 @@ export const upcomingPageSchema = z.object({
   disclaimer: text, resorts: z.array(openingSchema).max(150),
   homepage: z.object({
     title: required, description: text, viewAllLabel: required, exploreLabel: required,
-    openingsLabel: required.optional(), keysLabel: required.optional(), movedLabel: required.optional(),
+    eyebrow: short.optional(), openingsLabel: required.optional(), keysLabel: required.optional(), movedLabel: required.optional(),
     movedLinkLabel: required.optional(), dateNote: short.optional()
   }).optional()
 }).superRefine((value, ctx) => {
