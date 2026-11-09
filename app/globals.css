@@ -31,6 +31,7 @@
   html body:not(.admin-body) .guide-directory__feed-heading h2,
   html body:not(.admin-body) .guide-directory__featured h2,
   html body:not(.admin-body) .guide-directory__card h2,
+  html body:not(.admin-body) .opening-guidance h2,
   html body:not(.admin-body) .contact-registry-hero h1,
   html body:not(.admin-body) .contact-registry-cta h2,
   html body:not(.admin-body) .contact-team-department h2,
@@ -19076,8 +19077,9 @@ html {
   }
 }
 
-/* Shared homepage and team department section title scale. */
+/* Shared public section title scale. */
 .contact-team-department h2,
+.opening-guidance h2,
 .home-page .lux-section-heading h2,
 .home-page .market-editorial__copy h2,
 .home-page .services-editorial__heading h2,
@@ -19104,7 +19106,8 @@ html {
 .home-page .why-trust__intro > p,
 .home-page #prestigious-awards .lux-section-heading > p:not(.lux-eyebrow),
 .home-page #maldives-travel-guide .lux-section-heading > p:not(.lux-eyebrow),
-.home-page #stay-connected .lux-contact-copy > p:not(.lux-eyebrow) {
+.home-page #stay-connected .lux-contact-copy > p:not(.lux-eyebrow),
+.opening-guidance p {
   font-size: clamp(0.92rem, 0.95vw, 1rem) !important;
   font-weight: 300 !important;
   line-height: 1.7 !important;

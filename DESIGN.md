@@ -11,7 +11,7 @@ colors:
   opening-muted: "#526e70"
   opening-accent: "#137b7c"
   opening-gold: "#b89b53"
-  opening-ground: "#f7f4ee"
+  opening-ground: "#f8f5f0"
   opening-line: "#d9d2c6"
   cal-ink: "#203333"
   cal-muted: "#5d6c6d"
@@ -88,7 +88,7 @@ The incumbent brand teal and gold remain global primitives. The calendar uses it
 
 ### Neutral
 
-Brand paper and navy remain the existing global values. Opening ground and line provide the public calendar's warm paper and separators; white is the card surface. The `cal-*` ink, muted text and line tokens belong to the calendar editor, whose sheets sit on the existing admin canvas.
+Brand paper and navy remain the existing global values. The public calendar and guidance use shared brand paper on desktop and white on mobile; white is also the card surface. The `cal-*` ink, muted text and line tokens belong to the calendar editor, whose sheets sit on the existing admin canvas.
 
 **The Scope Rule.** Apply opening and calendar-editor tokens only to their documented surfaces; retain existing page-specific palettes elsewhere.
 
