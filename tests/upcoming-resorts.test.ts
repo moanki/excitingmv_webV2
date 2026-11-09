@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { calendarValidationMessage, upcomingPageSchema, openingSchema, openingStats, visibleOpenings, type UpcomingPageContent } from "../lib/upcoming-resorts";
+import { calendarValidationMessage, featuredOpenings, upcomingPageSchema, openingSchema, openingStats, visibleOpenings, type UpcomingPageContent } from "../lib/upcoming-resorts";
 
 const resort = {
   id: "one", sectionId: "year", name: "Test opening", atoll: "Raa Atoll", operator: "", openingYear: 2027,
@@ -54,4 +54,22 @@ test("validation errors identify the resort, visible field and recovery tab", ()
     assert.match(message, /Open Resort openings/);
     assert.doesNotMatch(message, /resorts → 0/);
   }
+});
+
+test("homepage features are opt-in, keep calendar order and respect published visibility", () => {
+  assert.deepEqual(featuredOpenings(upcomingPageSchema.parse(content)), []);
+  const selected = Array.from({ length: 12 }, (_, index) => ({
+    ...resort, id: `selected-${index}`, featuredOnHomepage: true
+  }));
+  const calendar = upcomingPageSchema.parse({
+    ...content,
+    sections: [...content.sections, { id: "hidden-year", title: "2028", description: "", jumpLabel: "", enabled: false }],
+    resorts: [
+      ...selected,
+      { ...resort, id: "hidden-resort", enabled: false, featuredOnHomepage: true },
+      { ...resort, id: "hidden-section", sectionId: "hidden-year", featuredOnHomepage: true }
+    ]
+  });
+  assert.deepEqual(featuredOpenings(calendar).map((entry) => entry.id), selected.map((entry) => entry.id));
+  assert.deepEqual(featuredOpenings({ ...calendar, enabled: false }), []);
 });

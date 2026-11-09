@@ -19,6 +19,7 @@ export async function saveCalendarAction(_: { error?: string; message?: string; 
     }
     const publish = form.get("intent") === "publish";
     const nextRevision = await saveUpcomingResorts(parsed.data, revision, publish);
+    if (publish) revalidatePath("/");
     revalidatePath("/upcoming-resorts");
     revalidatePath("/admin/upcoming-resorts");
     return { revision: nextRevision, message: publish ? "Calendar published. The page now shows your changes." : "Draft saved. The published page has not changed." };

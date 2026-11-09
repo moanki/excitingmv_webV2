@@ -14,3 +14,15 @@
   .admin-calendar-mobile-nav nav{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;padding-bottom:16px}
   .admin-calendar-mobile-nav a{display:flex;align-items:center;min-height:44px;color:white;text-decoration:none;font-size:13px}
 }
+
+.cal-homepage-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--cal-line);
+}
+
+.cal-homepage-list li { border-bottom: 1px solid var(--cal-line); }
+.cal-homepage-list .cal-toggle { min-height: 58px; padding: 10px 4px; cursor: pointer; }
+.cal-homepage-list .cal-toggle span { display: grid; gap: 3px; min-width: 0; overflow-wrap: anywhere; }
+.cal-homepage-list small { color: var(--cal-muted); font-size: 12px; }

@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowUp, Copy, ExternalLink, Plus, Trash2 } from "lucide-react";
 import { MediaField, type MediaLibraryItem } from "@/components/media-field";
-import { type OpeningResort, type UpcomingPageContent } from "@/lib/upcoming-resorts";
+import { defaultUpcomingHomepage, featuredOpenings, visibleOpenings, type OpeningResort, type UpcomingPageContent } from "@/lib/upcoming-resorts";
 import { saveCalendarAction } from "./actions";
 
 function Field({ label, value, onChange, multiline = false, type = "text", hint, required = false }: {
@@ -60,7 +60,7 @@ export function CalendarEditor({ initial, revision, library }: { initial: Upcomi
   }
   function addResort(duplicate?: OpeningResort) {
     const id = crypto.randomUUID();
-    const item: OpeningResort = duplicate ? { ...duplicate, id, name: `${duplicate.name} (copy)`, enabled: false } : {
+    const item: OpeningResort = duplicate ? { ...duplicate, id, name: `${duplicate.name} (copy)`, enabled: false, featuredOnHomepage: false } : {
       id, sectionId: content.sections[0].id, name: "Untitled resort", atoll: "", operator: "", openingYear: null,
       launchDate: "", dateLabel: "To be announced", status: "In development", dateMoved: false, note: "", highlights: "",
       keyCount: null, keysLabel: "", imageUrl: "", imageAlt: "", imageCaption: "", officialUrl: "", sourceUrl: "", checkedOn: "", enabled: false
@@ -84,7 +84,7 @@ export function CalendarEditor({ initial, revision, library }: { initial: Upcomi
       {result.message && !dirty && <div className="cal-feedback" role="status">{result.message}</div>}
       <div className="cal-intro">Edit the page here. Save a draft to keep changes private, or publish when ready. Dates are opening targets unless officially confirmed.</div>
       <div className="cal-tabs" role="tablist" aria-label="Calendar settings">{[
-        ["resorts", "Resort openings"], ["page", "Banner & introduction"], ["years", "Years & statistics"], ["copy", "Labels & guidance"], ["seo", "Page settings"]
+        ["resorts", "Resort openings"], ["page", "Banner & introduction"], ["years", "Years & statistics"], ["copy", "Labels & guidance"], ["seo", "Page settings"], ["homepage", "Feature on homepage"]
       ].map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={tab === id} aria-controls={`cal-${id}`} id={`tab-${id}`} onClick={() => setTab(id)}>{label}</button>)}</div>
       <fieldset disabled={pending} className="cal-content" id={`cal-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`}>
         {tab === "resorts" && <div className="cal-workspace">
@@ -145,7 +145,49 @@ export function CalendarEditor({ initial, revision, library }: { initial: Upcomi
           <h2 className="cal-subheading">Guidance & team invitation</h2><div className="cal-grid">{pageField("guidanceTitle", "Guidance heading")}{pageField("ctaTitle", "Team invitation heading")}{pageField("guidanceBody", "Guidance text", true)}{pageField("ctaBody", "Team invitation text", true)}{pageField("ctaLabel", "Team button text")}<div className="cal-wide">{pageField("disclaimer", "Opening date disclaimer", true)}</div></div>
         </div>}
         {tab === "seo" && <div className="cal-settings"><h2>Page settings</h2><label className="cal-toggle"><input type="checkbox" checked={content.enabled} onChange={(e) => update("enabled", e.target.checked)} /> Enable public calendar page</label><p>Turning this off and publishing hides the calendar. Your content stays saved.</p>{pageField("seoTitle", "Search engine title")}{pageField("seoDescription", "Search engine description", true)}<p>Header, navigation, footer and contact information use the existing <Link href="/admin/settings">Site settings</Link>.</p></div>}
+        {tab === "homepage" && <HomepageFeatureSettings content={content} update={update} />}
       </fieldset>
     </form>
   </section>;
+}
+
+function HomepageFeatureSettings({ content, update }: {
+  content: UpcomingPageContent;
+  update: <K extends keyof UpcomingPageContent>(key: K, value: UpcomingPageContent[K]) => void;
+}) {
+  const copy = content.homepage ?? defaultUpcomingHomepage;
+  const visibleIds = new Set(visibleOpenings(content).map((resort) => resort.id));
+  const featured = featuredOpenings(content);
+
+  return (
+    <div className="cal-settings">
+      <h2>Feature on homepage</h2>
+      <p>Choose any number of resorts. Publish changes to update the homepage. The first selected resort in the list gets the large card. With no visible selections, visitors see a link to the opening calendar.</p>
+      <div className="cal-grid">
+        <Field label="Section title" value={copy.title} onChange={(title) => update("homepage", { ...copy, title })} />
+        <Field label="View all button" value={copy.viewAllLabel} onChange={(viewAllLabel) => update("homepage", { ...copy, viewAllLabel })} hint="Use {count} for the number of published openings." />
+        <Field label="Section introduction" value={copy.description} onChange={(description) => update("homepage", { ...copy, description })} multiline />
+        <Field label="Link when no resorts are featured" value={copy.exploreLabel} onChange={(exploreLabel) => update("homepage", { ...copy, exploreLabel })} />
+      </div>
+      <h3>{featured.length} visible on the homepage after publishing</h3>
+      {!content.enabled && <p>Enable the public calendar in Page settings to show the homepage section.</p>}
+      {content.resorts.length === 0 && <p>Add a resort in Resort openings to feature it here.</p>}
+      <ul className="cal-homepage-list" aria-label="Select upcoming resorts to feature">
+        {content.resorts.map((resort) => (
+          <li key={resort.id}>
+            <label className="cal-toggle">
+              <input
+                type="checkbox"
+                checked={Boolean(resort.featuredOnHomepage)}
+                onChange={(event) => update("resorts", content.resorts.map((item) => item.id === resort.id
+                  ? { ...item, featuredOnHomepage: event.target.checked }
+                  : item))}
+              />
+              <span><strong>{resort.name}</strong><small>{[resort.dateLabel, !visibleIds.has(resort.id) && "Hidden from calendar", featured[0]?.id === resort.id && "Large card"].filter(Boolean).join(" · ")}</small></span>
+            </label>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }

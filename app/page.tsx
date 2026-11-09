@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, Building2, Clock3, Globe2, Headphones, MapPin, Search, Star } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { GlobalMarketMap } from "@/components/global-market-map";
+import { HomepageUpcomingResorts } from "@/components/homepage-upcoming-resorts";
 import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
 import { MobileFeaturedRetreatsCarousel } from "@/components/mobile-featured-retreats-carousel";
 import { PartnerModalButton } from "@/components/partner-modal-button";
@@ -9,6 +11,7 @@ import { ServicesParallax } from "@/components/services-parallax";
 import { WhyUsParallax } from "@/components/why-us-parallax";
 import { optimizedImageUrl } from "@/lib/image-urls";
 import { listHomepageFeaturedResorts } from "@/lib/services/resort-service";
+import { getUpcomingResorts } from "@/lib/services/upcoming-resorts-service";
 import { travelGuideReadTime } from "@/lib/travel-guide-utils";
 import type { ResortSummary } from "@/lib/types";
 import {
@@ -308,6 +311,7 @@ function MobileHomeV2({
   hero,
   navbar,
   stats,
+  openingPreview,
   resorts,
   ceo,
   story,
@@ -326,6 +330,7 @@ function MobileHomeV2({
   hero: Awaited<ReturnType<typeof getHomepageHeroContent>>["content"];
   navbar: NavbarContent;
   stats: HomepageStat[];
+  openingPreview: ReactNode;
   resorts: ResortSummary[];
   ceo: Awaited<ReturnType<typeof getHomepageCeoContent>>["content"];
   story: Awaited<ReturnType<typeof getHomepageStoryContent>>["content"];
@@ -436,6 +441,7 @@ function MobileHomeV2({
           </div>
         ))}
       </section>
+      {openingPreview}
 
       <section
         className="mv2-section mv2-section--white mv2-destination-panel"
@@ -640,7 +646,8 @@ export default async function HomePage() {
     { content: partner },
     { content: markets },
     { content: navbar },
-    resorts
+    resorts,
+    calendar
   ] = await Promise.all([
     getHomepageHeroContent("published"),
     getHomepageFeatures("published"),
@@ -655,7 +662,11 @@ export default async function HomePage() {
     getHomepagePartnerContent("published"),
     getMarketSettings("published"),
     getNavbarContent("published"),
-    listHomepageFeaturedResorts(5)
+    listHomepageFeaturedResorts(5),
+    getUpcomingResorts().catch((error: unknown) => {
+      console.error("Homepage opening calendar could not be loaded.", error);
+      return null;
+    })
   ]);
 
   const whyUs = whyUsContent.items;
@@ -675,6 +686,7 @@ export default async function HomePage() {
     : (featuredResorts.length ? featuredResorts.map((resort) => ({ name: resort.name, imageUrl: "" })) : defaultPartnerLogos.map((name) => ({ name, imageUrl: "" })));
   const featuredRetreatHeading = homepageHighlights[0];
   const heroImage = hero.mediaUrl || heroFallback;
+  const openingPreview = calendar ? <HomepageUpcomingResorts content={calendar.content} /> : null;
 
   return (
     <main className="home-page lux-home">
@@ -682,6 +694,7 @@ export default async function HomePage() {
         hero={hero}
         navbar={navbar}
         stats={stats}
+        openingPreview={openingPreview}
         resorts={featuredResorts}
         ceo={ceo}
         story={story}
@@ -830,6 +843,7 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+      {openingPreview}
 
       <section className="lux-section lux-section--sand services-editorial-section" id="destination-management">
         <ServicesParallax

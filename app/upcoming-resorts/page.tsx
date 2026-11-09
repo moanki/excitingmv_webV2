@@ -44,7 +44,7 @@ export default async function UpcomingResortsPage() {
         <ol className="opening-timeline">
           {resorts.filter((r) => r.sectionId === section.id).map((r) => {
             index += 1;
-            return <li className="opening-row" key={r.id}>
+            return <li className="opening-row" id={`opening-${r.id}`} key={r.id}>
               <div className="opening-date"><span className="opening-index">{String(index).padStart(2, "0")}</span>
                 <p>{r.launchDate ? <time dateTime={r.launchDate}>{r.dateLabel}</time> : r.dateLabel}</p>
                 {r.dateMoved && <span className="opening-moved">{c.dateMovedLabel}</span>}

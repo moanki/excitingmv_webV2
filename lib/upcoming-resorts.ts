@@ -23,8 +23,15 @@ export const openingSchema = z.object({
   dateLabel: required, status: required, dateMoved: z.boolean(), note: text,
   highlights: text, keyCount: z.number().int().min(0).max(10000).nullable(), keysLabel: short,
   imageUrl: url, imageAlt: short, imageCaption: short, officialUrl: url, sourceUrl: url,
-  checkedOn: date, enabled: z.boolean()
+  checkedOn: date, enabled: z.boolean(), featuredOnHomepage: z.boolean().optional()
 });
+
+export const defaultUpcomingHomepage = {
+  title: "Opening soon in the Maldives",
+  description: "Track new resorts before they launch. Explore the latest opening targets and see which dates have moved.",
+  viewAllLabel: "View all {count} openings",
+  exploreLabel: "Explore upcoming resorts"
+};
 
 export const upcomingPageSchema = z.object({
   enabled: z.boolean(), seoTitle: required, seoDescription: text,
@@ -36,7 +43,8 @@ export const upcomingPageSchema = z.object({
   stats: z.array(z.object({ id, label: required, metric: z.enum(["openings", "atolls", "keys", "moved", "custom"]), value: short })).max(6),
   sections: z.array(z.object({ id, title: required, description: text, jumpLabel: short, enabled: z.boolean() })).min(1).max(30),
   guidanceTitle: short, guidanceBody: text, ctaTitle: short, ctaBody: text, ctaLabel: short,
-  disclaimer: text, resorts: z.array(openingSchema).max(150)
+  disclaimer: text, resorts: z.array(openingSchema).max(150),
+  homepage: z.object({ title: required, description: text, viewAllLabel: required, exploreLabel: required }).optional()
 }).superRefine((value, ctx) => {
   for (const [key, entries] of [["sections", value.sections], ["resorts", value.resorts], ["stats", value.stats]] as const) {
     if (new Set(entries.map((entry) => entry.id)).size !== entries.length)
@@ -83,6 +91,10 @@ export function calendarValidationMessage(issue: z.ZodIssue, input: unknown) {
 export function visibleOpenings(content: UpcomingPageContent) {
   const sections = new Set(content.sections.filter((s) => s.enabled).map((s) => s.id));
   return content.resorts.filter((resort) => resort.enabled && sections.has(resort.sectionId));
+}
+
+export function featuredOpenings(content: UpcomingPageContent) {
+  return content.enabled ? visibleOpenings(content).filter((resort) => resort.featuredOnHomepage) : [];
 }
 
 export function openingStats(content: UpcomingPageContent) {
