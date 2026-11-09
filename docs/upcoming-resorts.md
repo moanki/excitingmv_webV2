@@ -16,7 +16,7 @@ OWN-WORLD: Inherit Playfair Display/Inter, dark lagoon ink, muted teal, warm ivo
 
 STORY: Scan the launch window, read brief highlights, inspect the official/source URLs, then ask the team. Staff edit ordinary labelled fields, not JSON.
 
-FIRST VIEWPORT: Full-width photographic hero with left-aligned serif title, year line, introduction, year jump links and a four-part statistics strip. The next year heading appears immediately below. Mobile stacks cards and keeps all links visible.
+FIRST VIEWPORT: Full-width photographic hero with left-aligned serif title, year line, introduction and year jump links. The next year heading appears immediately below. An empty statistics list leaves no strip or gap. Mobile stacks cards and keeps all links visible.
 
 FORM: Supplied reference, no random public-page direction substituted. Admin framed-sheet direction seed 1544730287, adapted within the incumbent shell. Signature interaction: jump directly to a year. Motion is limited to hover feedback and respects reduced motion.
 

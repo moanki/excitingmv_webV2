@@ -33,7 +33,7 @@ export default async function UpcomingResortsPage() {
           {sections.map((s) => <a key={s.id} href={`#year-${s.id}`}>{s.jumpLabel || `${c.jumpLabel} ${s.title}`}<ArrowRight size={15} aria-hidden="true" /></a>)}
         </nav>
         {c.bannerCaption && <p className="opening-hero__caption">{c.bannerCaption}</p>}
-        <dl className="opening-stats">{openingStats(c).map((stat) => <div key={stat.id}><dt>{stat.label}</dt><dd>{stat.displayValue}</dd></div>)}</dl>
+        {c.stats.length > 0 && <dl className="opening-stats">{openingStats(c).map((stat) => <div key={stat.id}><dt>{stat.label}</dt><dd>{stat.displayValue}</dd></div>)}</dl>}
       </div>
     </section>
     <div className="opening-wrap opening-years">
