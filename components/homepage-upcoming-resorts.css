@@ -19,18 +19,18 @@
   line-height: 1.15;
 }
 
-.opening-home__header h2 { margin: 0 0 8px; font-size: clamp(1.75rem, 3vw, 2.75rem); }
+.opening-home__header h2 { margin: 0 0 8px; font-size: clamp(1.625rem, 2.7vw, 2.375rem); }
 .opening-home__header p {
   max-width: 62ch;
   margin: 0;
   color: var(--opening-home-muted);
-  font-size: .9375rem;
+  font-size: clamp(1rem, 1.2vw, 1.0625rem);
   line-height: 1.6;
 }
 .opening-home__header .opening-home__eyebrow {
   margin-bottom: 10px;
   color: var(--opening-home-gold);
-  font-size: .75rem;
+  font-size: .8125rem;
   font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
@@ -112,10 +112,10 @@
   background: linear-gradient(transparent, color-mix(in srgb, var(--opening-home-ink) 64%, transparent) 52%);
   pointer-events: none;
 }
-.opening-home__caption h3 { margin: 0 0 6px; font-size: clamp(1.5rem, 2.8vw, 2.5rem); }
+.opening-home__caption h3 { margin: 0 0 6px; font-size: clamp(1.375rem, 2.3vw, 2rem); }
 .opening-home__caption a { color: inherit; text-decoration: none; pointer-events: auto; }
 .opening-home__caption a svg { display: inline-block; vertical-align: .05em; }
-.opening-home__caption p { margin: 0; font-size: .875rem; line-height: 1.5; }
+.opening-home__caption p { margin: 0; font-size: clamp(.9375rem, 1.15vw, 1rem); line-height: 1.5; }
 
 .opening-home__footer {
   display: flex;
@@ -126,7 +126,7 @@
   min-height: 52px;
   margin-top: 16px;
   border-top: 1px solid var(--opening-home-line);
-  font-size: .875rem;
+  font-size: .9375rem;
   line-height: 1.5;
 }
 .opening-home__footer p { margin: 0; color: var(--opening-home-muted); }
