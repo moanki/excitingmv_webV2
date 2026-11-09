@@ -5,15 +5,15 @@ import "./homepage-upcoming-resorts.css";
 
 const calendarPath = "/upcoming-resorts";
 
-function OpeningCard({ resort, lead = false }: { resort: OpeningResort; lead?: boolean }) {
+function OpeningPhoto({ resort }: { resort: OpeningResort }) {
   const details = [resort.atoll, resort.dateLabel].filter(Boolean).join(" · ");
 
   return (
-    <article className={`opening-home__card${lead ? " opening-home__card--lead" : ""}`}>
+    <article className="opening-home__photo">
       {resort.imageUrl && <div className="opening-home__media">
         <img src={resort.imageUrl} alt={resort.imageAlt} loading="lazy" decoding="async" />
       </div>}
-      <div className="opening-home__copy">
+      <div className="opening-home__caption">
         <h3><Link href={`${calendarPath}#opening-${resort.id}`}>{resort.name}</Link></h3>
         {details && <p>{details}</p>}
       </div>
@@ -25,8 +25,8 @@ export function HomepageUpcomingResorts({ content }: { content: UpcomingPageCont
   if (!content.enabled) return null;
 
   const copy = { ...defaultUpcomingHomepage, ...content.homepage };
-  const [lead, ...featured] = featuredOpenings(content);
-  if (!lead) {
+  const featured = featuredOpenings(content);
+  if (!featured.length) {
     return <section className="opening-home opening-home--empty" aria-label={copy.title}>
       <div className="lux-container">
         <Link className="opening-home__link" href={calendarPath}>{copy.exploreLabel}<ArrowRight size={18} aria-hidden="true" /></Link>
@@ -34,7 +34,7 @@ export function HomepageUpcomingResorts({ content }: { content: UpcomingPageCont
     </section>;
   }
 
-  const supporting = featured.slice(0, 3);
+  const gallery = featured.slice(0, 3);
   const additional = featured.slice(3);
   const figures = openingFigures(visibleOpenings(content));
   const count = figures.openings.toLocaleString("en-GB");
@@ -50,14 +50,11 @@ export function HomepageUpcomingResorts({ content }: { content: UpcomingPageCont
           <h2>{copy.title}</h2>
           {copy.description && <p>{copy.description}</p>}
         </header>
-        <div className="opening-home__grid" data-solo={supporting.length === 0}>
-          <OpeningCard resort={lead} lead />
-          {supporting.length > 0 && <div className="opening-home__supporting">
-            {supporting.map((resort) => <OpeningCard key={resort.id} resort={resort} />)}
-          </div>}
+        <div className="opening-home__gallery" data-count={gallery.length}>
+          {gallery.map((resort) => <OpeningPhoto key={resort.id} resort={resort} />)}
         </div>
         {additional.length > 0 && <div className="opening-home__extras">
-          {additional.map((resort) => <OpeningCard key={resort.id} resort={resort} />)}
+          {additional.map((resort) => <OpeningPhoto key={resort.id} resort={resort} />)}
         </div>}
         <footer className="opening-home__footer">
           <p>{summary}</p>
