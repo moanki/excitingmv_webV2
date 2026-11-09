@@ -24,5 +24,6 @@
 
 .cal-homepage-list li { border-bottom: 1px solid var(--cal-line); }
 .cal-homepage-list .cal-toggle { min-height: 58px; padding: 10px 4px; cursor: pointer; }
+.cal-homepage-list .cal-toggle:has(input:checked) { background: #edf3f1; }
 .cal-homepage-list .cal-toggle span { display: grid; gap: 3px; min-width: 0; overflow-wrap: anywhere; }
 .cal-homepage-list small { color: var(--cal-muted); font-size: 12px; }

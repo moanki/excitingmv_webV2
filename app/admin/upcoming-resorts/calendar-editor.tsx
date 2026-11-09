@@ -183,7 +183,15 @@ function HomepageFeatureSettings({ content, update }: {
                   ? { ...item, featuredOnHomepage: event.target.checked }
                   : item))}
               />
-              <span><strong>{resort.name}</strong><small>{[resort.dateLabel, !visibleIds.has(resort.id) && "Hidden from calendar", featured[0]?.id === resort.id && "Large card"].filter(Boolean).join(" · ")}</small></span>
+              <span>
+                <strong>{resort.name}</strong>
+                <small>{[
+                  resort.dateLabel,
+                  !visibleIds.has(resort.id) && "Hidden from calendar",
+                  resort.featuredOnHomepage && "Featured",
+                  featured[0]?.id === resort.id && "Large card",
+                ].filter(Boolean).join(" · ")}</small>
+              </span>
             </label>
           </li>
         ))}
