@@ -179,7 +179,7 @@ body:not(.admin-body) .portfolio-page--resort .portfolio-filter-row{overflow-x:a
 
 /* Resorts v6: desktop-only portfolio treatment. Mobile, site navigation and footer stay untouched. */
 @media (min-width:769px){
-body:not(.admin-body) .portfolio-page--resort{--rd-page:#f4f6f5;--rd-teal:#234f52;--rd-teal-light:#eaf1f0;--rd-ink:#16201f;--rd-mist:#74817e;--rd-line:#dfe5e3;background:var(--rd-page)}
+body:not(.admin-body) .portfolio-page--resort{--rd-page:var(--resort-listing-surface);--rd-teal:#234f52;--rd-teal-light:#eaf1f0;--rd-ink:#16201f;--rd-mist:#74817e;--rd-line:#dfe5e3;background:var(--rd-page)}
 body:not(.admin-body) .portfolio-page--resort .portfolio-hero{height:auto;min-height:clamp(560px,64vh,700px);background:#0c1a2b}
 body:not(.admin-body) .portfolio-page--resort .portfolio-hero::after{display:none}
 body:not(.admin-body) .portfolio-page--resort .portfolio-hero .destination-hero__content{min-height:clamp(560px,64vh,700px);align-items:center;width:min(100%,1520px);margin:0 auto;padding:148px 80px 72px}
@@ -281,7 +281,7 @@ body:not(.admin-body) .portfolio-page--resort .portfolio-grid{grid-template-colu
 
 /* Explore v8 banners: mobile-only Resorts, Hotels and Liveaboards. */
 @media (max-width:768px){
-.mobile-explore-v8{--v8-teal:#234f52;--v8-teal-dark:#1a3d3f;--v8-ink:#16201f;--v8-page:#f4f6f5;--v8-mist:#7c8a86;--v8-mist-light:#c4cecc;--v8-hair:rgba(22,32,31,.08);min-height:100vh;padding-bottom:calc(72px + env(safe-area-inset-bottom));background:var(--v8-page)!important;color:var(--v8-ink)}
+.mobile-explore-v8{--v8-teal:#234f52;--v8-teal-dark:#1a3d3f;--v8-ink:#16201f;--v8-page:var(--resort-listing-surface);--v8-mist:#7c8a86;--v8-mist-light:#c4cecc;--v8-hair:rgba(22,32,31,.08);min-height:100vh;padding-bottom:calc(72px + env(safe-area-inset-bottom));background:var(--v8-page)!important;color:var(--v8-ink)}
 body:has(.mobile-explore-v8) .site-nav.is-explore-listing:not(.is-scrolled){background:transparent!important;border-bottom-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
 body:has(.mobile-explore-v8) .site-nav.is-explore-listing:not(.is-scrolled) .site-nav__inner{background:transparent!important}
 body:has(.mobile-explore-v8) .site-nav.is-explore-listing:not(.is-scrolled) .site-nav__brand-logo{height:68px!important}
@@ -354,10 +354,12 @@ html body:not(.admin-body) .home-page .lux-hero h1,
 html body:not(.admin-body) .team-directory .contact-registry-hero h1,
 html body:not(.admin-body) .mobile-v2-home .mv2-hero__copy h1,
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy h1,
+html body:not(.admin-body) .opening-hero h1,
 html body:not(.admin-body) .property-detail-hero .resort-story-hero__copy h1{font-family:var(--font-serif),serif!important;font-weight:100!important;letter-spacing:-.035em!important}
 @media (min-width:769px){
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy h1,
 html body:not(.admin-body) .team-directory .contact-registry-hero h1,
+html body:not(.admin-body) .opening-hero h1,
 html body:not(.admin-body) .property-detail-hero .resort-story-hero__copy h1{line-height:.95!important}
 }
 @media (max-width:768px){
@@ -369,6 +371,7 @@ html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-h
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy{max-width:100%!important}
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy .lux-eyebrow{margin:0 0 12px!important;color:rgba(255,255,255,.8)!important;font-size:9.5px!important;font-weight:500!important;letter-spacing:.18em!important;line-height:1.5!important}
 html body:not(.admin-body) .team-directory .contact-registry-hero h1,
+html body:not(.admin-body) .opening-hero h1,
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy h1{max-width:100%!important;margin:0 0 12px!important;color:#fff!important;font-size:clamp(1.72rem,7.4vw,2rem)!important;line-height:1.06!important;overflow-wrap:break-word}
 html body:not(.admin-body) .team-directory .contact-registry-hero p:not(.lux-eyebrow),
 html body:not(.admin-body) .catalogue-banner-shell.portfolio-page .destination-hero__copy p:not(.lux-eyebrow){max-width:100%!important;margin:0!important;color:rgba(255,255,255,.9)!important;font-family:var(--font-sans),Inter,system-ui,sans-serif!important;font-size:.95rem!important;font-weight:400!important;line-height:1.5!important}

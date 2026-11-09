@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-08T18:19:06.879192+00:00",
+  "title": "Design System: Exciting Maldives",
+  "extensions": {
+    "colorMeta": {
+      "brand-paper": {
+        "role": "neutral",
+        "displayName": "Brand Paper",
+        "canonical": "#f8f5f0",
+        "tonalRamp": [
+          "oklch(15% 0.0018 80.72)",
+          "oklch(27% 0.0037 80.72)",
+          "oklch(39% 0.0055 80.72)",
+          "oklch(51% 0.0074 80.72)",
+          "oklch(63% 0.0074 80.72)",
+          "oklch(75% 0.0055 80.72)",
+          "oklch(87% 0.0030 80.72)",
+          "oklch(95% 0.0011 80.72)"
+        ]
+      },
+      "brand-navy": {
+        "role": "neutral",
+        "displayName": "Brand Navy",
+        "canonical": "#0f172a",
+        "tonalRamp": [
+          "oklch(15% 0.0100 265.75)",
+          "oklch(27% 0.0199 265.75)",
+          "oklch(39% 0.0299 265.75)",
+          "oklch(51% 0.0398 265.75)",
+          "oklch(63% 0.0398 265.75)",
+          "oklch(75% 0.0299 265.75)",
+          "oklch(87% 0.0159 265.75)",
+          "oklch(95% 0.0060 265.75)"
+        ]
+      },
+      "brand-teal": {
+        "role": "primary",
+        "displayName": "Brand Teal",
+        "canonical": "#4fd1c5",
+        "tonalRamp": [
+          "oklch(15% 0.0286 186.56)",
+          "oklch(27% 0.0572 186.56)",
+          "oklch(39% 0.0857 186.56)",
+          "oklch(51% 0.1143 186.56)",
+          "oklch(63% 0.1143 186.56)",
+          "oklch(75% 0.0857 186.56)",
+          "oklch(87% 0.0457 186.56)",
+          "oklch(95% 0.0171 186.56)"
+        ]
+      },
+      "brand-gold": {
+        "role": "primary",
+        "displayName": "Brand Gold",
+        "canonical": "#e8b44b",
+        "tonalRamp": [
+          "oklch(15% 0.0336 82.06)",
+          "oklch(27% 0.0671 82.06)",
+          "oklch(39% 0.1007 82.06)",
+          "oklch(51% 0.1343 82.06)",
+          "oklch(63% 0.1343 82.06)",
+          "oklch(75% 0.1007 82.06)",
+          "oklch(87% 0.0537 82.06)",
+          "oklch(95% 0.0201 82.06)"
+        ]
+      },
+      "white": {
+        "role": "neutral",
+        "displayName": "White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15% 0.0000 89.88)",
+          "oklch(27% 0.0000 89.88)",
+          "oklch(39% 0.0000 89.88)",
+          "oklch(51% 0.0000 89.88)",
+          "oklch(63% 0.0000 89.88)",
+          "oklch(75% 0.0000 89.88)",
+          "oklch(87% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
+        ]
+      },
+      "opening-ink": {
+        "role": "neutral",
+        "displayName": "Opening Ink",
+        "canonical": "#123638",
+        "tonalRamp": [
+          "oklch(15% 0.0102 200.28)",
+          "oklch(27% 0.0204 200.28)",
+          "oklch(39% 0.0307 200.28)",
+          "oklch(51% 0.0409 200.28)",
+          "oklch(63% 0.0409 200.28)",
+          "oklch(75% 0.0307 200.28)",
+          "oklch(87% 0.0164 200.28)",
+          "oklch(95% 0.0061 200.28)"
+        ]
+      },
+      "opening-muted": {
+        "role": "neutral",
+        "displayName": "Opening Muted",
+        "canonical": "#526e70",
+        "tonalRamp": [
+          "oklch(15% 0.0082 201.67)",
+          "oklch(27% 0.0164 201.67)",
+          "oklch(39% 0.0246 201.67)",
+          "oklch(51% 0.0328 201.67)",
+          "oklch(63% 0.0328 201.67)",
+          "oklch(75% 0.0246 201.67)",
+          "oklch(87% 0.0131 201.67)",
+          "oklch(95% 0.0049 201.67)"
+        ]
+      },
+      "opening-accent": {
+        "role": "primary",
+        "displayName": "Opening Accent",
+        "canonical": "#137b7c",
+        "tonalRamp": [
+          "oklch(15% 0.0215 195.91)",
+          "oklch(27% 0.0431 195.91)",
+          "oklch(39% 0.0646 195.91)",
+          "oklch(51% 0.0861 195.91)",
+          "oklch(63% 0.0861 195.91)",
+          "oklch(75% 0.0646 195.91)",
+          "oklch(87% 0.0345 195.91)",
+          "oklch(95% 0.0129 195.91)"
+        ]
+      },
+      "opening-gold": {
+        "role": "primary",
+        "displayName": "Opening Gold",
+        "canonical": "#b89b53",
+        "tonalRamp": [
+          "oklch(15% 0.0244 87.86)",
+          "oklch(27% 0.0488 87.86)",
+          "oklch(39% 0.0733 87.86)",
+          "oklch(51% 0.0977 87.86)",
+          "oklch(63% 0.0977 87.86)",
+          "oklch(75% 0.0733 87.86)",
+          "oklch(87% 0.0391 87.86)",
+          "oklch(95% 0.0147 87.86)"
+        ]
+      },
+      "opening-ground": {
+        "role": "neutral",
+        "displayName": "Opening Ground",
+        "canonical": "#f4f6f5",
+        "tonalRamp": [
+          "oklch(15% .0007 165)",
+          "oklch(27% .0014 165)",
+          "oklch(39% .0021 165)",
+          "oklch(51% .0028 165)",
+          "oklch(63% .0028 165)",
+          "oklch(75% .0021 165)",
+          "oklch(87% .0011 165)",
+          "oklch(95% .0004 165)"
+        ]
+      },
+      "opening-line": {
+        "role": "neutral",
+        "displayName": "Opening Line",
+        "canonical": "#d9d2c6",
+        "tonalRamp": [
+          "oklch(15% 0.0045 81.33)",
+          "oklch(27% 0.0090 81.33)",
+          "oklch(39% 0.0135 81.33)",
+          "oklch(51% 0.0180 81.33)",
+          "oklch(63% 0.0180 81.33)",
+          "oklch(75% 0.0135 81.33)",
+          "oklch(87% 0.0072 81.33)",
+          "oklch(95% 0.0027 81.33)"
+        ]
+      },
+      "cal-ink": {
+        "role": "neutral",
+        "displayName": "Cal Ink",
+        "canonical": "#203333",
+        "tonalRamp": [
+          "oklch(15% 0.0062 195.94)",
+          "oklch(27% 0.0123 195.94)",
+          "oklch(39% 0.0185 195.94)",
+          "oklch(51% 0.0246 195.94)",
+          "oklch(63% 0.0246 195.94)",
+          "oklch(75% 0.0185 195.94)",
+          "oklch(87% 0.0098 195.94)",
+          "oklch(95% 0.0037 195.94)"
+        ]
+      },
+      "cal-muted": {
+        "role": "neutral",
+        "displayName": "Cal Muted",
+        "canonical": "#5d6c6d",
+        "tonalRamp": [
+          "oklch(15% 0.0045 201.52)",
+          "oklch(27% 0.0091 201.52)",
+          "oklch(39% 0.0136 201.52)",
+          "oklch(51% 0.0182 201.52)",
+          "oklch(63% 0.0182 201.52)",
+          "oklch(75% 0.0136 201.52)",
+          "oklch(87% 0.0073 201.52)",
+          "oklch(95% 0.0027 201.52)"
+        ]
+      },
+      "cal-line": {
+        "role": "neutral",
+        "displayName": "Cal Line",
+        "canonical": "#dce3e3",
+        "tonalRamp": [
+          "oklch(15% 0.0019 197.02)",
+          "oklch(27% 0.0038 197.02)",
+          "oklch(39% 0.0057 197.02)",
+          "oklch(51% 0.0075 197.02)",
+          "oklch(63% 0.0075 197.02)",
+          "oklch(75% 0.0057 197.02)",
+          "oklch(87% 0.0030 197.02)",
+          "oklch(95% 0.0011 197.02)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "opening-display": {
+        "displayName": "Calendar display",
+        "purpose": "Public opening-calendar hero title, shared with the catalogue and Team banners."
+      },
+      "opening-card-title": {
+        "displayName": "Resort title",
+        "purpose": "Public calendar resort names."
+      },
+      "opening-card-body": {
+        "displayName": "Calendar body",
+        "purpose": "Public card highlights."
+      },
+      "cal-body": {
+        "displayName": "Editor body",
+        "purpose": "Calendar admin controls and content."
+      }
+    },
+    "shadows": [
+      {
+        "name": "opening-marker-ring",
+        "value": "0 0 0 5px #f4f6f5",
+        "purpose": "Ground-colored ring separates the timeline marker from its vertical line."
+      }
+    ],
+    "motion": [
+      {
+        "name": "opening-jump",
+        "value": "background 180ms ease-out",
+        "purpose": "Hero link hover feedback."
+      },
+      {
+        "name": "opening-image",
+        "value": "transform 450ms cubic-bezier(.16,1,.3,1)",
+        "purpose": "Scale image to 1.025 on hover-capable devices; disabled for reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "opening-medium",
+        "value": "1000px"
+      },
+      {
+        "name": "opening-mobile",
+        "value": "650px"
+      },
+      {
+        "name": "opening-wide",
+        "value": "1700px"
+      },
+      {
+        "name": "editor-medium",
+        "value": "1100px"
+      },
+      {
+        "name": "editor-mobile",
+        "value": "720px"
+      },
+      {
+        "name": "editor-shell-mobile",
+        "value": "980px"
+      }
+    ],
+    "provenance": {
+      "sources": [
+        "app/layout.tsx",
+        "app/globals.css",
+        "app/upcoming-resorts/upcoming-resorts.css",
+        "app/admin/upcoming-resorts/calendar-editor.css",
+        "docs/upcoming-resorts.md"
+      ],
+      "scope": "Global primitives are preserved. Opening and editor treatments apply only to their respective routes.",
+      "tonalRamps": "Synthesized OKLCH preview metadata only; not implementation tokens or approved new palettes.",
+      "componentPreviews": "Literal CSS extracted from existing components; sample labels are illustrative and do not replace database content."
+    }
+  },
+  "components": [
+    {
+      "name": "Calendar year jump",
+      "kind": "nav",
+      "description": "Outlined hero year link. Preview on a dark hero surface.",
+      "html": "<nav class=\"ds-jump-surface\"><a class=\"ds-jump\" href=\"#year\">Jump to year <span aria-hidden=\"true\">\u2192</span></a></nav>",
+      "css": ".ds-jump-surface{background:#103a40;padding:20px;font-family:Inter,sans-serif}.ds-jump{display:inline-flex;align-items:center;gap:18px;border:1px solid #a4bdbe;border-radius:40px;padding:15px 24px;color:white;text-decoration:none;font-size:13px;font-weight:600;min-height:48px;transition:background 180ms ease-out}.ds-jump:hover{background:#ffffff20}.ds-jump:focus-visible{outline:3px solid #b89b53;outline-offset:5px}@media(prefers-reduced-motion:reduce){.ds-jump{transition:none}}"
+    },
+    {
+      "name": "Calendar team action",
+      "kind": "button",
+      "description": "Filled guidance link to the established team page.",
+      "html": "<a class=\"ds-team\" href=\"/team\">Ask our team <span aria-hidden=\"true\">\u2192</span></a>",
+      "css": ".ds-team{display:inline-flex;align-items:center;gap:18px;min-height:48px;padding:12px 23px;border-radius:40px;background:#103a3c;color:white;font:600 14px Inter,sans-serif;text-decoration:none}.ds-team:hover{background:#1d5254}.ds-team:focus-visible{outline:3px solid #b89b53;outline-offset:5px}"
+    },
+    {
+      "name": "Opening date badge",
+      "kind": "chip",
+      "description": "Warm moved-date marker. Text is editable content.",
+      "html": "<span class=\"ds-moved\">Date moved</span>",
+      "css": ".ds-moved{display:inline-block;font:600 11px Inter,sans-serif;padding:5px 10px;color:#755218;background:#f3e2b8;border-radius:24px}"
+    },
+    {
+      "name": "Resort card",
+      "kind": "card",
+      "description": "Public card container and title/body relationship; preview omits photography.",
+      "html": "<article class=\"ds-card\"><div class=\"ds-card-body\"><p class=\"ds-status\">Opening target</p><h3>Resort name</h3><p class=\"ds-highlights\">Editable resort highlights appear here.</p><a class=\"ds-source\" href=\"https://example.com\">Official website<small>https://example.com</small></a></div></article>",
+      "css": ".ds-card{border:1px solid #e0dbd2;border-radius:21px;background:white;overflow:hidden;color:#123638;font-family:Inter,sans-serif}.ds-card-body{padding:25px 28px 18px}.ds-status{font-size:11px;color:#49716c;margin:0 0 8px}.ds-card h3{font:400 clamp(25px,2.15vw,34px)/1.17 \"Playfair Display\",Georgia,serif;letter-spacing:-.025em;margin:0 0 10px}.ds-highlights{font-size:14px;line-height:1.7;color:#415e60;margin:0 0 18px}.ds-source{display:block;border-top:1px solid #eee8df;padding-top:12px;color:#216668;font-size:11px;font-weight:600;text-decoration:none}.ds-source small{display:block;color:#526e70;font-size:10px;font-weight:400;line-height:1.6;overflow-wrap:anywhere;margin-top:4px}.ds-source:hover{text-decoration:underline}.ds-source:focus-visible{outline:3px solid #b89b53;outline-offset:5px}",
+      "refersTo": "opening-card"
+    },
+    {
+      "name": "Editor publish",
+      "kind": "button",
+      "description": "Primary explicit publication action.",
+      "html": "<button class=\"ds-publish\">Publish changes</button>",
+      "css": ".ds-publish{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 13px;border:1px solid #163d3e;background:#163d3e;border-radius:6px;color:white;font:14px Inter,sans-serif;cursor:pointer}.ds-publish:hover:not(:disabled){background:#245355}.ds-publish:focus-visible{outline:2px solid #177b78;outline-offset:3px}.ds-publish:disabled{opacity:.45;cursor:not-allowed}@media(max-width:720px){.ds-publish{min-height:44px}}"
+    },
+    {
+      "name": "Editor save",
+      "kind": "button",
+      "description": "Secondary draft action.",
+      "html": "<button class=\"ds-save\">Save draft</button>",
+      "css": ".ds-save{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 13px;border:1px solid #ccd5d5;background:white;border-radius:6px;color:#2b4040;font:14px Inter,sans-serif;cursor:pointer}.ds-save:hover:not(:disabled){background:#edf3f2}.ds-save:focus-visible{outline:2px solid #177b78;outline-offset:3px}.ds-save:disabled{opacity:.45;cursor:not-allowed}@media(max-width:720px){.ds-save{min-height:44px}}",
+      "refersTo": "cal-button-secondary"
+    },
+    {
+      "name": "Editor labelled field",
+      "kind": "input",
+      "description": "Ordinary field with persistent label.",
+      "html": "<label class=\"ds-field\"><span>Resort name</span><input type=\"text\" value=\"Resort name\"></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:8px;margin-bottom:19px;min-width:0;font-family:Inter,sans-serif;color:#203333}.ds-field>span{font-size:12px;font-weight:500}.ds-field input{border:1px solid #bfcaca;border-radius:5px;min-height:41px;background:white;color:#203333;padding:10px 11px;min-width:0;font:14px Inter,sans-serif}.ds-field input:focus-visible{outline:2px solid #177b78;outline-offset:3px}@media(max-width:720px){.ds-field input{min-height:44px}}",
+      "refersTo": "cal-field"
+    },
+    {
+      "name": "Editor tabs",
+      "kind": "nav",
+      "description": "Scrollable section tabs with selected underline. Static style preview.",
+      "html": "<div class=\"ds-tabs\"><button class=\"ds-tab\" aria-selected=\"true\">Resort openings</button><button class=\"ds-tab\" aria-selected=\"false\">Banner &amp; introduction</button></div>",
+      "css": ".ds-tabs{display:flex;gap:22px;border-bottom:1px solid #dce3e3;overflow-x:auto}.ds-tab{white-space:nowrap;min-height:46px;border:0;border-radius:0;background:transparent;padding:8px 0;border-bottom:2px solid transparent;font:13px Inter,sans-serif;color:#5d6c6d;cursor:pointer}.ds-tab[aria-selected=true]{color:#173b3b;border-bottom-color:#173b3b;font-weight:600}.ds-tab:hover{background:#edf3f2}.ds-tab:focus-visible{outline:2px solid #177b78;outline-offset:3px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Opening Calendar",
+    "overview": "This documents an extension of the established Exciting Maldives identity. Preserve the logo, Playfair Display/Inter pairing, public navigation and footer, and existing admin shell. The supplied `A \u00b7 Opening Calendar@2x.png` governs the composition of `/upcoming-resorts`; it does not authorize a redesign of other pages.\n\nThe public extension pairs a dark photographic teal hero with warm paper, serif dates and white image-and-copy cards. The admin extension uses the incumbent shell with restrained framed sheets and ordinary labelled fields. These route-specific treatments are documented separately from the global brand primitives.",
+    "keyCharacteristics": [
+      "Photographic lagoon hero and restrained gold accents.",
+      "Year-grouped vertical timeline with paired image and content cards.",
+      "Practical, labelled editing inside the existing admin identity."
+    ],
+    "rules": [
+      {
+        "name": "The Scope Rule",
+        "body": "Apply opening and calendar-editor tokens only to their documented surfaces; retain existing page-specific palettes elsewhere.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do retain the incumbent logo, fonts, public navigation/footer and admin identity.",
+      "Do follow the supplied opening-calendar reference for this calendar surface.",
+      "Do keep full source addresses readable and mobile controls usable.",
+      "Do preserve database-backed editable public text."
+    ],
+    "donts": [
+      "Don't apply the calendar palette or composition across unrelated legacy pages.",
+      "Don't replace labelled editor fields with a JSON editing interface.",
+      "Don't turn uncertain opening targets into visually authoritative confirmed dates."
+    ]
+  }
+}
