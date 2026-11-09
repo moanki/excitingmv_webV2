@@ -162,7 +162,7 @@ function HomepageFeatureSettings({ content, update }: {
   return (
     <div className="cal-settings">
       <h2>Feature on homepage</h2>
-      <p>Choose any number of resorts. Publish changes to update the homepage. The first selected resort in the list gets the large card. With no visible selections, visitors see a link to the opening calendar.</p>
+      <p>Choose any number of resorts. Publish changes to show them on the homepage in the order listed here. With no visible selections, visitors see a link to the opening calendar.</p>
       <div className="cal-grid">
         <Field label="Section title" value={copy.title} onChange={(title) => update("homepage", { ...copy, title })} />
         <Field label="View all button" value={copy.viewAllLabel} onChange={(viewAllLabel) => update("homepage", { ...copy, viewAllLabel })} hint="Use {count} for the number of published openings." />
@@ -189,7 +189,6 @@ function HomepageFeatureSettings({ content, update }: {
                   resort.dateLabel,
                   !visibleIds.has(resort.id) && "Hidden from calendar",
                   resort.featuredOnHomepage && "Featured",
-                  featured[0]?.id === resort.id && "Large card",
                 ].filter(Boolean).join(" · ")}</small>
               </span>
             </label>

@@ -8,7 +8,7 @@ Staff can add, duplicate, hide, reorder and remove resorts, add/reorder year sec
 
 Initial content and the image-source manifest are local deployment artifacts under `.vercel/`, not application defaults. The content was initialized only in testing Supabase `ddelyhoaflwtlzjwtihq`. No schema migration is required.
 
-The **Feature on homepage** tab controls the section below the homepage stats. Publishing displays every selected resort that is visible on the published calendar. The first selected resort in the list gets the large card, and the remaining cards adapt to the available space. If none are featured, the section shows an editable link to the calendar.
+The **Feature on homepage** tab controls the section below the homepage stats. Publishing displays every selected resort that is visible on the published calendar. The collage arranges the selected resorts in list order and adapts to the available space. If none are featured, the section shows an editable link to the calendar.
 
 ## Direction contract
 
