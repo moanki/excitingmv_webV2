@@ -4,16 +4,14 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 const reduceMotion = "(prefers-reduced-motion: reduce)";
-const wideScreen = "(min-width: 900px) and (pointer: fine)";
 
 export function ExperimentScrollMotion() {
   const pathname = usePathname();
 
   useEffect(() => {
     const path = pathname;
-    if (!path) return;
+    if (!path || path === "/") return;
     const preference = window.matchMedia(reduceMotion);
-    const desktop = window.matchMedia(wideScreen);
     let dispose: (() => void) | undefined;
     let frame = 0;
     let revision = 0;
@@ -27,7 +25,7 @@ export function ExperimentScrollMotion() {
 
       frame = requestAnimationFrame(() => {
         void import("./experiment-scroll-presets").then(({ startScrollMotion }) => {
-          if (current === revision) dispose = startScrollMotion(path, desktop.matches);
+          if (current === revision) dispose = startScrollMotion(path);
         }).catch(() => {
           // Motion is progressive enhancement. The original page stays visible.
         });
@@ -35,7 +33,6 @@ export function ExperimentScrollMotion() {
     }
 
     preference.addEventListener("change", sync);
-    desktop.addEventListener("change", sync);
     sync();
 
     return () => {
@@ -43,7 +40,6 @@ export function ExperimentScrollMotion() {
       cancelAnimationFrame(frame);
       dispose?.();
       preference.removeEventListener("change", sync);
-      desktop.removeEventListener("change", sync);
     };
   }, [pathname]);
 

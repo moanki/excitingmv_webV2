@@ -3,7 +3,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const motion = {
   perspective: 1050,
-  home: { y: 32, z: 65, scale: 0.955, tilt: 2, opacity: 0.76 },
   catalogue: { y: 12, z: 24, scale: 0.983, tilt: 0.8, opacity: 0.89, stagger: 0.035 },
   detail: { y: 23, z: 46, scale: 0.969, tilt: 1.2, opacity: 0.79 },
   quiet: { y: 12, z: 22, scale: 0.988, tilt: 0.65, opacity: 0.9 },
@@ -57,67 +56,6 @@ function handoff(
       y: 0, z: 0, scale: 1, rotationX: 0, opacity: 1, duration: 0.9,
       immediateRender: false, stagger: preset.stagger,
     }, 0.1);
-}
-
-function homeHandoff(desktop: boolean) {
-  const stage = first(".experiment-hero-stage");
-  const outgoing = stage?.firstElementChild;
-  const incoming = stage?.nextElementSibling;
-  if (!stage || !(outgoing instanceof HTMLElement) || !(incoming instanceof HTMLElement)) return;
-
-  const container = stage.parentElement ?? undefined;
-  gsap.set(outgoing, depth("50% 44%"));
-  gsap.set(incoming, { position: "relative", zIndex: 2, ...depth("50% 0%") });
-
-  const timeline = gsap.timeline({
-    defaults: { ease: "none" },
-    scrollTrigger: {
-      trigger: stage,
-      start: "top top",
-      end: () => "+=" + stage.offsetHeight,
-      pin: true,
-      pinSpacing: false,
-      scrub: true,
-      invalidateOnRefresh: true,
-    },
-  })
-    .to(outgoing, {
-      y: () => -stage.offsetHeight * (desktop ? 0.22 : 0.18),
-      z: desktop ? -145 : -90,
-      scale: desktop ? 0.88 : 0.92,
-      rotationX: desktop ? 4 : 2,
-      duration: 0.94,
-    }, 0)
-    .to(outgoing, { opacity: 0.82, duration: 0.42 }, 0)
-    .to(outgoing, { opacity: 0, duration: 0.52 }, 0.42)
-    .fromTo(incoming, {
-      y: desktop ? 90 : 38,
-      z: desktop ? -120 : -65,
-      scale: desktop ? 0.91 : 0.95,
-      rotationX: desktop ? -4 : -2,
-      opacity: 0.75,
-    }, {
-      y: 0, z: 0, scale: 1, rotationX: 0, opacity: 1, duration: 0.86,
-      immediateRender: false,
-    }, 0.14);
-
-  const logoStrip = outgoing.querySelector(".lux-hero__retreat-logos, .mv2-ticker");
-  if (logoStrip) timeline.to(logoStrip, { opacity: 0, duration: 0.33 }, 0.04);
-
-  const sections = children(container, ":scope > section");
-  const pairs = outgoing.matches(".lux-hero")
-    ? [["#ceo-message", "#our-story"], ["#destination-management", "#why-travel-designers"]]
-    : [["#mobile-destinations", "#mobile-featured-retreats"]];
-  for (const [before, after] of pairs) {
-    const left = sections.find(section => section.matches(before));
-    const right = sections.find(section => section.matches(after));
-    handoff(
-      children(left, ":scope > div, :scope > h2, :scope > p"),
-      children(right, ":scope > div, :scope > h2, :scope > p"),
-      right,
-      motion.home,
-    );
-  }
 }
 
 function catalogueHandoffs() {
@@ -234,12 +172,11 @@ function quietHandoffs() {
   }
 }
 
-export function startScrollMotion(pathname: string, desktop: boolean) {
+export function startScrollMotion(pathname: string) {
   gsap.registerPlugin(ScrollTrigger);
   let disposeCatalogue: (() => void) | undefined;
   const context = gsap.context(() => {
-    if (pathname === "/") homeHandoff(desktop);
-    else if (/^\/(resorts|hotels|liveaboards)\/?$/.test(pathname)) disposeCatalogue = catalogueHandoffs();
+    if (/^\/(resorts|hotels|liveaboards)\/?$/.test(pathname)) disposeCatalogue = catalogueHandoffs();
     else if (/^\/(resorts|hotels|liveaboards|travel-guide)\/[^/]+\/?$/.test(pathname)) detailHandoffs();
     else quietHandoffs();
   });

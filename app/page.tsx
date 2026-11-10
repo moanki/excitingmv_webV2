@@ -3,6 +3,7 @@ import { ArrowRight, Building2, Clock3, Globe2, Headphones, MapPin, Search, Star
 import type { ReactNode } from "react";
 
 import { GlobalMarketMap } from "@/components/global-market-map";
+import { HomepageScroll } from "@/components/homepage-scroll";
 import { HomepageUpcomingResorts } from "@/components/homepage-upcoming-resorts";
 import { NewsletterSignupForm } from "@/components/newsletter-signup-form";
 import { MobileFeaturedRetreatsCarousel } from "@/components/mobile-featured-retreats-carousel";
@@ -391,7 +392,6 @@ function MobileHomeV2({
 
   return (
     <div className="mobile-v2-home" aria-label="Exciting Maldives mobile home">
-      <div className="experiment-hero-stage">
       <section className="mv2-hero">
         <div
           className="mv2-hero__bg"
@@ -433,7 +433,7 @@ function MobileHomeV2({
           </div>
         ) : null}
       </section>
-      </div>
+
 
       <section className="mv2-stats" aria-label="Exciting Maldives stats">
         {mobileStats.map((stat) => (
@@ -691,6 +691,7 @@ export default async function HomePage() {
   const openingPreview = calendar ? <HomepageUpcomingResorts content={calendar.content} /> : null;
 
   return (
+    <HomepageScroll>
     <main className="home-page lux-home">
       <MobileHomeV2
         hero={hero}
@@ -714,7 +715,6 @@ export default async function HomePage() {
       />
 
       <div className="lux-home__desktop">
-      <div className="experiment-hero-stage">
       <section className="lux-hero">
         <div className="lux-hero__media">
           {hero.mediaUrl && isVideoAsset(hero.mediaUrl, hero.mediaType) ? (
@@ -771,7 +771,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-      </div>
+
 
       <FeaturedRetreats
         resorts={featuredResorts}
@@ -934,5 +934,6 @@ export default async function HomePage() {
       </section>
       </div>
     </main>
+    </HomepageScroll>
   );
 }

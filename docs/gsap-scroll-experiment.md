@@ -2,7 +2,7 @@
 
 This branch starts at the exact testing deployment revision `bca2127af8039cdb7ac1cc36b42a2339be448b58`. It is a standalone visual comparison and should stay on `experiment/gsap-scroll-animation`.
 
-Adjust distances, opacity, duration, scrub and stagger in `components/experiment-scroll-presets.ts`. Desktop has the homepage scrub and detail image parallax; touch/mobile gets short reveals. Reduced motion skips loading GSAP. The enhancement adds no wrapping markup and cleans up on navigation.
+The homepage uses Lenis for wheel smoothing and one-time ScrollTrigger entrances for copy and card groups. CSS holds the hero artwork in place inside the hero while its content scrolls. The other routes retain their own presets in components/experiment-scroll-presets.ts. Reduced motion leaves homepage content visible with native scrolling.
 
 Only deploy to the **Preview** environment of the independent `excitingmv-gsap-experiment` Vercel project. Automatic Git deployments are disabled for this branch so a push cannot start builds on the two projects connected to this repository. Use an explicit Preview deployment from the clean experiment worktree.
 

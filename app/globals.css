@@ -7938,8 +7938,9 @@ select {
 }
 
 .lux-hero {
+  --homepage-hero-height: 100dvh;
   position: relative;
-  min-height: 100dvh;
+  min-height: var(--homepage-hero-height);
   overflow: hidden;
   background: var(--lux-navy);
 }
@@ -7957,7 +7958,6 @@ select {
   background-position: center;
   background-size: cover;
   object-fit: cover;
-  animation: lux-hero-drift 18s ease-in-out infinite alternate;
 }
 
 .lux-hero__overlay {
@@ -11114,15 +11114,6 @@ select {
   .about-callout {
     border-radius: 22px;
     padding: 2rem 1rem;
-  }
-}
-
-@keyframes lux-hero-drift {
-  from {
-    transform: scale(1.02);
-  }
-  to {
-    transform: scale(1.08) translate3d(-1%, -1%, 0);
   }
 }
 
@@ -21569,8 +21560,9 @@ html {
   }
 
   .mv2-hero {
+    --homepage-hero-height: min(720px, 92dvh);
     position: relative;
-    min-height: min(720px, 92dvh);
+    min-height: var(--homepage-hero-height);
     overflow: hidden;
     background: #071316;
     color: #fff;
@@ -22528,7 +22520,7 @@ html {
 
 @media (max-width: 430px) {
   .mobile-v2-home .mv2-hero {
-    min-height: min(660px, 90dvh);
+    --homepage-hero-height: min(660px, 90dvh);
   }
 
   .mobile-v2-home .mv2-hero__copy {
@@ -30955,10 +30947,6 @@ html body:not(.admin-body) .team-directory .contact-registry-entry__link-icon {
   .contact-team-department + .contact-team-department { margin-top: 40px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .lux-hero__asset { animation: none; }
-}
-
 .experiment-property-photo {
   position: absolute;
   inset: 0;
@@ -30967,11 +30955,16 @@ html body:not(.admin-body) .team-directory .contact-registry-entry__link-icon {
   background-size: inherit;
 }
 
-.experiment-hero-stage:has(> section :focus-visible) {
-  z-index: 3;
-}
+/* Keep the artwork fixed inside the hero's visible area while its content scrolls. */
+@media (prefers-reduced-motion: no-preference) {
+  .lux-home :is(.lux-hero, .mv2-hero) {
+    clip-path: inset(0);
+  }
 
-.experiment-hero-stage > section:has(:focus-visible) {
-  opacity: 1 !important;
-  transform: none !important;
+  .lux-home :is(.lux-hero__media, .lux-hero__overlay, .mv2-hero__bg, .mv2-hero__shade) {
+    position: fixed;
+    inset: 0 0 auto;
+    height: var(--homepage-hero-height);
+    pointer-events: none;
+  }
 }
