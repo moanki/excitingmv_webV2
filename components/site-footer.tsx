@@ -3,7 +3,15 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaTiktok, FaWhatsapp } from "react-icons/fa6";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
+import { footerSocialPlatforms, type FooterSocialMedia } from "@/lib/footer-social-media";
 import type { FooterBadge, FooterContent, FooterLinkItem, NavbarContent } from "@/lib/site-content";
+
+const socialIcons = {
+  linkedin: FaLinkedinIn,
+  instagram: FaInstagram,
+  facebook: FaFacebookF,
+  tiktok: FaTiktok
+};
 
 function normalizeHref(value: string) {
   return value || "#";
@@ -99,7 +107,12 @@ function BadgeGroup({ title, items }: { title: string; items: FooterBadge[] }) {
   );
 }
 
-export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: NavbarContent }) {
+export function SiteFooter({ footer, navbar, socialMedia }: {
+  footer: FooterContent;
+  navbar: NavbarContent;
+  socialMedia: FooterSocialMedia;
+}) {
+  const socialLinks = footerSocialPlatforms.filter(({ key }) => socialMedia[key]);
   const groupByTitle = (needle: string) =>
     footer.linkGroups.find((group) => group.enabled && group.title.toLowerCase().includes(needle))?.items ?? [];
   const partnerLoginHref = navbar.partnerLoginHref || navbar.ctaHref || "/partner/login";
@@ -175,20 +188,18 @@ export function SiteFooter({ footer, navbar }: { footer: FooterContent; navbar: 
               <div className="site-footer__logo">{footer.companyLabel}</div>
             )}
             <p className="site-footer__summary">{footer.description}</p>
-            <div className="site-footer__social" aria-label="Social links">
-              <a href="https://mv.linkedin.com/company/excitingmv" aria-label="LinkedIn" target="_blank" rel="noreferrer">
-                <FaLinkedinIn size={16} />
-              </a>
-              <a href="https://www.instagram.com/excitingmv/" aria-label="Instagram" target="_blank" rel="noreferrer">
-                <FaInstagram size={16} />
-              </a>
-              <a href="https://www.facebook.com/excitingmv/" aria-label="Facebook" target="_blank" rel="noreferrer">
-                <FaFacebookF size={16} />
-              </a>
-              <a href="https://www.tiktok.com/tag/exciting" aria-label="TikTok" target="_blank" rel="noreferrer">
-                <FaTiktok size={16} />
-              </a>
-            </div>
+            {socialLinks.length > 0 && (
+              <div className="site-footer__social" aria-label="Social links">
+                {socialLinks.map(({ key, label }) => {
+                  const Icon = socialIcons[key];
+                  return (
+                    <a key={key} href={socialMedia[key]} aria-label={label} target="_blank" rel="noreferrer">
+                      <Icon size={16} />
+                    </a>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <nav className="site-footer__columns" aria-label="Footer navigation">

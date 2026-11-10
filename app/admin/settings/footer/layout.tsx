@@ -9,6 +9,7 @@ export default function FooterSettingsLayout({ children }: { children: React.Rea
     <nav className="policy-settings-nav" aria-label="Footer settings">
       {[
         ["/admin/settings/footer", "Footer content"],
+        ["/admin/settings/footer/social-media", "Social Media"],
         ["/admin/settings/footer/privacy-policy", "Privacy Policy"],
         ["/admin/settings/footer/cookie-policy", "Cookie Policy"]
       ].map(([href, label]) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined}>{label}</Link>)}
