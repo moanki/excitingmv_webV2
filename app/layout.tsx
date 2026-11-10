@@ -9,6 +9,7 @@ import { SiteNavbar } from "@/components/site-navbar";
 import { getFooterContent, getNavbarContent, getWhatsAppSettings, getSitePolicy } from "@/lib/site-content";
 import { CookieNotice } from "@/components/cookie-notice";
 import "@/app/policies.css";
+import { ExperimentScrollMotion } from "@/components/experiment-scroll-motion";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -42,7 +43,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   if (isAdminRoute) {
     return (
       <html lang="en">
-        <body className={`${inter.variable} ${playfair.variable} admin-body`}>{children}</body>
+        <body className={`${inter.variable} ${playfair.variable} admin-body`}>{children}
+          <ExperimentScrollMotion />
+        </body>
       </html>
     );
   }
@@ -60,6 +63,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <SiteNavbar navbar={navbar} />
         {children}
         <SiteFooter footer={footer} navbar={navbar} />
+        <ExperimentScrollMotion />
         <CookieNotice enabled={cookies.noticeEnabled ?? true} text={cookies.noticeText ?? ""} />
         {whatsApp.enabled ? (
           <a

@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
+  "git": { "deploymentEnabled": { "experiment/gsap-scroll-animation": false } },
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "functions": {

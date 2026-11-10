@@ -30954,3 +30954,7 @@ html body:not(.admin-body) .team-directory .contact-registry-entry__link-icon {
 @media (max-width: 720px) {
   .contact-team-department + .contact-team-department { margin-top: 40px; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .lux-hero__asset { animation: none; }
+}
