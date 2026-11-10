@@ -5,6 +5,7 @@ import { normalizeHomepageServices } from "@/lib/homepage-services";
 import { normalizeHomepageWhyUs } from "@/lib/homepage-why-us";
 import { newestAwardsFirst } from "@/lib/homepage-awards";
 import { defaultPolicies, normalizeSitePolicy, type PolicyId } from "@/lib/site-policies";
+import { defaultFooterSocialMedia, footerSocialMediaKey } from "@/lib/footer-social-media";
 
 function supabaseStorageUrl(path: string) {
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
@@ -1470,6 +1471,10 @@ export async function getFooterContent(mode: "draft" | "published" = "published"
   };
 }
 
+export async function getFooterSocialMedia(mode: "draft" | "published" = "published") {
+  return getSiteSettingMode(footerSocialMediaKey, defaultFooterSocialMedia, mode);
+}
+
 export async function getSitePolicy(id: PolicyId, mode: "draft" | "published" = "published") {
   const entry = await getSiteSettingMode(`site.policy.${id}`, defaultPolicies[id], mode);
   return { ...entry, content: normalizeSitePolicy(entry.content, id) };
@@ -1519,13 +1524,12 @@ export async function getMarketSettings(mode: "draft" | "published" = "published
   };
 }
 
-export async function saveSiteSettingDraft<T>(key: string, fallback: T, draftValue: T) {
+export async function saveSiteSettingDraft<T>(key: string, fallback: T, draftValue: T, publish = false) {
   await requireAdminRole(["super_admin", "admin", "content_manager"]);
   const supabase = createSupabaseAdminClient();
-  const existing = await getSiteSetting<T>(key, fallback);
   const value: SiteSettingEnvelope<T> = {
     draft: draftValue,
-    published: existing.published,
+    published: publish ? draftValue : (await getSiteSetting(key, fallback)).published,
     updatedAt: new Date().toISOString()
   };
 

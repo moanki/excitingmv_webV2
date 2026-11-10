@@ -6,7 +6,7 @@ import "@/app/globals.css";
 import "@/app/reference-redesign.css";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteNavbar } from "@/components/site-navbar";
-import { getFooterContent, getNavbarContent, getWhatsAppSettings, getSitePolicy } from "@/lib/site-content";
+import { getFooterContent, getFooterSocialMedia, getNavbarContent, getWhatsAppSettings, getSitePolicy } from "@/lib/site-content";
 import { CookieNotice } from "@/components/cookie-notice";
 import "@/app/policies.css";
 
@@ -47,9 +47,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     );
   }
 
-  const [{ content: navbar }, { content: footer }, { content: whatsApp }, { content: cookies }] = await Promise.all([
+  const [{ content: navbar }, { content: footer }, { content: socialMedia }, { content: whatsApp }, { content: cookies }] = await Promise.all([
     getNavbarContent("published"),
     getFooterContent("published"),
+    getFooterSocialMedia(),
     getWhatsAppSettings("published"),
     getSitePolicy("cookies")
   ]);
@@ -59,7 +60,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className={`${inter.variable} ${playfair.variable}${isHomeRoute ? " home-mobile-v2-body" : ""}`}>
         <SiteNavbar navbar={navbar} />
         {children}
-        <SiteFooter footer={footer} navbar={navbar} />
+        <SiteFooter footer={footer} navbar={navbar} socialMedia={socialMedia} />
         <CookieNotice enabled={cookies.noticeEnabled ?? true} text={cookies.noticeText ?? ""} />
         {whatsApp.enabled ? (
           <a
