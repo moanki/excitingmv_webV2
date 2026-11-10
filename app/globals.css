@@ -30958,3 +30958,20 @@ html body:not(.admin-body) .team-directory .contact-registry-entry__link-icon {
 @media (prefers-reduced-motion: reduce) {
   .lux-hero__asset { animation: none; }
 }
+
+.experiment-property-photo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-position: inherit;
+  background-size: inherit;
+}
+
+.experiment-hero-stage:has(> section :focus-visible) {
+  z-index: 3;
+}
+
+.experiment-hero-stage > section:has(:focus-visible) {
+  opacity: 1 !important;
+  transform: none !important;
+}

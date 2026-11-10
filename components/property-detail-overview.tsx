@@ -177,7 +177,8 @@ export function PropertyDetailOverview({
 
   return (
     <>
-      <section className="property-detail-hero resort-story-hero" style={{ backgroundImage: heroBackground }}>
+      <section className="property-detail-hero resort-story-hero">
+        <div className="experiment-property-photo" aria-hidden="true" style={{ backgroundImage: heroBackground }} />
         <div className="resort-story-hero__overlay" />
         <div className="mobile-detail-actions" aria-label={`${actionLabel} actions`}>
           <Link href={backHref} aria-label={`Back to ${actionLabel}`}>

@@ -391,6 +391,7 @@ function MobileHomeV2({
 
   return (
     <div className="mobile-v2-home" aria-label="Exciting Maldives mobile home">
+      <div className="experiment-hero-stage">
       <section className="mv2-hero">
         <div
           className="mv2-hero__bg"
@@ -432,6 +433,7 @@ function MobileHomeV2({
           </div>
         ) : null}
       </section>
+      </div>
 
       <section className="mv2-stats" aria-label="Exciting Maldives stats">
         {mobileStats.map((stat) => (
@@ -712,6 +714,7 @@ export default async function HomePage() {
       />
 
       <div className="lux-home__desktop">
+      <div className="experiment-hero-stage">
       <section className="lux-hero">
         <div className="lux-hero__media">
           {hero.mediaUrl && isVideoAsset(hero.mediaUrl, hero.mediaType) ? (
@@ -768,6 +771,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      </div>
 
       <FeaturedRetreats
         resorts={featuredResorts}
