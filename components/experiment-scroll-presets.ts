@@ -69,7 +69,7 @@ function homeHandoff(desktop: boolean) {
   gsap.set(outgoing, depth("50% 44%"));
   gsap.set(incoming, { position: "relative", zIndex: 2, ...depth("50% 0%") });
 
-  gsap.timeline({
+  const timeline = gsap.timeline({
     defaults: { ease: "none" },
     scrollTrigger: {
       trigger: stage,
@@ -100,6 +100,9 @@ function homeHandoff(desktop: boolean) {
       y: 0, z: 0, scale: 1, rotationX: 0, opacity: 1, duration: 0.86,
       immediateRender: false,
     }, 0.14);
+
+  const logoStrip = outgoing.querySelector(".lux-hero__retreat-logos, .mv2-ticker");
+  if (logoStrip) timeline.to(logoStrip, { opacity: 0, duration: 0.33 }, 0.04);
 
   const sections = children(container, ":scope > section");
   const pairs = outgoing.matches(".lux-hero")
