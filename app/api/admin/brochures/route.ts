@@ -45,9 +45,6 @@ export async function POST(request: Request) {
 
     if (mode === "preview") {
       const files = Array.isArray(input.files) ? input.files : [];
-      if (files.length > 1000) {
-        return NextResponse.json({ ok: false, error: "Import up to 1,000 PDFs at a time." }, { status: 400 });
-      }
       const resorts = await listProperties(propertyType);
       const rows = files.map((file: { relativePath?: string; size?: number }) => {
         const relativePath = String(file.relativePath ?? "");
