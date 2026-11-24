@@ -33,6 +33,7 @@ test("collapsed contact editors keep the complete save payload and separate draf
   assert.match(html, /name="heroImageUrl" value="https:\/\/example.com\/current-banner.jpg"/);
   assert.match(html, /alt="Team page banner preview"/);
   assert.match(html, /name="department_count" value="4"/);
+  assert.equal((html.match(/name="department_\d+_displayOrder"/g) ?? []).length, 4);
   assert.match(html, /name="contact_count" value="2"/);
   assert.equal((html.match(/data-contact-key=/g) ?? []).length, 2);
   assert(!/data-contact-key="[^"]+" open/.test(html), "editors start collapsed");
@@ -40,6 +41,9 @@ test("collapsed contact editors keep the complete save payload and separate draf
     for (const field of ["contactName", "departmentId", "role", "regionTitle", "location", "email", "whatsapp", "photoUrl", "displayOrder", "enabled"]) {
       assert(html.includes(`name="contact_${index}_${field}"`), `${field} remains submitted for closed contact ${index}`);
     }
+    const contactFields = html.match(new RegExp(`<(?:input|select)[^>]*name="contact_${index}_[^"]+"[^>]*>`, "g")) ?? [];
+    assert.equal(contactFields.filter((field) => field.includes('required=""')).length, 1);
+    assert.match(contactFields.find((field) => field.includes('required=""'))!, /_contactName"/);
   }
   assert.match(html, /<button(?=[^>]*name="intent")(?=[^>]*value="draft")[^>]*>/);
   assert.match(html, /<button(?=[^>]*name="intent")(?=[^>]*value="publish")[^>]*>/);

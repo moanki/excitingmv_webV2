@@ -28,7 +28,7 @@ export function ContactSettingsForm({ contact, mediaLibrary }: {
   function addContact() {
     const formKey = crypto.randomUUID();
     setRegions((items) => [...items, {
-      formKey, departmentId: departments[0]?.id ?? "", regionTitle: "", location: "", contactName: "", role: "",
+      formKey, departmentId: "", regionTitle: "", location: "", contactName: "", role: "",
       photoUrl: "", email: "", whatsapp: "", displayOrder: Math.max(0, ...items.map((item) => item.displayOrder)) + 1, enabled: true
     }]);
     setExpandedContact(formKey);
@@ -87,7 +87,10 @@ export function ContactSettingsForm({ contact, mediaLibrary }: {
             <section className="te-section" aria-labelledby="te-departments-title">
               <div className="te-section-heading">
                 <h2 id="te-departments-title">Departments</h2>
-                <button className="button-muted" type="button" onClick={() => setDepartments((items) => [...items, { id: crypto.randomUUID(), name: "" }])}>
+                <button className="button-muted" type="button" onClick={() => setDepartments((items) => [...items, {
+                  id: crypto.randomUUID(), name: "",
+                  displayOrder: Math.max(0, ...items.map((item, index) => item.displayOrder ?? index + 1)) + 1
+                }])}>
                   <Plus size={14} aria-hidden="true" /> Add department
                 </button>
               </div>
@@ -100,9 +103,17 @@ export function ContactSettingsForm({ contact, mediaLibrary }: {
                     <div className="te-department" key={department.id}>
                       <input type="hidden" name={`department_${index}_id`} value={department.id} />
                       <label className="field">
-                        <span className="te-sr-only">Department name {index + 1}</span>
+                        <span>Department name</span>
                         <input name={`department_${index}_name`} value={department.name} required placeholder="Department name"
                           onChange={(event) => setDepartments((items) => items.map((item) => item.id === department.id ? { ...item, name: event.target.value } : item))} />
+                      </label>
+                      <label className="field">
+                        <span>Display order</span>
+                        <input name={`department_${index}_displayOrder`} type="number" min="1" step="1"
+                          aria-label={`Display order for ${department.name || "department " + (index + 1)}`}
+                          value={department.displayOrder ?? index + 1}
+                          onChange={(event) => setDepartments((items) => items.map((item) => item.id === department.id
+                            ? { ...item, displayOrder: Number(event.target.value) } : item))} />
                       </label>
                       <span className="te-count">{count} {count === 1 ? "contact" : "contacts"}</span>
                       <button className="te-text-button" type="button" aria-label={`Remove ${department.name || "department"}`} disabled={blocked}
@@ -112,7 +123,7 @@ export function ContactSettingsForm({ contact, mediaLibrary }: {
                   );
                 })}
               </div>
-              <p className="te-help">Reassign contacts before removing their department.</p>
+              <p className="te-help">Lower display orders appear first on the website after publishing. Reassign contacts before removing their department.</p>
             </section>
           </div>
 
@@ -124,7 +135,8 @@ export function ContactSettingsForm({ contact, mediaLibrary }: {
               </button>
             </div>
             <input type="hidden" name="contact_count" value={regions.length} />
-            {!regions.length ? <div className="te-empty">No contacts yet. Add a contact and choose their department.</div> : null}
+            <p className="te-help">Only the contact name is required. All other contact details are optional.</p>
+            {!regions.length ? <div className="te-empty">No contacts yet. Add a contact to get started.</div> : null}
             <div className="te-contact-list">
               {regions.map((region, index) => (
                 <details className="te-contact" key={region.formKey} data-contact-key={region.formKey} open={expandedContact === region.formKey}>
@@ -134,7 +146,7 @@ export function ContactSettingsForm({ contact, mediaLibrary }: {
                         : region.contactName.split(/\s+/).map((part) => part[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "—"}
                     </span>
                     <span className="te-person"><strong>{region.contactName || "New contact"}</strong><span>{region.role || region.email || "Add contact details"}</span></span>
-                    <span className="te-contact-department">{departments.find((department) => department.id === region.departmentId)?.name || "Select department"}</span>
+                    <span className="te-contact-department">{departments.find((department) => department.id === region.departmentId)?.name || "Unassigned"}</span>
                     <span className={`te-visibility${region.enabled ? " is-visible" : ""}`}>{region.enabled ? "Visible" : "Hidden"}</span>
                     <ChevronDown className="te-chevron" size={16} aria-hidden="true" />
                   </summary>
@@ -147,8 +159,8 @@ export function ContactSettingsForm({ contact, mediaLibrary }: {
                         <input name={`contact_${index}_role`} value={region.role} onChange={(event) => updateRegion(region.formKey, { role: event.target.value })} />
                       </label>
                       <label className="field">Department
-                        <select name={`contact_${index}_departmentId`} value={region.departmentId} required onChange={(event) => updateRegion(region.formKey, { departmentId: event.target.value })}>
-                          <option value="" disabled>Select department</option>
+                        <select name={`contact_${index}_departmentId`} value={region.departmentId} onChange={(event) => updateRegion(region.formKey, { departmentId: event.target.value })}>
+                          <option value="">Unassigned</option>
                           {departments.map((department) => <option key={department.id} value={department.id}>{department.name || "Unnamed department"}</option>)}
                         </select>
                       </label>

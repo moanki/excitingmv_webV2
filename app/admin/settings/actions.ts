@@ -417,7 +417,6 @@ function parseContactRegions(formData: FormData): ContactRegion[] {
       displayOrder: countValue(formData, `contact_${index}_displayOrder`, index + 1),
       enabled: booleanValue(formData, `contact_${index}_enabled`)
     }))
-    .filter((item) => item.regionTitle || item.contactName || item.email || item.whatsapp)
     .sort((a, b) => a.displayOrder - b.displayOrder);
 }
 
@@ -428,8 +427,8 @@ function validateContactContent(contact: ContactPageContent) {
 
   contact.regions.forEach((region, index) => {
     const label = region.regionTitle || `Contact ${index + 1}`;
-    if (!region.contactName || (!region.email && !region.whatsapp)) {
-      throw new Error(`${label} needs a contact name and an email address or WhatsApp number.`);
+    if (!region.contactName) {
+      throw new Error(`${label} needs a contact name.`);
     }
     if (region.whatsapp && region.whatsapp.replace(/\D/g, "").length < 5) {
       throw new Error(`${label} needs a valid WhatsApp number.`);
@@ -452,7 +451,10 @@ export async function saveContactDraftAction(_: ActionState, formData: FormData)
         : (await getContactPageContent("draft")).content.heroImageUrl,
       departments: indexesFromCount(formData, "department_count", 0).map((index) => ({
         id: stringValue(formData, `department_${index}_id`).trim(),
-        name: stringValue(formData, `department_${index}_name`).trim()
+        name: stringValue(formData, `department_${index}_name`).trim(),
+        displayOrder: formData.has(`department_${index}_displayOrder`)
+          ? Number(stringValue(formData, `department_${index}_displayOrder`))
+          : index + 1
       })),
       title: stringValue(formData, "title").trim(),
       subtitle: stringValue(formData, "subtitle"),

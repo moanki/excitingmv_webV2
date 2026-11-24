@@ -1244,7 +1244,7 @@ function normalizeContactPageContent(settings: unknown): ContactPageContent {
           location: value.location ?? fallback.location,
           contactName: value.contactName ?? fallback.contactName,
           role: value.role ?? fallback.role,
-          photoUrl: value.photoUrl || fallback.photoUrl || "",
+          photoUrl: value.photoUrl ?? fallback.photoUrl ?? "",
           email: value.email ?? fallback.email,
           whatsapp: value.whatsapp ?? fallback.whatsapp,
           displayOrder: numericValue(value.displayOrder, index + 1),
