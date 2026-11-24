@@ -1472,7 +1472,8 @@ export async function getFooterContent(mode: "draft" | "published" = "published"
 }
 
 export async function getFooterSocialMedia(mode: "draft" | "published" = "published") {
-  return getSiteSettingMode(footerSocialMediaKey, defaultFooterSocialMedia, mode);
+  const entry = await getSiteSettingMode(footerSocialMediaKey, defaultFooterSocialMedia, mode);
+  return { ...entry, content: { ...defaultFooterSocialMedia, ...entry.content } };
 }
 
 export async function getSitePolicy(id: PolicyId, mode: "draft" | "published" = "published") {

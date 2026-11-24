@@ -5,25 +5,31 @@ import { calendarValidationMessage, defaultUpcomingHomepage, featuredOpenings, h
 const resort = {
   id: "one", sectionId: "year", name: "Test opening", atoll: "Raa Atoll", operator: "", openingYear: 2027,
   launchDate: "", dateLabel: "2027", status: "In development", dateMoved: true, note: "", highlights: "",
-  keyCount: 54, keysLabel: "54", imageUrl: "", imageAlt: "", imageCaption: "", officialUrl: "https://example.com",
-  sourceUrl: "https://example.com/source", checkedOn: "2026-11-08", enabled: true
+  keyCount: 54, keysLabel: "54", imageUrl: "", imageAlt: "", imageCaption: "",
+  checkedOn: "2026-11-08", enabled: true
 };
 const content: UpcomingPageContent = {
   enabled: true, seoTitle: "Calendar", seoDescription: "", eyebrow: "", title: "Calendar", subtitle: "", description: "",
   bannerUrl: "", bannerAlt: "", bannerCaption: "", jumpLabel: "Jump", askLabel: "Ask", teamUrl: "/team",
-  officialLabel: "Official", sourceLabel: "Source", dateMovedLabel: "Moved", checkedLabel: "Checked", emptyMessage: "Empty", keysUnit: "keys",
+  dateMovedLabel: "Moved", checkedLabel: "Checked", emptyMessage: "Empty", keysUnit: "keys",
   stats: [{ id: "total", label: "Openings", metric: "openings", value: "" }, { id: "keys", label: "Keys", metric: "keys", value: "" }],
   sections: [{ id: "year", title: "2027", description: "", jumpLabel: "", enabled: true }],
   guidanceTitle: "", guidanceBody: "", ctaTitle: "", ctaBody: "", ctaLabel: "", disclaimer: "", resorts: [resort]
 };
 
-test("validates configurable copy, arbitrary statuses, and empty optional links", () => {
+test("validates configurable copy and arbitrary statuses without source URL fields", () => {
   assert.equal(upcomingPageSchema.parse(content).resorts.length, 1);
-  assert.equal(openingSchema.parse({ ...resort, status: "Awaiting final inspection", officialUrl: "", sourceUrl: "" }).status, "Awaiting final inspection");
+  assert.equal(openingSchema.parse({ ...resort, status: "Awaiting final inspection" }).status, "Awaiting final inspection");
+  const legacy = upcomingPageSchema.parse({
+    ...content, officialLabel: "Official", sourceLabel: "Source",
+    resorts: [{ ...resort, officialUrl: "https://example.com", sourceUrl: "https://example.com/source" }]
+  });
+  assert.ok(!("officialLabel" in legacy) && !("sourceLabel" in legacy));
+  assert.ok(!("officialUrl" in legacy.resorts[0]) && !("sourceUrl" in legacy.resorts[0]));
 });
 test("rejects unsafe URLs, impossible dates, invalid years and negative inventory", () => {
-  for (const officialUrl of ["javascript:alert(1)", "data:text/html,hello", "//example.com", "https://name:password@example.com"])
-    assert.equal(openingSchema.safeParse({ ...resort, officialUrl }).success, false);
+  for (const imageUrl of ["javascript:alert(1)", "data:text/html,hello", "//example.com", "https://name:password@example.com"])
+    assert.equal(openingSchema.safeParse({ ...resort, imageUrl }).success, false);
   for (const launchDate of ["2027-02-30", "2027-99-10", "invalid"])
     assert.equal(openingSchema.safeParse({ ...resort, launchDate }).success, false);
   assert.equal(openingSchema.safeParse({ ...resort, keyCount: -1 }).success, false);

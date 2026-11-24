@@ -2932,6 +2932,32 @@ select {
   gap: 2rem;
 }
 
+.site-footer__telegram {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 44px;
+  margin-top: 0.75rem;
+  color: var(--brand-white);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.site-footer__telegram svg {
+  flex-shrink: 0;
+}
+
+.site-footer__telegram:hover {
+  color: var(--brand-gold);
+}
+
+.site-footer__telegram:focus-visible {
+  outline: 2px solid var(--brand-gold);
+  outline-offset: 4px;
+}
+
 .site-footer__columns {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
