@@ -2,6 +2,7 @@
 
 import { useState, type ChangeEvent } from "react";
 import { FileDown, UploadCloud } from "lucide-react";
+import { useAdminActionFeedback } from "@/components/admin/admin-action-feedback";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { publicEnv } from "@/lib/public-env";
@@ -32,10 +33,18 @@ async function brochureRequest<T>(body: Record<string, unknown>): Promise<T> {
 
 type PendingAttachmentError = Error & { uploadedPath?: string };
 
-async function uploadBrochure(resortId: string, file: File, propertyType: PropertyType, pendingPath = "") {
+async function uploadBrochure(
+  resortId: string,
+  file: File,
+  propertyType: PropertyType,
+  pendingPath = "",
+  onProgress?: (message: string, percent: number) => void
+) {
   if (pendingPath) {
+    onProgress?.("Linking uploaded PDF to the property…", 95);
     return brochureRequest<{ path: string; name: string }>({ mode: "attach", resortId, propertyType, path: pendingPath });
   }
+  onProgress?.("Preparing PDF upload…", 0);
   const signed = await brochureRequest<{ bucket: string; path: string; token: string }>({
     mode: "sign", resortId, propertyType, filename: file.name, size: file.size
   });
@@ -53,12 +62,17 @@ async function uploadBrochure(resortId: string, file: File, propertyType: Proper
       uploadDataDuringCreation: true,
       removeFingerprintOnSuccess: true,
       metadata: { bucketName: signed.bucket, objectName: signed.path, contentType: "application/pdf" },
+      onProgress: (uploaded, total) => {
+        const percent = total > 0 ? Math.round(uploaded / total * 100) : 0;
+        onProgress?.(`Uploading PDF — ${percent}%`, percent * 0.95);
+      },
       onError: reject,
       onSuccess: () => resolve()
     });
     upload.start();
   });
   try {
+    onProgress?.("Linking uploaded PDF to the property…", 95);
     return await brochureRequest<{ path: string; name: string }>({ mode: "attach", resortId, propertyType, path: signed.path });
   } catch (error) {
     const pending = new Error(error instanceof Error ? error.message : "Could not attach uploaded PDF.") as PendingAttachmentError;
@@ -150,6 +164,7 @@ export function BrochureUploadControl({ resortId, resortName, initialPath, prope
 }
 
 export function BrochureImportPanel({ propertyType = "resort" }: { propertyType?: PropertyType }) {
+  const { startAction, updateAction, finishAction, notifyError } = useAdminActionFeedback();
   const singular = propertyType === "resort" ? "Resort" : propertyType === "hotels" ? "Hotel" : "Liveaboard";
   const [page, setPage] = useState(0);
   const [files, setFiles] = useState<Map<string, File>>(new Map());
@@ -160,6 +175,7 @@ export function BrochureImportPanel({ propertyType = "resort" }: { propertyType?
   const [pendingPaths, setPendingPaths] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const acceptedCount = rows.filter((row) => !row.duplicate && selections[row.relativePath]?.accepted && results[row.relativePath] !== "Uploaded").length;
 
   async function selectFolder(event: ChangeEvent<HTMLInputElement>) {
     const selected = [...(event.target.files ?? [])].filter((file) => /\.pdf$/i.test(file.name));
@@ -196,17 +212,28 @@ export function BrochureImportPanel({ propertyType = "resort" }: { propertyType?
     const accepted = rows.filter((row) => !row.duplicate && selections[row.relativePath]?.accepted && results[row.relativePath] !== "Uploaded");
     const ids = accepted.map((row) => selections[row.relativePath].resortId);
     if (!accepted.length || ids.some((id) => !id) || new Set(ids).size !== ids.length) {
-      setMessage(`Accept one PDF per ${singular.toLowerCase()} and resolve any duplicate selections.`);
+      const error = `Accept one PDF per ${singular.toLowerCase()} and resolve any duplicate selections.`;
+      setMessage(error);
+      notifyError("Brochure import needs attention", error);
       return;
     }
     setBusy(true);
-    setMessage("");
+    setMessage(`Starting import of ${accepted.length} brochures…`);
+    const actionId = startAction({ title: "Importing brochures…", type: "upload", progress: 0 });
     let uploaded = 0;
+    let completed = 0;
     for (const row of accepted) {
       const file = files.get(row.relativePath);
-      if (!file) continue;
       try {
-        await uploadBrochure(selections[row.relativePath].resortId, file, propertyType, pendingPaths[row.relativePath]);
+        if (!file) throw new Error("This PDF is no longer available. Select the folder again.");
+        await uploadBrochure(selections[row.relativePath].resortId, file, propertyType, pendingPaths[row.relativePath], (status, percent) => {
+          setResults((current) => ({ ...current, [row.relativePath]: status }));
+          setMessage(`Brochure ${completed + 1} of ${accepted.length} — ${row.folder}: ${status}`);
+          updateAction(actionId, {
+            message: `${row.folder} / ${row.name} — ${status}`,
+            progress: (completed + percent / 100) / accepted.length * 100
+          });
+        });
         setPendingPaths((current) => ({ ...current, [row.relativePath]: "" }));
         setResults((current) => ({ ...current, [row.relativePath]: "Uploaded" }));
         uploaded++;
@@ -215,8 +242,16 @@ export function BrochureImportPanel({ propertyType = "resort" }: { propertyType?
         if (uploadedPath) setPendingPaths((current) => ({ ...current, [row.relativePath]: uploadedPath }));
         setResults((current) => ({ ...current, [row.relativePath]: `${error instanceof Error ? error.message : "Upload failed"}${uploadedPath || pendingPaths[row.relativePath] ? " (retry attachment)" : ""}` }));
       }
+      completed++;
+      updateAction(actionId, { progress: completed / accepted.length * 100 });
     }
-    setMessage(`${uploaded} of ${accepted.length} brochures uploaded. Review row results below.`);
+    const summary = `${uploaded} of ${accepted.length} brochures uploaded. Review row results below.`;
+    setMessage(summary);
+    finishAction(actionId, {
+      title: uploaded === accepted.length ? "Brochure import completed" : "Some brochures could not be imported",
+      message: summary,
+      status: uploaded === accepted.length ? "success" : "error"
+    });
     setBusy(false);
   }
 
@@ -253,7 +288,7 @@ export function BrochureImportPanel({ propertyType = "resort" }: { propertyType?
               return <tr key={row.relativePath}>
                 <td>{row.name}</td>
                 <td>{row.folder || "Invalid path"}</td>
-                <td><select className="admin-select" aria-label={`${singular} for ${row.name}`} value={selection.resortId} disabled={invalid || busy || Boolean(pendingPaths[row.relativePath])} onChange={(event) => setSelections((current) => ({ ...current, [row.relativePath]: { resortId: event.target.value, accepted: false } }))}>
+                <td><select className="admin-select" aria-label={`${singular} for ${row.name}`} value={selection.resortId} disabled={invalid || busy || Boolean(pendingPaths[row.relativePath]) || results[row.relativePath] === "Uploaded"} onChange={(event) => setSelections((current) => ({ ...current, [row.relativePath]: { resortId: event.target.value, accepted: Boolean(event.target.value) } }))}>
                   <option value="">Choose {singular.toLowerCase()}</option>
                   {resorts.map((resort) => <option value={resort.id} key={resort.id}>{resort.name}{resort.hasBrochure ? " (replace)" : ""}</option>)}
                 </select></td>
@@ -269,7 +304,10 @@ export function BrochureImportPanel({ propertyType = "resort" }: { propertyType?
         <span>Page {page + 1} of {Math.ceil(rows.length / 50)}</span>
         <button type="button" className="admin-btn admin-btn--ghost" disabled={(page + 1) * 50 >= rows.length || busy} onClick={() => setPage((current) => current + 1)}>Next</button>
       </div> : null}
-      {rows.length ? <div className="admin-form-actions"><button type="button" className="admin-btn admin-btn--secondary" disabled={busy || !rows.some((row) => !row.duplicate && selections[row.relativePath]?.accepted && results[row.relativePath] !== "Uploaded")} onClick={importAccepted}><UploadCloud className="admin-icon" /> {busy ? "Importing..." : "Import Accepted Brochures"}</button></div> : null}
+      {rows.length ? <div className="admin-form-actions">
+        <button type="button" className="admin-btn admin-btn--secondary" disabled={busy || !acceptedCount} onClick={importAccepted}><UploadCloud className="admin-icon" /> {busy ? "Importing..." : "Import Accepted Brochures"}</button>
+        <span className="field__help">{acceptedCount} brochures ready to import. Choose a property to accept its match, or untick Accept to skip it.</span>
+      </div> : null}
       {message ? <p role="status" className="field__help">{message}</p> : null}
     </section>
   );
