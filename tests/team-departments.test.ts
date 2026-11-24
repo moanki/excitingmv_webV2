@@ -30,4 +30,20 @@ test("invalid departments and removing an assigned department are rejected befor
   assert.throws(() => validateTeamDepartments([{ id: "a", name: "Sales" }, { id: "a", name: "Finance" }], []), /unique/);
   assert.throws(() => validateTeamDepartments(defaultTeamDepartments, [{ departmentId: "deleted" }]), /existing department/);
   assert.doesNotThrow(() => validateTeamDepartments(defaultTeamDepartments, [{ departmentId: "finance" }]));
+  assert.doesNotThrow(() => validateTeamDepartments(defaultTeamDepartments, [{ departmentId: "" }]));
+});
+
+test("department display order sorts the website, keeps ties stable and preserves legacy order", () => {
+  const departments = [
+    { id: "sales", name: "Sales", displayOrder: 3 },
+    { id: "finance", name: "Finance", displayOrder: 1 },
+    { id: "airport", name: "Airport", displayOrder: 1 }
+  ];
+  const contacts = [...departments.map(({ id }) => ({ departmentId: id, enabled: true })), { departmentId: "", enabled: true }];
+  assert.deepEqual(groupTeamContacts(departments, contacts).map(({ id }) => id), ["finance", "airport", "sales", "unassigned"]);
+  assert.deepEqual(departments.map(({ id }) => id), ["sales", "finance", "airport"]);
+  assert.deepEqual(normalizeTeamDepartments(departments.map(({ id, name }) => ({ id, name }))).map(({ displayOrder }) => displayOrder), [1, 2, 3]);
+  for (const displayOrder of [0, -1, 1.5, NaN, Infinity]) {
+    assert.throws(() => validateTeamDepartments([{ id: "a", name: "Sales", displayOrder }], []), /positive whole number/);
+  }
 });

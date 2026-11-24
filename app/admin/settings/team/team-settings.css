@@ -88,7 +88,7 @@
 .admin-body .team-editor .te-cta[open] > summary { margin-bottom: 12px; }
 .admin-body .team-editor .te-cta[open] > summary svg { transform: rotate(180deg); }
 .admin-body .team-editor .te-departments { padding: 4px 20px; }
-.admin-body .team-editor .te-department { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 12px 0; }
+.admin-body .team-editor .te-department { display: grid; grid-template-columns: minmax(0, 1fr) 100px auto auto; align-items: end; gap: 12px; padding: 12px 0; }
 .admin-body .team-editor .te-department + .te-department { border-top: 1px solid var(--te-line); }
 .admin-body .team-editor .te-count { min-width: 62px; color: var(--te-muted); font-size: 12px; font-variant-numeric: tabular-nums; text-align: right; }
 .admin-body .team-editor .te-text-button { min-height: 36px; padding: 6px 0; border: 0; background: transparent; color: var(--te-muted); font: inherit; font-size: 12px; cursor: pointer; }
@@ -139,8 +139,7 @@
   .admin-body .team-editor .te-chevron { grid-column: 4; grid-row: 1; }
   .admin-body .team-editor .te-fields { grid-template-columns: minmax(0, 1fr); }
   .admin-body .team-editor .te-departments { padding: 0 16px; }
-  .admin-body .team-editor .te-department { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
-  .admin-body .team-editor .te-department .field { grid-column: 1 / -1; }
+  .admin-body .team-editor .te-department { grid-template-columns: minmax(0, 1fr) 100px; gap: 8px 12px; }
   .admin-body .team-editor .te-count { text-align: left; }
   .admin-body .team-editor .te-text-button { justify-self: end; }
   .admin-body .team-editor :is(.button-muted, .admin-btn, .te-text-button) { min-height: 44px !important; }

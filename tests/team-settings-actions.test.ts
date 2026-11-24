@@ -55,6 +55,29 @@ test("team settings preserve legacy contacts, save drafts separately, publish as
   assert.equal(departments.groupTeamContacts(published.departments, published.regions)[0].name, "Finance");
   assert(revalidated.includes("/team"));
 
+  form.set("contact_0_departmentId", "");
+  form.set("contact_0_email", "");
+  form.set("contact_0_role", "");
+  form.set("contact_0_photoUrl", "");
+  form.set("department_0_displayOrder", "2");
+  form.set("department_1_displayOrder", "1");
+  assert.equal((await actions.saveContactDraftAction(undefined, form)).message, "Team draft saved.");
+  const nameOnly = (await content.getContactPageContent("draft")).content;
+  assert.equal(nameOnly.regions[0].contactName, "Finance contact");
+  assert.equal(nameOnly.regions[0].email, "");
+  assert.equal(nameOnly.regions[0].photoUrl, "");
+  assert.equal(nameOnly.regions[0].departmentId, "");
+  assert.equal(nameOnly.departments[1].displayOrder, 1);
+  assert.equal((await content.getContactPageContent()).content.regions[0].email, "finance@example.com");
+  form.set("contact_0_contactName", " ");
+  const beforeMissingName = JSON.stringify(stored);
+  assert.match((await actions.saveContactDraftAction(undefined, form)).error, /needs a contact name/);
+  assert.equal(JSON.stringify(stored), beforeMissingName);
+  form.set("contact_0_contactName", "Finance contact");
+  form.set("department_0_displayOrder", "0");
+  assert.match((await actions.saveContactDraftAction(undefined, form)).error, /positive whole number/);
+  form.set("department_0_displayOrder", "2");
+
   form.set("heroImageUrl", "https://example.com/team-banner.jpg");
   assert.equal((await actions.saveContactDraftAction(undefined, form)).message, "Team draft saved.");
   assert.equal((await content.getContactPageContent("draft")).content.heroImageUrl, "https://example.com/team-banner.jpg");
