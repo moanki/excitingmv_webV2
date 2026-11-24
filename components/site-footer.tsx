@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
-import { FaFacebookF, FaInstagram, FaLinkedinIn, FaTiktok, FaWhatsapp } from "react-icons/fa6";
+import { FaFacebookF, FaInstagram, FaLinkedinIn, FaTelegram, FaTiktok, FaWhatsapp } from "react-icons/fa6";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
 import { footerSocialPlatforms, type FooterSocialMedia } from "@/lib/footer-social-media";
@@ -10,7 +10,8 @@ const socialIcons = {
   linkedin: FaLinkedinIn,
   instagram: FaInstagram,
   facebook: FaFacebookF,
-  tiktok: FaTiktok
+  tiktok: FaTiktok,
+  telegram: FaTelegram
 };
 
 function normalizeHref(value: string) {
@@ -112,7 +113,7 @@ export function SiteFooter({ footer, navbar, socialMedia }: {
   navbar: NavbarContent;
   socialMedia: FooterSocialMedia;
 }) {
-  const socialLinks = footerSocialPlatforms.filter(({ key }) => socialMedia[key]);
+  const socialLinks = footerSocialPlatforms.filter(({ key }) => key !== "telegram" && socialMedia[key]);
   const groupByTitle = (needle: string) =>
     footer.linkGroups.find((group) => group.enabled && group.title.toLowerCase().includes(needle))?.items ?? [];
   const partnerLoginHref = navbar.partnerLoginHref || navbar.ctaHref || "/partner/login";
@@ -199,6 +200,12 @@ export function SiteFooter({ footer, navbar, socialMedia }: {
                   );
                 })}
               </div>
+            )}
+            {socialMedia.telegram && (
+              <a className="site-footer__telegram" href={socialMedia.telegram} target="_blank" rel="noopener noreferrer">
+                <FaTelegram size={20} aria-hidden="true" />
+                <span>Join our Telegram channel</span>
+              </a>
             )}
           </div>
 

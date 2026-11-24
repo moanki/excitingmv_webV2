@@ -22,7 +22,7 @@ export const openingSchema = z.object({
   launchDate: date,
   dateLabel: required, status: required, dateMoved: z.boolean(), note: text,
   highlights: text, keyCount: z.number().int().min(0).max(10000).nullable(), keysLabel: short,
-  imageUrl: url, imageAlt: short, imageCaption: short, officialUrl: url, sourceUrl: url,
+  imageUrl: url, imageAlt: short, imageCaption: short,
   checkedOn: date, enabled: z.boolean(), featuredOnHomepage: z.boolean().optional(),
   homepageFocalPoint: z.object({ x: z.number().int().min(0).max(100), y: z.number().int().min(0).max(100) }).optional()
 });
@@ -41,7 +41,7 @@ export const upcomingPageSchema = z.object({
   eyebrow: short, title: required, subtitle: short, description: text,
   bannerUrl: url, bannerAlt: short, bannerCaption: short,
   jumpLabel: required, askLabel: required, teamUrl: z.string().refine((v) => v === "/team", "Ask our team links to /team."),
-  officialLabel: required, sourceLabel: required, dateMovedLabel: required, checkedLabel: required,
+  dateMovedLabel: required, checkedLabel: required,
   emptyMessage: required, keysUnit: short,
   stats: z.array(z.object({ id, label: required, metric: z.enum(["openings", "atolls", "keys", "moved", "custom"]), value: short })).max(6),
   sections: z.array(z.object({ id, title: required, description: text, jumpLabel: short, enabled: z.boolean() })).min(1).max(30),
@@ -81,12 +81,12 @@ export function calendarValidationMessage(issue: z.ZodIssue, input: unknown) {
   const names: Record<string, string> = {
     name: "Resort name", atoll: "Atoll", operator: "Operator / developer", openingYear: "Opening year",
     launchDate: "Exact launch date", dateLabel: "Date shown on page", status: "Status", highlights: "Highlights",
-    keyCount: "Number of keys", keysLabel: "Keys shown on card", officialUrl: "Official website URL",
-    sourceUrl: "Verified source URL", checkedOn: "Source checked on", sectionId: "Year section",
+    keyCount: "Number of keys", keysLabel: "Keys shown on card",
+    checkedOn: "Source checked on", sectionId: "Year section",
     imageUrl: "Resort image", imageAlt: "Image description", imageCaption: "Photo / render credit",
     title: "Main heading", seoTitle: "Search engine title", bannerUrl: "Banner image", label: "Label",
-    jumpLabel: "Jump navigation label", askLabel: "Ask our team link text", officialLabel: "Official website label",
-    sourceLabel: "Verified source label", dateMovedLabel: "Date moved badge", checkedLabel: "Source checked label",
+    jumpLabel: "Jump navigation label", askLabel: "Ask our team link text",
+    dateMovedLabel: "Date moved badge", checkedLabel: "Source checked label",
     emptyMessage: "No openings message"
   };
   if (group === "resorts" && field === "homepageFocalPoint")

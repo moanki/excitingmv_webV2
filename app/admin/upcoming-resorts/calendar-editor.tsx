@@ -70,7 +70,7 @@ export function CalendarEditor({ initial, revision, library }: { initial: Upcomi
     const item: OpeningResort = duplicate ? { ...duplicate, id, name: `${duplicate.name} (copy)`, enabled: false, featuredOnHomepage: false } : {
       id, sectionId: content.sections[0].id, name: "Untitled resort", atoll: "", operator: "", openingYear: null,
       launchDate: "", dateLabel: "To be announced", status: "In development", dateMoved: false, note: "", highlights: "",
-      keyCount: null, keysLabel: "", imageUrl: "", imageAlt: "", imageCaption: "", officialUrl: "", sourceUrl: "", checkedOn: "", enabled: false
+      keyCount: null, keysLabel: "", imageUrl: "", imageAlt: "", imageCaption: "", checkedOn: "", enabled: false
     };
     update("resorts", [...content.resorts, item]);
     setSelected(id); setQuery(""); setTab("resorts");
@@ -126,7 +126,7 @@ export function CalendarEditor({ initial, revision, library }: { initial: Upcomi
               <div className="cal-grid">{resortField("imageAlt", "Image description (accessibility)")}{resortField("imageCaption", "Photo / render credit")}</div>
             </div>
             <div className="cal-section"><h3>Official website & verified source</h3><p>Each non-empty URL appears as a labelled link and a visible address on the public card.</p>
-              {resortField("officialUrl", "Official website URL", false, "url")}{resortField("sourceUrl", "Verified source URL", false, "url")}{resortField("checkedOn", "Source checked on", false, "date")}
+              {resortField("checkedOn", "Source checked on", false, "date")}
             </div>
             <div className="cal-delete">{removeId === resort.id ? <><p>Remove {resort.name}? This takes effect after saving. You can hide it instead.</p><button type="button" className="cal-danger" onClick={() => { update("resorts", content.resorts.filter((r) => r.id !== resort.id)); setSelected(content.resorts.find((r) => r.id !== resort.id)?.id ?? ""); setRemoveId(""); }}>Remove resort</button><button type="button" onClick={() => setRemoveId("")}>Keep resort</button></> : <button type="button" onClick={() => setRemoveId(resort.id)}><Trash2 size={15} /> Remove resort</button>}</div>
           </> : <p>Select a resort or add a new opening to start editing.</p>}</div>
@@ -147,7 +147,7 @@ export function CalendarEditor({ initial, revision, library }: { initial: Upcomi
           <button type="button" disabled={content.stats.length >= 6} onClick={() => update("stats", [...content.stats, { id: crypto.randomUUID(), label: "New statistic", metric: "custom", value: "" }])}><Plus size={15} /> Add statistic</button>
         </div>}
         {tab === "copy" && <div className="cal-settings"><h2>Page labels</h2><div className="cal-grid">{[
-          ["jumpLabel", "Jump navigation label"], ["askLabel", "Ask our team link text"], ["officialLabel", "Official website label"], ["sourceLabel", "Verified source label"], ["dateMovedLabel", "Date moved badge"], ["checkedLabel", "Source checked label"], ["keysUnit", "Keys unit"], ["emptyMessage", "No openings message"]
+          ["jumpLabel", "Jump navigation label"], ["askLabel", "Ask our team link text"], ["dateMovedLabel", "Date moved badge"], ["checkedLabel", "Source checked label"], ["keysUnit", "Keys unit"], ["emptyMessage", "No openings message"]
         ].map(([key, label]) => pageField(key as keyof UpcomingPageContent, label))}</div><p>All team links lead to the existing <Link href="/team" target="_blank">Team page</Link>, managed in Team settings.</p>
           <h2 className="cal-subheading">Guidance & team invitation</h2><div className="cal-grid">{pageField("guidanceTitle", "Guidance heading")}{pageField("ctaTitle", "Team invitation heading")}{pageField("guidanceBody", "Guidance text", true)}{pageField("ctaBody", "Team invitation text", true)}{pageField("ctaLabel", "Team button text")}<div className="cal-wide">{pageField("disclaimer", "Opening date disclaimer", true)}</div></div>
         </div>}

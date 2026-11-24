@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowUpRight, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { getUpcomingResorts } from "@/lib/services/upcoming-resorts-service";
 import { openingStats, visibleOpenings } from "@/lib/upcoming-resorts";
 import "./upcoming-resorts.css";
@@ -64,10 +64,6 @@ export default async function UpcomingResortsPage() {
                     {r.note && <span className="opening-card__note">{r.note}</span>}
                     <Link className="opening-ask" href={c.teamUrl}>{c.askLabel}<ArrowRight size={15} aria-hidden="true" /></Link>
                   </div>
-                  {(r.officialUrl || r.sourceUrl) && <div className="opening-sources">
-                    {r.officialUrl && <a href={r.officialUrl} target="_blank" rel="noopener noreferrer"><span>{c.officialLabel}<ArrowUpRight size={13} aria-hidden="true" /></span><small>{r.officialUrl}</small></a>}
-                    {r.sourceUrl && <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer"><span>{c.sourceLabel}<ArrowUpRight size={13} aria-hidden="true" /></span><small>{r.sourceUrl}</small></a>}
-                  </div>}
                   {r.checkedOn && <p className="opening-checked">{c.checkedLabel} <time dateTime={r.checkedOn}>{r.checkedOn}</time></p>}
                 </div>
               </article>
