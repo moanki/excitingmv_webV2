@@ -34,3 +34,27 @@ test("separates brochure storage paths by property type", () => {
   assert.equal(loaded.exports.brochureStoragePrefix("hotels", "abc"), "hotels/abc/brochures/");
   assert.equal(loaded.exports.brochureStoragePrefix("liveaboards", "abc"), "liveaboards/abc/brochures/");
 });
+
+test("choosing a replacement deselects other PDFs for that property without affecting other properties", () => {
+  const original = {
+    "resort/old.pdf": { resortId: "resort", accepted: true },
+    "other/file.pdf": { resortId: "other", accepted: true }
+  };
+  const next = loaded.exports.selectBrochure(original, "resort/new.pdf", "resort", true);
+  assert.equal(next["resort/new.pdf"].accepted, true);
+  assert.equal(next["resort/old.pdf"].accepted, false);
+  assert.equal(next["other/file.pdf"].accepted, true);
+  assert.equal(original["resort/old.pdf"].accepted, true);
+  const chosenOld = loaded.exports.selectBrochure(next, "resort/old.pdf", "resort", true);
+  assert.equal(chosenOld["resort/new.pdf"].accepted, false);
+  assert.equal(chosenOld["resort/old.pdf"].accepted, true);
+});
+
+test("skipping a PDF or clearing its property leaves other accepted brochures selected", () => {
+  const original = { "resort/new.pdf": { resortId: "resort", accepted: true } };
+  const skipped = loaded.exports.selectBrochure(original, "resort/old.pdf", "resort", false);
+  assert.equal(skipped["resort/new.pdf"].accepted, true);
+  assert.equal(skipped["resort/old.pdf"].accepted, false);
+  const cleared = loaded.exports.selectBrochure(skipped, "resort/new.pdf", "", true);
+  assert.equal(cleared["resort/new.pdf"].accepted, false);
+});

@@ -10,6 +10,26 @@ export function brochureStoragePrefix(propertyType: "resort" | "hotels" | "livea
   return `${folder}/${id}/brochures/`;
 }
 
+export type BrochureSelection = { resortId: string; accepted: boolean };
+
+export function selectBrochure(
+  selections: Record<string, BrochureSelection>,
+  relativePath: string,
+  resortId: string,
+  accepted: boolean
+): Record<string, BrochureSelection> {
+  const next = { ...selections };
+  if (accepted && resortId) {
+    for (const [path, selection] of Object.entries(next)) {
+      if (path !== relativePath && selection.resortId === resortId && selection.accepted) {
+        next[path] = { ...selection, accepted: false };
+      }
+    }
+  }
+  next[relativePath] = { resortId, accepted: accepted && Boolean(resortId) };
+  return next;
+}
+
 export function signedBrochureTusConfig(projectUrl: string, anonKey: string, token: string) {
   const storageUrl = projectUrl.replace(".supabase.co", ".storage.supabase.co");
   return {

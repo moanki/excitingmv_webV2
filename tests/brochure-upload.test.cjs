@@ -2,6 +2,9 @@ const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
 const test = require("node:test");
 const ts = require("typescript");
+const brochure = {};
+new Function("exports", ts.transpileModule(readFileSync(require.resolve("../lib/brochure-import.ts"), "utf8"),
+  { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText)(brochure);
 
 test("manual resort selection accepts the PDF and imports with progress and attachment feedback", async () => {
   const states = [];
@@ -28,7 +31,7 @@ test("manual resort selection accepts the PDF and imports with progress and atta
     },
     "@/lib/supabase/browser": {},
     "@/lib/public-env": { publicEnv: { NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co", NEXT_PUBLIC_SUPABASE_ANON_KEY: "public" } },
-    "@/lib/brochure-import": { signedBrochureTusConfig: () => ({}) },
+    "@/lib/brochure-import": brochure,
     "tus-js-client": {
       Upload: class {
         constructor(_, options) { this.options = options; }
@@ -43,7 +46,7 @@ test("manual resort selection accepts the PDF and imports with progress and atta
     const body = JSON.parse(options.body);
     requests.push(body);
     const data = body.mode === "preview" ? {
-      rows: [{ relativePath: path, folder: "Reviewed resort", name: "factsheet.pdf", size: 1, resortId: "", status: "Review required.", duplicate: false }],
+      rows: [{ relativePath: path, folder: "Reviewed resort", name: "factsheet.pdf", size: 1, resortId: "", status: "Review required.", duplicate: true }],
       resorts: [{ id: "chosen-resort", name: "Chosen resort", hasBrochure: true }]
     } : body.mode === "sign" ? { bucket: "resort-brochures", path: "new.pdf", token: "signed" } : { path: "new.pdf" };
     return { ok: true, json: async () => ({ ok: true, data }) };
@@ -66,6 +69,7 @@ test("manual resort selection accepts the PDF and imports with progress and atta
   find(tree, (e) => e.type === "select").props.onChange({ target: { value: "chosen-resort" } });
   tree = render();
   assert.equal(find(tree, (e) => e.type === "input" && e.props.type === "checkbox").props.checked, true);
+  assert.equal(find(tree, (e) => e.type === "input" && e.props.type === "checkbox").props.disabled, false);
   const button = find(tree, (e) => e.type === "button" && e.props.onClick?.name === "importAccepted");
   assert.equal(button.props.disabled, false);
   await button.props.onClick();
