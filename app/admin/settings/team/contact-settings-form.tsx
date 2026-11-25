@@ -119,11 +119,20 @@ export function ContactSettingsForm({ contact, mediaLibrary }: {
                       <button className="te-text-button" type="button" aria-label={`Remove ${department.name || "department"}`} disabled={blocked}
                         title={count ? "Reassign this department's contacts before removing it." : departments.length === 1 ? "Keep at least one department." : "Remove department"}
                         onClick={() => setDepartments((items) => items.filter((item) => item.id !== department.id))}>Remove</button>
+                      <label className="field te-department-display">Website display
+                        <select name={`department_${index}_displayStyle`} value={department.displayStyle ?? "contacts"}
+                          aria-label={`Website display for ${department.name || "department " + (index + 1)}`}
+                          onChange={(event) => setDepartments((items) => items.map((item) => item.id === department.id
+                            ? { ...item, displayStyle: event.target.value as "contacts" | "portraits" } : item))}>
+                          <option value="contacts">Contact cards</option>
+                          <option value="portraits">Portraits with captions</option>
+                        </select>
+                      </label>
                     </div>
                   );
                 })}
               </div>
-              <p className="te-help">Lower display orders appear first on the website after publishing. Reassign contacts before removing their department.</p>
+              <p className="te-help">Portrait departments appear first and show only the photo, name and role. Display order sorts departments within each display style. Reassign contacts before removing their department.</p>
             </section>
           </div>
 

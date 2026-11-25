@@ -1,0 +1,71 @@
+.team-directory .team-portrait-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 36px 28px;
+  max-width: 1040px;
+}
+
+.team-directory .team-portrait {
+  min-width: 0;
+  margin: 0;
+}
+
+.team-directory .team-portrait__image {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--brand-paper);
+  color: var(--brand-navy);
+}
+
+.team-directory .team-portrait__image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.team-directory .team-portrait__initials {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 3rem;
+}
+
+.team-directory .team-portrait figcaption {
+  padding-top: 16px;
+}
+
+html body:not(.admin-body) .team-directory .team-portrait h3 {
+  margin: 0;
+  color: var(--brand-navy);
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.375rem;
+  font-weight: 500;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.team-directory .team-portrait figcaption p {
+  margin: 6px 0 0;
+  color: var(--text-soft);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .team-directory .team-portrait-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 20px;
+  }
+}
+
+@media (max-width: 650px) {
+  .team-directory .team-portrait-grid {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 380px;
+    gap: 32px;
+  }
+}

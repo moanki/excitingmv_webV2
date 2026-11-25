@@ -34,6 +34,8 @@ test("collapsed contact editors keep the complete save payload and separate draf
   assert.match(html, /alt="Team page banner preview"/);
   assert.match(html, /name="department_count" value="4"/);
   assert.equal((html.match(/name="department_\d+_displayOrder"/g) ?? []).length, 4);
+  assert.equal((html.match(/name="department_\d+_displayStyle"/g) ?? []).length, 4);
+  assert.match(html, /Portraits with captions/);
   assert.match(html, /name="contact_count" value="2"/);
   assert.equal((html.match(/data-contact-key=/g) ?? []).length, 2);
   assert(!/data-contact-key="[^"]+" open/.test(html), "editors start collapsed");

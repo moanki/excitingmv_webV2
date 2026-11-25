@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { validateTeamDepartments } from "@/lib/team-departments";
+import { validateTeamDepartments, type TeamDepartment } from "@/lib/team-departments";
 
 import {
   defaultAboutPageContent,
@@ -452,6 +452,7 @@ export async function saveContactDraftAction(_: ActionState, formData: FormData)
       departments: indexesFromCount(formData, "department_count", 0).map((index) => ({
         id: stringValue(formData, `department_${index}_id`).trim(),
         name: stringValue(formData, `department_${index}_name`).trim(),
+        displayStyle: (stringValue(formData, `department_${index}_displayStyle`) || "contacts") as TeamDepartment["displayStyle"],
         displayOrder: formData.has(`department_${index}_displayOrder`)
           ? Number(stringValue(formData, `department_${index}_displayOrder`))
           : index + 1

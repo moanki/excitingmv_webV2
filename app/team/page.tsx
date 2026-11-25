@@ -4,6 +4,7 @@ import { Mail, MessageCircle } from "lucide-react";
 
 import { optimizedImageUrl } from "@/lib/image-urls";
 import { getCatalogueContent, getContactPageContent } from "@/lib/site-content";
+import "./team-portraits.css";
 
 function whatsappHref(value: string) {
   const digits = value.replace(/[^\d]/g, "");
@@ -48,7 +49,29 @@ export default async function ContactPage() {
           {departments.map((department) => (
             <section className="contact-team-department" key={department.id} aria-label={department.name}>
               <h2>{department.name}</h2>
-              <div className="contact-registry-grid">
+              {department.displayStyle === "portraits" ? (
+                <div className="team-portrait-grid">
+                  {department.contacts.map((person, index) => (
+                    <figure className="team-portrait" key={index}>
+                      <div className="team-portrait__image">
+                        {person.photoUrl ? (
+                          <img
+                            src={optimizedImageUrl(person.photoUrl, { width: 640, height: 800, quality: 85 })}
+                            alt={person.contactName}
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span className="team-portrait__initials" aria-hidden="true">{initials(person.contactName)}</span>
+                        )}
+                      </div>
+                      <figcaption>
+                        <h3>{person.contactName}</h3>
+                        {person.role && <p>{person.role}</p>}
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              ) : <div className="contact-registry-grid">
                 {department.contacts.map((region, index) => (
                   <article className="contact-registry-entry" key={`${region.email}-${index}`}>
                     {region.regionTitle || region.location ? (
@@ -85,7 +108,7 @@ export default async function ContactPage() {
                     </div>
                   </article>
                 ))}
-              </div>
+              </div>}
             </section>
           ))}
 

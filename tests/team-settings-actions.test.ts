@@ -43,6 +43,7 @@ test("team settings preserve legacy contacts, save drafts separately, publish as
   const form = new FormData();
   const fields = { title: "Our People", department_count: "2", department_0_id: "sales-reservations", department_0_name: "Sales & Reservations", department_1_id: "finance", department_1_name: "Finance", contact_count: "1", contact_0_departmentId: "finance", contact_0_contactName: "Finance contact", contact_0_email: "finance@example.com", contact_0_role: "Accountant", contact_0_displayOrder: "1", contact_0_enabled: "on", intent: "draft" };
   for (const [key, value] of Object.entries(fields)) form.set(key, value);
+  form.set("department_1_displayStyle", "portraits");
   assert.equal((await actions.saveContactDraftAction(undefined, form)).message, "Team draft saved.");
   assert.equal((await content.getContactPageContent("draft")).content.title, "Our People");
   assert.equal((await content.getContactPageContent()).content.regions[0].contactName, "Existing contact");
@@ -52,6 +53,7 @@ test("team settings preserve legacy contacts, save drafts separately, publish as
   assert.equal(published.regions[0].departmentId, "finance");
   assert.equal(published.regions[0].regionTitle, "");
   assert.equal(published.regions[0].whatsapp, "");
+  assert.equal(published.departments[1].displayStyle, "portraits");
   assert.equal(departments.groupTeamContacts(published.departments, published.regions)[0].name, "Finance");
   assert(revalidated.includes("/team"));
 
