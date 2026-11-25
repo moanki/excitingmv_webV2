@@ -41,7 +41,8 @@ export function ContactSettingsForm({ contact, mediaLibrary }: {
         <Link className="button-muted" href="/team" target="_blank" rel="noreferrer">View team page</Link>
       </header>
 
-      <form action={action} className="te-form" onInvalidCapture={(event) => {
+      {/* Keep controlled selections when React resets the form after a successful action. */}
+      <form action={action} className="te-form" onReset={(event) => event.preventDefault()} onInvalidCapture={(event) => {
         const key = (event.target as HTMLElement).closest("details[data-contact-key]")?.getAttribute("data-contact-key");
         if (key) setExpandedContact(key);
       }}>
