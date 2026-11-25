@@ -6,7 +6,7 @@ import { useAdminActionFeedback } from "@/components/admin/admin-action-feedback
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { publicEnv } from "@/lib/public-env";
-import { signedBrochureTusConfig } from "@/lib/brochure-import";
+import { selectBrochure, signedBrochureTusConfig, type BrochureSelection } from "@/lib/brochure-import";
 import type { PropertyType } from "@/lib/services/resort-service";
 
 type ResortOption = { id: string; name: string; hasBrochure: boolean };
@@ -170,12 +170,12 @@ export function BrochureImportPanel({ propertyType = "resort" }: { propertyType?
   const [files, setFiles] = useState<Map<string, File>>(new Map());
   const [rows, setRows] = useState<PreviewRow[]>([]);
   const [resorts, setResorts] = useState<ResortOption[]>([]);
-  const [selections, setSelections] = useState<Record<string, { resortId: string; accepted: boolean }>>({});
+  const [selections, setSelections] = useState<Record<string, BrochureSelection>>({});
   const [results, setResults] = useState<Record<string, string>>({});
   const [pendingPaths, setPendingPaths] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const acceptedCount = rows.filter((row) => !row.duplicate && selections[row.relativePath]?.accepted && results[row.relativePath] !== "Uploaded").length;
+  const acceptedCount = rows.filter((row) => selections[row.relativePath]?.accepted && results[row.relativePath] !== "Uploaded").length;
 
   async function selectFolder(event: ChangeEvent<HTMLInputElement>) {
     const selected = [...(event.target.files ?? [])].filter((file) => /\.pdf$/i.test(file.name));
@@ -197,10 +197,8 @@ export function BrochureImportPanel({ propertyType = "resort" }: { propertyType?
       });
       setRows(preview.rows);
       setResorts(preview.resorts);
-      setSelections(Object.fromEntries(preview.rows.map((row) => [row.relativePath, {
-        resortId: row.resortId,
-        accepted: Boolean(row.resortId) && !row.duplicate
-      }])));
+      setSelections(preview.rows.reduce<Record<string, BrochureSelection>>((current, row) =>
+        selectBrochure(current, row.relativePath, row.resortId, Boolean(row.resortId) && !row.duplicate), {}));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Preview failed.");
     } finally {
@@ -209,10 +207,12 @@ export function BrochureImportPanel({ propertyType = "resort" }: { propertyType?
   }
 
   async function importAccepted() {
-    const accepted = rows.filter((row) => !row.duplicate && selections[row.relativePath]?.accepted && results[row.relativePath] !== "Uploaded");
+    const accepted = rows.filter((row) => selections[row.relativePath]?.accepted && results[row.relativePath] !== "Uploaded");
     const ids = accepted.map((row) => selections[row.relativePath].resortId);
     if (!accepted.length || ids.some((id) => !id) || new Set(ids).size !== ids.length) {
-      const error = `Accept one PDF per ${singular.toLowerCase()} and resolve any duplicate selections.`;
+      const error = !accepted.length ? "Select at least one PDF to import."
+        : ids.some((id) => !id) ? `Choose a ${singular.toLowerCase()} for each selected PDF.`
+        : `Several selected PDFs point to the same ${singular.toLowerCase()}. Choose the PDF you want to use for that property.`;
       setMessage(error);
       notifyError("Brochure import needs attention", error);
       return;
@@ -288,12 +288,16 @@ export function BrochureImportPanel({ propertyType = "resort" }: { propertyType?
               return <tr key={row.relativePath}>
                 <td>{row.name}</td>
                 <td>{row.folder || "Invalid path"}</td>
-                <td><select className="admin-select" aria-label={`${singular} for ${row.name}`} value={selection.resortId} disabled={invalid || busy || Boolean(pendingPaths[row.relativePath]) || results[row.relativePath] === "Uploaded"} onChange={(event) => setSelections((current) => ({ ...current, [row.relativePath]: { resortId: event.target.value, accepted: Boolean(event.target.value) } }))}>
+                <td><select className="admin-select" aria-label={`${singular} for ${row.name}`} value={selection.resortId} disabled={invalid || busy || Boolean(pendingPaths[row.relativePath]) || results[row.relativePath] === "Uploaded"} onChange={(event) => setSelections((current) => selectBrochure(current, row.relativePath, event.target.value, Boolean(event.target.value)))}>
                   <option value="">Choose {singular.toLowerCase()}</option>
                   {resorts.map((resort) => <option value={resort.id} key={resort.id}>{resort.name}{resort.hasBrochure ? " (replace)" : ""}</option>)}
                 </select></td>
-                <td>{results[row.relativePath] || (row.duplicate ? `Multiple PDFs in this ${singular.toLowerCase()} folder; keep one and preview again` : row.status)} {pendingPaths[row.relativePath] ? <button type="button" className="admin-btn admin-btn--ghost" disabled={busy} onClick={() => discardPending(row)}>Discard staged PDF</button> : null}</td>
-                <td><input type="checkbox" aria-label={`Accept ${row.name}`} checked={selection.accepted} disabled={invalid || row.duplicate || !selection.resortId || busy || results[row.relativePath] === "Uploaded"} onChange={(event) => setSelections((current) => ({ ...current, [row.relativePath]: { ...selection, accepted: event.target.checked } }))} /></td>
+                <td>{results[row.relativePath] || (selection.accepted && resorts.find((resort) => resort.id === selection.resortId)?.hasBrochure
+                  ? "Selected — replaces the existing brochure"
+                  : !selection.accepted && selection.resortId && Object.values(selections).some((item) => item.accepted && item.resortId === selection.resortId)
+                    ? "Skipped — another PDF is selected for this property"
+                    : row.duplicate ? "Multiple PDFs in this folder — accept the one you want to use" : row.status)} {pendingPaths[row.relativePath] ? <button type="button" className="admin-btn admin-btn--ghost" disabled={busy} onClick={() => discardPending(row)}>Discard staged PDF</button> : null}</td>
+                <td><input type="checkbox" aria-label={`Accept ${row.name}`} checked={selection.accepted} disabled={invalid || !selection.resortId || busy || results[row.relativePath] === "Uploaded"} onChange={(event) => setSelections((current) => selectBrochure(current, row.relativePath, selection.resortId, event.target.checked))} /></td>
               </tr>;
             })}</tbody>
           </table>
@@ -306,7 +310,7 @@ export function BrochureImportPanel({ propertyType = "resort" }: { propertyType?
       </div> : null}
       {rows.length ? <div className="admin-form-actions">
         <button type="button" className="admin-btn admin-btn--secondary" disabled={busy || !acceptedCount} onClick={importAccepted}><UploadCloud className="admin-icon" /> {busy ? "Importing..." : "Import Accepted Brochures"}</button>
-        <span className="field__help">{acceptedCount} brochures ready to import. Choose a property to accept its match, or untick Accept to skip it.</span>
+        <span className="field__help">{acceptedCount} brochures ready to import. Accepted PDFs replace existing brochures. Accepting another PDF for the same property deselects the previous choice.</span>
       </div> : null}
       {message ? <p role="status" className="field__help">{message}</p> : null}
     </section>
