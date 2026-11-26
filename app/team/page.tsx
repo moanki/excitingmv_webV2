@@ -50,7 +50,7 @@ export default async function ContactPage() {
               <h2>{department.name}</h2>
               <div className="contact-registry-grid">
                 {department.contacts.map((region, index) => (
-                  <article className="contact-registry-entry" key={`${region.email}-${index}`}>
+                  <article className={`contact-registry-entry${region.email || region.whatsapp ? "" : " contact-registry-entry--compact"}`} key={`${region.email}-${index}`}>
                     {region.regionTitle || region.location ? (
                       <div className="contact-registry-entry__heading">
                         {region.regionTitle ? <p>{region.regionTitle}</p> : null}
@@ -73,7 +73,7 @@ export default async function ContactPage() {
                         {region.role ? <span>{region.role}</span> : null}
                       </div>
                     </div>
-                    <div className="contact-registry-entry__links">
+                    {(region.email || region.whatsapp) && <div className="contact-registry-entry__links">
                       {region.email ? <a href={`mailto:${region.email}`}>
                         <Mail className="contact-registry-entry__link-icon" aria-hidden="true" />
                         <span>{region.email}</span>
@@ -82,7 +82,7 @@ export default async function ContactPage() {
                         <MessageCircle className="contact-registry-entry__link-icon" aria-hidden="true" />
                         <span>{region.whatsapp} WhatsApp</span>
                       </a> : null}
-                    </div>
+                    </div>}
                   </article>
                 ))}
               </div>

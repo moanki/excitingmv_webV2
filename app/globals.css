@@ -30878,6 +30878,10 @@ html body:not(.admin-body) .team-directory .contact-registry-entry {
   box-shadow: 0 12px 32px rgb(16 32 35 / 7%);
   transform: none;
 }
+html body:not(.admin-body) .team-directory .contact-registry-entry--compact {
+  min-height: 0;
+  align-self: start;
+}
 html body:not(.admin-body) .team-directory .contact-registry-entry::before {
   content: "";
   display: block;
