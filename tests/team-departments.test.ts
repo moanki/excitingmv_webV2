@@ -47,15 +47,3 @@ test("department display order sorts the website, keeps ties stable and preserve
     assert.throws(() => validateTeamDepartments([{ id: "a", name: "Sales", displayOrder }], []), /positive whole number/);
   }
 });
-
-test("portrait departments appear before contact departments and old settings default to contact cards", () => {
-  const departments = normalizeTeamDepartments([
-    { id: "sales", name: "Sales", displayOrder: 1 },
-    { id: "board", name: "Board", displayOrder: 3, displayStyle: "portraits" },
-    { id: "executives", name: "Executive team", displayOrder: 2, displayStyle: "portraits" }
-  ]);
-  const contacts = departments.map(({ id }) => ({ departmentId: id, enabled: true }));
-  assert.equal(departments[0].displayStyle, "contacts");
-  assert.deepEqual(groupTeamContacts(departments, contacts).map(({ id }) => id), ["executives", "board", "sales"]);
-  assert.throws(() => validateTeamDepartments([{ id: "a", name: "Sales", displayStyle: "unknown" as any }], []), /contact cards or portraits/);
-});

@@ -1,9 +1,4 @@
-export type TeamDepartment = {
-  id: string;
-  name: string;
-  displayOrder?: number;
-  displayStyle?: "contacts" | "portraits";
-};
+export type TeamDepartment = { id: string; name: string; displayOrder?: number };
 
 export const defaultTeamDepartments: TeamDepartment[] = [
   { id: "sales-reservations", name: "Sales & Reservations", displayOrder: 1 },
@@ -19,7 +14,6 @@ export function normalizeTeamDepartments(value: unknown): TeamDepartment[] {
       ? [{
         id: department.id,
         name: department.name,
-        displayStyle: department.displayStyle === "portraits" ? "portraits" : "contacts",
         displayOrder: Number.isInteger(department.displayOrder) && department.displayOrder > 0
           ? department.displayOrder
           : index + 1
@@ -36,9 +30,6 @@ export function validateTeamDepartments(departments: TeamDepartment[], contacts:
     const name = department.name.trim().toLowerCase();
     if (!department.id || !name) throw new Error("Every department needs a name.");
     if (ids.has(department.id) || names.has(name)) throw new Error("Department names must be unique.");
-    if (department.displayStyle !== undefined && !["contacts", "portraits"].includes(department.displayStyle)) {
-      throw new Error("Choose contact cards or portraits with captions for each department.");
-    }
     if (department.displayOrder !== undefined && (!Number.isInteger(department.displayOrder) || department.displayOrder < 1)) {
       throw new Error("Department display order must be a positive whole number.");
     }
@@ -53,10 +44,7 @@ export function validateTeamDepartments(departments: TeamDepartment[], contacts:
 export function groupTeamContacts<T extends { departmentId: string; enabled: boolean }>(departments: TeamDepartment[], contacts: T[]) {
   const visible = contacts.filter((contact) => contact.enabled);
   const groups = normalizeTeamDepartments(departments)
-    .sort((left, right) => {
-      const styleOrder = Number(right.displayStyle === "portraits") - Number(left.displayStyle === "portraits");
-      return styleOrder || (left.displayOrder ?? 0) - (right.displayOrder ?? 0);
-    })
+    .sort((left, right) => (left.displayOrder ?? 0) - (right.displayOrder ?? 0))
     .map((department) => ({
       ...department,
       contacts: visible.filter((contact) => contact.departmentId === department.id)
